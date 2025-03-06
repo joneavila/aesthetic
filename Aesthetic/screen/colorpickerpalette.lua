@@ -27,12 +27,25 @@ local COLOR_NAME_PADDING = 20
 local function getColorKeys()
 	-- Use the ordered keys directly from the colors module
 	local keys = {}
+
+	-- Filter colors based on the selected button type
+	local colorSuffix = state.lastSelectedColorButton == "background" and "600" or "200"
+
 	for _, key in ipairs(colors._ordered_keys) do
-		-- Skip the "white" color since it's hardcoded as foreground
-		if key ~= "white" then
-			table.insert(keys, key)
+		-- Include specific colors based on selection type
+		if state.lastSelectedColorButton == "background" then
+			-- For background colors, include black and all 600 shades
+			if key == "black" or string.find(key, colorSuffix .. "$") then
+				table.insert(keys, key)
+			end
+		else
+			-- For foreground colors, include white and all 200 shades
+			if key == "white" or string.find(key, colorSuffix .. "$") then
+				table.insert(keys, key)
+			end
 		end
 	end
+
 	return keys
 end
 
@@ -356,7 +369,7 @@ function colorpicker.update(dt)
 				)
 				local selectedKey = colorpickerState.colorKeys[selectedIndex]
 				if selectedKey then
-					menuScreen.setSelectedColor(state.lastSelectedButton, selectedKey)
+					menuScreen.setSelectedColor(state.lastSelectedColorButton, selectedKey)
 					if switchScreen then
 						switchScreen(MENU_SCREEN)
 						state.resetInputTimer()
@@ -369,6 +382,22 @@ end
 
 function colorpicker.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
+end
+
+-- Function called when entering this screen
+function colorpicker.onEnter()
+	-- Refresh color keys based on the current selection type (background or foreground)
+	colorpickerState.colorKeys = getColorKeys()
+
+	-- Reset selection to the first color
+	colorpickerState.selectedRow = 0
+	colorpickerState.selectedCol = 0
+
+	-- Start hover animation for the first color
+	colorpickerState.currentScale = 1
+	colorpickerState.scaleTween = tween.new(ANIMATION.DURATION, colorpickerState, {
+		currentScale = ANIMATION.SCALE,
+	}, "outQuad")
 end
 
 return colorpicker

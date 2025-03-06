@@ -34,6 +34,11 @@ constants.BUTTONS = {
 		colorKey = "background",
 	},
 	{
+		text = "Foreground color",
+		selected = false,
+		colorKey = "foreground",
+	},
+	{
 		text = "Font",
 		selected = false,
 		fontSelection = true,

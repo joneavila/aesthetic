@@ -10,15 +10,18 @@ local errorHandler = require("screen.menu.error_handler")
 local themeCreator = {}
 
 -- Function to create a preview image with the selected background color and "muOS" text
-local function createPreviewImage(outputPath, colorKey)
+local function createPreviewImage(outputPath)
 	-- Image dimensions
 	local width, height = 288, 216
 
 	-- Create a new image data object
 	local imageData = love.image.newImageData(width, height)
 
-	-- Get the background color
-	local bgColor = colors[colorKey] or colors.bg
+	-- Get the background color from state
+	local bgColor = colors[state.colors.background] or colors.bg
+
+	-- Get the foreground color
+	local fgColor = colors[state.colors.foreground] or colors.white
 
 	-- Fill the image with the background color
 	for y = 0, height - 1 do
@@ -36,8 +39,8 @@ local function createPreviewImage(outputPath, colorKey)
 
 	local selectedFontName = state.selectedFont
 
-	-- Draw "muOS" text in white, centered
-	love.graphics.setColor(1, 1, 1, 1)
+	-- Draw "muOS" text with the foreground color, centered
+	love.graphics.setColor(fgColor[1], fgColor[2], fgColor[3], 1)
 
 	-- Use the selected font for the preview
 	if selectedFontName == "Inter" then
@@ -161,7 +164,7 @@ function themeCreator.createTheme()
 	-- Remove any existing preview image that might have been copied from the template
 	os.execute('rm -f "' .. previewPath .. '"')
 
-	local success = createPreviewImage(previewPath, state.colors.background)
+	local success = createPreviewImage(previewPath)
 	if not success then
 		errorHandler.setError("Failed to create preview image")
 		return false

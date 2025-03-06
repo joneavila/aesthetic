@@ -206,7 +206,7 @@ function colorpickerhsv.draw()
 	local halfLine = lineWidth / 2
 
 	-- Draw current color preview
-	local currentColor = colors[state.colors[state.lastSelectedButton]]
+	local currentColor = colors[state.colors[state.lastSelectedColorButton]]
 	love.graphics.setColor(currentColor)
 	love.graphics.rectangle("fill", pickerState.previewX, EDGE_PADDING, pickerState.previewWidth, PREVIEW_HEIGHT)
 
@@ -505,7 +505,7 @@ function colorpickerhsv.update(dt)
 		if virtualJoystick:isGamepadDown("a") then
 			local r, g, b = hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
 			local colorKey = colors:addCustomColor(r, g, b)
-			menuScreen.setSelectedColor(state.lastSelectedButton, colorKey)
+			menuScreen.setSelectedColor(state.lastSelectedColorButton, colorKey)
 
 			-- Switch back to menu
 			if switchScreen then

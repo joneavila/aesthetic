@@ -215,7 +215,7 @@ function menu.update(dt)
 					state.resetInputTimer()
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
-					state.lastSelectedButton = button.colorKey
+					state.lastSelectedColorButton = button.colorKey
 					switchScreen(constants.COLORPICKERPALETTE_SCREEN)
 					state.resetInputTimer()
 				elseif button.text == "Create theme" then
