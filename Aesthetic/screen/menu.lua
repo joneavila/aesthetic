@@ -230,7 +230,28 @@ function menu.update(dt)
 			-- Find which button is selected
 			for _, button in ipairs(constants.BUTTONS) do
 				if button.selected then
-					if button.colorKey then
+					if button.fontSelection then
+						-- Font selection button - cycle to next font
+						local currentIndex = 1
+						for i, font in ipairs(constants.FONTS) do
+							if font.selected then
+								currentIndex = i
+								font.selected = false
+								break
+							end
+						end
+
+						-- Move to next font
+						local nextIndex = currentIndex + 1
+						if nextIndex > #constants.FONTS then
+							nextIndex = 1
+						end
+
+						-- Select the new font
+						constants.FONTS[nextIndex].selected = true
+						state.selectedFont = constants.FONTS[nextIndex].name
+						state.resetInputTimer()
+					elseif button.colorKey then
 						-- Any color selection button
 						if switchScreen then
 							state.lastSelectedButton = button.colorKey
