@@ -68,7 +68,7 @@ end
 -- Constants for border appearance
 local BORDER = {
 	NORMAL_WIDTH = 2,
-	SELECTED_WIDTH = 8,
+	SELECTED_WIDTH = 5,
 	CORNER_RADIUS = 12,
 }
 
