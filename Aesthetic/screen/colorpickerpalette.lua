@@ -251,7 +251,7 @@ function colorpicker.draw()
 		local text = "Custom"
 		local textWidth = state.fonts.header:getWidth(text)
 		local textX = (state.screenWidth - textWidth) / 2
-		local textY = customY + colorpickerState.squareSize + SQUARE_SPACING
+		local textY = state.screenHeight - BOTTOM_PADDING - state.fonts.header:getHeight() - COLOR_NAME_PADDING
 		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
 		love.graphics.print(text, textX, textY)
 	end
