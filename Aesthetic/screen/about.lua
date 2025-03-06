@@ -3,6 +3,7 @@ local state = require("state")
 local colors = require("colors")
 local controls = require("controls")
 local input = require("input")
+local version = require("version")
 
 local about = {}
 
@@ -11,8 +12,8 @@ local PADDING = 20
 local MENU_SCREEN = "menu"
 local ABOUT_TEXT = [[
 Check out the source code on GitHub!
-https://github.com/jonedav/aesthetic
-Made with LÖVE by @jonedav]]
+https://github.com/joneavila/aesthetic
+Made with LÖVE by @joneavila]]
 
 -- Store screen switching function
 local switchScreen = nil
@@ -35,7 +36,13 @@ function about.draw()
 	-- Draw header
 	love.graphics.setColor(colors.fg)
 	love.graphics.setFont(state.fonts.header)
-	love.graphics.printf(state.applicationName, PADDING, headerY, contentWidth, "center")
+	love.graphics.printf(
+		state.applicationName .. " " .. version.getVersionString(),
+		PADDING,
+		headerY,
+		contentWidth,
+		"center"
+	)
 
 	-- Draw body text
 	love.graphics.setFont(state.fonts.body)
