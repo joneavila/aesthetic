@@ -38,6 +38,7 @@ local BUTTON = {
 	COLOR_DISPLAY_SIZE = 30,
 	START_Y = nil, -- Will be calculated in load()
 	HELP_SIZE = 40, -- Size of the help button
+	BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 }
 
 -- Button state
@@ -48,8 +49,14 @@ local buttons = {
 		colorKey = "background",
 	},
 	{
+		text = "Font",
+		selected = false,
+		fontSelection = true,
+	},
+	{
 		text = "Create theme",
 		selected = false,
+		isBottomButton = true,
 	},
 	{
 		text = "?",
@@ -62,6 +69,20 @@ local buttons = {
 local ORIGINAL_TEMPLATE_DIR = os.getenv("TEMPLATE_DIR") or "template" -- Store original template path
 local WORKING_TEMPLATE_DIR = ORIGINAL_TEMPLATE_DIR .. "_working" -- Add working directory path
 local THEME_OUTPUT_DIR = WORKING_TEMPLATE_DIR
+
+-- Font options
+local FONTS = {
+	{
+		name = "Inter",
+		file = "inter.bin",
+		selected = state.selectedFont == "Inter",
+	},
+	{
+		name = "Nunito",
+		file = "nunito.bin",
+		selected = state.selectedFont == "Nunito",
+	},
+}
 
 -- Function to set error message
 local function setError(message)
@@ -232,9 +253,18 @@ local function createPreviewImage(outputPath, colorKey)
 	-- Clear the canvas with the background color
 	love.graphics.clear(bgColor[1], bgColor[2], bgColor[3], 1)
 
+	local selectedFontName = state.selectedFont
+
 	-- Draw "muOS" text in white, centered
 	love.graphics.setColor(1, 1, 1, 1) -- White color
-	love.graphics.setFont(state.fonts.title or state.fonts.body)
+
+	-- Use the selected font for the preview
+	if selectedFontName == "Inter" then
+		love.graphics.setFont(state.fonts.body)
+	else
+		love.graphics.setFont(state.fonts.nunito)
+	end
+
 	local text = "muOS"
 	local textWidth = love.graphics.getFont():getWidth(text)
 	local textHeight = love.graphics.getFont():getHeight()
@@ -308,6 +338,39 @@ local function createTheme()
 		end
 	end
 
+	-- Find the selected font file based on state.selectedFont
+	local selectedFontFile = nil
+	for _, font in ipairs(FONTS) do
+		if font.name == state.selectedFont then
+			selectedFontFile = font.file
+			break
+		end
+	end
+
+	-- Copy the selected font file as default.bin
+	if selectedFontFile then
+		local fontSourcePath = ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
+		local fontDestPath = THEME_OUTPUT_DIR .. "/font/default.bin"
+
+		-- Ensure the font directory exists
+		os.execute('mkdir -p "' .. THEME_OUTPUT_DIR .. '/font"')
+
+		-- Remove any existing default.bin that might have been copied from the template
+		os.execute('rm -f "' .. fontDestPath .. '"')
+
+		-- Copy the selected font file as default.bin
+		local cmd = string.format('cp "%s" "%s"', fontSourcePath, fontDestPath)
+		local success = os.execute(cmd)
+
+		if not (success == 0 or success == true) then
+			setError("Failed to copy font file: " .. selectedFontFile)
+			return false
+		end
+	else
+		setError("No font selected")
+		return false
+	end
+
 	-- Create preview image
 	local previewPath = THEME_OUTPUT_DIR .. "/preview.png"
 
@@ -360,10 +423,25 @@ end
 
 function menu.load()
 	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
-	local totalButtonHeight = (#buttons * BUTTON.HEIGHT) + ((#buttons - 1) * BUTTON.PADDING)
-	local availableHeight = state.screenHeight - BOTTOM_PADDING
+
+	-- Count regular buttons (not "Help" or "Create theme" button)
+	local regularButtonCount = 0
+	for _, button in ipairs(buttons) do
+		if not button.isHelp and not button.isBottomButton then
+			regularButtonCount = regularButtonCount + 1
+		end
+	end
+
+	-- Calculate total height needed for regular buttons
+	local totalButtonHeight = (regularButtonCount * BUTTON.HEIGHT) + ((regularButtonCount - 1) * BUTTON.PADDING)
+	local availableHeight = state.screenHeight - BOTTOM_PADDING - BUTTON.BOTTOM_MARGIN
 	local topMargin = (availableHeight - totalButtonHeight) / 2
 	BUTTON.START_Y = topMargin
+
+	-- Initialize font selection based on state
+	for _, font in ipairs(FONTS) do
+		font.selected = (font.name == state.selectedFont)
+	end
 end
 
 local function drawButton(button, x, y, isSelected)
@@ -432,6 +510,75 @@ local function drawButton(button, x, y, isSelected)
 				y + (BUTTON.HEIGHT - textHeight) / 2
 			)
 		end
+	-- If this is a font selection button
+	elseif button.fontSelection then
+		-- Get the selected font name from state
+		local selectedFontName = state.selectedFont
+
+		-- Calculate the right edge position
+		local rightEdge = x + BUTTON.WIDTH - 20
+
+		-- Use the appropriate font for measurement and display
+		if selectedFontName == "Inter" then
+			love.graphics.setFont(state.fonts.body)
+		else
+			love.graphics.setFont(state.fonts.nunito)
+		end
+
+		-- Calculate font name width for positioning
+		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
+
+		-- Calculate positions for all elements
+		local arrowWidth = 10
+		local arrowSpacing = 15
+
+		-- Fix: Add extra spacing to the right arrow to balance the visual gaps
+		local rightArrowExtraSpacing = 8
+
+		-- Position elements at the right edge
+		local arrowY = y + (BUTTON.HEIGHT / 2)
+
+		-- Calculate total width needed
+		local totalWidth = fontNameWidth + (2 * arrowSpacing) + rightArrowExtraSpacing + (2 * arrowWidth)
+
+		-- Calculate starting position from right edge
+		local startX = rightEdge - totalWidth
+
+		-- Position each element with exact spacing
+		local leftArrowX = startX
+		local fontNameX = leftArrowX + arrowWidth + arrowSpacing
+		local rightArrowX = fontNameX + fontNameWidth + arrowSpacing + rightArrowExtraSpacing
+
+		local fontNameY = y + (BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
+
+		-- Draw left arrow
+		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+		love.graphics.polygon(
+			"fill",
+			leftArrowX,
+			arrowY,
+			leftArrowX + arrowWidth,
+			arrowY - arrowWidth,
+			leftArrowX + arrowWidth,
+			arrowY + arrowWidth
+		)
+
+		-- Draw font name
+		love.graphics.print(selectedFontName, fontNameX, fontNameY)
+
+		-- Draw right arrow
+		love.graphics.polygon(
+			"fill",
+			rightArrowX,
+			arrowY,
+			rightArrowX - arrowWidth,
+			arrowY - arrowWidth,
+			rightArrowX - arrowWidth,
+			arrowY + arrowWidth
+		)
+
+		-- Reset font
+		love.graphics.setFont(state.fonts.body)
 	end
 end
 
@@ -515,16 +662,41 @@ function menu.draw()
 	love.graphics.clear()
 
 	-- Draw regular buttons
+	local regularButtonCount = 0
 	for i, button in ipairs(buttons) do
-		if not button.isHelp then
-			local y = BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
+		if not button.isHelp and not button.isBottomButton then
+			local y = BUTTON.START_Y + regularButtonCount * (BUTTON.HEIGHT + BUTTON.PADDING)
 			drawButton(button, BUTTON.PADDING, y, button.selected)
+			regularButtonCount = regularButtonCount + 1
+		end
+	end
+
+	-- Draw "Create theme" button at the bottom
+	for _, button in ipairs(buttons) do
+		if button.isBottomButton then
+			local y = state.screenHeight - BUTTON.BOTTOM_MARGIN
+			drawButton(button, BUTTON.PADDING, y, button.selected)
+			break
 		end
 	end
 
 	-- Draw help button in top right
-	local helpButton = buttons[#buttons]
-	drawButton(helpButton, state.screenWidth - BUTTON.PADDING - BUTTON.HELP_SIZE, BUTTON.PADDING, helpButton.selected)
+	local helpButton = nil
+	for _, button in ipairs(buttons) do
+		if button.isHelp then
+			helpButton = button
+			break
+		end
+	end
+
+	if helpButton then
+		drawButton(
+			helpButton,
+			state.screenWidth - BUTTON.PADDING - BUTTON.HELP_SIZE,
+			BUTTON.PADDING,
+			helpButton.selected
+		)
+	end
 
 	-- Draw error message if present
 	if errorMessage then
@@ -559,7 +731,6 @@ function menu.draw()
 		drawPopup()
 	end
 
-	-- Draw controls
 	controls.draw({
 		{
 			icon = "d_pad.png",
@@ -611,29 +782,90 @@ function menu.update(dt)
 		local virtualJoystick = require("input").virtualJoystick
 		local moved = false
 
+		-- Get ordered list of buttons for navigation (excluding help button)
+		local navButtons = {}
+		local helpButton = nil
+
+		-- First add regular buttons
+		for _, button in ipairs(buttons) do
+			if not button.isHelp and not button.isBottomButton then
+				table.insert(navButtons, button)
+			elseif button.isHelp then
+				helpButton = button
+			end
+		end
+
+		-- Then add "Create theme" button
+		for _, button in ipairs(buttons) do
+			if button.isBottomButton then
+				table.insert(navButtons, button)
+				break
+			end
+		end
+
+		-- Add help button
+		if helpButton then
+			table.insert(navButtons, helpButton)
+		end
+
 		-- Handle navigation
 		if virtualJoystick:isGamepadDown("dpup") then
-			for i = 1, #buttons do
-				if buttons[i].selected then
-					buttons[i].selected = false
+			for i, button in ipairs(navButtons) do
+				if button.selected then
+					button.selected = false
 					if i > 1 then
-						buttons[i - 1].selected = true
+						navButtons[i - 1].selected = true
 					else
-						buttons[#buttons].selected = true -- Wrap to help button
+						navButtons[#navButtons].selected = true -- Wrap to last button
 					end
 					moved = true
 					break
 				end
 			end
 		elseif virtualJoystick:isGamepadDown("dpdown") then
-			for i = 1, #buttons do
-				if buttons[i].selected then
-					buttons[i].selected = false
-					if i < #buttons then
-						buttons[i + 1].selected = true
+			for i, button in ipairs(navButtons) do
+				if button.selected then
+					button.selected = false
+					if i < #navButtons then
+						navButtons[i + 1].selected = true
 					else
-						buttons[1].selected = true -- Wrap to first button
+						navButtons[1].selected = true -- Wrap to first button
 					end
+					moved = true
+					break
+				end
+			end
+		elseif virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+			-- Check if a font selection button is selected
+			for _, button in ipairs(buttons) do
+				if button.selected and button.fontSelection then
+					-- Find the currently selected font
+					local currentIndex = 1
+					for i, font in ipairs(FONTS) do
+						if font.selected then
+							currentIndex = i
+							font.selected = false
+							break
+						end
+					end
+
+					-- Calculate the next font index based on direction
+					local nextIndex = currentIndex
+					if virtualJoystick:isGamepadDown("dpleft") then
+						nextIndex = currentIndex - 1
+						if nextIndex < 1 then
+							nextIndex = #FONTS
+						end
+					else -- dpright
+						nextIndex = currentIndex + 1
+						if nextIndex > #FONTS then
+							nextIndex = 1
+						end
+					end
+
+					-- Select the new font
+					FONTS[nextIndex].selected = true
+					state.selectedFont = FONTS[nextIndex].name
 					moved = true
 					break
 				end

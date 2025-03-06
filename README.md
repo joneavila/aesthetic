@@ -20,7 +20,7 @@
 
 ## ✨ Features
 
-- **Customize** your background color to match your style
+- **Customize** your background color and font to match your style
 - **Export** your theme directly to your theme collection
 
 ## 📦 Installation
@@ -55,6 +55,7 @@ Want to improve **Aesthetic**?
 ## 🌟 Credits
 
 - [**Inter**](https://github.com/rsms/inter) by Rasmus Andersson • Font • [SIL Open Font License 1.1](Aesthetic/assets/fonts/inter/OFL.txt)
+- [**Nunito**](https://github.com/googlefonts/nunito) by Vernon Adams • Font • [SIL Open Font License 1.1](Aesthetic/assets/fonts/nunito/OFL.txt)
 - [**Monaspace Neon**](https://github.com/githubnext/monaspace) by GitHub Next • Font • [SIL Open Font License 1.1](Aesthetic/assets/fonts/monaspace/LICENSE)
 - [**Lucide Icons**](https://github.com/lucide-icons/lucide) by Cole Bemis and Lucide Contributors • Icons • [ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
 - [**Material Icons**](https://github.com/google/material-design-icons) by Google • Icons • [Apache 2.0 License](https://github.com/google/material-design-icons/blob/master/LICENSE)

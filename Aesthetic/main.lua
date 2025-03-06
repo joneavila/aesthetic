@@ -51,12 +51,16 @@ local function setupFonts()
 	local fontSizeMono = 48 * (state.screenHeight / maxScreenHeight)
 	local fontMono = love.graphics.newFont("assets/fonts/monaspace/MonaspaceNeon-Bold-Subset.otf", fontSizeMono)
 
+	local fontSizeNunito = 24 * (state.screenHeight / maxScreenHeight)
+	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
+
 	-- Store fonts in a table for easy access
 	state.fonts = {
 		header = fontHeader,
 		body = fontBody,
 		caption = fontCaption,
 		mono = fontMono,
+		nunito = fontNunito,
 	}
 end
 

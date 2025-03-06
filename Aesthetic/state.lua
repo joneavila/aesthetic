@@ -14,6 +14,7 @@ local state = {
 		background = "red700", -- Default background color
 		foreground = "white", -- Default foreground color (currently unused)
 	},
+	selectedFont = "Inter", -- Default selected font
 }
 
 return state
