@@ -43,11 +43,6 @@ constants.BUTTONS = {
 		selected = false,
 		isBottomButton = true,
 	},
-	{
-		text = "?",
-		selected = false,
-		isHelp = true,
-	},
 }
 
 -- Popup buttons

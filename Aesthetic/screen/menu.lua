@@ -18,20 +18,16 @@ local switchScreen = nil
 function menu.load()
 	constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING * 2)
 
-	-- Count regular buttons (not "Help" or "Create theme" button)
+	-- Count regular buttons (not "Create theme" button)
 	local regularButtonCount = 0
 	for _, button in ipairs(constants.BUTTONS) do
-		if not button.isHelp and not button.isBottomButton then
+		if not button.isBottomButton then
 			regularButtonCount = regularButtonCount + 1
 		end
 	end
 
-	-- Calculate total height needed for regular buttons
-	local totalButtonHeight = (regularButtonCount * constants.BUTTON.HEIGHT)
-		+ ((regularButtonCount - 1) * constants.BUTTON.PADDING)
-	local availableHeight = state.screenHeight - constants.BOTTOM_PADDING - constants.BUTTON.BOTTOM_MARGIN
-	local topMargin = (availableHeight - totalButtonHeight) / 2
-	constants.BUTTON.START_Y = topMargin
+	-- Fixed top padding
+	constants.BUTTON.START_Y = constants.BUTTON.PADDING
 
 	-- Initialize font selection based on state
 	for _, font in ipairs(constants.FONTS) do
@@ -48,15 +44,7 @@ function menu.draw()
 	local regularButtonCount = 0
 
 	for _, button in ipairs(constants.BUTTONS) do
-		if button.isHelp then
-			-- Draw "Help" button in top right
-			ui.drawButton(
-				button,
-				state.screenWidth - constants.BUTTON.PADDING - constants.BUTTON.HELP_BUTTON_SIZE,
-				constants.BUTTON.PADDING,
-				button.selected
-			)
-		elseif button.isBottomButton then
+		if button.isBottomButton then
 			-- Draw "Create theme" button at the bottom
 			local y = state.screenHeight - constants.BUTTON.BOTTOM_MARGIN
 			ui.drawButton(button, constants.BUTTON.PADDING, y, button.selected)
@@ -85,6 +73,10 @@ function menu.draw()
 		{
 			icon = "a.png",
 			text = "Select",
+		},
+		{
+			icon = "y.png",
+			text = "About",
 		},
 		{
 			icon = "b.png",
@@ -131,16 +123,13 @@ function menu.update(dt)
 		local virtualJoystick = require("input").virtualJoystick
 		local moved = false
 
-		-- Get ordered list of buttons for navigation (excluding "Help" button)
+		-- Get ordered list of buttons for navigation
 		local navButtons = {}
-		local helpButton = nil
 
 		-- Add regular buttons
 		for _, button in ipairs(constants.BUTTONS) do
-			if not button.isHelp and not button.isBottomButton then
+			if not button.isBottomButton then
 				table.insert(navButtons, button)
-			elseif button.isHelp then
-				helpButton = button
 			end
 		end
 
@@ -152,12 +141,7 @@ function menu.update(dt)
 			end
 		end
 
-		-- Add "Help" button
-		if helpButton then
-			table.insert(navButtons, helpButton)
-		end
-
-		-- Handle navigation
+		-- Handle D-pad
 		if virtualJoystick:isGamepadDown("dpup") then
 			for i, button in ipairs(navButtons) do
 				if button.selected then
@@ -221,9 +205,18 @@ function menu.update(dt)
 			end
 		end
 
-		-- Handle exit
+		-- Handle B button
 		if virtualJoystick:isGamepadDown("b") then
 			love.event.quit()
+			return
+		end
+
+		-- Handle Y button
+		if virtualJoystick:isGamepadDown("y") then
+			if switchScreen then
+				switchScreen(constants.ABOUT_SCREEN)
+				state.resetInputTimer()
+			end
 			return
 		end
 
@@ -232,17 +225,12 @@ function menu.update(dt)
 			state.resetInputTimer()
 		end
 
-		-- Check for selection
+		-- Handle A button
 		if virtualJoystick:isGamepadDown("a") then
 			-- Find which button is selected
 			for _, button in ipairs(constants.BUTTONS) do
 				if button.selected then
-					if button.isHelp then
-						if switchScreen then
-							switchScreen(constants.ABOUT_SCREEN)
-							state.resetInputTimer()
-						end
-					elseif button.colorKey then
+					if button.colorKey then
 						-- Any color selection button
 						if switchScreen then
 							state.lastSelectedButton = button.colorKey
