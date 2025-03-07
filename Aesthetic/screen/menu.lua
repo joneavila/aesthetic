@@ -242,7 +242,7 @@ end
 function menu.setSelectedColor(buttonType, colorKey)
 	if state.colors[buttonType] then
 		-- If this is a custom color, ensure it uses the correct format for this button type
-		if colorKey == "custom" then
+		if colorKey == "custom" or string.find(colorKey, "^custom_") then
 			colorKey = "custom_" .. buttonType
 		end
 		state.colors[buttonType] = colorKey

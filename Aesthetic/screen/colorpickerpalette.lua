@@ -30,19 +30,20 @@ local function getColorKeys()
 
 	-- Filter colors based on the selected button type
 	local colorSuffix = state.lastSelectedColorButton == "background" and "600" or "200"
-	local customColorKey = "custom_" .. state.lastSelectedColorButton
 
 	for _, key in ipairs(colors._ordered_keys) do
-		-- Include specific colors based on selection type
-		if state.lastSelectedColorButton == "background" then
-			-- For background colors, include black and all 600 shades
-			if key == "black" or string.find(key, colorSuffix .. "$") or key == customColorKey then
-				table.insert(keys, key)
-			end
-		else
-			-- For foreground colors, include white and all 200 shades
-			if key == "white" or string.find(key, colorSuffix .. "$") or key == customColorKey then
-				table.insert(keys, key)
+		-- Include specific colors based on selection type, but exclude custom colors
+		if not string.find(key, "^custom_") then
+			if state.lastSelectedColorButton == "background" then
+				-- For background colors, include black and all 600 shades
+				if key == "black" or string.find(key, colorSuffix .. "$") then
+					table.insert(keys, key)
+				end
+			else
+				-- For foreground colors, include white and all 200 shades
+				if key == "white" or string.find(key, colorSuffix .. "$") then
+					table.insert(keys, key)
+				end
 			end
 		end
 	end
@@ -69,7 +70,7 @@ local function hasColorAt(row, col, grid, totalColors)
 	local lastRow = math.floor((totalColors - 1) / grid.cols)
 	local lastCol = (totalColors - 1) % grid.cols
 
-	-- Check if this is the custom square position
+	-- Check if this is the custom square position (always placed after the last regular color)
 	if row == lastRow and col == lastCol + 1 then
 		return true
 	end

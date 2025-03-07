@@ -125,12 +125,6 @@ colors.addCustomColor = function(self, r, g, b)
 	self[colorKey] = { r, g, b, 1 }
 	self.names[colorKey] = self._custom_name
 
-	-- Add to ordered keys if not already present for this color type
-	if not self["_has_custom_" .. colorType] then
-		table.insert(self._ordered_keys, colorKey)
-		self["_has_custom_" .. colorType] = true
-	end
-
 	return colorKey
 end
 
