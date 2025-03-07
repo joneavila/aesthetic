@@ -30,17 +30,18 @@ local function getColorKeys()
 
 	-- Filter colors based on the selected button type
 	local colorSuffix = state.lastSelectedColorButton == "background" and "600" or "200"
+	local customColorKey = "custom_" .. state.lastSelectedColorButton
 
 	for _, key in ipairs(colors._ordered_keys) do
 		-- Include specific colors based on selection type
 		if state.lastSelectedColorButton == "background" then
 			-- For background colors, include black and all 600 shades
-			if key == "black" or string.find(key, colorSuffix .. "$") then
+			if key == "black" or string.find(key, colorSuffix .. "$") or key == customColorKey then
 				table.insert(keys, key)
 			end
 		else
 			-- For foreground colors, include white and all 200 shades
-			if key == "white" or string.find(key, colorSuffix .. "$") then
+			if key == "white" or string.find(key, colorSuffix .. "$") or key == customColorKey then
 				table.insert(keys, key)
 			end
 		end

@@ -108,18 +108,27 @@ end
 colors._custom_color = nil
 colors._custom_name = "Custom"
 
+-- Custom color storage for different color types
+colors._custom_colors = {
+	background = nil,
+	foreground = nil,
+}
+colors._custom_name = "Custom"
+
 -- Function to store custom color
 colors.addCustomColor = function(self, r, g, b)
-	local colorKey = "custom"
+	-- Get the current color type from state
+	local colorType = require("state").lastSelectedColorButton
+	local colorKey = "custom_" .. colorType
 
 	-- Store the color values
 	self[colorKey] = { r, g, b, 1 }
 	self.names[colorKey] = self._custom_name
 
-	-- Add to ordered keys if not already present
-	if not self._has_custom then
+	-- Add to ordered keys if not already present for this color type
+	if not self["_has_custom_" .. colorType] then
 		table.insert(self._ordered_keys, colorKey)
-		self._has_custom = true
+		self["_has_custom_" .. colorType] = true
 	end
 
 	return colorKey
