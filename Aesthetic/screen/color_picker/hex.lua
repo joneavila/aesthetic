@@ -31,8 +31,8 @@ function hex.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ icon = "l1.png", text = "Tab Left" },
-		{ icon = "r1.png", text = "Tab Right" },
+		{ icon = "l1.png", text = "Prev. Tab" },
+		{ icon = "r1.png", text = "Next Tab" },
 		{ icon = "b.png", text = "Back" },
 	})
 end

@@ -5,10 +5,10 @@ local controls = {}
 
 -- Constants
 controls.HEIGHT = 42
-local PADDING = 20
-local RIGHT_PADDING = 20
+local PADDING = 14
+local RIGHT_PADDING = 4
 local ICON_SIZE = 24
-local ICON_TEXT_SPACING = 8
+local ICON_TEXT_SPACING = 4
 
 -- Cache for loaded icons with size limit
 local iconCache = {

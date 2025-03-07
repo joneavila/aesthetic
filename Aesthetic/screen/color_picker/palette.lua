@@ -235,11 +235,11 @@ function colorpicker.draw()
 		},
 		{
 			icon = "l1.png",
-			text = "Tab Left",
+			text = "Prev. Tab",
 		},
 		{
 			icon = "r1.png",
-			text = "Tab Right",
+			text = "Next Tab",
 		},
 		{
 			icon = "a.png",
