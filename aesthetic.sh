@@ -9,12 +9,12 @@ echo app >/tmp/act_go
 
 # Define paths and commands
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/.aesthetic"
-THEME_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/theme"
 TEMPLATE_SOURCE="$ROOT_DIR/Aesthetic/template"
+THEME_DIR="/run/muos/storage/theme"
 
 # Create required directories
 mkdir -p "$THEME_DIR"
-mkdir -p "/mnt/sdcard/MUOS/theme"
+mkdir -p "$THEME_DIR/active"
 
 # Export environment variables
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"

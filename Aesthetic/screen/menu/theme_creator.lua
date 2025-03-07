@@ -170,34 +170,45 @@ function themeCreator.createTheme()
 		return false
 	end
 
-	-- Try SD card location first
-	local sdcardThemeDir = "/mnt/sdcard/MUOS/theme"
-	local outputPath = sdcardThemeDir .. "/Custom Theme.zip"
-
-	-- Try to create SD card directory
-	os.execute('mkdir -p "' .. sdcardThemeDir .. '"')
-
-	-- Attempt to write to SD card first
-	success = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
-	if success then
-		return true -- If SD card write succeeds, we're done
-	end
-
-	-- If SD card fails, try internal storage
 	local themeDir = os.getenv("THEME_DIR")
 	if not themeDir then
 		errorHandler.setError("THEME_DIR environment variable not set")
 		return false
 	end
 
-	-- Create and move ZIP archive to internal storage
-	outputPath = themeDir .. "/Custom Theme.zip"
-	success = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
+	local themeActiveDir = themeDir .. "/active"
+	local outputPath = themeDir .. "/Custom Theme.zip"
 
+	-- Create the theme directory if it doesn't exist
+	os.execute('mkdir -p "' .. themeDir .. '"')
+
+	-- Create ZIP archive
+	success = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
 	if not success then
-		errorHandler.setError("Failed to create theme archive in both SD card and internal storage")
+		errorHandler.setError("Failed to create theme archive")
 		return false
 	end
+
+	-- Install the theme (similar to INSTALL function in theme.sh)
+
+	-- Remove existing active theme directory
+	os.execute('rm -rf "' .. themeActiveDir .. '"')
+	os.execute("sync")
+
+	-- Create active theme directory
+	os.execute('mkdir -p "' .. themeActiveDir .. '"')
+
+	-- Extract the theme to the active directory
+	local cmd = string.format('unzip "%s" -d "%s"', outputPath, themeActiveDir)
+	local result = os.execute(cmd)
+
+	if not (result == 0 or result == true) then
+		errorHandler.setError("Failed to install theme to active directory")
+		return false
+	end
+
+	-- Sync to ensure all writes are complete
+	os.execute("sync")
 
 	return true
 end
