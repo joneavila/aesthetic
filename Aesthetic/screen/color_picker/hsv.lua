@@ -11,7 +11,6 @@ local colorpickerhsv = {}
 
 -- Constants
 local EDGE_PADDING = 20
-local CONTROLS_HEIGHT = controls.HEIGHT
 local HUE_SLIDER_WIDTH = 32
 local ELEMENT_SPACING = 20
 local PREVIEW_SQUARE_SPACING = 60
@@ -66,7 +65,8 @@ local pickerState = {
 
 -- Store screen switching function and target screen
 local switchScreen = nil
-local COLORPICKERPALETTE_SCREEN = "colorpickerpalette"
+local MENU_SCREEN = "menu"
+local COLOR_PICKER_SCREEN = "color_picker"
 
 -- Helper function to convert HSV to RGB
 local function hsvToRgb(h, s, v)
@@ -125,8 +125,8 @@ local function initializeCachedTextures()
 end
 
 function colorpickerhsv.load()
-	-- Calculate available space after removing edge padding and controls
-	local availableHeight = state.screenHeight - (EDGE_PADDING * 2) - CONTROLS_HEIGHT
+	-- Calculate available space
+	local availableHeight = state.screenHeight - (EDGE_PADDING * 2) - state.CONTROLS_HEIGHT - state.TAB_HEIGHT
 	local availableWidth = state.screenWidth - (EDGE_PADDING * 2)
 
 	-- Calculate SV square size - should be a perfect square that fits the available height
@@ -156,7 +156,7 @@ function colorpickerhsv.load()
 	-- SV square position (rightmost, ensuring consistent right edge padding)
 	pickerState.startX = state.screenWidth - EDGE_PADDING - pickerState.squareSize
 	-- Store all positions
-	pickerState.startY = EDGE_PADDING
+	pickerState.startY = EDGE_PADDING + state.TAB_HEIGHT
 	pickerState.hueSliderX = hueSliderX
 	pickerState.previewX = previewX
 
@@ -208,7 +208,7 @@ function colorpickerhsv.draw()
 	-- Draw current color preview
 	local currentColor = colors[state.colors[state.lastSelectedColorButton]]
 	love.graphics.setColor(currentColor)
-	love.graphics.rectangle("fill", pickerState.previewX, EDGE_PADDING, pickerState.previewWidth, PREVIEW_HEIGHT)
+	love.graphics.rectangle("fill", pickerState.previewX, pickerState.startY, pickerState.previewWidth, PREVIEW_HEIGHT)
 
 	-- Draw current color border using Relative Luminance Border Algorithm
 	local borderR, borderG, borderB = colorUtils.calculateBorderColor(currentColor[1], currentColor[2], currentColor[3])
@@ -217,7 +217,7 @@ function colorpickerhsv.draw()
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX - halfLine,
-		EDGE_PADDING - halfLine,
+		pickerState.startY - halfLine,
 		pickerState.previewWidth + lineWidth,
 		PREVIEW_HEIGHT + lineWidth,
 		CURSOR.CORNER_RADIUS
@@ -229,7 +229,7 @@ function colorpickerhsv.draw()
 	love.graphics.printf(
 		"Current",
 		pickerState.previewX,
-		EDGE_PADDING + PREVIEW_HEIGHT + 5,
+		pickerState.startY + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
@@ -240,7 +240,7 @@ function colorpickerhsv.draw()
 	love.graphics.rectangle(
 		"fill",
 		pickerState.previewX,
-		EDGE_PADDING + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING,
 		pickerState.previewWidth,
 		PREVIEW_HEIGHT
 	)
@@ -251,7 +251,7 @@ function colorpickerhsv.draw()
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX - halfLine,
-		EDGE_PADDING + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING - halfLine,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING - halfLine,
 		pickerState.previewWidth + lineWidth,
 		PREVIEW_HEIGHT + lineWidth,
 		CURSOR.CORNER_RADIUS
@@ -262,7 +262,7 @@ function colorpickerhsv.draw()
 	love.graphics.printf(
 		"New",
 		pickerState.previewX,
-		EDGE_PADDING + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + PREVIEW_HEIGHT + 5,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
@@ -372,6 +372,14 @@ function colorpickerhsv.draw()
 		{
 			icon = "y.png",
 			text = "Swap cursor",
+		},
+		{
+			icon = "l1.png",
+			text = "Tab Left",
+		},
+		{
+			icon = "r1.png",
+			text = "Tab Right",
 		},
 		{
 			icon = "a.png",
@@ -509,7 +517,7 @@ function colorpickerhsv.update(dt)
 
 			-- Switch back to menu
 			if switchScreen then
-				switchScreen("menu")
+				switchScreen(MENU_SCREEN)
 				state.resetInputTimer()
 			end
 			moved = true
@@ -518,7 +526,7 @@ function colorpickerhsv.update(dt)
 		-- Handle cancel
 		if virtualJoystick:isGamepadDown("b") then
 			if switchScreen then
-				switchScreen(COLORPICKERPALETTE_SCREEN)
+				switchScreen(COLOR_PICKER_SCREEN)
 				state.resetInputTimer()
 			end
 			return

@@ -4,8 +4,7 @@ local screens = {}
 -- Screen states as an enum-like table
 screens.STATES = {
 	MENU = "menu",
-	COLORPICKERPALETTE = "colorpickerpalette",
-	COLORPICKERHSV = "colorpickerhsv",
+	COLOR_PICKER = "color_picker",
 	ABOUT = "about",
 }
 
@@ -23,8 +22,8 @@ function screens.register(screenName, screenModule)
 
 	-- Initialize screen switcher function
 	if screenModule.setScreenSwitcher then
-		screenModule.setScreenSwitcher(function(targetScreen)
-			screens.switchTo(targetScreen)
+		screenModule.setScreenSwitcher(function(targetScreen, tabName)
+			screens.switchTo(targetScreen, tabName)
 		end)
 	end
 end
@@ -33,7 +32,7 @@ function screens.getCurrentScreen()
 	return currentScreen
 end
 
-function screens.switchTo(screenName)
+function screens.switchTo(screenName, tabName)
 	-- Validate screen name
 	if not screens.STATES[screenName:upper()] then
 		error("Attempting to switch to invalid screen: " .. screenName)
@@ -52,7 +51,7 @@ function screens.switchTo(screenName)
 	-- Call enter handler on new screen if it exists
 	local newModule = registeredScreens[currentScreen]
 	if newModule and newModule.onEnter then
-		newModule.onEnter()
+		newModule.onEnter(tabName)
 	end
 end
 

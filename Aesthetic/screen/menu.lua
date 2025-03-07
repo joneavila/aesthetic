@@ -75,7 +75,7 @@ function menu.update(dt)
 			if popupState == "created" then
 				-- Handle navigation for the theme creation success popup
 				if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-					for i, button in ipairs(popupButtons) do
+					for _, button in ipairs(popupButtons) do
 						button.selected = not button.selected
 					end
 					state.resetInputTimer()
@@ -266,7 +266,7 @@ function menu.update(dt)
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
 					state.lastSelectedColorButton = button.colorKey
-					switchScreen(constants.COLORPICKERPALETTE_SCREEN)
+					switchScreen("color_picker")
 					state.resetInputTimer()
 				elseif button.text == "Create theme" then
 					-- Start theme creation

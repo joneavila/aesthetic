@@ -10,15 +10,9 @@ local colorpicker = {}
 
 local switchScreen = nil
 local MENU_SCREEN = "menu"
-local COLORPICKERHSV_SCREEN = "colorpickerhsv"
-
-local assets = {
-	sliders = love.graphics.newImage("assets/icons/plus.png"),
-}
 
 -- Constants
 local PADDING = 20
-local BOTTOM_PADDING = controls.HEIGHT
 local SQUARE_SPACING = 18
 local SQUARE_SIZE = 60
 local COLOR_NAME_PADDING = 20
@@ -66,16 +60,7 @@ end
 
 -- Helper function to check if a grid position has a color
 local function hasColorAt(row, col, grid, totalColors)
-	-- Calculate position of custom square
-	local lastRow = math.floor((totalColors - 1) / grid.cols)
-	local lastCol = (totalColors - 1) % grid.cols
-
-	-- Check if this is the custom square position (always placed after the last regular color)
-	if row == lastRow and col == lastCol + 1 then
-		return true
-	end
-
-	-- Otherwise check if it's a regular color position
+	-- Check if it's a regular color position
 	local index = gridPosToIndex(row, col, grid)
 	return index <= totalColors
 end
@@ -109,8 +94,8 @@ function colorpicker.load()
 	colorpickerState.colorKeys = getColorKeys()
 	colorpickerState.gridSize = calculateGridSize()
 
-	-- Calculate available space, accounting for bottom padding and margins
-	local availableHeight = state.screenHeight - BOTTOM_PADDING - (PADDING * 2)
+	-- Calculate available space
+	local availableHeight = state.screenHeight - state.CONTROLS_HEIGHT - state.TAB_HEIGHT - (PADDING * 2)
 	local availableWidth = state.screenWidth - (PADDING * 2)
 
 	-- Calculate square size based on available space and fixed grid dimensions
@@ -126,9 +111,11 @@ function colorpicker.load()
 	local totalHeight = (colorpickerState.gridSize.rows * colorpickerState.squareSize)
 		+ (colorpickerState.gridSize.rows - 1) * SQUARE_SPACING
 
-	-- Center the grid in the available space, accounting for bottom padding
+	-- Center the grid in the available space, accounting for tab margin and bottom padding
 	colorpickerState.offsetX = math.floor((state.screenWidth - totalWidth) / 2)
-	colorpickerState.offsetY = math.floor((state.screenHeight - BOTTOM_PADDING - totalHeight) / 2)
+	colorpickerState.offsetY = math.floor(
+		state.TAB_HEIGHT + ((state.screenHeight - state.TAB_HEIGHT - state.CONTROLS_HEIGHT - totalHeight) / 2)
+	)
 end
 
 function colorpicker.draw()
@@ -191,84 +178,15 @@ function colorpicker.draw()
 		gridPosToIndex(colorpickerState.selectedRow, colorpickerState.selectedCol, colorpickerState.gridSize)
 	local selectedKey = colorpickerState.colorKeys[selectedIndex]
 	if selectedKey then
-		love.graphics.setFont(state.fonts.header)
+		love.graphics.setFont(state.fonts.caption)
 		local colorName = colors.names[selectedKey]
-		local nameWidth = state.fonts.header:getWidth(colorName)
+		local nameWidth = state.fonts.caption:getWidth(colorName)
 		local nameX = (state.screenWidth - nameWidth) / 2
 
 		-- Position the name above the controls area with padding
-		local nameY = state.screenHeight - BOTTOM_PADDING - state.fonts.header:getHeight() - COLOR_NAME_PADDING
+		local nameY = state.screenHeight - state.CONTROLS_HEIGHT - state.fonts.caption:getHeight() - COLOR_NAME_PADDING
 		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
 		love.graphics.print(colorName, nameX, nameY)
-	end
-
-	-- Draw custom color square after the grid
-	local lastRow = math.floor((#colorpickerState.colorKeys - 1) / colorpickerState.gridSize.cols)
-	local lastCol = (#colorpickerState.colorKeys - 1) % colorpickerState.gridSize.cols
-	local customX = colorpickerState.offsetX + (lastCol + 1) * (colorpickerState.squareSize + SQUARE_SPACING)
-	local customY = colorpickerState.offsetY + lastRow * (colorpickerState.squareSize + SQUARE_SPACING)
-
-	-- Calculate scale and offset for custom square
-	local scale = 1
-	local offset = 0
-	if lastRow == colorpickerState.selectedRow and lastCol + 1 == colorpickerState.selectedCol then
-		scale = colorpickerState.currentScale
-		offset = (colorpickerState.squareSize * (scale - 1)) / 2
-	end
-
-	-- Draw background
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.rectangle(
-		"fill",
-		customX - offset,
-		customY - offset,
-		colorpickerState.squareSize * scale,
-		colorpickerState.squareSize * scale,
-		BORDER.CORNER_RADIUS
-	)
-
-	-- Draw custom color icon centered
-	love.graphics.setColor(0.2, 0.2, 0.2, 1)
-	local baseIconScale = (colorpickerState.squareSize * 0.5) / assets.sliders:getWidth()
-	local iconScale = baseIconScale
-	-- Scale the icon with the square when selected
-	if lastRow == colorpickerState.selectedRow and lastCol + 1 == colorpickerState.selectedCol then
-		iconScale = baseIconScale * scale
-	end
-
-	-- Calculate icon position to keep it centered during scaling
-	local iconWidth = assets.sliders:getWidth() * iconScale
-	local iconHeight = assets.sliders:getHeight() * iconScale
-	local iconX = customX - offset + (colorpickerState.squareSize * scale - iconWidth) / 2
-	local iconY = customY - offset + (colorpickerState.squareSize * scale - iconHeight) / 2
-	love.graphics.draw(assets.sliders, iconX, iconY, 0, iconScale, iconScale)
-
-	-- Draw border
-	love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], 1)
-	love.graphics.setLineWidth(
-		lastRow == colorpickerState.selectedRow
-				and lastCol + 1 == colorpickerState.selectedCol
-				and BORDER.SELECTED_WIDTH
-			or BORDER.NORMAL_WIDTH
-	)
-	love.graphics.rectangle(
-		"line",
-		customX - offset,
-		customY - offset,
-		colorpickerState.squareSize * scale,
-		colorpickerState.squareSize * scale,
-		BORDER.CORNER_RADIUS
-	)
-
-	-- Show "Custom" text when selected
-	if lastRow == colorpickerState.selectedRow and lastCol + 1 == colorpickerState.selectedCol then
-		love.graphics.setFont(state.fonts.header)
-		local text = "Custom"
-		local textWidth = state.fonts.header:getWidth(text)
-		local textX = (state.screenWidth - textWidth) / 2
-		local textY = state.screenHeight - BOTTOM_PADDING - state.fonts.header:getHeight() - COLOR_NAME_PADDING
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
-		love.graphics.print(text, textX, textY)
 	end
 
 	-- Draw controls
@@ -276,6 +194,14 @@ function colorpicker.draw()
 		{
 			icon = "d_pad.png",
 			text = "Navigate",
+		},
+		{
+			icon = "l1.png",
+			text = "Tab Left",
+		},
+		{
+			icon = "r1.png",
+			text = "Tab Right",
 		},
 		{
 			icon = "a.png",
@@ -352,30 +278,15 @@ function colorpicker.update(dt)
 
 		-- Handle select
 		if virtualJoystick:isGamepadDown("a") then
-			-- Check if custom square is selected
-			local lastRow = math.floor((#colorpickerState.colorKeys - 1) / colorpickerState.gridSize.cols)
-			local lastCol = (#colorpickerState.colorKeys - 1) % colorpickerState.gridSize.cols
-
-			if colorpickerState.selectedRow == lastRow and colorpickerState.selectedCol == lastCol + 1 then
-				-- Custom square selected, go to HSV screen
+			-- Regular color selected
+			local selectedIndex =
+				gridPosToIndex(colorpickerState.selectedRow, colorpickerState.selectedCol, colorpickerState.gridSize)
+			local selectedKey = colorpickerState.colorKeys[selectedIndex]
+			if selectedKey then
+				menuScreen.setSelectedColor(state.lastSelectedColorButton, selectedKey)
 				if switchScreen then
-					switchScreen(COLORPICKERHSV_SCREEN)
+					switchScreen(MENU_SCREEN)
 					state.resetInputTimer()
-				end
-			else
-				-- Regular color selected
-				local selectedIndex = gridPosToIndex(
-					colorpickerState.selectedRow,
-					colorpickerState.selectedCol,
-					colorpickerState.gridSize
-				)
-				local selectedKey = colorpickerState.colorKeys[selectedIndex]
-				if selectedKey then
-					menuScreen.setSelectedColor(state.lastSelectedColorButton, selectedKey)
-					if switchScreen then
-						switchScreen(MENU_SCREEN)
-						state.resetInputTimer()
-					end
 				end
 			end
 		end

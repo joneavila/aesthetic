@@ -5,7 +5,7 @@ local controls = require("controls")
 local constants = {}
 
 -- Screen identifiers
-constants.COLORPICKERPALETTE_SCREEN = "colorpickerpalette"
+constants.COLOR_PICKER_SCREEN = "color_picker"
 constants.ABOUT_SCREEN = "about"
 
 -- Error display time

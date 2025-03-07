@@ -96,9 +96,8 @@ function love.load()
 
 	-- Register screens
 	screens.register("menu", require("screen.menu"))
-	screens.register("colorpickerpalette", require("screen.colorpickerpalette"))
 	screens.register("about", require("screen.about"))
-	screens.register("colorpickerhsv", require("screen.colorpickerhsv"))
+	screens.register("color_picker", require("screen.color_picker"))
 end
 
 function love.update(dt)
