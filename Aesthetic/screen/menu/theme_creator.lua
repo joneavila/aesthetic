@@ -176,20 +176,30 @@ function themeCreator.createTheme()
 		return false
 	end
 
-	local themeActiveDir = themeDir .. "/active"
 	local outputPath = themeDir .. "/Custom Theme.zip"
 
 	-- Create the theme directory if it doesn't exist
 	os.execute('mkdir -p "' .. themeDir .. '"')
 
 	-- Create ZIP archive
-	success = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
-	if not success then
+	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
+	if not actualPath then
 		errorHandler.setError("Failed to create theme archive")
 		return false
 	end
 
-	-- Install the theme (similar to INSTALL function in theme.sh)
+	return actualPath
+end
+
+-- Function to install the theme
+function themeCreator.installTheme(outputPath)
+	local themeDir = os.getenv("THEME_DIR")
+	if not themeDir then
+		errorHandler.setError("THEME_DIR environment variable not set")
+		return false
+	end
+
+	local themeActiveDir = themeDir .. "/active"
 
 	-- Remove existing active theme directory
 	os.execute('rm -rf "' .. themeActiveDir .. '"')

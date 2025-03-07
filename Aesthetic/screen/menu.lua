@@ -14,6 +14,8 @@ local menu = {}
 
 -- Screen switching
 local switchScreen = nil
+local createdThemePath = nil
+local popupState = "none" -- none, created, manual, automatic
 
 function menu.load()
 	constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING * 2)
@@ -67,27 +69,75 @@ function menu.update(dt)
 
 	if ui.isPopupVisible() then
 		if state.canProcessInput() then
-			-- Handle navigation
-			if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-				for _, button in ipairs(constants.POPUP_BUTTONS) do
-					button.selected = not button.selected
-				end
-				state.resetInputTimer()
-			end
+			local popupButtons = ui.getPopupButtons()
 
-			-- Handle selection
-			if virtualJoystick:isGamepadDown("a") then
-				for _, button in ipairs(constants.POPUP_BUTTONS) do
-					if button.selected then
-						if button.text == "Exit" then
-							love.event.quit()
-						else
-							ui.hidePopup()
-						end
-						break
+			-- Handle popup navigation and selection based on popup state
+			if popupState == "created" then
+				-- Handle navigation for the theme creation success popup
+				if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
+					for i, button in ipairs(popupButtons) do
+						button.selected = not button.selected
 					end
+					state.resetInputTimer()
 				end
-				state.resetInputTimer()
+
+				-- Handle selection for the theme creation success popup
+				if virtualJoystick:isGamepadDown("a") then
+					for i, button in ipairs(popupButtons) do
+						if button.selected then
+							if i == 1 then
+								-- Manual option selected
+								popupState = "manual"
+								ui.showPopup(
+									"Apply theme manually via Configuration > Customisation > muOS Themes.",
+									{ { text = "Close", selected = true } }
+								)
+							else
+								-- Automatic option selected
+								popupState = "automatic"
+								-- Install the theme
+								local success = themeCreator.installTheme(createdThemePath)
+								ui.showPopup(
+									success and "Applied theme successfully." or "Failed to apply theme.",
+									{ { text = "Close", selected = true } }
+								)
+							end
+							break
+						end
+					end
+					state.resetInputTimer()
+				end
+			elseif popupState == "manual" or popupState == "automatic" then
+				-- Handle selection for the final popup (Close button)
+				if virtualJoystick:isGamepadDown("a") then
+					ui.hidePopup()
+					popupState = "none"
+					createdThemePath = nil
+					state.resetInputTimer()
+				end
+			else
+				-- Handle navigation for default popups
+				if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+					for _, button in ipairs(popupButtons) do
+						button.selected = not button.selected
+					end
+					state.resetInputTimer()
+				end
+
+				-- Handle selection for default popups
+				if virtualJoystick:isGamepadDown("a") then
+					for _, button in ipairs(popupButtons) do
+						if button.selected then
+							if button.text == "Exit" then
+								love.event.quit()
+							else
+								ui.hidePopup()
+							end
+							break
+						end
+					end
+					state.resetInputTimer()
+				end
 			end
 		end
 		return -- Don't process other input while popup is shown
@@ -220,14 +270,23 @@ function menu.update(dt)
 					state.resetInputTimer()
 				elseif button.text == "Create theme" then
 					-- Start theme creation
-					local success = themeCreator.createTheme()
+					createdThemePath = themeCreator.createTheme()
 
-					-- Show result popup
-					ui.showPopup(
-						success
-								and "Success! After exiting, apply your theme via Configuration > Customisation > muOS Themes."
-							or "Error creating theme."
-					)
+					if createdThemePath then
+						-- Show success popup with options
+						popupState = "created"
+						ui.showPopup(
+							"Created theme successfully.",
+							{
+								{ text = "Apply later (manual)", selected = false },
+								{ text = "Apply now (automatic)", selected = true },
+							},
+							true -- Use vertical buttons
+						)
+					else
+						-- Show error popup
+						ui.showPopup("Error creating theme.")
+					end
 				end
 				break
 			end

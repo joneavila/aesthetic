@@ -119,7 +119,7 @@ function fileUtils.createZipArchive(sourceDir, outputPath)
 		return false
 	end
 
-	return true
+	return finalPath
 end
 
 -- Helper function to copy directory contents

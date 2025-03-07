@@ -12,6 +12,8 @@ local ui = {}
 -- Popup state variables
 local showPopup = false
 local popupMessage = ""
+local popupButtons = {}
+local popupVerticalButtons = false
 
 -- Function to draw a button
 function ui.drawButton(button, x, y, isSelected)
@@ -205,7 +207,18 @@ function ui.drawPopup()
 
 	-- Calculate final popup dimensions
 	local popupWidth = minWidth -- Always use the minimum width to ensure consistent wrapping
-	local popupHeight = math.max(minHeight, textHeight + (padding * 4) + 50) -- Extra space for buttons
+	local buttonHeight = 40
+	local buttonSpacing = 20
+
+	-- Calculate extra height needed for buttons based on layout
+	local buttonsExtraHeight = 0
+	if popupVerticalButtons then
+		buttonsExtraHeight = (#popupButtons * buttonHeight) + ((#popupButtons - 1) * buttonSpacing) + padding
+	else
+		buttonsExtraHeight = buttonHeight + padding
+	end
+
+	local popupHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
 
 	local x = (state.screenWidth - popupWidth) / 2
 	local y = (state.screenHeight - popupHeight) / 2
@@ -224,34 +237,64 @@ function ui.drawPopup()
 	love.graphics.printf(popupMessage, x + padding, textY, availableTextWidth, "center")
 
 	-- Draw buttons
-	local buttonWidth = 150
-	local buttonHeight = 40
-	local buttonY = y + popupHeight - buttonHeight - padding
-	local spacing = 20
-	local totalButtonsWidth = (#constants.POPUP_BUTTONS * buttonWidth) + ((#constants.POPUP_BUTTONS - 1) * spacing)
-	local buttonX = (state.screenWidth - totalButtonsWidth) / 2
+	local buttonWidth = 300
 
-	for _, button in ipairs(constants.POPUP_BUTTONS) do
-		-- Draw button background
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 0.3 or 0.1)
-		love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+	if popupVerticalButtons then
+		-- Draw buttons vertically stacked
+		local buttonX = (state.screenWidth - buttonWidth) / 2
+		local startButtonY = y + padding + textHeight + padding
 
-		-- Draw button border
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 1 or 0.5)
-		love.graphics.setLineWidth(button.selected and 3 or 1)
-		love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+		for i, button in ipairs(popupButtons) do
+			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
 
-		-- Draw button text
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
-		love.graphics.printf(
-			button.text,
-			buttonX,
-			buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
-			buttonWidth,
-			"center"
-		)
+			-- Draw button background
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 0.3 or 0.1)
+			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
-		buttonX = buttonX + buttonWidth + spacing
+			-- Draw button border
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 1 or 0.5)
+			love.graphics.setLineWidth(button.selected and 3 or 1)
+			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+			-- Draw button text
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+			love.graphics.printf(
+				button.text,
+				buttonX,
+				buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
+				buttonWidth,
+				"center"
+			)
+		end
+	else
+		-- Draw buttons horizontally
+		local buttonY = y + popupHeight - buttonHeight - padding
+		local spacing = 20
+		local totalButtonsWidth = (#popupButtons * buttonWidth) + ((#popupButtons - 1) * spacing)
+		local buttonX = (state.screenWidth - totalButtonsWidth) / 2
+
+		for _, button in ipairs(popupButtons) do
+			-- Draw button background
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 0.3 or 0.1)
+			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+			-- Draw button border
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 1 or 0.5)
+			love.graphics.setLineWidth(button.selected and 3 or 1)
+			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+			-- Draw button text
+			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+			love.graphics.printf(
+				button.text,
+				buttonX,
+				buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
+				buttonWidth,
+				"center"
+			)
+
+			buttonX = buttonX + buttonWidth + spacing
+		end
 	end
 end
 
@@ -287,9 +330,11 @@ function ui.drawError()
 end
 
 -- Show popup with message
-function ui.showPopup(message)
+function ui.showPopup(message, buttons, verticalButtons)
 	showPopup = true
 	popupMessage = message
+	popupButtons = buttons or constants.POPUP_BUTTONS
+	popupVerticalButtons = verticalButtons or false
 end
 
 -- Hide popup
@@ -305,6 +350,16 @@ end
 -- Get popup message
 function ui.getPopupMessage()
 	return popupMessage
+end
+
+-- Get popup buttons
+function ui.getPopupButtons()
+	return popupButtons
+end
+
+-- Set popup buttons
+function ui.setPopupButtons(buttons)
+	popupButtons = buttons
 end
 
 return ui
