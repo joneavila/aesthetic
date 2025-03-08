@@ -105,14 +105,6 @@ local function isValidHex(input)
 	return true
 end
 
--- Helper function to convert hex string to RGB color
-local function hexToRgb(hexString)
-	local r = tonumber(hexString:sub(1, 2), 16) / 255
-	local g = tonumber(hexString:sub(3, 4), 16) / 255
-	local b = tonumber(hexString:sub(5, 6), 16) / 255
-	return r, g, b
-end
-
 -- Helper function to get button dimensions
 local function getButtonDimensions()
 	local gridWidth = state.screenWidth - (2 * EDGE_PADDING) - LAST_COLUMN_EXTRA_PADDING
@@ -202,7 +194,7 @@ function hex.draw()
 
 	-- Fill with color if input is valid
 	if isValidHex(hexState.input) then
-		local r, g, b = hexToRgb(hexState.input)
+		local r, g, b = colorUtils.hexToRgb(hexState.input)
 		love.graphics.setColor(r, g, b)
 		love.graphics.rectangle("fill", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
@@ -436,15 +428,14 @@ function hex.update(_dt)
 			elseif selectedButton == "CONFIRM" then
 				-- Confirm - only if input is valid
 				if isValidHex(hexState.input) and switchScreen then
-					-- Set the custom color
-					local r, g, b = hexToRgb(hexState.input)
-					local colorKey = colors:addCustomColor(r, g, b)
+					-- Create hex code
+					local hexCode = "#" .. hexState.input:upper()
 
 					-- Return to menu and apply the color
 					if switchScreen then
 						switchScreen("menu")
 						local menuScreen = require("screen.menu")
-						menuScreen.setSelectedColor(state.lastSelectedColorButton, colorKey)
+						menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 					end
 				end
 			else

@@ -2,6 +2,7 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
+local colorUtils = require("utils.color")
 
 local constants = require("screen.menu.constants")
 local errorHandler = require("screen.menu.error_handler")
@@ -71,16 +72,18 @@ function ui.drawButton(button, x, y, isSelected)
 	-- If this is a color selection button
 	if button.colorKey then
 		-- Get the color from state
-		local selectedColor = state.colors[button.colorKey]
+		local hexColor = state.colors[button.colorKey]
 
 		-- Only draw color display if we have a valid color
-		if selectedColor and colors[selectedColor] then
+		if hexColor then
 			-- Draw color square on the right side of the button
 			local colorX = x + constants.BUTTON.WIDTH - constants.BUTTON.COLOR_DISPLAY_SIZE - 20
 			local colorY = y + (constants.BUTTON.HEIGHT - constants.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
+			local r, g, b = colorUtils.hexToRgb(hexColor)
+
 			-- Draw color square
-			love.graphics.setColor(colors[selectedColor][1], colors[selectedColor][2], colors[selectedColor][3], 1)
+			love.graphics.setColor(r, g, b, 1)
 			love.graphics.rectangle(
 				"fill",
 				colorX,
@@ -102,13 +105,10 @@ function ui.drawButton(button, x, y, isSelected)
 				4
 			)
 
-			-- Draw color name
-			local nameWidth = state.fonts.body:getWidth(colors.names[selectedColor])
-			love.graphics.print(
-				colors.names[selectedColor],
-				colorX - nameWidth - 10,
-				y + (constants.BUTTON.HEIGHT - textHeight) / 2
-			)
+			-- Draw color hex code
+			local hexCode = state.colors[button.colorKey]
+			local hexWidth = state.fonts.body:getWidth(hexCode)
+			love.graphics.print(hexCode, colorX - hexWidth - 10, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
 		end
 	-- If this is a font selection button
 	elseif button.fontSelection then

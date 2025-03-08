@@ -67,32 +67,6 @@ local pickerState = {
 local switchScreen = nil
 local MENU_SCREEN = "menu"
 
--- Helper function to convert HSV to RGB
-local function hsvToRgb(h, s, v)
-	h = h / 360
-	local i = math.floor(h * 6)
-	local f = h * 6 - i
-	local p = v * (1 - s)
-	local q = v * (1 - f * s)
-	local t = v * (1 - (1 - f) * s)
-
-	i = i % 6
-
-	if i == 0 then
-		return v, t, p
-	elseif i == 1 then
-		return q, v, p
-	elseif i == 2 then
-		return p, v, t
-	elseif i == 3 then
-		return p, q, v
-	elseif i == 4 then
-		return t, p, v
-	else
-		return v, p, q
-	end
-end
-
 -- Texture initialization
 local function initializeCachedTextures()
 	local cacheWidth = math.ceil(pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
@@ -104,7 +78,7 @@ local function initializeCachedTextures()
 		for x = 0, cacheWidth - 1 do
 			local s = x / (cacheWidth - 1)
 			local v = 1 - (y / (cacheHeight - 1))
-			local r, g, b = hsvToRgb(pickerState.hue, s, v)
+			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, s, v)
 			svImageData:setPixel(x, y, r, g, b, 1)
 		end
 	end
@@ -115,7 +89,7 @@ local function initializeCachedTextures()
 	local hueImageData = love.image.newImageData(HUE_SLIDER_WIDTH, cacheHeight)
 	for y = 0, cacheHeight - 1 do
 		local h = (1 - y / (cacheHeight - 1)) * 360
-		local r, g, b = hsvToRgb(h, 1, 1)
+		local r, g, b = colorUtils.hsvToRgb(h, 1, 1)
 		for x = 0, HUE_SLIDER_WIDTH - 1 do
 			hueImageData:setPixel(x, y, r, g, b, 1)
 		end
@@ -205,12 +179,14 @@ function colorpickerhsv.draw()
 	local halfLine = lineWidth / 2
 
 	-- Draw current color preview
-	local currentColor = colors[state.colors[state.lastSelectedColorButton]]
-	love.graphics.setColor(currentColor)
+	local hexColor = state.colors[state.lastSelectedColorButton]
+	local r, g, b = colorUtils.hexToRgb(hexColor)
+
+	love.graphics.setColor(r, g, b, 1)
 	love.graphics.rectangle("fill", pickerState.previewX, pickerState.startY, pickerState.previewWidth, PREVIEW_HEIGHT)
 
 	-- Draw current color border using Relative Luminance Border Algorithm
-	local borderR, borderG, borderB = colorUtils.calculateBorderColor(currentColor[1], currentColor[2], currentColor[3])
+	local borderR, borderG, borderB = colorUtils.calculateBorderColor(r, g, b)
 	love.graphics.setColor({ borderR, borderG, borderB })
 	love.graphics.setLineWidth(lineWidth)
 	love.graphics.rectangle(
@@ -234,7 +210,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw new color preview with increased spacing
-	local r, g, b = hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
+	local r, g, b = colorUtils.hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
 	love.graphics.setColor(r, g, b, 1)
 	love.graphics.rectangle(
 		"fill",
@@ -408,7 +384,7 @@ local function updateSVSquare()
 		for x = 0, cacheWidth - 1 do
 			local s = x / (cacheWidth - 1)
 			local v = 1 - (y / (cacheHeight - 1))
-			local r, g, b = hsvToRgb(pickerState.hue, s, v)
+			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, s, v)
 			svImageData:setPixel(x, y, r, g, b, 1)
 		end
 	end
@@ -510,9 +486,13 @@ function colorpickerhsv.update(dt)
 
 		-- Handle selection
 		if virtualJoystick:isGamepadDown("a") then
-			local r, g, b = hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
-			local colorKey = colors:addCustomColor(r, g, b)
-			menuScreen.setSelectedColor(state.lastSelectedColorButton, colorKey)
+			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
+
+			-- Create hex code using the utility function
+			local hexCode = colorUtils.rgbToHex(r, g, b)
+
+			-- Pass the hex code to menu
+			menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 
 			-- Switch back to menu
 			if switchScreen then

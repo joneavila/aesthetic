@@ -5,6 +5,7 @@ local state = require("state")
 local constants = require("screen.menu.constants")
 local fileUtils = require("screen.menu.file_utils")
 local errorHandler = require("screen.menu.error_handler")
+local colorUtils = require("utils.color")
 
 -- Module table to export public functions
 local themeCreator = {}
@@ -18,10 +19,14 @@ local function createPreviewImage(outputPath)
 	local imageData = love.image.newImageData(width, height)
 
 	-- Get the background color from state
-	local bgColor = colors[state.colors.background] or colors.bg
+	local bgHex = state.colors.background
+	local r, g, b = colorUtils.hexToRgb(bgHex)
+	local bgColor = { r, g, b, 1 }
 
 	-- Get the foreground color
-	local fgColor = colors[state.colors.foreground] or colors.white
+	local fgHex = state.colors.foreground
+	local r, g, b = colorUtils.hexToRgb(fgHex)
+	local fgColor = { r, g, b, 1 }
 
 	-- Fill the image with the background color
 	for y = 0, height - 1 do
@@ -93,21 +98,10 @@ function themeCreator.createTheme()
 		return false
 	end
 
-	-- Convert selected colors to hex
+	-- Get hex colors from state
 	local hexColors = {}
-	local colorMappings = {
-		background = state.colors.background,
-		foreground = state.colors.foreground,
-	}
-
-	for key, color in pairs(colorMappings) do
-		local hex = colors.toHex(color)
-		if not hex then
-			errorHandler.setError("Could not convert color to hex: " .. color)
-			return false
-		end
-		hexColors[key] = hex:gsub("^#", "") -- Remove the # from hex colors
-	end
+	hexColors.background = state.colors.background:gsub("^#", "") -- Remove the # from hex colors
+	hexColors.foreground = state.colors.foreground:gsub("^#", "") -- Remove the # from hex colors
 
 	-- Replace colors in theme files
 	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/default.txt" }

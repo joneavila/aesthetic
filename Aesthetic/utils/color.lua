@@ -177,4 +177,57 @@ function color.calculateContrastingColor(r, g, b)
 	return contrast.r, contrast.g, contrast.b
 end
 
+-- Convert hex string to RGB values (0-1 range)
+function color.hexToRgb(hexString)
+	-- Remove # if present
+	hexString = hexString:gsub("^#", "")
+
+	-- Ensure we have a valid 6-character hex string
+	if #hexString ~= 6 then
+		return 1, 1, 1 -- Return white as fallback
+	end
+
+	-- Convert hex to RGB (0-1 range)
+	local r = tonumber(hexString:sub(1, 2), 16) / 255
+	local g = tonumber(hexString:sub(3, 4), 16) / 255
+	local b = tonumber(hexString:sub(5, 6), 16) / 255
+
+	return r, g, b
+end
+
+-- Convert HSV to RGB values (0-1 range)
+-- h: 0-360, s: 0-1, v: 0-1
+function color.hsvToRgb(h, s, v)
+	h = h / 360
+	local i = math.floor(h * 6)
+	local f = h * 6 - i
+	local p = v * (1 - s)
+	local q = v * (1 - f * s)
+	local t = v * (1 - (1 - f) * s)
+
+	i = i % 6
+
+	if i == 0 then
+		return v, t, p
+	elseif i == 1 then
+		return q, v, p
+	elseif i == 2 then
+		return p, v, t
+	elseif i == 3 then
+		return p, q, v
+	elseif i == 4 then
+		return t, p, v
+	else
+		return v, p, q
+	end
+end
+
+-- Convert RGB to hex string
+function color.rgbToHex(r, g, b)
+	local hexR = string.format("%02X", math.floor(r * 255 + 0.5))
+	local hexG = string.format("%02X", math.floor(g * 255 + 0.5))
+	local hexB = string.format("%02X", math.floor(b * 255 + 0.5))
+	return "#" .. hexR .. hexG .. hexB
+end
+
 return color

@@ -300,11 +300,16 @@ end
 
 function menu.setSelectedColor(buttonType, colorKey)
 	if state.colors[buttonType] then
-		-- If this is a custom color, ensure it uses the correct format for this button type
-		if colorKey == "custom" or string.find(colorKey, "^custom_") then
-			colorKey = "custom_" .. buttonType
+		if colorKey:sub(1, 1) == "#" then
+			-- Case 1: Already a hex code from HSV or hex color picker
+			state.colors[buttonType] = colorKey
+		else
+			-- Case 2: Color key from palette picker, needs conversion to hex
+			local hexCode = colors.toHex(colorKey)
+			if hexCode then
+				state.colors[buttonType] = hexCode
+			end
 		end
-		state.colors[buttonType] = colorKey
 	end
 end
 

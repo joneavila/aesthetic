@@ -365,10 +365,14 @@ function colorpicker.update(dt)
 				gridPosToIndex(colorpickerState.selectedRow, colorpickerState.selectedCol, colorpickerState.gridSize)
 			local selectedKey = colorpickerState.colorKeys[selectedIndex]
 			if selectedKey then
-				menuScreen.setSelectedColor(state.lastSelectedColorButton, selectedKey)
-				if switchScreen then
-					switchScreen(MENU_SCREEN)
-					state.resetInputTimer()
+				-- Convert the selected color key to hex code
+				local hexCode = colors.toHex(selectedKey)
+				if hexCode then
+					menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
+					if switchScreen then
+						switchScreen(MENU_SCREEN)
+						state.resetInputTimer()
+					end
 				end
 			end
 		end
