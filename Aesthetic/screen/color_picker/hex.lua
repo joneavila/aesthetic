@@ -450,15 +450,6 @@ function hex.update(_dt)
 
 			state.resetInputTimer()
 		end
-
-		-- Handle cancel
-		if virtualJoystick:isGamepadDown("b") then
-			if switchScreen then
-				switchScreen("color_picker")
-				state.resetInputTimer()
-			end
-			return
-		end
 	end
 end
 

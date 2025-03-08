@@ -266,15 +266,6 @@ function colorpicker.update(dt)
 		local moved = false
 		local newRow, newCol = colorpickerState.selectedRow, colorpickerState.selectedCol
 
-		-- Handle return to menu without selection
-		if virtualJoystick:isGamepadDown("b") then
-			if switchScreen then
-				switchScreen(MENU_SCREEN)
-				state.resetInputTimer()
-			end
-			return
-		end
-
 		-- Handle directional input
 		if virtualJoystick:isGamepadDown("dpup") then
 			if colorpickerState.selectedRow > 0 then

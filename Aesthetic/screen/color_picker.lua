@@ -172,6 +172,15 @@ function colorPicker.update(dt)
 	if state.canProcessInput() then
 		local virtualJoystick = require("input").virtualJoystick
 
+		-- Handle B button (return to menu screen)
+		if virtualJoystick:isGamepadDown("b") then
+			if switchScreen then
+				switchScreen("menu")
+				state.resetInputTimer()
+			end
+			return
+		end
+
 		-- Handle tab switching with shoulder buttons
 		if virtualJoystick:isGamepadDown("leftshoulder") then
 			-- Switch to previous tab

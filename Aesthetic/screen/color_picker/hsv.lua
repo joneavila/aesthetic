@@ -523,15 +523,6 @@ function colorpickerhsv.update(dt)
 			moved = true
 		end
 
-		-- Handle cancel
-		if virtualJoystick:isGamepadDown("b") then
-			if switchScreen then
-				switchScreen(COLOR_PICKER_SCREEN)
-				state.resetInputTimer()
-			end
-			return
-		end
-
 		if moved then
 			state.resetInputTimer()
 		end
