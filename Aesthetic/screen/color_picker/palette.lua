@@ -230,16 +230,16 @@ function colorpicker.draw()
 	drawControlsBackground()
 	controls.draw({
 		{
-			icon = "d_pad.png",
-			text = "Navigate",
-		},
-		{
 			icon = "l1.png",
 			text = "Prev. Tab",
 		},
 		{
 			icon = "r1.png",
 			text = "Next Tab",
+		},
+		{
+			icon = "d_pad.png",
+			text = "Navigate",
 		},
 		{
 			icon = "a.png",

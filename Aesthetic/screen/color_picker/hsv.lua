@@ -366,20 +366,20 @@ function colorpickerhsv.draw()
 	-- Draw controls
 	controls.draw({
 		{
-			icon = "d_pad.png",
-			text = "Cursor",
-		},
-		{
-			icon = "y.png",
-			text = "HS/V",
-		},
-		{
 			icon = "l1.png",
 			text = "Prev. Tab",
 		},
 		{
 			icon = "r1.png",
 			text = "Next Tab",
+		},
+		{
+			icon = "d_pad.png",
+			text = "Cursor",
+		},
+		{
+			icon = "y.png",
+			text = "HS/V",
 		},
 		{
 			icon = "a.png",

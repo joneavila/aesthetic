@@ -344,7 +344,9 @@ function hex.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ icon = "d_pad.png", text = "Cursor" },
+		{ icon = "l1.png", text = "Prev. Tab" },
+		{ icon = "r1.png", text = "Next Tab" },
+		{ icon = "d_pad.png", text = "Navigate" },
 		{ icon = "a.png", text = "Select" },
 		{ icon = "b.png", text = "Back" },
 	})
