@@ -116,7 +116,7 @@ function colorPicker.draw()
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, TAB.HEIGHT + TAB.MARGIN)
 
 	-- Draw tabs
-	for i, tab in ipairs(tabs) do
+	for _, tab in ipairs(tabs) do
 		-- Tab background
 		if tab.active then
 			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 0.2)
