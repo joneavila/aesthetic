@@ -70,6 +70,43 @@ local function hasColorAt(row, col, grid, totalColors)
 	return index <= totalColors
 end
 
+-- Helper function to calculate grid dimensions and layout
+local function calculateGridDimensions()
+	-- Get updated color keys and grid size
+	local colorKeys = getColorKeys()
+	local gridSize = calculateGridSize()
+
+	-- Calculate available space
+	local availableHeight = state.screenHeight - state.CONTROLS_HEIGHT - state.TAB_HEIGHT - (PADDING * 2)
+	local availableWidth = state.screenWidth - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+
+	-- Calculate square size based on available width and fixed number of columns
+	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
+
+	-- Calculate how many rows can be displayed at once
+	local visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
+
+	-- Calculate total grid dimensions
+	local totalWidth = (gridSize.cols * squareSize) + (gridSize.cols - 1) * SQUARE_SPACING
+	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * SQUARE_SPACING
+	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
+
+	-- Calculate grid position
+	local offsetX = math.floor((state.screenWidth - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
+	local offsetY = math.floor(state.TAB_HEIGHT + PADDING)
+
+	return {
+		colorKeys = colorKeys,
+		gridSize = gridSize,
+		squareSize = squareSize,
+		visibleRows = visibleRows,
+		totalGridHeight = totalGridHeight,
+		visibleGridHeight = visibleGridHeight,
+		offsetX = offsetX,
+		offsetY = offsetY,
+	}
+end
+
 local colorpickerState = {
 	colorKeys = getColorKeys(),
 	gridSize = nil,
@@ -87,36 +124,23 @@ local colorpickerState = {
 }
 
 function colorpicker.load()
-	colorpickerState.colorKeys = getColorKeys()
-	colorpickerState.gridSize = calculateGridSize()
+	-- Calculate grid dimensions and update state
+	local dimensions = calculateGridDimensions()
 
-	-- Calculate available space
-	local availableHeight = state.screenHeight - state.CONTROLS_HEIGHT - state.TAB_HEIGHT - (PADDING * 2)
-	local availableWidth = state.screenWidth - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	-- Update state with calculated dimensions
+	colorpickerState.colorKeys = dimensions.colorKeys
+	colorpickerState.gridSize = dimensions.gridSize
+	colorpickerState.squareSize = dimensions.squareSize
+	colorpickerState.visibleRows = dimensions.visibleRows
+	colorpickerState.totalGridHeight = dimensions.totalGridHeight
+	colorpickerState.visibleGridHeight = dimensions.visibleGridHeight
+	colorpickerState.offsetX = dimensions.offsetX
+	colorpickerState.offsetY = dimensions.offsetY
 
-	-- Calculate square size based on available width and fixed number of columns
-	local squareSize = math.floor(
-		(availableWidth - (SQUARE_SPACING * (colorpickerState.gridSize.cols - 1))) / colorpickerState.gridSize.cols
-	)
-	colorpickerState.squareSize = squareSize
-
-	-- Calculate how many rows can be displayed at once
-	colorpickerState.visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
-
-	-- Calculate total grid dimensions
-	local totalWidth = (colorpickerState.gridSize.cols * colorpickerState.squareSize)
-		+ (colorpickerState.gridSize.cols - 1) * SQUARE_SPACING
-	colorpickerState.totalGridHeight = (colorpickerState.gridSize.rows * colorpickerState.squareSize)
-		+ (colorpickerState.gridSize.rows - 1) * SQUARE_SPACING
-	colorpickerState.visibleGridHeight = (colorpickerState.visibleRows * colorpickerState.squareSize)
-		+ (colorpickerState.visibleRows - 1) * SQUARE_SPACING
-
-	-- Center the grid horizontally
-	colorpickerState.offsetX = math.floor((state.screenWidth - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
-	colorpickerState.offsetY = math.floor(state.TAB_HEIGHT + PADDING)
-
-	-- Reset scroll position
-	colorpickerState.scrollY = 0
+	-- Only reset scroll position if it hasn't been set before
+	if colorpickerState.scrollY == nil then
+		colorpickerState.scrollY = 0
+	end
 end
 
 -- Helper function to draw the scrollbar
@@ -357,15 +381,65 @@ end
 
 -- Function called when entering this screen
 function colorpicker.onEnter()
-	colorpickerState.colorKeys = getColorKeys()
-	colorpickerState.gridSize = calculateGridSize()
+	-- Calculate grid dimensions and update state
+	local dimensions = calculateGridDimensions()
 
-	-- Reset selection to the first color
-	colorpickerState.selectedRow = 0
-	colorpickerState.selectedCol = 0
-	colorpickerState.scrollY = 0
+	-- Update state with calculated dimensions
+	colorpickerState.colorKeys = dimensions.colorKeys
+	colorpickerState.gridSize = dimensions.gridSize
+	colorpickerState.squareSize = dimensions.squareSize
+	colorpickerState.visibleRows = dimensions.visibleRows
+	colorpickerState.totalGridHeight = dimensions.totalGridHeight
+	colorpickerState.visibleGridHeight = dimensions.visibleGridHeight
+	colorpickerState.offsetX = dimensions.offsetX
+	colorpickerState.offsetY = dimensions.offsetY
 
-	-- Start hover animation for the first color
+	-- Only reset selection and scroll position if they haven't been set before
+	-- This allows the screen to remember its position when returning to it
+	if colorpickerState.selectedRow == nil or colorpickerState.selectedCol == nil then
+		colorpickerState.selectedRow = 0
+		colorpickerState.selectedCol = 0
+		colorpickerState.scrollY = 0
+	else
+		-- Validate that the selected position is still valid after grid size changes
+		-- and adjust if necessary
+		if colorpickerState.selectedRow >= colorpickerState.gridSize.rows then
+			colorpickerState.selectedRow = colorpickerState.gridSize.rows - 1
+		end
+
+		if colorpickerState.selectedCol >= colorpickerState.gridSize.cols then
+			colorpickerState.selectedCol = colorpickerState.gridSize.cols - 1
+		end
+
+		-- Ensure the selected position has a color
+		if
+			not hasColorAt(
+				colorpickerState.selectedRow,
+				colorpickerState.selectedCol,
+				colorpickerState.gridSize,
+				#colorpickerState.colorKeys
+			)
+		then
+			-- If not, reset to the first color
+			colorpickerState.selectedRow = 0
+			colorpickerState.selectedCol = 0
+		end
+
+		-- Ensure scroll position is still valid
+		if colorpickerState.totalGridHeight > colorpickerState.visibleGridHeight then
+			colorpickerState.scrollY = math.max(
+				0,
+				math.min(
+					colorpickerState.scrollY,
+					colorpickerState.totalGridHeight - colorpickerState.visibleGridHeight
+				)
+			)
+		else
+			colorpickerState.scrollY = 0
+		end
+	end
+
+	-- Start hover animation for the selected color
 	colorpickerState.currentScale = 1
 	colorpickerState.scaleTween = tween.new(ANIMATION.DURATION, colorpickerState, {
 		currentScale = ANIMATION.SCALE,
