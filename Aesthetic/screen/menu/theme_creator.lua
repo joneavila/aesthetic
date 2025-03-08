@@ -113,6 +113,47 @@ function themeCreator.createTheme()
 		end
 	end
 
+	-- Replace glyph settings based on state.glyphs_enabled
+	local glyphSettings = {}
+	glyphSettings["list_pad_left"] = state.glyphs_enabled and 45 or 20
+	glyphSettings["glyph_alpha"] = state.glyphs_enabled and 255 or 0
+
+	-- Apply glyph settings to theme files
+	for _, filepath in ipairs(themeFiles) do
+		local file = io.open(filepath, "r")
+		if not file then
+			errorHandler.setError("Failed to open file for glyph settings: " .. filepath)
+			return false
+		end
+
+		local content = file:read("*all")
+		file:close()
+
+		-- Replace list_pad_left placeholder (format: {%list_pad_left})
+		local listPadCount = 0
+		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
+
+		-- Replace glyph_alpha placeholder (format: %{glyph_alpha})
+		local glyphAlphaCount = 0
+		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
+
+		-- Check if replacements were successful
+		if listPadCount == 0 or glyphAlphaCount == 0 then
+			errorHandler.setError("Failed to replace glyph settings in template")
+			return false
+		end
+
+		-- Write the updated content back to the file
+		file = io.open(filepath, "w")
+		if not file then
+			errorHandler.setError("Failed to write file for glyph settings: " .. filepath)
+			return false
+		end
+
+		file:write(content)
+		file:close()
+	end
+
 	-- Find the selected font file based on state.selectedFont
 	local selectedFontFile = nil
 	for _, font in ipairs(constants.FONTS) do

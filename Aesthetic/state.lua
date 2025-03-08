@@ -16,6 +16,7 @@ local state = {
 	},
 	selectedFont = "Inter", -- Default selected font
 	lastSelectedColorButton = "background", -- Default selected button for color picker
+	glyphs_enabled = true, -- Default value for glyphs enabled
 }
 
 return state

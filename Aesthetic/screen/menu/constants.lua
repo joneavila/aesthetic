@@ -15,7 +15,7 @@ constants.ERROR_DISPLAY_TIME_SECONDS = 5
 constants.BUTTON = {
 	WIDTH = nil, -- Will be calculated in load()
 	HEIGHT = 50,
-	PADDING = 40,
+	PADDING = 20,
 	CORNER_RADIUS = 8,
 	SELECTED_OUTLINE_WIDTH = 4,
 	COLOR_DISPLAY_SIZE = 30,
@@ -42,6 +42,11 @@ constants.BUTTONS = {
 		text = "Font",
 		selected = false,
 		fontSelection = true,
+	},
+	{
+		text = "Icons",
+		selected = false,
+		glyphsToggle = true,
 	},
 	{
 		text = "Create theme",

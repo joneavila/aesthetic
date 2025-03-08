@@ -41,6 +41,18 @@ function menu.draw()
 
 		ui.drawButton(button, constants.BUTTON.PADDING, y, button.selected)
 
+		-- Draw the Glyphs state (Enabled/Disabled) on the right side of the button
+		if button.glyphsToggle then
+			local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
+			local font = love.graphics.getFont()
+			local textWidth = font:getWidth(statusText)
+			local rightX = constants.BUTTON.PADDING + constants.BUTTON.WIDTH - 20 -- 20px padding from right edge
+			local textY = y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
+
+			love.graphics.setColor(colors.fg)
+			love.graphics.print(statusText, rightX - textWidth, textY)
+		end
+
 		if not button.isBottomButton then
 			regularButtonCount = regularButtonCount + 1
 		end
@@ -262,6 +274,10 @@ function menu.update(dt)
 					-- Select the new font
 					constants.FONTS[nextIndex].selected = true
 					state.selectedFont = constants.FONTS[nextIndex].name
+					state.resetInputTimer()
+				elseif button.glyphsToggle then
+					-- Toggle glyphs enabled state
+					state.glyphs_enabled = not state.glyphs_enabled
 					state.resetInputTimer()
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
