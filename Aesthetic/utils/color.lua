@@ -109,6 +109,26 @@ function Color:getBorderColor()
 	return Color.fromHSL(h, newS, newL)
 end
 
+-- Calculate a contrasting color using Hue Rotation with Lightness Adjustment
+function Color:getContrastingColor()
+	local h, s, l = self:toHSL()
+
+	-- Rotate hue by 180 degrees (opposite on color wheel)
+	local newH = (h + 180) % 360
+
+	-- Adjust lightness for readability
+	local newL
+	if l > 50 then
+		-- For light backgrounds, darken the foreground
+		newL = clamp(l - 50, 10, 40)
+	else
+		-- For dark backgrounds, lighten the foreground
+		newL = clamp(l + 50, 60, 90)
+	end
+
+	return Color.fromHSL(newH, s, newL)
+end
+
 -- Convert color to hex string
 function Color:toHex()
 	local r = math.floor(self.r * 255 + 0.5)
@@ -149,6 +169,12 @@ function color.calculateBorderColor(r, g, b)
 	local col = Color.new(r, g, b)
 	local border = col:getBorderColor()
 	return border.r, border.g, border.b
+end
+
+function color.calculateContrastingColor(r, g, b)
+	local col = Color.new(r, g, b)
+	local contrast = col:getContrastingColor()
+	return contrast.r, contrast.g, contrast.b
 end
 
 return color
