@@ -7,5 +7,5 @@ function love.conf(t)
 	t.window.height = 480
 	t.window.resizable = true
 	t.window.title = "Aesthetic"
-	-- t.window.borderless = true -- Useful for screenshots
+	t.window.borderless = true -- Useful for screenshots
 end
