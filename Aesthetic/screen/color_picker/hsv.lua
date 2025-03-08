@@ -66,7 +66,6 @@ local pickerState = {
 -- Store screen switching function and target screen
 local switchScreen = nil
 local MENU_SCREEN = "menu"
-local COLOR_PICKER_SCREEN = "color_picker"
 
 -- Helper function to convert HSV to RGB
 local function hsvToRgb(h, s, v)
