@@ -3,6 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
+local colorUtils = require("utils.color")
 
 local hex = {}
 
@@ -13,7 +14,6 @@ local switchScreen = nil
 local EDGE_PADDING = 20
 local TOP_PADDING = 20
 local PREVIEW_HEIGHT = 80
-local INPUT_HEIGHT = 60
 local GRID_PADDING = 10
 local LAST_COLUMN_EXTRA_PADDING = 20 -- Extra padding before the last column
 local BUTTON_CORNER_RADIUS = 8
@@ -120,7 +120,6 @@ local function getButtonDimensions()
 		- state.TAB_HEIGHT
 		- TOP_PADDING
 		- PREVIEW_HEIGHT
-		- INPUT_HEIGHT
 		- state.CONTROLS_HEIGHT
 		- (2 * GRID_PADDING)
 
@@ -134,7 +133,7 @@ end
 local function getButtonPosition(row, col)
 	local buttonWidth, buttonHeight = getButtonDimensions()
 	local startX = EDGE_PADDING
-	local startY = state.TAB_HEIGHT + TOP_PADDING + PREVIEW_HEIGHT + INPUT_HEIGHT + GRID_PADDING
+	local startY = state.TAB_HEIGHT + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
 
 	local x = startX + (col - 1) * (buttonWidth + GRID_PADDING)
 
@@ -196,19 +195,24 @@ function hex.draw()
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
+	-- Variables for input display
+	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2
+	local inputY = previewY + (PREVIEW_HEIGHT - INPUT_RECT_HEIGHT) / 2
+	local textColor = colors.fg -- Default text color
+
 	-- Fill with color if input is valid
 	if isValidHex(hexState.input) then
 		local r, g, b = hexToRgb(hexState.input)
 		love.graphics.setColor(r, g, b)
 		love.graphics.rectangle("fill", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
+
+		-- Calculate contrasting color for text
+		local contrastR, contrastG, contrastB = colorUtils.calculateContrastingColor(r, g, b)
+		textColor = { contrastR, contrastG, contrastB }
 	end
 
-	-- Draw input indicator
-	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2
-	local inputY = previewY + PREVIEW_HEIGHT + 10
-
 	-- Draw # symbol
-	love.graphics.setColor(colors.fg)
+	love.graphics.setColor(textColor)
 	love.graphics.setFont(state.fonts.header)
 	local hashWidth = state.fonts.header:getWidth("#")
 	love.graphics.print(
@@ -227,7 +231,7 @@ function hex.draw()
 		local charWidth = state.fonts.header:getWidth(char)
 		local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
 
-		love.graphics.setColor(colors.fg)
+		love.graphics.setColor(textColor)
 		love.graphics.print(char, charX, charY)
 	end
 
