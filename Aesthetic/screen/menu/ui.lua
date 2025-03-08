@@ -211,13 +211,10 @@ function ui.drawPopup()
 	local buttonSpacing = 20
 
 	-- Calculate extra height needed for buttons based on layout
-	local buttonsExtraHeight = 0
+	local buttonsExtraHeight = buttonHeight + padding
 	if popupVerticalButtons then
 		buttonsExtraHeight = (#popupButtons * buttonHeight) + ((#popupButtons - 1) * buttonSpacing) + padding
-	else
-		buttonsExtraHeight = buttonHeight + padding
 	end
-
 	local popupHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
 
 	local x = (state.screenWidth - popupWidth) / 2
