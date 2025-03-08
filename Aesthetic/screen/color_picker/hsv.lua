@@ -33,7 +33,7 @@ local pickerState = {
 	hue = 0, -- 0 to 360
 	sat = 1, -- 0 to 1
 	val = 1, -- 0 to 1
-	focusSquare = true, -- true = SV square, false = Hue slider
+	focusSquare = false, -- true = SV square, false = Hue slider
 	squareSize = nil, -- Will be calculated in load()
 	sliderWidth = 40,
 	startX = nil, -- Will be calculated in load()
@@ -59,7 +59,7 @@ local pickerState = {
 	animation = {
 		wiggleOffset = 0,
 		wiggleTween = nil,
-		lastFocusSquare = true, -- Track previous focus state
+		lastFocusSquare = false, -- Track previous focus state
 	},
 }
 
@@ -95,6 +95,35 @@ local function initializeCachedTextures()
 		end
 	end
 	pickerState.cache.hueSlider = love.graphics.newImage(hueImageData)
+end
+
+local function startWiggleAnimation()
+	-- Cancel any existing wiggle animation
+	if pickerState.animation.wiggleTween then
+		pickerState.animation.wiggleTween:set(pickerState.animation.wiggleTween.duration)
+	end
+
+	-- Create a sequence of positions for the wiggle
+	local sequence = {
+		[0.00] = 0, -- Start position
+		[0.05] = 5, -- Right/down
+		[0.15] = -4, -- Left/up
+		[0.25] = 3, -- Right/down
+		[0.35] = -2, -- Left/up
+		[0.45] = 1, -- Right/down
+		[0.55] = 0, -- Back to center
+	}
+
+	-- Create the wiggle tween
+	local duration = 0.6
+	local initial = {
+		offset = sequence[0.05], -- Start at first peak of wiggle
+	}
+
+	pickerState.animation.wiggleOffset = initial.offset -- Set initial offset
+	pickerState.animation.wiggleTween = tween.new(duration, pickerState.animation, {
+		wiggleOffset = 0,
+	}, "outElastic")
 end
 
 function colorpickerhsv.load()
@@ -139,35 +168,9 @@ function colorpickerhsv.load()
 	pickerState.cursor.hueY = pickerState.startY + ((360 - pickerState.hue) / 360 * pickerState.squareSize)
 
 	initializeCachedTextures()
-end
 
-local function startWiggleAnimation()
-	-- Cancel any existing wiggle animation
-	if pickerState.animation.wiggleTween then
-		pickerState.animation.wiggleTween:set(pickerState.animation.wiggleTween.duration)
-	end
-
-	-- Create a sequence of positions for the wiggle
-	local sequence = {
-		[0.00] = 0, -- Start position
-		[0.05] = 5, -- Right/down
-		[0.15] = -4, -- Left/up
-		[0.25] = 3, -- Right/down
-		[0.35] = -2, -- Left/up
-		[0.45] = 1, -- Right/down
-		[0.55] = 0, -- Back to center
-	}
-
-	-- Create the wiggle tween
-	local duration = 0.6
-	local initial = {
-		offset = sequence[0.05], -- Start at first peak of wiggle
-	}
-
-	pickerState.animation.wiggleOffset = initial.offset -- Set initial offset
-	pickerState.animation.wiggleTween = tween.new(duration, pickerState.animation, {
-		wiggleOffset = 0,
-	}, "outElastic")
+	-- Start with a wiggle animation on the hue slider to indicate focus
+	startWiggleAnimation()
 end
 
 function colorpickerhsv.draw()
