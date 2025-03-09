@@ -126,6 +126,7 @@ function menu.update(dt)
 					popupState = "none"
 					createdThemePath = nil
 					state.resetInputTimer()
+					state.forceInputDelay(0.5) -- Add extra delay when closing the popup
 				end
 			else
 				-- Handle navigation for default popups
@@ -241,6 +242,7 @@ function menu.update(dt)
 	if virtualJoystick:isGamepadDown("y") and switchScreen then
 		switchScreen(constants.ABOUT_SCREEN)
 		state.resetInputTimer()
+		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 		return
 	end
 
@@ -284,6 +286,7 @@ function menu.update(dt)
 					state.lastSelectedColorButton = button.colorKey
 					switchScreen("color_picker")
 					state.resetInputTimer()
+					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.text == "Create theme" then
 					-- Start theme creation
 					createdThemePath = themeCreator.createTheme()
@@ -294,8 +297,8 @@ function menu.update(dt)
 						ui.showPopup(
 							"Created theme successfully.",
 							{
-								{ text = "Apply later (manual)", selected = false },
-								{ text = "Apply now (automatic)", selected = true },
+								{ text = "Apply theme later", selected = false },
+								{ text = "Apply theme now", selected = true },
 							},
 							true -- Use vertical buttons
 						)

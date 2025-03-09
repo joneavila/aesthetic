@@ -28,6 +28,11 @@ function state.resetInputTimer()
 	lastInpuSeconds = 0
 end
 
+function state.forceInputDelay(extraDelay)
+	-- Set lastInputSeconds to a negative value to force an additional delay
+	lastInpuSeconds = -extraDelay
+end
+
 local function updateInputTimer(dt)
 	lastInpuSeconds = lastInpuSeconds + dt
 end
