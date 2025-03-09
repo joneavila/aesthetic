@@ -53,8 +53,11 @@ local function setupFonts()
 	local fontSizeCaption = 18 * (state.screenHeight / maxScreenHeight)
 	local fontCaption = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeCaption)
 
-	local fontSizeMono = 48 * (state.screenHeight / maxScreenHeight)
-	local fontMono = love.graphics.newFont("assets/fonts/monaspace/MonaspaceNeon-Bold-Subset.otf", fontSizeMono)
+	local fontSizeMonoTitle = 48 * (state.screenHeight / maxScreenHeight)
+	local fontMonoTitle = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoTitle)
+
+	local fontSizeMonoBody = 24 * (state.screenHeight / maxScreenHeight)
+	local fontMonoBody = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoBody)
 
 	local fontSizeNunito = 24 * (state.screenHeight / maxScreenHeight)
 	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
@@ -64,7 +67,8 @@ local function setupFonts()
 		header = fontHeader,
 		body = fontBody,
 		caption = fontCaption,
-		mono = fontMono,
+		monoTitle = fontMonoTitle,
+		monoBody = fontMonoBody,
 		nunito = fontNunito,
 	}
 end
@@ -86,7 +90,7 @@ function love.load()
 	-- Initialize the splash screen with the callback and font
 	local splashInstance = splash({
 		onDone = onSplashDone,
-		font = state.fonts.mono,
+		font = state.fonts.monoTitle,
 	})
 
 	state.splash = {
