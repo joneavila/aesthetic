@@ -41,9 +41,6 @@
 
 ## ⚙️ Usage
 
-> [!IMPORTANT]
-> When choosing a background color, avoid colors too close to white as this will make menu text difficult to read. For best results, use darker or more saturated colors.
-
 1. From the main menu, select the theme options to customize. Each screen includes helpful control hints at the bottom.
 2. Select "Create theme" to save your theme to your device's collection.
 3. Apply your theme automatically, or apply it manually later via **_Configuration_** > **_Customisation_** > **_muOS Themes_**.
