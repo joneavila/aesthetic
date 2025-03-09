@@ -39,9 +39,9 @@ local ANIMATION = {
 
 -- Helper function to get all color keys
 local function getColorKeys()
-	-- Use the ordered keys directly from the colors module
+	-- Use the ordered keys directly from the colors.palette module
 	local keys = {}
-	for _, key in ipairs(colors._ordered_keys) do
+	for _, key in ipairs(colors.palette._ordered_keys) do
 		table.insert(keys, key)
 	end
 	return keys
@@ -160,7 +160,7 @@ local function drawScrollbar()
 	local scrollbarY = state.TAB_HEIGHT + PADDING
 
 	-- Draw scrollbar background
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 0.2)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
 	love.graphics.rectangle("fill", scrollbarX, scrollbarY, SCROLLBAR.WIDTH, scrollbarHeight, SCROLLBAR.CORNER_RADIUS)
 
 	-- Calculate handle position and size
@@ -178,13 +178,13 @@ local function drawScrollbar()
 	local handleY = scrollbarY + (scrollbarHeight - handleHeight) * scrollRatio
 
 	-- Draw handle
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], SCROLLBAR.OPACITY)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], SCROLLBAR.OPACITY)
 	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
 end
 
 -- Helper function to draw the controls background
 local function drawControlsBackground()
-	love.graphics.setColor(colors.bg)
+	love.graphics.setColor(colors.ui.background)
 	love.graphics.rectangle(
 		"fill",
 		0,
@@ -196,8 +196,8 @@ end
 
 function colorpicker.draw()
 	-- Set background
-	love.graphics.setColor(colors.bg)
-	love.graphics.clear()
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
@@ -234,7 +234,7 @@ function colorpicker.draw()
 
 				-- Draw the color square with scale
 				local currentColor = colorpickerState.colorKeys[colorIndex]
-				love.graphics.setColor(colors[currentColor])
+				love.graphics.setColor(colors.palette[currentColor])
 				love.graphics.rectangle(
 					"fill",
 					x - offset,
@@ -245,7 +245,7 @@ function colorpicker.draw()
 				)
 
 				-- Draw border
-				love.graphics.setColor(colors.white)
+				love.graphics.setColor(colors.ui.foreground)
 				if row == currentState.selectedRow and col == currentState.selectedCol then
 					love.graphics.setLineWidth(BORDER.SELECTED_WIDTH)
 				else
@@ -386,7 +386,7 @@ function colorpicker.update(dt)
 			local selectedKey = colorpickerState.colorKeys[selectedIndex]
 			if selectedKey then
 				-- Convert the selected color key to hex code
-				local hexCode = colors.toHex(selectedKey)
+				local hexCode = colors.toHex(selectedKey, "palette")
 				if hexCode then
 					menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 					if switchScreen then

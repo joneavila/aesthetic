@@ -195,8 +195,8 @@ end
 
 function colorpickerhsv.draw()
 	-- Set background
-	love.graphics.setColor(colors.bg)
-	love.graphics.clear()
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
@@ -226,7 +226,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw "Current" label
-	love.graphics.setColor(colors.fg, 0.7)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.7)
 	love.graphics.setFont(state.fonts.caption)
 	love.graphics.printf(
 		"Current",

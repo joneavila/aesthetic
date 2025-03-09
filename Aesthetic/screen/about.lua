@@ -24,8 +24,8 @@ end
 
 function about.draw()
 	-- Set background
-	love.graphics.setColor(colors.bg)
-	love.graphics.clear()
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
 	-- Calculate text positions
 	local headerHeight = state.fonts.header:getHeight()
@@ -34,7 +34,7 @@ function about.draw()
 	local bodyY = headerY + headerHeight + PADDING
 
 	-- Draw header
-	love.graphics.setColor(colors.fg)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(state.fonts.header)
 	love.graphics.printf(
 		state.applicationName .. " " .. version.getVersionString(),

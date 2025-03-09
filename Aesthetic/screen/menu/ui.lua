@@ -18,55 +18,21 @@ local popupVerticalButtons = false
 
 -- Function to draw a button
 function ui.drawButton(button, x, y, isSelected)
-	if button.isHelp then
-		-- Draw help button as a circle
-		local radius = constants.BUTTON.HELP_BUTTON_SIZE / 2
+	-- Determine button width based on type
+	local buttonWidth = state.screenWidth
 
-		-- Draw button background
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], isSelected and 0.3 or 0.2)
-		love.graphics.circle("fill", x + radius, y + radius, radius)
-
-		-- Draw button outline
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], isSelected and 1 or 0.5)
-		love.graphics.setLineWidth(isSelected and constants.BUTTON.SELECTED_OUTLINE_WIDTH or 2)
-		love.graphics.circle("line", x + radius, y + radius, radius)
-
-		-- Draw question mark
-		love.graphics.setFont(state.fonts.body)
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
-		local textWidth = state.fonts.body:getWidth("?")
-		local textHeight = state.fonts.body:getHeight()
-		love.graphics.print("?", x + radius - textWidth / 2, y + radius - textHeight / 2)
-		return
+	-- Draw button background only when selected (hovered)
+	if isSelected then
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("fill", 0, y, buttonWidth, constants.BUTTON.HEIGHT, 0)
 	end
 
-	-- Draw button background
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 0.2)
-	love.graphics.rectangle(
-		"fill",
-		x,
-		y,
-		constants.BUTTON.WIDTH,
-		constants.BUTTON.HEIGHT,
-		constants.BUTTON.CORNER_RADIUS
-	)
-
-	-- Draw button outline (thicker if selected)
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], isSelected and 1 or 0.5)
-	love.graphics.setLineWidth(isSelected and constants.BUTTON.SELECTED_OUTLINE_WIDTH or 2)
-	love.graphics.rectangle(
-		"line",
-		x,
-		y,
-		constants.BUTTON.WIDTH,
-		constants.BUTTON.HEIGHT,
-		constants.BUTTON.CORNER_RADIUS
-	)
-
-	-- Draw button text
+	-- Draw button text with different color when selected
 	love.graphics.setFont(state.fonts.body)
 	local textHeight = state.fonts.body:getHeight()
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+
+	love.graphics.setColor(colors.ui.foreground)
+
 	love.graphics.print(button.text, x + 20, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
 
 	-- If this is a color selection button
@@ -77,7 +43,7 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Only draw color display if we have a valid color
 		if hexColor then
 			-- Draw color square on the right side of the button
-			local colorX = x + constants.BUTTON.WIDTH - constants.BUTTON.COLOR_DISPLAY_SIZE - 20
+			local colorX = state.screenWidth - constants.BUTTON.COLOR_DISPLAY_SIZE - 20
 			local colorY = y + (constants.BUTTON.HEIGHT - constants.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
 			local r, g, b = colorUtils.hexToRgb(hexColor)
@@ -94,7 +60,7 @@ function ui.drawButton(button, x, y, isSelected)
 			)
 
 			-- Draw border around color square
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.setLineWidth(1)
 			love.graphics.rectangle(
 				"line",
@@ -106,6 +72,7 @@ function ui.drawButton(button, x, y, isSelected)
 			)
 
 			-- Draw color hex code
+			love.graphics.setColor(colors.ui.foreground)
 			local hexCode = state.colors[button.colorKey]
 			local hexWidth = state.fonts.body:getWidth(hexCode)
 			love.graphics.print(hexCode, colorX - hexWidth - 10, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
@@ -116,7 +83,7 @@ function ui.drawButton(button, x, y, isSelected)
 		local selectedFontName = state.selectedFont
 
 		-- Calculate the right edge position
-		local rightEdge = x + constants.BUTTON.WIDTH - 20
+		local rightEdge = state.screenWidth - 20
 
 		-- Use the appropriate font for measurement and display
 		if selectedFontName == "Inter" then
@@ -151,8 +118,9 @@ function ui.drawButton(button, x, y, isSelected)
 
 		local fontNameY = y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 
+		love.graphics.setColor(colors.ui.foreground)
+
 		-- Draw left arrow
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
 		love.graphics.polygon(
 			"fill",
 			leftArrowX,
@@ -185,7 +153,7 @@ end
 -- Popup drawing function
 function ui.drawPopup()
 	-- Draw semi-transparent background
-	love.graphics.setColor(0, 0, 0, 0.8)
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.8)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
 	-- Calculate popup dimensions based on text
@@ -221,11 +189,11 @@ function ui.drawPopup()
 	local y = (state.screenHeight - popupHeight) / 2
 
 	-- Draw popup background
-	love.graphics.setColor(colors.bg[1], colors.bg[2], colors.bg[3], 1)
+	love.graphics.setColor(colors.ui.background)
 	love.graphics.rectangle("fill", x, y, popupWidth, popupHeight, 10)
 
 	-- Draw popup border
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", x, y, popupWidth, popupHeight, 10)
 
@@ -245,16 +213,25 @@ function ui.drawPopup()
 			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
 
 			-- Draw button background
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 0.3 or 0.1)
+			if button.selected then
+				love.graphics.setColor(colors.ui.surface)
+			else
+				love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
+			end
 			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button border
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 1 or 0.5)
+			love.graphics.setColor(
+				colors.ui.foreground[1],
+				colors.ui.foreground[2],
+				colors.ui.foreground[3],
+				button.selected and 1 or 0.5
+			)
 			love.graphics.setLineWidth(button.selected and 3 or 1)
 			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button text
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.printf(
 				button.text,
 				buttonX,
@@ -272,16 +249,25 @@ function ui.drawPopup()
 
 		for _, button in ipairs(popupButtons) do
 			-- Draw button background
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 0.3 or 0.1)
+			if button.selected then
+				love.graphics.setColor(colors.ui.surface)
+			else
+				love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
+			end
 			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button border
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], button.selected and 1 or 0.5)
+			love.graphics.setColor(
+				colors.ui.foreground[1],
+				colors.ui.foreground[2],
+				colors.ui.foreground[3],
+				button.selected and 1 or 0.5
+			)
 			love.graphics.setLineWidth(button.selected and 3 or 1)
 			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button text
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 1)
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.printf(
 				button.text,
 				buttonX,

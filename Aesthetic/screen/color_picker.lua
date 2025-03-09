@@ -112,16 +112,16 @@ function colorPicker.draw()
 	end
 
 	-- Draw tab bar background
-	love.graphics.setColor(colors.bg[1], colors.bg[2], colors.bg[3], 0.9)
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, TAB.HEIGHT + TAB.MARGIN)
 
 	-- Draw tabs
 	for _, tab in ipairs(tabs) do
 		-- Tab background
 		if tab.active then
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 0.2)
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
 		else
-			love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], 0.1)
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
 		end
 
 		-- Determine corner radius based on position
@@ -133,10 +133,15 @@ function colorPicker.draw()
 
 		-- Tab text
 		if tab.active then
-			love.graphics.setColor(colors.fg)
+			love.graphics.setColor(colors.ui.foreground)
 		else
 			-- Use a muted version of the foreground color if fg_muted is not available
-			love.graphics.setColor(colors.fg[1] * 0.7, colors.fg[2] * 0.7, colors.fg[3] * 0.7, 1)
+			love.graphics.setColor(
+				colors.ui.foreground[1] * 0.7,
+				colors.ui.foreground[2] * 0.7,
+				colors.ui.foreground[3] * 0.7,
+				1
+			)
 		end
 		love.graphics.setFont(state.fonts.body)
 		love.graphics.printf(
@@ -149,7 +154,7 @@ function colorPicker.draw()
 
 		-- Active tab indicator
 		if tab.active then
-			love.graphics.setColor(colors.fg)
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.rectangle(
 				"fill",
 				tab.x,

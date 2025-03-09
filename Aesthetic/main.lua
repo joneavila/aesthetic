@@ -130,14 +130,14 @@ function love.draw()
 		local fadeProgress = state.fading and (state.fadeTimer / state.fadeDuration) or 1
 
 		-- Set the opacity for the menu content based on fade progress
-		love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], fadeProgress)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], fadeProgress)
 		screens.draw()
-		love.graphics.setColor(colors.fg)
+		love.graphics.setColor(colors.ui.foreground)
 
 		-- Apply the fade-in overlay
 		if state.fading then
 			local fadeAlpha = 1 - fadeProgress
-			love.graphics.setColor(colors.bg[1], colors.bg[2], colors.bg[3], fadeAlpha)
+			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
 			love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 		end
 	end

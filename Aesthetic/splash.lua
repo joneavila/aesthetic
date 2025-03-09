@@ -46,7 +46,7 @@ function splash.new(init)
 
 	-- Background settings
 	self.background = {
-		color = { colors.bg[1], colors.bg[2], colors.bg[3], 1 },
+		color = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 },
 	}
 
 	-- Bind methods to the instance
@@ -67,7 +67,7 @@ function splash:draw()
 	love.graphics.setFont(self.font)
 
 	love.graphics.push()
-	love.graphics.setColor(colors.fg[1], colors.fg[2], colors.fg[3], self.alpha)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], self.alpha)
 
 	-- Get visible text and draw it
 	if self.currentIndex > 0 then

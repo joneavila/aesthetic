@@ -35,11 +35,11 @@ end
 -- Function to display a full-screen "Working..." overlay
 function menu.displayWaitOverlay()
 	-- Semi-transparent background
-	love.graphics.setColor(0, 0, 0, 0.95)
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
 	-- Text
-	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.setColor(colors.ui.foreground)
 	local font = love.graphics.getFont()
 	local text = "Working..."
 	local textWidth = font:getWidth(text)
@@ -54,8 +54,8 @@ end
 
 function menu.draw()
 	-- Set background
-	love.graphics.setColor(colors.bg)
-	love.graphics.clear()
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
 	-- Draw all buttons based on their type
 	local regularButtonCount = 0
@@ -64,17 +64,19 @@ function menu.draw()
 		local y = button.isBottomButton and state.screenHeight - constants.BUTTON.BOTTOM_MARGIN
 			or constants.BUTTON.START_Y + regularButtonCount * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
 
-		ui.drawButton(button, constants.BUTTON.PADDING, y, button.selected)
+		local x = 0
+
+		ui.drawButton(button, x, y, button.selected)
 
 		-- Draw the Glyphs state (Enabled/Disabled) on the right side of the button
 		if button.glyphsToggle then
 			local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
 			local font = love.graphics.getFont()
 			local textWidth = font:getWidth(statusText)
-			local rightX = constants.BUTTON.PADDING + constants.BUTTON.WIDTH - 20 -- 20px padding from right edge
+			local rightX = state.screenWidth - 20 -- 20px padding from right edge
 			local textY = y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
 
-			love.graphics.setColor(colors.fg)
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.print(statusText, rightX - textWidth, textY)
 		end
 

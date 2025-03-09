@@ -182,8 +182,8 @@ end
 
 function hex.draw()
 	-- Set background
-	love.graphics.setColor(colors.bg)
-	love.graphics.clear()
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
@@ -195,14 +195,14 @@ function hex.draw()
 	local previewWidth = state.screenWidth - (2 * EDGE_PADDING)
 
 	-- Draw preview rectangle outline
-	love.graphics.setColor(colors.fg)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Variables for input display
 	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2
 	local inputY = previewY + (PREVIEW_HEIGHT - INPUT_RECT_HEIGHT) / 2
-	local textColor = colors.fg -- Default text color
+	local textColor = colors.ui.foreground -- Default text color
 
 	-- Fill with color if input is valid
 	if isValidHex(currentState.input) then
@@ -251,9 +251,14 @@ function hex.draw()
 
 				-- Draw button background with transparency for disabled confirm button
 				if isConfirmDisabled then
-					love.graphics.setColor(0.2, 0.2, 0.2, 0.4) -- More transparent when disabled
+					love.graphics.setColor(
+						colors.ui.background_bright[1],
+						colors.ui.background_bright[2],
+						colors.ui.background_bright[3],
+						0.4
+					) -- More transparent when disabled
 				else
-					love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+					love.graphics.setColor(colors.ui.background_bright)
 				end
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
@@ -262,19 +267,26 @@ function hex.draw()
 				if isConfirmDisabled then
 					-- Use semi-transparent outline for disabled confirm button
 					love.graphics.setColor(
-						isSelected and { colors.fg[1], colors.fg[2], colors.fg[3], 0.5 } or { 0.5, 0.5, 0.5, 0.5 }
+						isSelected
+								and { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
+							or {
+								colors.ui.background_bright[1],
+								colors.ui.background_bright[2],
+								colors.ui.background_bright[3],
+								0.5,
+							}
 					)
 				else
-					love.graphics.setColor(isSelected and colors.fg or { 0.5, 0.5, 0.5 })
+					love.graphics.setColor(isSelected and colors.ui.foreground or colors.ui.background_bright)
 				end
 				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
 				-- Determine icon color - use semi-transparent if confirm button is disabled
 				local iconColor
 				if isConfirmDisabled then
-					iconColor = { colors.fg[1], colors.fg[2], colors.fg[3], 0.5 }
+					iconColor = { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
 				else
-					iconColor = colors.fg
+					iconColor = colors.ui.foreground
 				end
 
 				-- Special handling for icon buttons
