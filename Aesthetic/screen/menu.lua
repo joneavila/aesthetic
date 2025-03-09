@@ -17,6 +17,11 @@ local switchScreen = nil
 local createdThemePath = nil
 local popupState = "none" -- none, created, manual, automatic
 
+-- IO operation states
+local waitingState = "none" -- none, create_theme, install_theme
+local waitingThemePath = nil
+-- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during file operations
+
 function menu.load()
 	constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING * 2)
 	constants.BUTTON.START_Y = constants.BUTTON.PADDING
@@ -25,6 +30,26 @@ function menu.load()
 	for _, font in ipairs(constants.FONTS) do
 		font.selected = (font.name == state.selectedFont)
 	end
+end
+
+-- Function to display a full-screen "Working..." overlay
+function menu.displayWaitOverlay()
+	-- Semi-transparent background
+	love.graphics.setColor(0, 0, 0, 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
+
+	-- Text
+	love.graphics.setColor(1, 1, 1, 1)
+	local font = love.graphics.getFont()
+	local text = "Working..."
+	local textWidth = font:getWidth(text)
+	local textHeight = font:getHeight()
+
+	-- Center the text on screen
+	local x = (state.screenWidth - textWidth) / 2
+	local y = (state.screenHeight - textHeight) / 2
+
+	love.graphics.print(text, x, y)
 end
 
 function menu.draw()
@@ -66,6 +91,11 @@ function menu.draw()
 		ui.drawPopup()
 	end
 
+	-- Draw wait overlay if in waiting state
+	if waitingState ~= "none" then
+		menu.displayWaitOverlay()
+	end
+
 	controls.draw({
 		{ icon = "d_pad.png", text = "Navigate" },
 		{ icon = "a.png", text = "Select" },
@@ -78,6 +108,41 @@ function menu.update(dt)
 	-- Update error timer
 	errorHandler.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
+
+	-- Handle IO operations that were queued in the previous frame
+	if waitingState == "create_theme" then
+		-- Execute theme creation
+		createdThemePath = themeCreator.createTheme()
+		waitingState = "none"
+
+		if createdThemePath then
+			-- Show success popup with options
+			popupState = "created"
+			ui.showPopup(
+				"Created theme successfully.",
+				{
+					{ text = "Apply theme later", selected = false },
+					{ text = "Apply theme now", selected = true },
+				},
+				true -- Use vertical buttons
+			)
+		else
+			-- Show error popup
+			ui.showPopup("Error creating theme.")
+		end
+		return -- Skip the rest of the update to avoid input processing
+	elseif waitingState == "install_theme" then
+		-- Execute theme installation
+		local success = themeCreator.installTheme(waitingThemePath)
+		waitingState = "none"
+		waitingThemePath = nil
+
+		ui.showPopup(
+			success and "Applied theme successfully." or "Failed to apply theme.",
+			{ { text = "Close", selected = true } }
+		)
+		return -- Skip the rest of the update to avoid input processing
+	end
 
 	if ui.isPopupVisible() then
 		if state.canProcessInput() then
@@ -107,12 +172,9 @@ function menu.update(dt)
 							else
 								-- Automatic option selected
 								popupState = "automatic"
-								-- Install the theme
-								local success = themeCreator.installTheme(createdThemePath)
-								ui.showPopup(
-									success and "Applied theme successfully." or "Failed to apply theme.",
-									{ { text = "Close", selected = true } }
-								)
+								-- Queue theme installation for next frame
+								waitingState = "install_theme"
+								waitingThemePath = createdThemePath
 							end
 							break
 						end
@@ -288,24 +350,9 @@ function menu.update(dt)
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.text == "Create theme" then
-					-- Start theme creation
-					createdThemePath = themeCreator.createTheme()
-
-					if createdThemePath then
-						-- Show success popup with options
-						popupState = "created"
-						ui.showPopup(
-							"Created theme successfully.",
-							{
-								{ text = "Apply theme later", selected = false },
-								{ text = "Apply theme now", selected = true },
-							},
-							true -- Use vertical buttons
-						)
-					else
-						-- Show error popup
-						ui.showPopup("Error creating theme.")
-					end
+					-- Queue theme creation for next frame
+					waitingState = "create_theme"
+					-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
 				end
 				break
 			end
