@@ -13,15 +13,20 @@
   </p>
   <p>
     <img src="/assets/screenshot_menu_main.png" width="30%" alt="Aesthetic main menu">
-    <img src="/assets/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette">
-    <img src="/assets/screenshot_menu_picker.png" width="30%" alt="Aesthetic color picker">
+    <img src="/assets/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette screen">
+    <img src="/assets/screenshot_menu_picker.png" width="30%" alt="Aesthetic HSV picker screen">
+    <img src="/assets/screenshot_menu_hex.png" width="30%" alt="Aesthetic hex code screen">
   </p>
 </div>
 
 ## ✨ Features
 
-- **Customize** your background color and font to match your style
-- **Export** your theme directly to your theme collection
+- **Customize** your theme to match your style
+  - **Colors**: Select foreground and background colors from presets or create your own
+  - **Font**: Choose between Inter for clean lines or Nunito for friendly curves
+  - **Icons**: Toggle system glyphs for a minimal or informative interface
+- **Export** your theme directly to your device's theme collection
+- **Apply** your new theme automatically when exiting the application (optional)
 
 ## 📦 Installation
 
@@ -39,10 +44,9 @@
 > [!IMPORTANT]
 > When choosing a background color, avoid colors too close to white as this will make menu text difficult to read. For best results, use darker or more saturated colors.
 
-1. From the main menu, select **_Background color_** to open the color palette.
-2. Select a preset color from the color palette, or select **_Custom_** to open the color picker.
-3. Back in the main menu, select **_Create theme_** to generate and save your theme to your theme collection.
-4. Apply your custom theme via **_Configuration_** > **_Customisation_** > **_muOS Themes_** > **_Custom Theme_**.
+1. From the main menu, select the theme options to customize. Each screen includes helpful control hints at the bottom.
+2. Select "Create theme" to save your theme to your device's collection.
+3. Apply your theme automatically, or apply it manually later via **_Configuration_** > **_Customisation_** > **_muOS Themes_**.
 
 ## 🛠️ Contributing
 
