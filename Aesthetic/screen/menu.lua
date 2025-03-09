@@ -188,7 +188,7 @@ function menu.update(dt)
 					popupState = "none"
 					createdThemePath = nil
 					state.resetInputTimer()
-					state.forceInputDelay(0.5) -- Add extra delay when closing the popup
+					state.forceInputDelay(0.2) -- Add extra delay when closing the popup
 				end
 			else
 				-- Handle navigation for default popups
