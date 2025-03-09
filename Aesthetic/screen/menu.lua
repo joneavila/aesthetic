@@ -66,7 +66,55 @@ function menu.draw()
 
 		local x = 0
 
-		ui.drawButton(button, x, y, button.selected)
+		-- Special handling for "Create theme" button
+		if button.text == "Create theme" then
+			-- Calculate centered position with padding
+			local padding = 180
+			local font = love.graphics.getFont()
+			local textWidth = font:getWidth(button.text)
+			local buttonWidth = textWidth + (padding * 2)
+			local buttonX = (state.screenWidth - buttonWidth) / 2
+			local cornerRadius = 8
+
+			if button.selected then
+				-- Selected state: accent background, background text, background outline
+				love.graphics.setColor(colors.ui.accent)
+				love.graphics.rectangle("fill", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+
+				-- Draw outline
+				love.graphics.setColor(colors.ui.background)
+				love.graphics.setLineWidth(2)
+				love.graphics.rectangle("line", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+
+				-- Draw text
+				love.graphics.setColor(colors.ui.background)
+				love.graphics.print(
+					button.text,
+					buttonX + padding,
+					y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
+				)
+			else
+				-- Unselected state: background with surface outline
+				love.graphics.setColor(colors.ui.background)
+				love.graphics.rectangle("fill", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+
+				-- Draw outline
+				love.graphics.setColor(colors.ui.surface)
+				love.graphics.setLineWidth(2)
+				love.graphics.rectangle("line", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+
+				-- Draw text
+				love.graphics.setColor(colors.ui.foreground)
+				love.graphics.print(
+					button.text,
+					buttonX + padding,
+					y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
+				)
+			end
+		else
+			-- Draw other buttons normally
+			ui.drawButton(button, x, y, button.selected)
+		end
 
 		-- Draw the Glyphs state (Enabled/Disabled) on the right side of the button
 		if button.glyphsToggle then
