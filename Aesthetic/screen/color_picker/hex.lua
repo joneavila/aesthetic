@@ -251,14 +251,9 @@ function hex.draw()
 
 				-- Draw button background with transparency for disabled confirm button
 				if isConfirmDisabled then
-					love.graphics.setColor(
-						colors.ui.background_bright[1],
-						colors.ui.background_bright[2],
-						colors.ui.background_bright[3],
-						0.4
-					) -- More transparent when disabled
+					love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.4) -- More transparent when disabled
 				else
-					love.graphics.setColor(colors.ui.background_bright)
+					love.graphics.setColor(colors.ui.surface)
 				end
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
@@ -270,14 +265,14 @@ function hex.draw()
 						isSelected
 								and { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
 							or {
-								colors.ui.background_bright[1],
-								colors.ui.background_bright[2],
-								colors.ui.background_bright[3],
+								colors.ui.surface[1],
+								colors.ui.surface[2],
+								colors.ui.surface[3],
 								0.5,
 							}
 					)
 				else
-					love.graphics.setColor(isSelected and colors.ui.foreground or colors.ui.background_bright)
+					love.graphics.setColor(isSelected and colors.ui.foreground or colors.ui.surface)
 				end
 				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
