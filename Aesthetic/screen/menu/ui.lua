@@ -74,8 +74,23 @@ function ui.drawButton(button, x, y, isSelected)
 			-- Draw color hex code
 			love.graphics.setColor(colors.ui.foreground)
 			local hexCode = state.colors[button.colorKey]
-			local hexWidth = state.fonts.body:getWidth(hexCode)
-			love.graphics.print(hexCode, colorX - hexWidth - 10, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
+
+			-- Use monospace font for hex codes
+			if button.colorKey == "background" or button.colorKey == "foreground" then
+				love.graphics.setFont(state.fonts.monoBody)
+			end
+
+			local hexWidth = love.graphics.getFont():getWidth(hexCode)
+			love.graphics.print(
+				hexCode,
+				colorX - hexWidth - 10,
+				y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
+			)
+
+			-- Reset to body font after printing hex code
+			if button.colorKey == "background" or button.colorKey == "foreground" then
+				love.graphics.setFont(state.fonts.body)
+			end
 		end
 	-- If this is a font selection button
 	elseif button.fontSelection then
