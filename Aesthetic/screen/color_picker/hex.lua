@@ -255,13 +255,9 @@ function hex.draw()
 				local isConfirmDisabled = isConfirmButton and not isValidHex(currentState.input)
 
 				-- Draw button background with transparency for disabled confirm button
-				if isConfirmDisabled then
-					love.graphics.setColor(
-						colors.ui.background[1],
-						colors.ui.background[2],
-						colors.ui.background[3],
-						0.4
-					) -- More transparent when disabled
+				if isConfirmButton and isSelected and isValidHex(currentState.input) then
+					-- Valid confirm button that is selected - use accent color
+					love.graphics.setColor(colors.ui.accent)
 				else
 					-- Use surface color for selected buttons, background color for non-selected
 					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
@@ -270,7 +266,10 @@ function hex.draw()
 
 				-- Draw button outline
 				love.graphics.setLineWidth(isSelected and BUTTON_HOVER_OUTLINE_WIDTH or BUTTON_OUTLINE_WIDTH)
-				if isConfirmDisabled then
+				if isConfirmButton and isSelected and isValidHex(currentState.input) then
+					-- Valid confirm button that is selected - use accent color for outline too
+					love.graphics.setColor(colors.ui.accent)
+				elseif isConfirmDisabled then
 					-- Use semi-transparent outline for disabled confirm button
 					love.graphics.setColor(
 						isSelected and { colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.5 }
@@ -290,9 +289,14 @@ function hex.draw()
 
 				-- Determine icon color - use semi-transparent if confirm button is disabled
 				local iconColor
-				if isConfirmDisabled then
+				if isConfirmButton and isSelected and isValidHex(currentState.input) then
+					-- Valid confirm button that is selected - use background color for icon
+					iconColor = colors.ui.background
+				elseif isConfirmDisabled then
+					-- Invalid confirm button - use semi-transparent foreground
 					iconColor = { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
 				else
+					-- All other buttons - use foreground color
 					iconColor = colors.ui.foreground
 				end
 
