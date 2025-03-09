@@ -1,6 +1,6 @@
 local love = require("love")
 local state = require("state")
-
+local colors = require("colors")
 local controls = {}
 
 -- Constants
@@ -55,7 +55,7 @@ end
 -- Draw the controls area at the bottom of the screen
 function controls.draw(controls_list)
 	-- Set up graphics state
-	love.graphics.setColor(1, 1, 1, 0.7)
+	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.setFont(state.fonts.caption)
 
 	-- Calculate total width needed for all controls
