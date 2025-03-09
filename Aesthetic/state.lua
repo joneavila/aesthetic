@@ -11,8 +11,8 @@ local state = {
 		caption = love.graphics.getFont(),
 	},
 	colors = {
-		background = "#1e1e2e", -- Default background color
-		foreground = "#cdd6f4", -- Default foreground color
+		background = "#1E1E2E", -- Default background color
+		foreground = "#CDD6F4", -- Default foreground color
 	},
 	selectedFont = "Inter", -- Default selected font
 	lastSelectedColorButton = "background", -- Default selected button for color picker
