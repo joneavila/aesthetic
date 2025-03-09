@@ -20,7 +20,7 @@ local uiDefinitions = OrderedDict.new()
 -- Add UI colors
 uiDefinitions:insert("foreground", color(0.804, 0.839, 0.957, 1)) -- Text
 uiDefinitions:insert("background", color(0.118, 0.118, 0.18, 1)) -- Base
-uiDefinitions:insert("surface", color(0.192, 0.196, 0.267, 1)) -- Surface 1
+uiDefinitions:insert("surface", color(0.271, 0.278, 0.353, 1)) -- Surface 1
 uiDefinitions:insert("subtext", color(0.651, 0.678, 0.784, 1)) -- Subtext 0
 uiDefinitions:insert("accent", color(0.537, 0.706, 0.98, 1)) --  Blue
 

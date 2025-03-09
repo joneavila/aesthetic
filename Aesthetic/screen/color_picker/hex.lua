@@ -194,11 +194,6 @@ function hex.draw()
 	local previewY = state.TAB_HEIGHT + TOP_PADDING
 	local previewWidth = state.screenWidth - (2 * EDGE_PADDING)
 
-	-- Draw preview rectangle outline
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setLineWidth(2)
-	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
-
 	-- Variables for input display
 	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2
 	local inputY = previewY + (PREVIEW_HEIGHT - INPUT_RECT_HEIGHT) / 2
@@ -213,7 +208,17 @@ function hex.draw()
 		-- Calculate contrasting color for text
 		local contrastR, contrastG, contrastB = colorUtils.calculateContrastingColor(r, g, b)
 		textColor = { contrastR, contrastG, contrastB }
+
+		-- Draw preview rectangle outline with foreground color when valid
+		love.graphics.setColor(colors.ui.foreground)
+	else
+		-- Draw preview rectangle outline with background color when invalid (making it invisible)
+		love.graphics.setColor(colors.ui.background)
 	end
+
+	-- Draw preview rectangle outline
+	love.graphics.setLineWidth(2)
+	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Draw # symbol
 	love.graphics.setColor(textColor)
@@ -251,9 +256,15 @@ function hex.draw()
 
 				-- Draw button background with transparency for disabled confirm button
 				if isConfirmDisabled then
-					love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.4) -- More transparent when disabled
+					love.graphics.setColor(
+						colors.ui.background[1],
+						colors.ui.background[2],
+						colors.ui.background[3],
+						0.4
+					) -- More transparent when disabled
 				else
-					love.graphics.setColor(colors.ui.surface)
+					-- Use surface color for selected buttons, background color for non-selected
+					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
 				end
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
@@ -262,8 +273,7 @@ function hex.draw()
 				if isConfirmDisabled then
 					-- Use semi-transparent outline for disabled confirm button
 					love.graphics.setColor(
-						isSelected
-								and { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
+						isSelected and { colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.5 }
 							or {
 								colors.ui.surface[1],
 								colors.ui.surface[2],
@@ -272,7 +282,9 @@ function hex.draw()
 							}
 					)
 				else
-					love.graphics.setColor(isSelected and colors.ui.foreground or colors.ui.surface)
+					-- For selected buttons, use the same color as background (surface) to make them look solid
+					-- For non-selected buttons, use surface color for outline
+					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.surface)
 				end
 				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 

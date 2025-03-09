@@ -119,9 +119,15 @@ function colorPicker.draw()
 	for _, tab in ipairs(tabs) do
 		-- Tab background
 		if tab.active then
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
+			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
 		else
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
+			-- Make inactive tabs slightly lighter than the background for subtle distinction
+			love.graphics.setColor(
+				colors.ui.background[1] * 1.2,
+				colors.ui.background[2] * 1.2,
+				colors.ui.background[3] * 1.2,
+				1
+			)
 		end
 
 		-- Determine corner radius based on position
@@ -135,13 +141,7 @@ function colorPicker.draw()
 		if tab.active then
 			love.graphics.setColor(colors.ui.foreground)
 		else
-			-- Use a muted version of the foreground color if fg_muted is not available
-			love.graphics.setColor(
-				colors.ui.foreground[1] * 0.7,
-				colors.ui.foreground[2] * 0.7,
-				colors.ui.foreground[3] * 0.7,
-				1
-			)
+			love.graphics.setColor(colors.ui.subtext)
 		end
 		love.graphics.setFont(state.fonts.body)
 		love.graphics.printf(
