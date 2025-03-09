@@ -7,11 +7,16 @@ fi
 
 # Create temporary build directory with required folder structure
 mkdir -p build/mnt/mmc/MUOS/application/.aesthetic/{Aesthetic,lib,bin,conf/love/Aesthetic,Aesthetic/template/scheme}
+# Create folder structure for the application icon
+mkdir -p build/opt/muos/default/MUOS/theme/active/glyph/muxapp/
 
 # Copy source files to their locations on-device
 cp -r Aesthetic/* build/mnt/mmc/MUOS/application/.aesthetic/Aesthetic/
 cp -r lib/* build/mnt/mmc/MUOS/application/.aesthetic/lib/
 cp -r bin/* build/mnt/mmc/MUOS/application/.aesthetic/bin/
+
+# Copy the application icon to the theme glyph folder
+cp Aesthetic/template/glyph/muxapp/aesthetic.png build/opt/muos/default/MUOS/theme/active/glyph/muxapp/
 
 # Copy shared libraries
 cp /usr/lib/liblove-11.5.so build/mnt/mmc/MUOS/application/.aesthetic/lib/ 2>/dev/null || \
