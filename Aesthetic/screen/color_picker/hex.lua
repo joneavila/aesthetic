@@ -54,7 +54,7 @@ local iconCache = {}
 -- Helper function to load an icon
 local function loadIcon(name)
 	if not iconCache[name] then
-		local path = "assets/icons/" .. name
+		local path = "assets/icons/lucide/png/" .. name
 		iconCache[name] = love.graphics.newImage(path)
 	end
 	return iconCache[name]
