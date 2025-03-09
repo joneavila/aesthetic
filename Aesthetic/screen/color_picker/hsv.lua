@@ -30,20 +30,33 @@ local HUE_UPDATE_THRESHOLD = 5 -- Only regenerate SV texture when hue changes by
 
 -- State
 local pickerState = {
-	hue = 0, -- 0 to 360
-	sat = 1, -- 0 to 1
-	val = 1, -- 0 to 1
-	focusSquare = false, -- true = SV square, false = Hue slider
+	background = {
+		hue = 0, -- 0 to 360
+		sat = 1, -- 0 to 1
+		val = 1, -- 0 to 1
+		focusSquare = false, -- true = SV square, false = Hue slider
+		cursor = {
+			svX = nil,
+			svY = nil,
+			hueY = nil,
+		},
+	},
+	foreground = {
+		hue = 0, -- 0 to 360
+		sat = 1, -- 0 to 1
+		val = 1, -- 0 to 1
+		focusSquare = false, -- true = SV square, false = Hue slider
+		cursor = {
+			svX = nil,
+			svY = nil,
+			hueY = nil,
+		},
+	},
 	squareSize = nil, -- Will be calculated in load()
 	sliderWidth = 40,
 	startX = nil, -- Will be calculated in load()
 	startY = nil, -- Will be calculated in load()
 	contentHeight = nil,
-	cursor = {
-		svX = nil,
-		svY = nil,
-		hueY = nil,
-	},
 	-- Tween objects
 	tweens = {
 		svCursor = nil,
@@ -69,6 +82,10 @@ local MENU_SCREEN = "menu"
 
 -- Texture initialization
 local function initializeCachedTextures()
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+
 	local cacheWidth = math.ceil(pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
 	local cacheHeight = math.ceil(pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
 
@@ -78,12 +95,12 @@ local function initializeCachedTextures()
 		for x = 0, cacheWidth - 1 do
 			local s = x / (cacheWidth - 1)
 			local v = 1 - (y / (cacheHeight - 1))
-			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, s, v)
+			local r, g, b = colorUtils.hsvToRgb(currentState.hue, s, v)
 			svImageData:setPixel(x, y, r, g, b, 1)
 		end
 	end
 	pickerState.cache.svSquare = love.graphics.newImage(svImageData)
-	pickerState.lastRenderedHue = pickerState.hue
+	pickerState.lastRenderedHue = currentState.hue
 
 	-- Generate the hue slider texture
 	local hueImageData = love.image.newImageData(HUE_SLIDER_WIDTH, cacheHeight)
@@ -162,11 +179,14 @@ function colorpickerhsv.load()
 	pickerState.hueSliderX = hueSliderX
 	pickerState.previewX = previewX
 
-	-- Initialize cursor positions
-	pickerState.cursor.svX = pickerState.startX + (pickerState.sat * pickerState.squareSize)
-	pickerState.cursor.svY = pickerState.startY + ((1 - pickerState.val) * pickerState.squareSize)
-	pickerState.cursor.hueY = pickerState.startY + ((360 - pickerState.hue) / 360 * pickerState.squareSize)
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
 
+	-- Initialize cursor positions
+	currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
+	currentState.cursor.svY = pickerState.startY + ((1 - currentState.val) * pickerState.squareSize)
+	currentState.cursor.hueY = pickerState.startY + ((360 - currentState.hue) / 360 * pickerState.squareSize)
 	initializeCachedTextures()
 
 	-- Start with a wiggle animation on the hue slider to indicate focus
@@ -177,6 +197,10 @@ function colorpickerhsv.draw()
 	-- Set background
 	love.graphics.setColor(colors.bg)
 	love.graphics.clear()
+
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
 
 	local lineWidth = 4
 	local halfLine = lineWidth / 2
@@ -213,7 +237,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw new color preview with increased spacing
-	local r, g, b = colorUtils.hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
+	r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
 	love.graphics.setColor(r, g, b, 1)
 	love.graphics.rectangle(
 		"fill",
@@ -249,7 +273,7 @@ function colorpickerhsv.draw()
 
 	-- Draw Hue slider with wiggle
 	local hueX = pickerState.hueSliderX
-	if not pickerState.focusSquare then
+	if not currentState.focusSquare then
 		hueX = hueX + wiggleOffset
 	end
 
@@ -264,7 +288,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw Hue slider outline
-	love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], pickerState.focusSquare and 0.2 or 1)
+	love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], currentState.focusSquare and 0.2 or 1)
 	love.graphics.setLineWidth(lineWidth)
 	love.graphics.rectangle(
 		"line",
@@ -276,7 +300,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw hue selection triangles
-	if not pickerState.focusSquare then
+	if not currentState.focusSquare then
 		love.graphics.setColor(colors.white)
 	else
 		love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], 0.2)
@@ -286,27 +310,27 @@ function colorpickerhsv.draw()
 	love.graphics.polygon(
 		"fill",
 		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - lineWidth,
-		pickerState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
+		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
 		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - lineWidth,
-		pickerState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
+		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
 		hueX - CURSOR.TRIANGLE_SPACING - lineWidth,
-		pickerState.cursor.hueY
+		currentState.cursor.hueY
 	)
 
 	-- Right triangle
 	love.graphics.polygon(
 		"fill",
 		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + lineWidth,
-		pickerState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
+		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
 		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + lineWidth,
-		pickerState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
+		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
 		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_SPACING + lineWidth,
-		pickerState.cursor.hueY
+		currentState.cursor.hueY
 	)
 
 	-- Draw SV square with wiggle
 	local svX = pickerState.startX
-	if pickerState.focusSquare then
+	if currentState.focusSquare then
 		svX = svX + wiggleOffset
 	end
 
@@ -321,7 +345,7 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw SV square outline
-	love.graphics.setColor(1, 1, 1, pickerState.focusSquare and 1 or 0.2)
+	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or 0.2)
 	love.graphics.setLineWidth(lineWidth)
 	love.graphics.rectangle(
 		"line",
@@ -333,13 +357,13 @@ function colorpickerhsv.draw()
 	)
 
 	-- Draw SV cursor
-	if pickerState.focusSquare then
+	if currentState.focusSquare then
 		love.graphics.setColor(colors.white)
 	else
 		love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], 0.2)
 	end
 	love.graphics.setLineWidth(CURSOR.CIRCLE_LINE_WIDTH)
-	love.graphics.circle("line", pickerState.cursor.svX, pickerState.cursor.svY, CURSOR.CIRCLE_RADIUS)
+	love.graphics.circle("line", currentState.cursor.svX, currentState.cursor.svY, CURSOR.CIRCLE_RADIUS)
 
 	-- Draw controls
 	controls.draw({
@@ -372,9 +396,13 @@ end
 
 -- Only regenerates the texture when necessary and at reduced resolution
 local function updateSVSquare()
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+
 	-- Skip updates if hue hasn't changed enough to be noticeable
 	-- This prevents unnecessary texture regeneration
-	local hueDiff = math.abs(pickerState.hue - pickerState.lastRenderedHue)
+	local hueDiff = math.abs(currentState.hue - pickerState.lastRenderedHue)
 	if hueDiff < HUE_UPDATE_THRESHOLD then
 		return
 	end
@@ -387,12 +415,12 @@ local function updateSVSquare()
 		for x = 0, cacheWidth - 1 do
 			local s = x / (cacheWidth - 1)
 			local v = 1 - (y / (cacheHeight - 1))
-			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, s, v)
+			local r, g, b = colorUtils.hsvToRgb(currentState.hue, s, v)
 			svImageData:setPixel(x, y, r, g, b, 1)
 		end
 	end
 	pickerState.cache.svSquare = love.graphics.newImage(svImageData)
-	pickerState.lastRenderedHue = pickerState.hue
+	pickerState.lastRenderedHue = currentState.hue
 end
 
 function colorpickerhsv.update(dt)
@@ -411,17 +439,21 @@ function colorpickerhsv.update(dt)
 		local virtualJoystick = require("input").virtualJoystick
 		local moved = false
 
+		-- Get current color type state
+		local colorType = state.lastSelectedColorButton
+		local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+
 		-- Handle Y button for cursor swapping
 		if virtualJoystick:isGamepadDown("y") then
-			pickerState.focusSquare = not pickerState.focusSquare
+			currentState.focusSquare = not currentState.focusSquare
 			startWiggleAnimation() -- Start animation immediately after focus change
 			moved = true
 		end
 
-		if pickerState.focusSquare then
+		if currentState.focusSquare then
 			-- Handle SV square navigation
 			local step = 0.04
-			local newSat, newVal = pickerState.sat, pickerState.val
+			local newSat, newVal = currentState.sat, currentState.val
 
 			if virtualJoystick:isGamepadDown("dpleft") then
 				newSat = math.max(0, newSat - step)
@@ -439,13 +471,13 @@ function colorpickerhsv.update(dt)
 			end
 
 			if moved then
-				pickerState.sat = newSat
-				pickerState.val = newVal
+				currentState.sat = newSat
+				currentState.val = newVal
 
 				-- Create new tween for SV cursor
 				local targetX = pickerState.startX + (newSat * pickerState.squareSize)
 				local targetY = pickerState.startY + ((1 - newVal) * pickerState.contentHeight)
-				pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, pickerState.cursor, {
+				pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 					svX = targetX,
 					svY = targetY,
 				}, "linear")
@@ -454,14 +486,14 @@ function colorpickerhsv.update(dt)
 			-- Handle Hue slider navigation
 			local step = 8
 			if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-				local newHue = pickerState.hue
+				local newHue = currentState.hue
 				if virtualJoystick:isGamepadDown("dpup") then
 					newHue = (newHue + step) % 360
 				else
 					newHue = (newHue - step) % 360
 				end
 
-				pickerState.hue = newHue
+				currentState.hue = newHue
 				-- Update the SV square when hue changes
 				updateSVSquare()
 
@@ -479,7 +511,7 @@ function colorpickerhsv.update(dt)
 				end
 
 				-- Create new tween for hue cursor
-				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, pickerState.cursor, {
+				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 					hueY = baseY,
 				}, "linear")
 
@@ -489,7 +521,7 @@ function colorpickerhsv.update(dt)
 
 		-- Handle selection
 		if virtualJoystick:isGamepadDown("a") then
-			local r, g, b = colorUtils.hsvToRgb(pickerState.hue, pickerState.sat, pickerState.val)
+			local r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
 
 			-- Create hex code using the utility function
 			local hexCode = colorUtils.rgbToHex(r, g, b)
@@ -513,6 +545,30 @@ end
 
 function colorpickerhsv.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
+end
+
+-- Function to be called when entering this screen
+function colorpickerhsv.onEnter()
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+
+	-- Initialize cursor positions if they haven't been set
+	if currentState.cursor.svX == nil then
+		currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
+	end
+	if currentState.cursor.svY == nil then
+		currentState.cursor.svY = pickerState.startY + ((1 - currentState.val) * pickerState.squareSize)
+	end
+	if currentState.cursor.hueY == nil then
+		currentState.cursor.hueY = pickerState.startY + ((360 - currentState.hue) / 360 * pickerState.squareSize)
+	end
+
+	-- Update the SV square texture based on the current hue
+	updateSVSquare()
+
+	-- Start with a wiggle animation on the appropriate control based on focus
+	startWiggleAnimation()
 end
 
 return colorpickerhsv

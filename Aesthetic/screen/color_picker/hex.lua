@@ -29,8 +29,14 @@ local iconShader = nil
 
 -- State
 local hexState = {
-	input = "",
-	selectedButton = { row = 1, col = 1 }, -- Default selection
+	background = {
+		input = "",
+		selectedButton = { row = 1, col = 1 }, -- Default selection
+	},
+	foreground = {
+		input = "",
+		selectedButton = { row = 1, col = 1 }, -- Default selection
+	},
 	maxInputLength = 6,
 }
 
@@ -141,8 +147,10 @@ end
 
 function hex.load()
 	-- Initialize state
-	hexState.input = ""
-	hexState.selectedButton = { row = 1, col = 1 }
+	hexState.background.input = ""
+	hexState.background.selectedButton = { row = 1, col = 1 }
+	hexState.foreground.input = ""
+	hexState.foreground.selectedButton = { row = 1, col = 1 }
 
 	-- Create shader for icon coloring
 	local success, result = pcall(function()
@@ -177,6 +185,10 @@ function hex.draw()
 	love.graphics.setColor(colors.bg)
 	love.graphics.clear()
 
+	-- Get current color type state
+	local colorType = state.lastSelectedColorButton
+	local currentState = hexState[colorType] or hexState.background -- Default to background if nil
+
 	-- Draw color preview rectangle
 	local previewX = EDGE_PADDING
 	local previewY = state.TAB_HEIGHT + TOP_PADDING
@@ -193,8 +205,8 @@ function hex.draw()
 	local textColor = colors.fg -- Default text color
 
 	-- Fill with color if input is valid
-	if isValidHex(hexState.input) then
-		local r, g, b = colorUtils.hexToRgb(hexState.input)
+	if isValidHex(currentState.input) then
+		local r, g, b = colorUtils.hexToRgb(currentState.input)
 		love.graphics.setColor(r, g, b)
 		love.graphics.rectangle("fill", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
@@ -219,7 +231,7 @@ function hex.draw()
 		local charY = inputY + (INPUT_RECT_HEIGHT - state.fonts.header:getHeight()) / 2
 
 		-- Draw character if entered, otherwise draw underscore
-		local char = (i <= #hexState.input) and hexState.input:sub(i, i):upper() or "_"
+		local char = (i <= #currentState.input) and currentState.input:sub(i, i):upper() or "_"
 		local charWidth = state.fonts.header:getWidth(char)
 		local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
 
@@ -233,9 +245,9 @@ function hex.draw()
 			local buttonText = buttons[row][col]
 			if buttonText ~= "" then
 				local x, y, width, height = getButtonPosition(row, col)
-				local isSelected = (hexState.selectedButton.row == row and hexState.selectedButton.col == col)
+				local isSelected = (currentState.selectedButton.row == row and currentState.selectedButton.col == col)
 				local isConfirmButton = (buttonText == "CONFIRM")
-				local isConfirmDisabled = isConfirmButton and not isValidHex(hexState.input)
+				local isConfirmDisabled = isConfirmButton and not isValidHex(currentState.input)
 
 				-- Draw button background with transparency for disabled confirm button
 				if isConfirmDisabled then
@@ -352,61 +364,65 @@ function hex.update(_dt)
 	if state.canProcessInput() then
 		local virtualJoystick = require("input").virtualJoystick
 
+		-- Get current color type state
+		local colorType = state.lastSelectedColorButton
+		local currentState = hexState[colorType] or hexState.background -- Default to background if nil
+
 		-- Handle D-pad navigation
 		if virtualJoystick:isGamepadDown("dpup") then
-			hexState.selectedButton.row = math.max(1, hexState.selectedButton.row - 1)
+			currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
 
 			-- Skip empty buttons
-			while buttons[hexState.selectedButton.row][hexState.selectedButton.col] == "" do
-				hexState.selectedButton.col = hexState.selectedButton.col - 1
-				if hexState.selectedButton.col < 1 then
-					hexState.selectedButton.col = #buttons[hexState.selectedButton.row]
+			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
+				currentState.selectedButton.col = currentState.selectedButton.col - 1
+				if currentState.selectedButton.col < 1 then
+					currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
 				end
 			end
 
 			state.resetInputTimer()
 		elseif virtualJoystick:isGamepadDown("dpdown") then
-			hexState.selectedButton.row = math.min(#buttons, hexState.selectedButton.row + 1)
+			currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
 
 			-- Skip empty buttons
 			while
-				hexState.selectedButton.col > #buttons[hexState.selectedButton.row]
-				or buttons[hexState.selectedButton.row][hexState.selectedButton.col] == ""
+				currentState.selectedButton.col > #buttons[currentState.selectedButton.row]
+				or buttons[currentState.selectedButton.row][currentState.selectedButton.col] == ""
 			do
-				hexState.selectedButton.col =
-					math.min(hexState.selectedButton.col, #buttons[hexState.selectedButton.row])
-				if buttons[hexState.selectedButton.row][hexState.selectedButton.col] == "" then
-					hexState.selectedButton.col = hexState.selectedButton.col - 1
+				currentState.selectedButton.col =
+					math.min(currentState.selectedButton.col, #buttons[currentState.selectedButton.row])
+				if buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" then
+					currentState.selectedButton.col = currentState.selectedButton.col - 1
 				end
 			end
 
 			state.resetInputTimer()
 		elseif virtualJoystick:isGamepadDown("dpleft") then
-			hexState.selectedButton.col = hexState.selectedButton.col - 1
-			if hexState.selectedButton.col < 1 then
-				hexState.selectedButton.col = #buttons[hexState.selectedButton.row]
+			currentState.selectedButton.col = currentState.selectedButton.col - 1
+			if currentState.selectedButton.col < 1 then
+				currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
 			end
 
 			-- Skip empty buttons
-			while buttons[hexState.selectedButton.row][hexState.selectedButton.col] == "" do
-				hexState.selectedButton.col = hexState.selectedButton.col - 1
-				if hexState.selectedButton.col < 1 then
-					hexState.selectedButton.col = #buttons[hexState.selectedButton.row]
+			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
+				currentState.selectedButton.col = currentState.selectedButton.col - 1
+				if currentState.selectedButton.col < 1 then
+					currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
 				end
 			end
 
 			state.resetInputTimer()
 		elseif virtualJoystick:isGamepadDown("dpright") then
-			hexState.selectedButton.col = hexState.selectedButton.col + 1
-			if hexState.selectedButton.col > #buttons[hexState.selectedButton.row] then
-				hexState.selectedButton.col = 1
+			currentState.selectedButton.col = currentState.selectedButton.col + 1
+			if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
+				currentState.selectedButton.col = 1
 			end
 
 			-- Skip empty buttons
-			while buttons[hexState.selectedButton.row][hexState.selectedButton.col] == "" do
-				hexState.selectedButton.col = hexState.selectedButton.col + 1
-				if hexState.selectedButton.col > #buttons[hexState.selectedButton.row] then
-					hexState.selectedButton.col = 1
+			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
+				currentState.selectedButton.col = currentState.selectedButton.col + 1
+				if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
+					currentState.selectedButton.col = 1
 				end
 			end
 
@@ -415,21 +431,21 @@ function hex.update(_dt)
 
 		-- Handle button press (A button)
 		if virtualJoystick:isGamepadDown("a") then
-			local selectedButton = buttons[hexState.selectedButton.row][hexState.selectedButton.col]
+			local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
 
 			if selectedButton == "BACKSPACE" then
 				-- Backspace - remove last character
-				if #hexState.input > 0 then
-					hexState.input = hexState.input:sub(1, -2)
+				if #currentState.input > 0 then
+					currentState.input = currentState.input:sub(1, -2)
 				end
 			elseif selectedButton == "CLEAR" then
 				-- Clear - remove all characters
-				hexState.input = ""
+				currentState.input = ""
 			elseif selectedButton == "CONFIRM" then
 				-- Confirm - only if input is valid
-				if isValidHex(hexState.input) and switchScreen then
+				if isValidHex(currentState.input) and switchScreen then
 					-- Create hex code
-					local hexCode = "#" .. hexState.input:upper()
+					local hexCode = "#" .. currentState.input:upper()
 
 					-- Return to menu and apply the color
 					if switchScreen then
@@ -440,8 +456,8 @@ function hex.update(_dt)
 				end
 			else
 				-- Add character if not at max length
-				if #hexState.input < hexState.maxInputLength then
-					hexState.input = hexState.input .. selectedButton
+				if #currentState.input < hexState.maxInputLength then
+					currentState.input = currentState.input .. selectedButton
 				end
 			end
 
@@ -452,6 +468,11 @@ end
 
 function hex.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
+end
+
+-- Function to be called when entering this screen
+function hex.onEnter()
+	-- The state is already maintained separately
 end
 
 return hex

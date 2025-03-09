@@ -1,6 +1,5 @@
 --- Menu theme creation functionality
 local love = require("love")
-local colors = require("colors")
 local state = require("state")
 local constants = require("screen.menu.constants")
 local fileUtils = require("screen.menu.file_utils")
@@ -25,7 +24,7 @@ local function createPreviewImage(outputPath)
 
 	-- Get the foreground color
 	local fgHex = state.colors.foreground
-	local r, g, b = colorUtils.hexToRgb(fgHex)
+	r, g, b = colorUtils.hexToRgb(fgHex)
 	local fgColor = { r, g, b, 1 }
 
 	-- Fill the image with the background color
@@ -130,11 +129,11 @@ function themeCreator.createTheme()
 		file:close()
 
 		-- Replace list_pad_left placeholder (format: {%list_pad_left})
-		local listPadCount = 0
+		local listPadCount
 		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
 
 		-- Replace glyph_alpha placeholder (format: %{glyph_alpha})
-		local glyphAlphaCount = 0
+		local glyphAlphaCount
 		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
 
 		-- Check if replacements were successful
