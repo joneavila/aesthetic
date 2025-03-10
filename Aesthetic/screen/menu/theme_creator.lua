@@ -45,8 +45,10 @@ local function createPreviewImage(outputPath)
 
 	-- Get colors from state
 	local bgHex, fgHex = state.colors.background, state.colors.foreground
-	local bgColor = { colorUtils.hexToRgb(bgHex), 1 }
-	local fgColor = { colorUtils.hexToRgb(fgHex), 1 }
+	local r, g, b = colorUtils.hexToRgb(bgHex)
+	local bgColor = { r, g, b, 1 }
+	r, g, b = colorUtils.hexToRgb(fgHex)
+	local fgColor = { r, g, b, 1 }
 
 	-- Create canvas and draw
 	local canvas = love.graphics.newCanvas(width, height)
