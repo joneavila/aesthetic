@@ -53,6 +53,8 @@ local function loadIcon(path)
 end
 
 -- Draw the controls area at the bottom of the screen
+-- Supports both single icons (control.icon = "icon.png") and lists of icons (control.icon = {"icon1.png", "icon2.png"})
+-- When a list of icons is provided, they are drawn in sequence with a "/" separator between them
 function controls.draw(controls_list)
 	-- Set up graphics state
 	love.graphics.setColor(colors.ui.subtext)
@@ -62,7 +64,23 @@ function controls.draw(controls_list)
 	local totalWidth = 0
 	for _, control in ipairs(controls_list) do
 		local textWidth = state.fonts.caption:getWidth(control.text)
-		totalWidth = totalWidth + ICON_SIZE + ICON_TEXT_SPACING + textWidth + PADDING
+		local iconsWidth = 0
+
+		if type(control.icon) == "table" then
+			-- Multiple icons with "/" between them
+			for i = 1, #control.icon do
+				iconsWidth = iconsWidth + ICON_SIZE
+				-- Add width for "/" separator if not the last icon
+				if i < #control.icon then
+					iconsWidth = iconsWidth + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
+				end
+			end
+		else
+			-- Single icon
+			iconsWidth = ICON_SIZE
+		end
+
+		totalWidth = totalWidth + iconsWidth + ICON_TEXT_SPACING + textWidth + PADDING
 	end
 
 	-- Start drawing from the right side, accounting for padding
@@ -71,20 +89,50 @@ function controls.draw(controls_list)
 
 	-- Draw each control
 	for _, control in ipairs(controls_list) do
-		-- Load and draw icon
-		local icon = loadIcon(control.icon)
-		love.graphics.draw(icon, x, y, 0, ICON_SIZE / icon:getWidth(), ICON_SIZE / icon:getHeight())
+		local startX = x
+
+		if type(control.icon) == "table" then
+			-- Draw multiple icons with "/" between them
+			for i, iconPath in ipairs(control.icon) do
+				-- Load and draw icon
+				local icon = loadIcon(iconPath)
+				love.graphics.draw(icon, x, y, 0, ICON_SIZE / icon:getWidth(), ICON_SIZE / icon:getHeight())
+				x = x + ICON_SIZE
+
+				-- Draw separator if not the last icon
+				if i < #control.icon then
+					love.graphics.print(
+						"/",
+						x + ICON_TEXT_SPACING,
+						y + (ICON_SIZE - state.fonts.caption:getHeight()) / 2
+					)
+					x = x + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
+				end
+			end
+		else
+			-- Load and draw single icon
+			local icon = loadIcon(control.icon)
+			love.graphics.draw(icon, x, y, 0, ICON_SIZE / icon:getWidth(), ICON_SIZE / icon:getHeight())
+			x = x + ICON_SIZE
+		end
 
 		-- Draw text
-		love.graphics.print(
-			control.text,
-			x + ICON_SIZE + ICON_TEXT_SPACING,
-			y + (ICON_SIZE - state.fonts.caption:getHeight()) / 2
-		)
+		love.graphics.print(control.text, x + ICON_TEXT_SPACING, y + (ICON_SIZE - state.fonts.caption:getHeight()) / 2)
 
 		-- Move x position for next control
 		local textWidth = state.fonts.caption:getWidth(control.text)
-		x = x + ICON_SIZE + ICON_TEXT_SPACING + textWidth + PADDING
+
+		if type(control.icon) == "table" then
+			-- Calculate width for multiple icons
+			local iconsWidth = ICON_SIZE * #control.icon
+			for i = 1, #control.icon - 1 do
+				iconsWidth = iconsWidth + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
+			end
+			x = startX + iconsWidth + ICON_TEXT_SPACING + textWidth + PADDING
+		else
+			-- Calculate width for single icon
+			x = startX + ICON_SIZE + ICON_TEXT_SPACING + textWidth + PADDING
+		end
 	end
 end
 
