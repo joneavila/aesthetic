@@ -6,6 +6,7 @@ screens.STATES = {
 	MENU = "menu",
 	COLOR_PICKER = "color_picker",
 	ABOUT = "about",
+	FONT = "font",
 }
 
 -- Private state

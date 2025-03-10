@@ -311,37 +311,6 @@ function menu.update(dt)
 				break
 			end
 		end
-	elseif virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
-
-		-- Check if a font selection button is selected
-		for _, button in ipairs(constants.BUTTONS) do
-			if button.selected and button.fontSelection then
-				-- Find the currently selected font
-				local currentIndex = 1
-				for i, font in ipairs(constants.FONTS) do
-					if font.selected then
-						currentIndex = i
-						font.selected = false
-						break
-					end
-				end
-
-				-- Calculate the next font index based on direction
-				local nextIndex = currentIndex + direction
-				if nextIndex < 1 then
-					nextIndex = #constants.FONTS
-				elseif nextIndex > #constants.FONTS then
-					nextIndex = 1
-				end
-
-				-- Select the new font
-				constants.FONTS[nextIndex].selected = true
-				state.selectedFont = constants.FONTS[nextIndex].name
-				moved = true
-				break
-			end
-		end
 	end
 
 	-- Handle B button (Exit)
@@ -369,26 +338,12 @@ function menu.update(dt)
 		for _, button in ipairs(constants.BUTTONS) do
 			if button.selected then
 				if button.fontSelection then
-					-- Font selection button - cycle to next font
-					local currentIndex = 1
-					for i, font in ipairs(constants.FONTS) do
-						if font.selected then
-							currentIndex = i
-							font.selected = false
-							break
-						end
+					-- Redirect to font selection screen
+					if switchScreen then
+						switchScreen("font")
+						state.resetInputTimer()
+						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
-
-					-- Move to next font
-					local nextIndex = currentIndex + 1
-					if nextIndex > #constants.FONTS then
-						nextIndex = 1
-					end
-
-					-- Select the new font
-					constants.FONTS[nextIndex].selected = true
-					state.selectedFont = constants.FONTS[nextIndex].name
-					state.resetInputTimer()
 				elseif button.glyphsToggle then
 					-- Toggle glyphs enabled state
 					state.glyphs_enabled = not state.glyphs_enabled

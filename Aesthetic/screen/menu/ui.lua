@@ -110,55 +110,14 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Calculate font name width for positioning
 		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
 
-		-- Calculate positions for all elements
-		local arrowWidth = 10
-		local arrowSpacing = 15
-
-		-- Fix: Add extra spacing to the right arrow to balance the visual gaps
-		local rightArrowExtraSpacing = 8
-
-		-- Position elements at the right edge
-		local arrowY = y + (constants.BUTTON.HEIGHT / 2)
-
-		-- Calculate total width needed
-		local totalWidth = fontNameWidth + (2 * arrowSpacing) + rightArrowExtraSpacing + (2 * arrowWidth)
-
-		-- Calculate starting position from right edge
-		local startX = rightEdge - totalWidth
-
-		-- Position each element with exact spacing
-		local leftArrowX = startX
-		local fontNameX = leftArrowX + arrowWidth + arrowSpacing
-		local rightArrowX = fontNameX + fontNameWidth + arrowSpacing + rightArrowExtraSpacing
-
+		-- Position the font name at the right edge
+		local fontNameX = rightEdge - fontNameWidth
 		local fontNameY = y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 
 		love.graphics.setColor(colors.ui.foreground)
 
-		-- Draw left arrow
-		love.graphics.polygon(
-			"fill",
-			leftArrowX,
-			arrowY,
-			leftArrowX + arrowWidth,
-			arrowY - arrowWidth,
-			leftArrowX + arrowWidth,
-			arrowY + arrowWidth
-		)
-
 		-- Draw font name
 		love.graphics.print(selectedFontName, fontNameX, fontNameY)
-
-		-- Draw right arrow
-		love.graphics.polygon(
-			"fill",
-			rightArrowX,
-			arrowY,
-			rightArrowX - arrowWidth,
-			arrowY - arrowWidth,
-			rightArrowX - arrowWidth,
-			arrowY + arrowWidth
-		)
 
 		-- Reset font
 		love.graphics.setFont(state.fonts.body)

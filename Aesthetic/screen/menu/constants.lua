@@ -7,6 +7,7 @@ local constants = {}
 -- Screen identifiers
 constants.COLOR_PICKER_SCREEN = "color_picker"
 constants.ABOUT_SCREEN = "about"
+constants.FONT_SCREEN = "font"
 
 -- Error display time
 constants.ERROR_DISPLAY_TIME_SECONDS = 5
