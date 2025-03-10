@@ -9,8 +9,8 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
+-- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
 local function isSuccess(result)
-	-- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
 	return result == 0 or result == true
 end
 
@@ -41,67 +41,44 @@ end
 local function createPreviewImage(outputPath)
 	-- Image dimensions
 	local width, height = 288, 216
+	local text = "muOS"
 
-	local imageData = love.image.newImageData(width, height)
+	-- Get colors from state
+	local bgHex, fgHex = state.colors.background, state.colors.foreground
+	local bgColor = { colorUtils.hexToRgb(bgHex), 1 }
+	local fgColor = { colorUtils.hexToRgb(fgHex), 1 }
 
-	-- Get the background color from state
-	local bgHex = state.colors.background
-	local r, g, b = colorUtils.hexToRgb(bgHex)
-	local bgColor = { r, g, b, 1 }
-
-	-- Get the foreground color from state
-	local fgHex = state.colors.foreground
-	r, g, b = colorUtils.hexToRgb(fgHex)
-	local fgColor = { r, g, b, 1 }
-
-	-- Fill the image with the background color
-	imageData:mapPixel(function(_, _, _, _)
-		return bgColor[1], bgColor[2], bgColor[3], 1
-	end)
-
-	-- Create a canvas to draw text on the image
+	-- Create canvas and draw
 	local canvas = love.graphics.newCanvas(width, height)
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
-	local selectedFontName = state.selectedFont
-
-	-- Draw "muOS" text with the foreground color, centered
-	-- Use the selected font for the preview
+	-- Set font and draw text
 	love.graphics.setColor(fgColor)
+	local selectedFontName = state.selectedFont
 	local fontMap = {
 		["Inter"] = state.fonts.body,
 		["Cascadia Code"] = state.fonts.monoBody,
 	}
-	love.graphics.setFont(fontMap[selectedFontName] or state.fonts.nunito)
+	local font = fontMap[selectedFontName] or state.fonts.nunito
+	love.graphics.setFont(font)
 
-	local text = "muOS"
-	local textWidth = love.graphics.getFont():getWidth(text)
-	local textHeight = love.graphics.getFont():getHeight()
+	-- Center text
+	local textWidth, textHeight = font:getWidth(text), font:getHeight()
 	love.graphics.print(text, (width - textWidth) / 2, (height - textHeight) / 2)
-
 	love.graphics.setCanvas()
 
-	local canvasData = canvas:newImageData()
-	local fileData = canvasData:encode("png")
-
-	-- Save to a temporary file in the save directory first
+	-- Save image
 	local tempFilename = "preview_temp.png"
-	local success, message = love.filesystem.write(tempFilename, fileData:getString())
+	local success = love.filesystem.write(tempFilename, canvas:newImageData():encode("png"):getString())
 
 	if not success then
-		-- TODO: Display error message
-		-- print("Failed to save temporary preview image: " .. (message or "unknown error"))
 		return false
 	end
 
-	-- Get the full path to the temporary file
+	-- Move to final location
 	local tempPath = love.filesystem.getSaveDirectory() .. "/" .. tempFilename
-
-	-- Move the temporary file to the final location
 	local result = copyFile(tempPath, outputPath)
-
-	-- Clean up the temporary file
 	love.filesystem.remove(tempFilename)
 
 	return result
@@ -143,46 +120,37 @@ end
 
 -- Function to create theme
 function themeCreator.createTheme()
-	-- Clean up any existing working directory
+	-- Clean up and prepare working directory
 	executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
-
-	-- Create fresh copy of template
 	if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
 		errorHandler.setError("Failed to prepare working template directory")
 		return false
 	end
 
-	-- Get hex colors from state
+	-- Get hex colors from state (remove # prefix)
 	local hexColors = {
 		background = state.colors.background:gsub("^#", ""),
 		foreground = state.colors.foreground:gsub("^#", ""),
 	}
 
-	-- Replace colors in theme files
+	-- Replace colors and apply glyph settings to theme files
 	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/default.txt" }
-
+	local glyphSettings = {
+		list_pad_left = state.glyphs_enabled and 45 or 20,
+		glyph_alpha = state.glyphs_enabled and 255 or 0,
+	}
 	for _, filepath in ipairs(themeFiles) do
 		if not fileUtils.replaceColor(filepath, hexColors) then
 			errorHandler.setError("Failed to update: " .. filepath)
 			return false
 		end
-	end
-
-	-- Replace glyph settings based on state.glyphs_enabled
-	local glyphSettings = {
-		list_pad_left = state.glyphs_enabled and 45 or 20,
-		glyph_alpha = state.glyphs_enabled and 255 or 0,
-	}
-
-	-- Apply glyph settings to theme files
-	for _, filepath in ipairs(themeFiles) do
 		if not applyGlyphSettings(filepath, glyphSettings) then
 			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
 			return false
 		end
 	end
 
-	-- Find the selected font file
+	-- Find and copy the selected font file
 	local selectedFontFile
 	for _, font in ipairs(constants.FONTS) do
 		if font.name == state.selectedFont then
@@ -194,29 +162,24 @@ function themeCreator.createTheme()
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
 	local fontDestPath = constants.THEME_OUTPUT_DIR .. "/font/default.bin"
-
-	-- Copy the selected font file as default.bin
 	if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
 		return false
 	end
 
 	-- Create preview image
 	local previewPath = constants.THEME_OUTPUT_DIR .. "/preview.png"
-
 	if not createPreviewImage(previewPath) then
 		errorHandler.setError("Failed to create preview image")
 		return false
 	end
 
+	-- Create and return ZIP archive
 	local themeDir = os.getenv("THEME_DIR")
 	if not themeDir then
 		errorHandler.setError("THEME_DIR environment variable not set")
 		return false
 	end
-
 	local outputPath = themeDir .. "/Custom Theme.zip"
-
-	-- Create ZIP archive
 	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
 	if not actualPath then
 		errorHandler.setError("Failed to create theme archive")
