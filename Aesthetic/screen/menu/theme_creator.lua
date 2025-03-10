@@ -179,7 +179,8 @@ function themeCreator.createTheme()
 		errorHandler.setError("THEME_DIR environment variable not set")
 		return false
 	end
-	local outputPath = themeDir .. "/Custom Theme.zip"
+	local themeName = "Aesthetic"
+	local outputPath = themeDir .. "/" .. themeName .. ".zip"
 	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
 	if not actualPath then
 		errorHandler.setError("Failed to create theme archive")
