@@ -9,12 +9,39 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
+local function isSuccess(result)
+	-- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
+	return result == 0 or result == true
+end
+
+local function ensureDir(dir)
+	return os.execute('mkdir -p "' .. dir .. '"')
+end
+
+local function executeCommand(command, errorMessage)
+	local result = os.execute(command)
+	if not isSuccess(result) and errorMessage then
+		errorHandler.setError(errorMessage)
+		return false
+	end
+	return isSuccess(result)
+end
+
+-- Copy a file and create destination directory if needed
+local function copyFile(sourcePath, destPath, errorMessage)
+	-- Extract directory from destination path
+	local destDir = string.match(destPath, "(.*)/[^/]*$")
+	if destDir then
+		ensureDir(destDir)
+	end
+	return executeCommand(string.format('cp "%s" "%s"', sourcePath, destPath), errorMessage)
+end
+
 -- Function to create a preview image with the selected background color and "muOS" text
 local function createPreviewImage(outputPath)
 	-- Image dimensions
 	local width, height = 288, 216
 
-	-- Create a new image data object
 	local imageData = love.image.newImageData(width, height)
 
 	-- Get the background color from state
@@ -22,45 +49,37 @@ local function createPreviewImage(outputPath)
 	local r, g, b = colorUtils.hexToRgb(bgHex)
 	local bgColor = { r, g, b, 1 }
 
-	-- Get the foreground color
+	-- Get the foreground color from state
 	local fgHex = state.colors.foreground
 	r, g, b = colorUtils.hexToRgb(fgHex)
 	local fgColor = { r, g, b, 1 }
 
 	-- Fill the image with the background color
-	for y = 0, height - 1 do
-		for x = 0, width - 1 do
-			imageData:setPixel(x, y, bgColor[1], bgColor[2], bgColor[3], 1)
-		end
-	end
+	imageData:mapPixel(function(_, _, _, _)
+		return bgColor[1], bgColor[2], bgColor[3], 1
+	end)
 
 	-- Create a canvas to draw text on the image
 	local canvas = love.graphics.newCanvas(width, height)
 	love.graphics.setCanvas(canvas)
-
-	-- Clear the canvas with the background color
-	love.graphics.clear(bgColor[1], bgColor[2], bgColor[3], 1)
+	love.graphics.clear(bgColor)
 
 	local selectedFontName = state.selectedFont
 
 	-- Draw "muOS" text with the foreground color, centered
-	love.graphics.setColor(fgColor[1], fgColor[2], fgColor[3], 1)
-
 	-- Use the selected font for the preview
-	if selectedFontName == "Inter" then
-		love.graphics.setFont(state.fonts.body)
-	elseif selectedFontName == "Cascadia Code" then
-		love.graphics.setFont(state.fonts.monoBody)
-	else
-		love.graphics.setFont(state.fonts.nunito)
-	end
+	love.graphics.setColor(fgColor)
+	local fontMap = {
+		["Inter"] = state.fonts.body,
+		["Cascadia Code"] = state.fonts.monoBody,
+	}
+	love.graphics.setFont(fontMap[selectedFontName] or state.fonts.nunito)
 
 	local text = "muOS"
 	local textWidth = love.graphics.getFont():getWidth(text)
 	local textHeight = love.graphics.getFont():getHeight()
 	love.graphics.print(text, (width - textWidth) / 2, (height - textHeight) / 2)
 
-	-- Reset canvas
 	love.graphics.setCanvas()
 
 	local canvasData = canvas:newImageData()
@@ -71,7 +90,8 @@ local function createPreviewImage(outputPath)
 	local success, message = love.filesystem.write(tempFilename, fileData:getString())
 
 	if not success then
-		print("Failed to save temporary preview image: " .. (message or "unknown error"))
+		-- TODO: Display error message
+		-- print("Failed to save temporary preview image: " .. (message or "unknown error"))
 		return false
 	end
 
@@ -79,19 +99,52 @@ local function createPreviewImage(outputPath)
 	local tempPath = love.filesystem.getSaveDirectory() .. "/" .. tempFilename
 
 	-- Move the temporary file to the final location
-	local cmd = string.format('cp "%s" "%s"', tempPath, outputPath)
-	local result = os.execute(cmd)
+	local result = copyFile(tempPath, outputPath)
 
 	-- Clean up the temporary file
 	love.filesystem.remove(tempFilename)
 
-	return result == 0 or result == true
+	return result
+end
+
+-- Function to apply glyph settings to a file
+local function applyGlyphSettings(filepath, glyphSettings)
+	local file = io.open(filepath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file for glyph settings: " .. filepath)
+		return false
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	-- Replace placeholders
+	local listPadCount, glyphAlphaCount
+	content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
+	content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
+
+	-- Check if replacements were successful
+	if listPadCount == 0 or glyphAlphaCount == 0 then
+		errorHandler.setError("Failed to replace glyph settings in template")
+		return false
+	end
+
+	-- Write the updated content back to the file
+	file = io.open(filepath, "w")
+	if not file then
+		errorHandler.setError("Failed to write file for glyph settings: " .. filepath)
+		return false
+	end
+
+	file:write(content)
+	file:close()
+	return true
 end
 
 -- Function to create theme
 function themeCreator.createTheme()
 	-- Clean up any existing working directory
-	os.execute('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
+	executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
 
 	-- Create fresh copy of template
 	if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
@@ -100,63 +153,37 @@ function themeCreator.createTheme()
 	end
 
 	-- Get hex colors from state
-	local hexColors = {}
-	hexColors.background = state.colors.background:gsub("^#", "") -- Remove the # from hex colors
-	hexColors.foreground = state.colors.foreground:gsub("^#", "") -- Remove the # from hex colors
+	local hexColors = {
+		background = state.colors.background:gsub("^#", ""),
+		foreground = state.colors.foreground:gsub("^#", ""),
+	}
 
 	-- Replace colors in theme files
 	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/default.txt" }
 
 	for _, filepath in ipairs(themeFiles) do
 		if not fileUtils.replaceColor(filepath, hexColors) then
-			print("Failed to update: " .. filepath)
+			errorHandler.setError("Failed to update: " .. filepath)
 			return false
 		end
 	end
 
 	-- Replace glyph settings based on state.glyphs_enabled
-	local glyphSettings = {}
-	glyphSettings["list_pad_left"] = state.glyphs_enabled and 45 or 20
-	glyphSettings["glyph_alpha"] = state.glyphs_enabled and 255 or 0
+	local glyphSettings = {
+		list_pad_left = state.glyphs_enabled and 45 or 20,
+		glyph_alpha = state.glyphs_enabled and 255 or 0,
+	}
 
 	-- Apply glyph settings to theme files
 	for _, filepath in ipairs(themeFiles) do
-		local file = io.open(filepath, "r")
-		if not file then
-			errorHandler.setError("Failed to open file for glyph settings: " .. filepath)
+		if not applyGlyphSettings(filepath, glyphSettings) then
+			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
 			return false
 		end
-
-		local content = file:read("*all")
-		file:close()
-
-		-- Replace list_pad_left placeholder (format: {%list_pad_left})
-		local listPadCount
-		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
-
-		-- Replace glyph_alpha placeholder (format: %{glyph_alpha})
-		local glyphAlphaCount
-		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
-
-		-- Check if replacements were successful
-		if listPadCount == 0 or glyphAlphaCount == 0 then
-			errorHandler.setError("Failed to replace glyph settings in template")
-			return false
-		end
-
-		-- Write the updated content back to the file
-		file = io.open(filepath, "w")
-		if not file then
-			errorHandler.setError("Failed to write file for glyph settings: " .. filepath)
-			return false
-		end
-
-		file:write(content)
-		file:close()
 	end
 
-	-- Find the selected font file based on state.selectedFont
-	local selectedFontFile = nil
+	-- Find the selected font file
+	local selectedFontFile
 	for _, font in ipairs(constants.FONTS) do
 		if font.name == state.selectedFont then
 			selectedFontFile = font.file
@@ -165,43 +192,18 @@ function themeCreator.createTheme()
 	end
 
 	-- Copy the selected font file as default.bin
-	if selectedFontFile then
-		local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
-		local fontDestPath = constants.THEME_OUTPUT_DIR .. "/font/default.bin"
+	local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
+	local fontDestPath = constants.THEME_OUTPUT_DIR .. "/font/default.bin"
 
-		-- Ensure the font directory exists
-		os.execute('mkdir -p "' .. constants.THEME_OUTPUT_DIR .. '/font"')
-
-		-- Remove any existing default.bin that might have been copied from the template
-		os.execute('rm -f "' .. fontDestPath .. '"')
-
-		-- Copy the selected font file as default.bin
-		local cmd = string.format('cp "%s" "%s"', fontSourcePath, fontDestPath)
-		local success = os.execute(cmd)
-
-		if not (success == 0 or success == true) then
-			errorHandler.setError("Failed to copy font file: " .. selectedFontFile)
-			return false
-		end
-	else
-		errorHandler.setError("No font selected")
+	-- Copy the selected font file as default.bin
+	if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
 		return false
 	end
 
 	-- Create preview image
 	local previewPath = constants.THEME_OUTPUT_DIR .. "/preview.png"
 
-	-- Ensure the directory exists
-	local previewDir = string.match(previewPath, "(.*)/[^/]*$")
-	if previewDir then
-		os.execute('mkdir -p "' .. previewDir .. '"')
-	end
-
-	-- Remove any existing preview image that might have been copied from the template
-	os.execute('rm -f "' .. previewPath .. '"')
-
-	local success = createPreviewImage(previewPath)
-	if not success then
+	if not createPreviewImage(previewPath) then
 		errorHandler.setError("Failed to create preview image")
 		return false
 	end
@@ -213,9 +215,6 @@ function themeCreator.createTheme()
 	end
 
 	local outputPath = themeDir .. "/Custom Theme.zip"
-
-	-- Create the theme directory if it doesn't exist
-	os.execute('mkdir -p "' .. themeDir .. '"')
 
 	-- Create ZIP archive
 	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
@@ -237,31 +236,29 @@ function themeCreator.installTheme(outputPath)
 
 	local themeActiveDir = themeDir .. "/active"
 
-	-- Remove existing active theme directory
-	os.execute('rm -rf "' .. themeActiveDir .. '"')
-	os.execute("sync")
-
-	-- Create active theme directory
-	os.execute('mkdir -p "' .. themeActiveDir .. '"')
+	-- Remove existing active theme directory and create a new one
+	executeCommand('rm -rf "' .. themeActiveDir .. '"')
+	executeCommand("sync")
+	ensureDir(themeActiveDir)
 
 	-- Extract the theme to the active directory
-	local cmd = string.format('unzip "%s" -d "%s"', outputPath, themeActiveDir)
-	local result = os.execute(cmd)
-
-	if not (result == 0 or result == true) then
-		errorHandler.setError("Failed to install theme to active directory")
+	if
+		not executeCommand(
+			string.format('unzip "%s" -d "%s"', outputPath, themeActiveDir),
+			"Failed to install theme to active directory"
+		)
+	then
 		return false
 	end
 
 	-- Sync to ensure all writes are complete
-	os.execute("sync")
-
+	executeCommand("sync")
 	return true
 end
 
 -- Clean up working directory
 function themeCreator.cleanup()
-	os.execute('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
+	executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
 end
 
 return themeCreator
