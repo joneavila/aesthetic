@@ -63,6 +63,8 @@ function font.draw()
 		-- Use the appropriate font for the item
 		if item.name == "Inter" then
 			love.graphics.setFont(state.fonts.body)
+		elseif item.name == "Cascadia Code" then
+			love.graphics.setFont(state.fonts.monoBody)
 		else
 			love.graphics.setFont(state.fonts.nunito)
 		end
@@ -83,6 +85,8 @@ function font.draw()
 	-- Set the font for preview text based on the hovered font
 	if hoveredFontName == "Inter" then
 		love.graphics.setFont(state.fonts.body)
+	elseif hoveredFontName == "Cascadia Code" then
+		love.graphics.setFont(state.fonts.monoBody)
 	else
 		love.graphics.setFont(state.fonts.nunito)
 	end

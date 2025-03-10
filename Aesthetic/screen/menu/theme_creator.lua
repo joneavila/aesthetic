@@ -49,6 +49,8 @@ local function createPreviewImage(outputPath)
 	-- Use the selected font for the preview
 	if selectedFontName == "Inter" then
 		love.graphics.setFont(state.fonts.body)
+	elseif selectedFontName == "Cascadia Code" then
+		love.graphics.setFont(state.fonts.monoBody)
 	else
 		love.graphics.setFont(state.fonts.nunito)
 	end

@@ -85,6 +85,11 @@ constants.FONTS = {
 		file = "nunito.bin",
 		selected = state.selectedFont == "Nunito",
 	},
+	{
+		name = "Cascadia Code",
+		file = "cascadia_code.bin",
+		selected = state.selectedFont == "Cascadia Code",
+	},
 }
 
 return constants

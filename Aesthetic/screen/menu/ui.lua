@@ -103,6 +103,8 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Use the appropriate font for measurement and display
 		if selectedFontName == "Inter" then
 			love.graphics.setFont(state.fonts.body)
+		elseif selectedFontName == "Cascadia Code" then
+			love.graphics.setFont(state.fonts.monoBody)
 		else
 			love.graphics.setFont(state.fonts.nunito)
 		end

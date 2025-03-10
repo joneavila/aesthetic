@@ -56,7 +56,7 @@ local function setupFonts()
 	local fontSizeMonoTitle = 48 * (state.screenHeight / maxScreenHeight)
 	local fontMonoTitle = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoTitle)
 
-	local fontSizeMonoBody = 24 * (state.screenHeight / maxScreenHeight)
+	local fontSizeMonoBody = 22 * (state.screenHeight / maxScreenHeight)
 	local fontMonoBody = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoBody)
 
 	local fontSizeNunito = 24 * (state.screenHeight / maxScreenHeight)
