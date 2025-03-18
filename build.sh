@@ -1,39 +1,45 @@
 #!/bin/bash
+# Usage: ./build.sh [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
+# If PRIVATE_KEY_PATH and DEVICE_IP are provided, the archive will be uploaded to the device with `scp`
 
-# Delete existing ZIP file if it exists
-if [ -f Aesthetic.zip ]; then
-    rm Aesthetic.zip
+PRIVATE_KEY_PATH=$1
+DEVICE_IP=$2
+
+APPLICATION_DIR=mnt/mmc/MUOS/application/Aesthetic
+GLYPH_DIR=opt/muos/default/MUOS/theme/active/glyph/muxapp
+ZIP_BASE_NAME=Aesthetic
+
+# Get version from version.lua
+MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
+MINOR=$(awk '/version.minor =/ {print $3}' src/version.lua)
+PATCH=$(awk '/version.patch =/ {print $3}' src/version.lua)
+VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+
+mkdir -p .dist
+mkdir -p .build/"${APPLICATION_DIR}"
+mkdir -p .build/"${GLYPH_DIR}"
+
+rsync -a mux_launch.sh .build/"${APPLICATION_DIR}"
+rsync -a bin/ .build/"${APPLICATION_DIR}"
+rsync -a lib/ .build/"${APPLICATION_DIR}"
+rsync -a src/ .build/"${APPLICATION_DIR}"
+rsync -a src/template/glyph/muxapp/aesthetic.png .build/"${GLYPH_DIR}/aesthetic.png"
+
+# Create archive, exclude .DS_Store files
+(cd .build && zip -9r "../.dist/${ZIP_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store")
+
+# Clean up build directory
+rm -rf .build
+
+if [ -z "$PRIVATE_KEY_PATH" ]; then
+    echo "No PRIVATE_KEY_PATH provided, skipping SCP upload"
+    exit 0
+elif [ -z "$DEVICE_IP" ]; then
+    echo "No DEVICE_IP provided, skipping SCP upload"
+    exit 0
+else
+    echo "Uploading to $DEVICE_IP"
+    scp -i "${PRIVATE_KEY_PATH}" .dist/"${ZIP_BASE_NAME}_${VERSION}.muxupd" root@"${DEVICE_IP}":/mnt/mmc/ARCHIVE
 fi
 
-# Create temporary build directory with required folder structure
-mkdir -p build/mnt/mmc/MUOS/application/.aesthetic/{Aesthetic,lib,bin,conf/love/Aesthetic,Aesthetic/template/scheme}
-# Create folder structure for the application icon
-mkdir -p build/opt/muos/default/MUOS/theme/active/glyph/muxapp/
-
-# Copy source files to their locations on-device
-cp -r Aesthetic/* build/mnt/mmc/MUOS/application/.aesthetic/Aesthetic/
-cp -r lib/* build/mnt/mmc/MUOS/application/.aesthetic/lib/
-cp -r bin/* build/mnt/mmc/MUOS/application/.aesthetic/bin/
-
-# Copy the application icon to the theme glyph folder
-cp Aesthetic/template/glyph/muxapp/aesthetic.png build/opt/muos/default/MUOS/theme/active/glyph/muxapp/
-
-# Copy shared libraries
-cp /usr/lib/liblove-11.5.so build/mnt/mmc/MUOS/application/.aesthetic/lib/ 2>/dev/null || \
-cp /usr/local/lib/liblove-11.5.so build/mnt/mmc/MUOS/application/.aesthetic/lib/ 2>/dev/null || \
-
-# Copy shell script
-cp Aesthetic.sh build/mnt/mmc/MUOS/application/
-
-# Create the ZIP file with maximum compression, excluding .DS_Store files
-cd build
-zip -9r ../Aesthetic.zip ./* -x "*.DS_Store"
-
-# Clean up
-cd ..
-rm -rf build
-
-# Get the full path of Aesthetic.zip
-FULL_PATH="$(pwd)/Aesthetic.zip"
-
-echo "Build complete! Archive created at $FULL_PATH"
+echo "Done!"
