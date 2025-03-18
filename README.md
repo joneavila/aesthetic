@@ -1,7 +1,7 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/banner_dark.webp">
-  <source media="(prefers-color-scheme: light)" srcset="assets/banner_light.webp">
-  <img alt="Project banner" src="assets/banner_light.webp">
+  <source media="(prefers-color-scheme: dark)" srcset=".github/banner_dark.webp">
+  <source media="(prefers-color-scheme: light)" srcset=".github/banner_light.webp">
+  <img alt="Project banner" src=".github/banner_light.webp">
 </picture>
 
 <div align="center">
@@ -9,13 +9,13 @@
     A <a href="https://muos.dev">muOS</a> application for creating minimalistic duo-tone themes directly on your handheld.
   </p>
   <p>
-    <img src="/assets/preview_animated.webp" width="50%" height="50%" alt="Preview of Aesthetic">
+    <img src="/.github/preview_animated.webp" width="50%" height="50%" alt="Preview of Aesthetic">
   </p>
   <p>
-    <img src="/assets/screenshot_menu_main.png" width="30%" alt="Aesthetic main menu">
-    <img src="/assets/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette screen">
-    <img src="/assets/screenshot_menu_picker.png" width="30%" alt="Aesthetic HSV picker screen">
-    <img src="/assets/screenshot_menu_hex.png" width="30%" alt="Aesthetic hex code screen">
+    <img src="/.github/screenshot_menu_main.png" width="30%" alt="Aesthetic main menu">
+    <img src="/.github/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette screen">
+    <img src="/.github/screenshot_menu_picker.png" width="30%" alt="Aesthetic HSV picker screen">
+    <img src="/.github/screenshot_menu_hex.png" width="30%" alt="Aesthetic hex code screen">
   </p>
 </div>
 
