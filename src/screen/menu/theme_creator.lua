@@ -168,8 +168,16 @@ function themeCreator.createTheme()
 		return false
 	end
 
-	-- Create preview image
-	local previewPath = constants.THEME_OUTPUT_DIR .. "640x480/preview.png"
+	-- Create preview image with dynamic resolution path
+	local screenWidth = state.screenWidth
+	local screenHeight = state.screenHeight
+	local resolutionDir = screenWidth .. "x" .. screenHeight
+
+	-- Create directory if it doesn't exist
+	ensureDir(constants.THEME_OUTPUT_DIR .. "/" .. resolutionDir)
+
+	-- Set preview path based on screen resolution
+	local previewPath = constants.THEME_OUTPUT_DIR .. "/" .. resolutionDir .. "/preview.png"
 	if not createPreviewImage(previewPath) then
 		errorHandler.setError("Failed to create preview image")
 		return false
