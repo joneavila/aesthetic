@@ -55,18 +55,17 @@ Want to improve **Aesthetic**?
 
 ## 🌟 Credits
 
-- [**Inter**](https://github.com/rsms/inter) by Rasmus Andersson • Font • [SIL Open Font License 1.1](src/assets/fonts/inter/OFL.txt)
-- [**Nunito**](https://github.com/googlefonts/nunito) by Vernon Adams • Font • [SIL Open Font License 1.1](src/assets/fonts/nunito/OFL.txt)
-- [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) by Microsoft • Font • [SIL Open Font License 1.1](src/assets/fonts/cascadia_code/LICENSE)
-- [**Lucide Icons**](https://github.com/lucide-icons/lucide) by Cole Bemis and Lucide Contributors • Icons • [ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
-- [**Material Icons**](https://github.com/google/material-design-icons) by Google • Icons • [Apache 2.0 License](https://github.com/google/material-design-icons/blob/master/LICENSE)
-- [**Input Prompts**](https://kenney.nl/assets/input-prompts) by Kenney • Icons • [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/)  
-- [**LÖVE**](https://github.com/love2d/love) by LÖVE Development Team • Game framework (included pre-compiled binary) • [ZLIB License](https://github.com/love2d/love/blob/main/license.txt)  
-- [**tween.lua**](https://github.com/kikito/tween.lua) by Enrique García Cota • Tweening library (included source code) • [MIT License](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
-  - Easing functions by Emmanuel Oga • [MIT License](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
-  - Adapted from easing equations by Robert Penner • [BSD License](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
-- [**MinUI**](https://github.com/shauninman/MinUI) by Shaun Inman • Inspiration for minimalist design philosophy
-- [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) by Harry McNeill • Inspiration and reference for template default scheme file • [MIT License](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
+- [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](src/assets/fonts/cascadia_code/LICENSE)
+- [**Catppuccin Palettes**](https://github.com/catppuccin/palette) • Color palette • [MIT](https://github.com/catppuccin/palette/blob/main/LICENSE)
+- [**Input Prompts**](https://kenney.nl/assets/input-prompts) • Icons • [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)  
+- [**Inter**](https://github.com/rsms/inter) • Font • [OFL-1.1](src/assets/fonts/inter/OFL.txt)
+- [**LÖVE**](https://github.com/love2d/love) • Game framework (included pre-compiled binary) • [ZLIB](https://github.com/love2d/love/blob/main/license.txt)  
+- [**Lucide Icons**](https://github.com/lucide-icons/lucide) • Icons • [ISC](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
+- [**Material Icons**](https://github.com/google/material-design-icons) • Icons • [Apache 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE)
+- [**MinUI**](https://github.com/shauninman/MinUI) • Inspiration (design)
+- [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
+- [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
+- [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library (included source code) • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
 
 ## ❤️ More open-source muOS applications
 
