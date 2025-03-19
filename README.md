@@ -31,7 +31,7 @@
 ## 📦 Installation
 
 > [!IMPORTANT]
-> **Aesthethic** is designed for muOS version 2410.3 AW BANANA. You can check your muOS version via **_Information_** > **_System Details_**.
+> **Aesthethic** is designed for muOS version 2502.0 PIXIE. You can check your muOS version via **_Information_** > **_System Details_**.
 
 1. Download the latest `Aesthetic-x.x.x.zip` from [Releases](https://github.com/joneavila/aesthetic/releases).
 2. Transfer `Aesthetic-x.x.x.zip` to your handheld's `SD1 (mmc)/ARCHIVE` directory.
