@@ -7,16 +7,14 @@
 
 # Define paths
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic"
-TEMPLATE_SOURCE_DIR="$ROOT_DIR/src/template"
 THEME_DIR="/run/muos/storage/theme"
 
 # Create required directories
-mkdir -p "$THEME_DIR"
 mkdir -p "$THEME_DIR/active"
 
 # Export environment variables
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
-export THEME_DIR="$THEME_DIR"
+export THEME_DIR
 export LD_LIBRARY_PATH="$ROOT_DIR/lib:${LD_LIBRARY_PATH:-}"
 
 # Launch application
