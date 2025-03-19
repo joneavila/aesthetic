@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 """
-Converts SVG icons to 24px-height PNG format using the map in `glyph_map.txt`.
-Each line in the map file follows the format:
-    output_path (muOS glyph name), input_filename (Lucide icon name)
+Converts SVG icons in `assets/icons/lucide/svg` to 24px-height PNG format in `src/template/glyph` using the map
+`utils/glyph_map.txt`. Additionally, this script prints a list of SVG files in `assets/icons/lucide/svg` that are not
+listed in `utils/glyph_map.txt` (unused SVG files that can be removed from the repo).
 
-Note: This script will overwrite existing PNG files without confirmation.
+Note: This script will overwrite files without confirmation.
 
-Note: `glyph_map.txt` ignores the `footer` and `header` glyphs.
+If you receive an error "OSError: no library called "cairo-2" was found", try exporting the following environment
+variable: `export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`
 """
 
 import os
@@ -63,6 +64,35 @@ def main():
             svg_data = svg_file.read()
         svg2png(bytestring=svg_data, write_to=output_path, output_height=PNG_HEIGHT)
         print(f"Converted: {input_path} -> {output_path}")
+
+    find_unused_svg_files()
+
+
+def find_unused_svg_files():
+    print("\nChecking for unused SVG files...")
+
+    svg_files = []
+    for filename in os.listdir(BASE_INPUT_PATH):
+        if filename.endswith(".svg"):
+            svg_files.append(os.path.splitext(filename)[0])
+
+    glyph_map_icons = []
+    with open(MAP_FILE, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                parts = line.split(",", 1)
+                if len(parts) == 2:
+                    glyph_map_icons.append(parts[1].strip())
+
+    unused_svg_files = [svg for svg in svg_files if svg not in glyph_map_icons]
+
+    if unused_svg_files:
+        print(f"Found {len(unused_svg_files)} SVG files not used in `glyph_map.txt`:")
+        for file in sorted(unused_svg_files):
+            print(f"  - {file}")
+    else:
+        print("All SVG files are used in `glyph_map.txt`")
 
 
 if __name__ == "__main__":
