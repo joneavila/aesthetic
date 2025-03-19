@@ -191,6 +191,35 @@ function themeCreator.createTheme()
 	end
 	local themeName = "Aesthetic"
 	local outputPath = themeDir .. "/" .. themeName .. ".muxthm"
+
+	-- Determine the actual filename that will be used
+	local actualOutputPath = fileUtils.getNextAvailableFilename(outputPath)
+	if not actualOutputPath then
+		errorHandler.setError("Failed to get available filename")
+		return false
+	end
+
+	-- Extract the actual theme name from the path
+	local actualThemeName = actualOutputPath:match(".-/([^/]+)%.muxthm$")
+	if not actualThemeName then
+		actualThemeName = themeName -- Fallback to default name
+	else
+		-- Remove file extension
+		actualThemeName = actualThemeName:gsub("%.muxthm$", "")
+	end
+
+	-- Create name.txt file with the theme name directly in the output directory
+	local nameFilePath = constants.THEME_OUTPUT_DIR .. "/name.txt"
+	local nameFile = io.open(nameFilePath, "w")
+	if not nameFile then
+		errorHandler.setError("Failed to create name.txt file")
+		return false
+	end
+
+	nameFile:write(actualThemeName)
+	nameFile:close()
+
+	-- Create the ZIP archive
 	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
 	if not actualPath then
 		errorHandler.setError("Failed to create theme archive")
