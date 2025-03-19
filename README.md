@@ -33,10 +33,10 @@
 > [!IMPORTANT]
 > **Aesthethic** is designed for muOS version 2502.0 PIXIE. You can check your muOS version via **_Information_** > **_System Details_**.
 
-1. Download the latest `Aesthetic-x.x.x.zip` from [Releases](https://github.com/joneavila/aesthetic/releases).
-2. Transfer `Aesthetic-x.x.x.zip` to your handheld's `SD1 (mmc)/ARCHIVE` directory.
+1. Download the latest `Aesthetic-x.x.x.muxupd` from [Releases](https://github.com/joneavila/aesthetic/releases).
+2. Transfer `Aesthetic-x.x.x.muxupd` to your handheld's `SD1 (mmc)/ARCHIVE` directory.
 3. Open **_Applications_** > **_Archive Manager_**.
-4. Select **_[SD1] Aesthetic-x.x.x.zip_** to install.
+4. Select **[SD1] Aesthetic-x.x.x.muxupd** to install.
 5. Launch the application via **_Applications_** > **_Aesthetic_**.
 
 ## ⚙️ Usage
