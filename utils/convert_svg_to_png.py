@@ -21,45 +21,49 @@ except ImportError:
     sys.exit(1)
 
 MAP_FILE = os.path.join(os.path.dirname(__file__), "glyph_map.txt")
-BASE_INPUT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Aesthetic/assets/icons/lucide/svg")
-BASE_OUTPUT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Aesthetic/template/glyph")
+BASE_INPUT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "assets/icons/lucide/svg"
+)
+BASE_OUTPUT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "src/template/glyph"
+)
 PNG_HEIGHT = 24
 
+
 def main():
-    
     os.makedirs(BASE_OUTPUT_PATH, exist_ok=True)
     os.makedirs(BASE_INPUT_PATH, exist_ok=True)
-    
-    with open(MAP_FILE, 'r') as f:
+
+    with open(MAP_FILE, "r") as f:
         lines = f.readlines()
-    
+
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        
-        parts = line.split(',', 1)
+
+        parts = line.split(",", 1)
         if len(parts) != 2:
             print(f"Invalid line format: {line}")
             continue
-        
+
         output_rel_path = parts[0].strip()
         input_filename = parts[1].strip()
-        
+
         output_path = f"{BASE_OUTPUT_PATH}/{output_rel_path}.png"
         input_path = f"{BASE_INPUT_PATH}/{input_filename}.svg"
-        
+
         if not os.path.exists(input_path):
             print(f"Input SVG file does not exist: {input_path}")
-        
+
         output_dir = os.path.dirname(output_path)
         os.makedirs(output_dir, exist_ok=True)
-                
-        with open(input_path, 'rb') as svg_file:
+
+        with open(input_path, "rb") as svg_file:
             svg_data = svg_file.read()
         svg2png(bytestring=svg_data, write_to=output_path, output_height=PNG_HEIGHT)
         print(f"Converted: {input_path} -> {output_path}")
-       
+
 
 if __name__ == "__main__":
-    main() 
+    main()
