@@ -169,7 +169,7 @@ function themeCreator.createTheme()
 	end
 
 	-- Create preview image
-	local previewPath = constants.THEME_OUTPUT_DIR .. "/preview.png"
+	local previewPath = constants.THEME_OUTPUT_DIR .. "640x480/preview.png"
 	if not createPreviewImage(previewPath) then
 		errorHandler.setError("Failed to create preview image")
 		return false
@@ -182,7 +182,7 @@ function themeCreator.createTheme()
 		return false
 	end
 	local themeName = "Aesthetic"
-	local outputPath = themeDir .. "/" .. themeName .. ".zip"
+	local outputPath = themeDir .. "/" .. themeName .. ".muxthm"
 	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
 	if not actualPath then
 		errorHandler.setError("Failed to create theme archive")

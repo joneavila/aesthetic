@@ -26,11 +26,16 @@ function fileUtils.getNextAvailableFilename(basePath)
 		return basePath
 	end
 
-	-- Add numbers until an unused name is found
-	local baseName = basePath:gsub("%.zip$", "")
+	-- Extract the extension from the original path
+	local baseName, extension = basePath:match("(.+)(%.[^%.]+)$")
+	if not baseName then
+		baseName = basePath
+		extension = ""
+	end
+
 	local i = 1
 	while true do
-		local newPath = string.format("%s (%d).zip", baseName, i)
+		local newPath = string.format("%s (%d)%s", baseName, i, extension)
 		if not fileUtils.fileExists(newPath) then
 			return newPath
 		end
