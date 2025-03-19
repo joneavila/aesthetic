@@ -136,9 +136,9 @@ function themeCreator.createTheme()
 	}
 
 	-- Replace colors and apply glyph settings to theme files
-	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/default.txt" }
+	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/global.ini" }
 	local glyphSettings = {
-		list_pad_left = state.glyphs_enabled and 45 or 20,
+		list_pad_left = state.glyphs_enabled and 42 or 20,
 		glyph_alpha = state.glyphs_enabled and 255 or 0,
 	}
 	for _, filepath in ipairs(themeFiles) do
