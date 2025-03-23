@@ -23,7 +23,7 @@ local CURSOR = {
 	TRIANGLE_HORIZONTAL_OFFSET = 12,
 	TRIANGLE_SPACING = 1,
 	CORNER_RADIUS = 4,
-	TWEEN_DURATION = 0.1,
+	TWEEN_DURATION = 0.25,
 }
 local CACHE_RESOLUTION_DIVIDER = 4
 local HUE_UPDATE_THRESHOLD = 5 -- Only regenerate SV texture when hue changes by 5 degrees or more
@@ -448,7 +448,7 @@ function colorpickerhsv.update(dt)
 
 		if currentState.focusSquare then
 			-- Handle SV square navigation
-			local step = 0.04
+			local step = 0.03
 			local newSat, newVal = currentState.sat, currentState.val
 
 			if virtualJoystick:isGamepadDown("dpleft") then
@@ -476,11 +476,11 @@ function colorpickerhsv.update(dt)
 				pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 					svX = targetX,
 					svY = targetY,
-				}, "linear")
+				}, "outQuad")
 			end
 		else
 			-- Handle Hue slider navigation
-			local step = 8
+			local step = 6
 			if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 				local newHue = currentState.hue
 				if virtualJoystick:isGamepadDown("dpup") then
@@ -509,7 +509,7 @@ function colorpickerhsv.update(dt)
 				-- Create new tween for hue cursor
 				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 					hueY = baseY,
-				}, "linear")
+				}, "outQuad")
 
 				moved = true
 			end
