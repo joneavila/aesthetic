@@ -18,7 +18,7 @@ local state = require("state")
 
 -- Input delay handling
 local lastInpuSeconds = 0
-local inputDelaySeconds = 0.15
+local inputDelaySeconds = 0.2
 
 function state.canProcessInput()
 	return lastInpuSeconds >= inputDelaySeconds
