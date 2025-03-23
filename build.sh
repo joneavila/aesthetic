@@ -38,7 +38,12 @@ ITEMS_TO_DELETE=(
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
 MINOR=$(awk '/version.minor =/ {print $3}' src/version.lua)
 PATCH=$(awk '/version.patch =/ {print $3}' src/version.lua)
+PRERELEASE=$(awk '/version.prerelease =/ {if ($3 != "nil") print $3}' src/version.lua | sed 's/"//g')
+
 VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+if [ ! -z "$PRERELEASE" ]; then
+    VERSION="${VERSION}-${PRERELEASE}"
+fi
 
 if [ "$CLEAN" = true ]; then
     if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$DEVICE_IP" ]; then
