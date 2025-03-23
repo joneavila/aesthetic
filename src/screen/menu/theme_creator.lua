@@ -131,8 +131,21 @@ local function applyScreenWidthSettings(filepath, screenWidth)
 	local content = file:read("*all")
 	file:close()
 
-	-- Calculate content width (screen width minus padding)
-	local contentWidth = screenWidth - 4
+	-- Define content padding value
+	local contentPadding = 4
+
+	-- Calculate content width (screen width minus padding on both sides)
+	local contentWidth = screenWidth - (contentPadding * 2)
+
+	-- Replace content-padding placeholder
+	local contentPaddingCount
+	content, contentPaddingCount = content:gsub("%%{%s*content%-padding%s*}", tostring(contentPadding))
+
+	-- Check if replacement was successful
+	if contentPaddingCount == 0 then
+		errorHandler.setError("Failed to replace content padding settings in template")
+		return false
+	end
 
 	-- Replace screen-width placeholder
 	local screenWidthCount
