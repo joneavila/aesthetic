@@ -86,7 +86,7 @@ local function createPreviewImage(outputPath)
 	return result
 end
 
--- Function to apply glyph settings to a file
+-- Function to apply glyph settings to a scheme file
 local function applyGlyphSettings(filepath, glyphSettings)
 	local file = io.open(filepath, "r")
 	if not file then
@@ -112,6 +112,42 @@ local function applyGlyphSettings(filepath, glyphSettings)
 	file = io.open(filepath, "w")
 	if not file then
 		errorHandler.setError("Failed to write file for glyph settings: " .. filepath)
+		return false
+	end
+
+	file:write(content)
+	file:close()
+	return true
+end
+
+-- Function to apply screen width settings to a scheme file
+local function applyScreenWidthSettings(filepath, screenWidth)
+	local file = io.open(filepath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file for screen width settings: " .. filepath)
+		return false
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	-- Calculate content width (screen width minus padding)
+	local contentWidth = screenWidth - 4
+
+	-- Replace screen-width placeholder
+	local screenWidthCount
+	content, screenWidthCount = content:gsub("%%{%s*screen%-width%s*}", tostring(contentWidth))
+
+	-- Check if replacement was successful
+	if screenWidthCount == 0 then
+		errorHandler.setError("Failed to replace screen width settings in template")
+		return false
+	end
+
+	-- Write the updated content back to the file
+	file = io.open(filepath, "w")
+	if not file then
+		errorHandler.setError("Failed to write file for screen width settings: " .. filepath)
 		return false
 	end
 
@@ -148,6 +184,10 @@ function themeCreator.createTheme()
 		end
 		if not applyGlyphSettings(filepath, glyphSettings) then
 			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
+			return false
+		end
+		if not applyScreenWidthSettings(filepath, state.screenWidth) then
+			errorHandler.setError("Failed to apply screen width settings to: " .. filepath)
 			return false
 		end
 	end
