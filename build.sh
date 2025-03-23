@@ -29,6 +29,7 @@ ITEMS_TO_DELETE=(
     "/mnt/mmc/MUOS/application/Aesthetic"
     "/run/muos/storage/theme/Aesthetic.muxthm"
     "/mnt/sdcard/MUOS/theme/active/glyph/muxapp/aesthetic.png"
+    "/mnt/sdcard/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/mmc/ARCHIVE/Aesthetic_*.muxupd"
     "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxupd.done"
     "/opt/muos/default/MUOS/theme/active/glyph/muxapp/aesthetic.png"
