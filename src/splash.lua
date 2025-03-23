@@ -17,11 +17,11 @@ function splash.new(init)
 
 	-- Animation settings
 	self.title = require("state").applicationName
-	self.typingDelay = 0.05
-	self.cursorBlinkRate = 0.3
-	self.cursorChar = "_"
-	self.holdDuration = 1.3
-	self.fadeOutDuration = 0.2
+	self.typingDelay = 0.05 -- Delay between revealing each character
+	self.cursorBlinkRate = 0.3 -- How fast the cursor blinks
+	self.cursorChar = "_" -- Character used to represent the cursor
+	self.holdDuration = 1.3 -- Duration to display the complete text before fading out
+	self.fadeOutDuration = 0.2 -- Duration of the fade out animation
 
 	-- Initialize animation state
 	self.currentIndex = 0 -- How many letters have been revealed
@@ -32,6 +32,7 @@ function splash.new(init)
 	self.holdTimer = 0 -- Timer for hold phase
 	self.fadeTimer = 0 -- Timer for fade phase
 
+	-- Dimensions for positioning
 	self.textWidth = self.font:getWidth(self.title)
 	self.cursorWidth = self.font:getWidth(self.cursorChar)
 	self.textHeight = self.font:getHeight()
@@ -41,7 +42,7 @@ function splash.new(init)
 	self.centerX = screenWidth / 2 - self.textWidth / 2
 	self.centerY = screenHeight / 2 - self.textHeight / 2
 
-	-- State machine
+	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	self.state = "waiting"
 
 	-- Background settings
