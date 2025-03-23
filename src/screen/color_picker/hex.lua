@@ -54,7 +54,7 @@ local iconCache = {}
 -- Helper function to load an icon
 local function loadIcon(name)
 	if not iconCache[name] then
-		local path = "assets/icons/lucide/png/" .. name
+		local path = "assets/icons/" .. name
 		iconCache[name] = love.graphics.newImage(path)
 	end
 	return iconCache[name]
@@ -173,11 +173,9 @@ function hex.load()
 
 	-- Preload icons
 	-- Lucide icons were generated using stroke width 3px, size 48px.
-	pcall(function()
-		loadIcon("delete.png")
-		loadIcon("trash.png")
-		loadIcon("check.png")
-	end)
+	loadIcon("delete.png")
+	loadIcon("trash.png")
+	loadIcon("check.png")
 end
 
 function hex.draw()
@@ -303,64 +301,19 @@ function hex.draw()
 				-- Special handling for icon buttons
 				if buttonText == "BACKSPACE" then
 					-- Backspace icon
-					local success, icon = pcall(loadIcon, "delete.png")
-					if success then
-						local scale = ICON_SIZE / icon:getWidth()
-						drawColoredIcon(
-							icon,
-							x + (width - ICON_SIZE) / 2,
-							y + (height - ICON_SIZE) / 2,
-							iconColor,
-							scale
-						)
-					else
-						-- Fallback to text if icon fails to load
-						love.graphics.setColor(iconColor)
-						love.graphics.setFont(state.fonts.body)
-						local textWidth = state.fonts.body:getWidth("⌫")
-						local textHeight = state.fonts.body:getHeight()
-						love.graphics.print("⌫", x + (width - textWidth) / 2, y + (height - textHeight) / 2)
-					end
+					local icon = loadIcon("delete.png")
+					local scale = ICON_SIZE / icon:getWidth()
+					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
 				elseif buttonText == "CLEAR" then
 					-- Trash icon
-					local success, icon = pcall(loadIcon, "trash.png")
-					if success then
-						local scale = ICON_SIZE / icon:getWidth()
-						drawColoredIcon(
-							icon,
-							x + (width - ICON_SIZE) / 2,
-							y + (height - ICON_SIZE) / 2,
-							iconColor,
-							scale
-						)
-					else
-						-- Fallback to text if icon fails to load
-						love.graphics.setColor(iconColor)
-						love.graphics.setFont(state.fonts.body)
-						local textWidth = state.fonts.body:getWidth("🗑️")
-						local textHeight = state.fonts.body:getHeight()
-						love.graphics.print("🗑️", x + (width - textWidth) / 2, y + (height - textHeight) / 2)
-					end
+					local icon = loadIcon("trash.png")
+					local scale = ICON_SIZE / icon:getWidth()
+					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
 				elseif buttonText == "CONFIRM" then
 					-- Check icon (confirm)
-					local success, icon = pcall(loadIcon, "check.png")
-					if success then
-						local scale = ICON_SIZE / icon:getWidth()
-						drawColoredIcon(
-							icon,
-							x + (width - ICON_SIZE) / 2,
-							y + (height - ICON_SIZE) / 2,
-							iconColor,
-							scale
-						)
-					else
-						-- Fallback to text if icon fails to load
-						love.graphics.setColor(iconColor)
-						love.graphics.setFont(state.fonts.body)
-						local textWidth = state.fonts.body:getWidth("✅")
-						local textHeight = state.fonts.body:getHeight()
-						love.graphics.print("✅", x + (width - textWidth) / 2, y + (height - textHeight) / 2)
-					end
+					local icon = loadIcon("check.png")
+					local scale = ICON_SIZE / icon:getWidth()
+					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
 				else
 					-- Regular text button
 					love.graphics.setColor(iconColor)
