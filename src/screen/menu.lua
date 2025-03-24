@@ -20,7 +20,7 @@ local popupState = "none" -- none, created, manual, automatic
 -- IO operation states
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
--- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during file operations
+-- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
 
 function menu.load()
 	constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING * 2)
