@@ -125,7 +125,7 @@ function controls.draw(controls_list)
 		if type(control.icon) == "table" then
 			-- Calculate width for multiple icons
 			local iconsWidth = ICON_SIZE * #control.icon
-			for i = 1, #control.icon - 1 do
+			for _ = 1, #control.icon - 1 do
 				iconsWidth = iconsWidth + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
 			end
 			x = startX + iconsWidth + ICON_TEXT_SPACING + textWidth + PADDING

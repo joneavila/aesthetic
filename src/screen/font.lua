@@ -28,7 +28,7 @@ local fontItems = {}
 -- Initialize font items based on constants.FONTS
 local function initFontItems()
 	fontItems = {}
-	for i, font in ipairs(constants.FONTS) do
+	for _, font in ipairs(constants.FONTS) do
 		table.insert(fontItems, {
 			name = font.name,
 			selected = font.name == state.selectedFont,
@@ -131,7 +131,7 @@ function font.draw()
 	})
 end
 
-function font.update(dt)
+function font.update(_dt)
 	if not state.canProcessInput() then
 		return
 	end
