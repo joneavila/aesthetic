@@ -65,6 +65,8 @@ function font.draw()
 			love.graphics.setFont(state.fonts.body)
 		elseif item.name == "Cascadia Code" then
 			love.graphics.setFont(state.fonts.monoBody)
+		elseif item.name == "Retro Pixel" then
+			love.graphics.setFont(state.fonts.retroPixel)
 		else
 			love.graphics.setFont(state.fonts.nunito)
 		end
@@ -87,6 +89,8 @@ function font.draw()
 		love.graphics.setFont(state.fonts.body)
 	elseif hoveredFontName == "Cascadia Code" then
 		love.graphics.setFont(state.fonts.monoBody)
+	elseif hoveredFontName == "Retro Pixel" then
+		love.graphics.setFont(state.fonts.retroPixel)
 	else
 		love.graphics.setFont(state.fonts.nunito)
 	end

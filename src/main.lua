@@ -62,6 +62,9 @@ local function setupFonts()
 	local fontSizeNunito = 24 * (state.screenHeight / maxScreenHeight)
 	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
 
+	local fontSizeRetroPixel = 24 * (state.screenHeight / maxScreenHeight)
+	local fontRetroPixel = love.graphics.newFont("assets/fonts/retro_pixel/retro-pixel-thick.ttf", fontSizeRetroPixel)
+
 	-- Store fonts in a table for easy access
 	state.fonts = {
 		header = fontHeader,
@@ -70,6 +73,7 @@ local function setupFonts()
 		monoTitle = fontMonoTitle,
 		monoBody = fontMonoBody,
 		nunito = fontNunito,
+		retroPixel = fontRetroPixel,
 	}
 end
 

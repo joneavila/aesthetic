@@ -61,6 +61,7 @@ local function createPreviewImage(outputPath)
 	local fontMap = {
 		["Inter"] = state.fonts.body,
 		["Cascadia Code"] = state.fonts.monoBody,
+		["Retro Pixel"] = state.fonts.retroPixel,
 	}
 	local font = fontMap[selectedFontName] or state.fonts.nunito
 	love.graphics.setFont(font)

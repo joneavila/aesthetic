@@ -90,6 +90,11 @@ constants.FONTS = {
 		file = "cascadia_code.bin",
 		selected = state.selectedFont == "Cascadia Code",
 	},
+	{
+		name = "Retro Pixel",
+		file = "retro_pixel.bin",
+		selected = state.selectedFont == "Retro Pixel",
+	},
 }
 
 return constants

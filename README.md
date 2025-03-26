@@ -65,6 +65,7 @@ Want to improve **Aesthetic**?
 - [**MinUI**](https://github.com/shauninman/MinUI) • Inspiration (design) • No license provided
 - [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
 - [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
+- [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
 
 ## ❤️ More open-source muOS applications

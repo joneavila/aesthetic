@@ -105,6 +105,8 @@ function ui.drawButton(button, x, y, isSelected)
 			love.graphics.setFont(state.fonts.body)
 		elseif selectedFontName == "Cascadia Code" then
 			love.graphics.setFont(state.fonts.monoBody)
+		elseif selectedFontName == "Retro Pixel" then
+			love.graphics.setFont(state.fonts.retroPixel)
 		else
 			love.graphics.setFont(state.fonts.nunito)
 		end
