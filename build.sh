@@ -1,27 +1,42 @@
 #!/bin/bash
-# Usage: ./build.sh [--clean] [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
-# Packages the application into a .muxupd file
+# Usage: ./scripts/build.sh [--clean] [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
 #
-# If PRIVATE_KEY_PATH and DEVICE_IP are provided, the archive will be transferred to the handheld
-# If --clean is provided, the script will delete application files from the handheld left over from previous builds
+# If PRIVATE_KEY_PATH and DEVICE_IP are provided, the archive will be uploaded to the device using scp
+# If --clean is provided, the script will delete files from the device (left over from previous builds)
+# before building a new version
 
-CLEAN=false
-PRIVATE_KEY_PATH=""
-DEVICE_IP=""
+# Check for --clean option
+if [[ "$1" == "--clean" ]]; then
+    CLEAN=true
+    shift
+else
+    CLEAN=false
+fi
 
-for arg in "$@"; do
-    if [ "$arg" == "--clean" ]; then
-        CLEAN=true
-    elif [ -z "$PRIVATE_KEY_PATH" ]; then
-        PRIVATE_KEY_PATH="$arg"
-    elif [ -z "$DEVICE_IP" ]; then
-        DEVICE_IP="$arg"
-    fi
-done
+PRIVATE_KEY_PATH=$1
+DEVICE_IP=$2
 
 APPLICATION_DIR=mnt/mmc/MUOS/application/Aesthetic
+
+LOG_DIR="${APPLICATION_DIR}/.aesthetic/logs"
+mkdir -p "${LOG_DIR}"
+
+
 GLYPH_DIR=opt/muos/default/MUOS/theme/active/glyph/muxapp
 ARCHIVE_BASE_NAME=Aesthetic
+
+
+
+# Get version from src/version.lua
+MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
+MINOR=$(awk '/version.minor =/ {print $3}' src/version.lua)
+PATCH=$(awk '/version.patch =/ {print $3}' src/version.lua)
+PRERELEASE=$(awk '/version.prerelease =/ {if ($3 != "nil") print $3}' src/version.lua | sed 's/"//g')
+
+VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+if [ ! -z "$PRERELEASE" ]; then
+    VERSION="${VERSION}-${PRERELEASE}"
+fi
 
 # Items to delete with --clean
 ITEMS_TO_DELETE=(
@@ -34,17 +49,6 @@ ITEMS_TO_DELETE=(
     "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxupd.done"
     "/opt/muos/default/MUOS/theme/active/glyph/muxapp/aesthetic.png"
 )
-
-# Get version from src/version.lua
-MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
-MINOR=$(awk '/version.minor =/ {print $3}' src/version.lua)
-PATCH=$(awk '/version.patch =/ {print $3}' src/version.lua)
-PRERELEASE=$(awk '/version.prerelease =/ {if ($3 != "nil") print $3}' src/version.lua | sed 's/"//g')
-
-VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-if [ ! -z "$PRERELEASE" ]; then
-    VERSION="${VERSION}-${PRERELEASE}"
-fi
 
 if [ "$CLEAN" = true ]; then
     if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$DEVICE_IP" ]; then
@@ -72,12 +76,50 @@ fi
 
 mkdir -p .dist
 mkdir -p .build/"${APPLICATION_DIR}"
-mkdir -p .build/"${GLYPH_DIR}"
-
 rsync -a mux_launch.sh .build/"${APPLICATION_DIR}"
-rsync -a bin/ .build/"${APPLICATION_DIR}"
-rsync -a lib/ .build/"${APPLICATION_DIR}"
-rsync -a src/ .build/"${APPLICATION_DIR}"
+rsync -av src/ .build/"${APPLICATION_DIR}"/.aesthetic/
+
+# Debug: Check if SVG was copied
+if [ -f ".build/${APPLICATION_DIR}/.aesthetic/assets/muOS/logo.svg" ]; then
+    echo "SVG file copied successfully"
+    ls -l ".build/${APPLICATION_DIR}/.aesthetic/assets/muOS/logo.svg"
+else
+    echo "ERROR: SVG file not found in build directory!"
+    exit 1
+fi
+
+rsync -a bin/ .build/"${APPLICATION_DIR}"/.aesthetic/bin
+rsync -a lib/ .build/"${APPLICATION_DIR}"/.aesthetic/lib
+rsync -a src/tove/ .build/"${APPLICATION_DIR}"/.aesthetic/tove
+# rsync -a src/ .build/"${APPLICATION_DIR}"
+
+# Check for required directories and files
+if [ ! -d "src/tove" ]; then
+    echo "ERROR: 'tove' directory not found!"
+    echo "Please ensure the Tove library is installed in the 'tove' directory"
+    echo "Expected location: ./tove/libTove.so"
+    exit 1
+fi
+
+if [ ! -f "src/tove/libTove.so" ]; then
+    echo "ERROR: 'libTove.so' not found!"
+    echo "Please ensure the Tove library is installed at: ./src/tove/libTove.so"
+    exit 1
+fi
+
+
+
+# Debug: Check if Tove library exists and has correct permissions
+if [ -f ".build/${APPLICATION_DIR}/.aesthetic/tove/libTove.so" ]; then
+    echo "Tove library found"
+    ls -l ".build/${APPLICATION_DIR}/.aesthetic/tove/libTove.so"
+else
+    echo "ERROR: Tove library not found!"
+    exit 1
+fi
+
+# Copy application glyph
+mkdir -p .build/"${GLYPH_DIR}"
 rsync -a src/template/glyph/muxapp/aesthetic.png .build/"${GLYPH_DIR}"
 
 # Create archive, exclude macOS system files
@@ -95,6 +137,9 @@ elif [ -z "$DEVICE_IP" ]; then
 else
     echo "Uploading to $DEVICE_IP"
     scp -i "${PRIVATE_KEY_PATH}" .dist/"${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${DEVICE_IP}":/mnt/mmc/ARCHIVE
+    
+    # Set proper permissions for libraries
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "chmod 755 /mnt/mmc/MUOS/application/Aesthetic/.aesthetic/tove/libTove.so"
 fi
 
 echo "Done!"

@@ -9,6 +9,24 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
+-- Debug logging function that can be called from anywhere
+function themeCreator.debugLog(message, filePath)
+	local logPath = filePath or "/tmp/theme_creator_debug.log"
+	local f = io.open(logPath, "a")
+	if f then
+		f:write(os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
+		f:close()
+	end
+	print("DEBUG: " .. message)
+
+	-- Try LÖVE filesystem as fallback
+	pcall(function()
+		if love and love.filesystem then
+			love.filesystem.append("theme_creator_debug.log", os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
+		end
+	end)
+end
+
 -- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
 local function isSuccess(result)
 	return result == 0 or result == true
@@ -170,117 +188,376 @@ local function applyScreenWidthSettings(filepath, screenWidth)
 	return true
 end
 
+-- Function to save image data as a 24-bit BMP file
+local function saveAsBMP(imageData, filepath)
+	-- Get image dimensions
+	local width = imageData:getWidth()
+	local height = imageData:getHeight()
+
+	-- Calculate row size and padding
+	-- BMP rows must be aligned to 4 bytes
+	local rowSize = math.floor((24 * width + 31) / 32) * 4
+	local padding = rowSize - width * 3
+
+	-- Calculate file size
+	local headerSize = 54 -- 14 bytes file header + 40 bytes info header
+	local imageSize = rowSize * height
+	local fileSize = headerSize + imageSize
+
+	-- Create file
+	local file = io.open(filepath, "wb")
+	if not file then
+		return false
+	end
+
+	-- Helper function to write little-endian integers
+	local function writeInt(value, bytes)
+		local result = ""
+		for i = 1, bytes do
+			result = result .. string.char(value % 256)
+			value = math.floor(value / 256)
+		end
+		file:write(result)
+	end
+
+	-- Write BMP file header (14 bytes)
+	file:write("BM") -- Signature
+	writeInt(fileSize, 4) -- File size
+	writeInt(0, 4) -- Reserved
+	writeInt(headerSize, 4) -- Pixel data offset
+
+	-- Write BMP info header (40 bytes)
+	writeInt(40, 4) -- Info header size
+	writeInt(width, 4) -- Width
+	writeInt(height, 4) -- Height (positive for bottom-up)
+	writeInt(1, 2) -- Planes
+	writeInt(24, 2) -- Bits per pixel
+	writeInt(0, 4) -- Compression (none)
+	writeInt(imageSize, 4) -- Image size
+	writeInt(2835, 4) -- X pixels per meter
+	writeInt(2835, 4) -- Y pixels per meter
+	writeInt(0, 4) -- Colors in color table
+	writeInt(0, 4) -- Important color count
+
+	-- Write pixel data (bottom-up, BGR format)
+	local padBytes = string.rep("\0", padding)
+	for y = height - 1, 0, -1 do
+		for x = 0, width - 1 do
+			local r, g, b, a = imageData:getPixel(x, y)
+			-- Convert from 0-1 to 0-255 range and write BGR
+			file:write(string.char(math.floor(b * 255), math.floor(g * 255), math.floor(r * 255)))
+		end
+		-- Add padding to align rows to 4 bytes
+		if padding > 0 then
+			file:write(padBytes)
+		end
+	end
+
+	file:close()
+	return true
+end
+
+-- Function to create startup image with dynamic colors and centered SVG
+local function createStartImage()
+	-- Record start of function for debugging
+	themeCreator.debugLog("Starting createStartImage function")
+
+	-- Access the LOG_DIR from environment variable with fallback
+	local logDir = os.getenv("LOG_DIR")
+	if not logDir or logDir == "" then
+		logDir = "/tmp"
+		print("Warning: LOG_DIR not set, using /tmp instead")
+	end
+
+	-- Create logs directory if it doesn't exist
+	os.execute('mkdir -p "' .. logDir .. '"')
+
+	-- Create a log buffer for LÖVE fallback logging
+	local logBuffer = {}
+
+	-- Try to open log file with error handling
+	local logFilePath = logDir .. "/svg_debug.log"
+	print("Attempting to create log file at: " .. logFilePath)
+	local logFile, openError = io.open(logFilePath, "w")
+
+	if not logFile then
+		print("ERROR: Failed to create log file: " .. (openError or "unknown error"))
+		-- Try alternative location
+		logFilePath = "/tmp/svg_debug.log"
+		print("Trying alternative location: " .. logFilePath)
+		logFile, openError = io.open(logFilePath, "w")
+
+		if not logFile then
+			print("ERROR: Still failed to create log file: " .. (openError or "unknown error"))
+		end
+	else
+		print("Log file created successfully at: " .. logFilePath)
+	end
+
+	-- Check if LÖVE's filesystem is available as fallback
+	local loveFSAvailable = pcall(function()
+		return love.filesystem ~= nil
+	end)
+	if loveFSAvailable then
+		print("LÖVE filesystem is available as fallback")
+	else
+		print("LÖVE filesystem is NOT available as fallback")
+	end
+
+	local function log(message)
+		-- Store in buffer for fallback
+		table.insert(logBuffer, os.date("[%Y-%m-%d %H:%M:%S] ") .. message)
+
+		-- Try writing to regular log file
+		if logFile then
+			local status, err = pcall(function()
+				logFile:write(os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
+				logFile:flush() -- Ensure content is written immediately
+			end)
+
+			if not status then
+				print("Error writing to log: " .. (err or "unknown error"))
+			end
+		end
+
+		-- Also print to console for debugging
+		print("SVG_LOG: " .. message)
+
+		-- Try writing to LÖVE's save directory as fallback
+		if loveFSAvailable then
+			pcall(function()
+				love.filesystem.append("svg_debug_fallback.log", message .. "\n")
+			end)
+		end
+	end
+
+	-- Get dimensions from state
+	local width, height = state.screenWidth, state.screenHeight
+
+	-- Get colors from state
+	local bgHex, fgHex = state.colors.background, state.colors.foreground
+	local r, g, b = colorUtils.hexToRgb(bgHex)
+	local bgColor = { r, g, b, 1 }
+	r, g, b = colorUtils.hexToRgb(fgHex)
+	local fgColor = { r, g, b, 1 }
+
+	-- Prepare file path first - do all non-canvas operations before setting any canvas
+	-- TODO: Make this dynamic based on the screen resolution
+	local resolutionDir = "640x480"
+	local imageDir = resolutionDir .. "/image"
+	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/bootlogo.bmp"
+
+	-- Ensure directory exists before any drawing operations
+	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
+
+	local canvas = love.graphics.newCanvas(width, height)
+
+	local tove = require("tove")
+
+	local logoPath = "assets/muOS/logo.svg"
+	local svgContent = love.filesystem.read(logoPath)
+	local logo = tove.newGraphics(svgContent)
+
+	logo:setLineColor(fgColor[1], fgColor[2], fgColor[3], 1)
+	logo:stroke()
+	logo:setFillColor(fgColor[1], fgColor[2], fgColor[3], 1)
+	logo:fill()
+
+	-- Save current graphics state
+	local prevCanvas = love.graphics.getCanvas()
+	local prevBlendMode = love.graphics.getBlendMode()
+	local prevColor = { love.graphics.getColor() }
+
+	-- Drawing operations
+	love.graphics.setCanvas(canvas)
+	love.graphics.clear(bgColor)
+
+	-- Draw logo centered correctly
+	love.graphics.push()
+
+	-- Calculate center points
+	local screenCenterX = width / 2
+	local screenCenterY = height / 2
+
+	-- Draw the logo with error handling
+	logo:draw(screenCenterX, screenCenterY, 0, 0.3, 0.3)
+
+	love.graphics.pop()
+
+	-- CRITICAL: Reset canvas BEFORE getting image data
+	love.graphics.setCanvas(prevCanvas)
+	love.graphics.setBlendMode(prevBlendMode)
+	love.graphics.setColor(prevColor)
+
+	local imageData = canvas:newImageData()
+
+	-- Save directly as BMP (with no active canvas)
+	if not saveAsBMP(imageData, outputPath) then
+		error("Failed to save BMP file")
+	end
+
+	-- Finalize logging after successful completion
+	local function finalizeLogging()
+		if logFile then
+			log("Function completed successfully")
+
+			-- Save log buffer to LÖVE filesystem regardless
+			if loveFSAvailable then
+				pcall(function()
+					love.filesystem.write("svg_debug_success.log", table.concat(logBuffer, "\n"))
+				end)
+			end
+
+			logFile:flush()
+			logFile:close()
+			logFile = nil
+		end
+	end
+
+	-- Close log file before returning
+	finalizeLogging()
+
+	-- Always return with no active canvas
+	return true
+end
+
 -- Function to create theme
 function themeCreator.createTheme()
-	-- Clean up and prepare working directory
-	executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
-	if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
-		errorHandler.setError("Failed to prepare working template directory")
-		return false
-	end
+	local status, err = xpcall(function()
+		-- Clean up and prepare working directory
+		executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
+		if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
+			error("Failed to prepare working template directory")
+		end
 
-	-- Get hex colors from state (remove # prefix)
-	local hexColors = {
-		background = state.colors.background:gsub("^#", ""),
-		foreground = state.colors.foreground:gsub("^#", ""),
-	}
+		-- Verify directory structure
+		local requiredDirs = {
+			constants.WORKING_TEMPLATE_DIR .. "/scheme",
+			constants.WORKING_TEMPLATE_DIR .. "/font",
+			constants.WORKING_TEMPLATE_DIR .. "/640x480/image",
+		}
+		for _, dir in ipairs(requiredDirs) do
+			ensureDir(dir)
+		end
 
-	-- Replace colors and apply glyph settings to theme files
-	local themeFiles = { constants.THEME_OUTPUT_DIR .. "/scheme/global.ini" }
-	local glyphSettings = {
-		list_pad_left = state.glyphs_enabled and 42 or 20,
-		glyph_alpha = state.glyphs_enabled and 255 or 0,
-	}
-	for _, filepath in ipairs(themeFiles) do
-		if not fileUtils.replaceColor(filepath, hexColors) then
-			errorHandler.setError("Failed to update: " .. filepath)
+		-- Create startup image
+		themeCreator.debugLog("About to create startup image")
+		local startupImagePath = constants.WORKING_TEMPLATE_DIR .. "/640x480/image/bootlogo.bmp"
+		if not createStartImage() then
+			themeCreator.debugLog("Failed to create startup image")
+			error("Failed to create startup image")
+		end
+		themeCreator.debugLog("Startup image creation completed successfully")
+
+		-- Verify startup image exists
+		if not love.filesystem.getInfo(startupImagePath) then
+			themeCreator.debugLog("Startup image file not found: " .. startupImagePath)
+			error("Startup image was not created at: " .. startupImagePath)
+		end
+		themeCreator.debugLog("Startup image verified at: " .. startupImagePath)
+
+		-- Get hex colors from state (remove # prefix)
+		local hexColors = {
+			background = state.colors.background:gsub("^#", ""),
+			foreground = state.colors.foreground:gsub("^#", ""),
+		}
+
+		-- Replace colors and apply glyph settings to theme files
+		local themeFiles = { constants.WORKING_TEMPLATE_DIR .. "/scheme/global.ini" }
+		local glyphSettings = {
+			list_pad_left = state.glyphs_enabled and 42 or 20,
+			glyph_alpha = state.glyphs_enabled and 255 or 0,
+		}
+
+		for _, filepath in ipairs(themeFiles) do
+			if not fileUtils.replaceColor(filepath, hexColors) then
+				error("Failed to update colors in: " .. filepath)
+			end
+
+			if not applyGlyphSettings(filepath, glyphSettings) then
+				error("Failed to apply glyph settings to: " .. filepath)
+			end
+
+			if not applyScreenWidthSettings(filepath, state.screenWidth) then
+				error("Failed to apply screen width settings to: " .. filepath)
+			end
+		end
+
+		-- Find and copy the selected font file
+		local selectedFontFile
+		for _, font in ipairs(constants.FONTS) do
+			if font.name == state.selectedFont then
+				selectedFontFile = font.file
+				break
+			end
+		end
+
+		if not selectedFontFile then
+			error("Selected font not found: " .. tostring(state.selectedFont))
+		end
+
+		-- Copy the selected font file as default.bin
+		local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
+		local fontDestPath = constants.WORKING_TEMPLATE_DIR .. "/font/default.bin"
+		if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
 			return false
 		end
-		if not applyGlyphSettings(filepath, glyphSettings) then
-			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
-			return false
+
+		-- Create preview image with dynamic resolution path
+		local screenWidth = state.screenWidth
+		local screenHeight = state.screenHeight
+		local resolutionDir = screenWidth .. "x" .. screenHeight
+
+		-- Create directory if it doesn't exist
+		local previewDir = constants.WORKING_TEMPLATE_DIR .. "/" .. resolutionDir
+		ensureDir(previewDir)
+
+		-- Set preview path based on screen resolution
+		local previewPath = previewDir .. "/preview.png"
+		if not createPreviewImage(previewPath) then
+			error("Failed to create preview image at: " .. previewPath)
 		end
-		if not applyScreenWidthSettings(filepath, state.screenWidth) then
-			errorHandler.setError("Failed to apply screen width settings to: " .. filepath)
-			return false
+
+		-- Double check the file exists
+		if not love.filesystem.getInfo(previewPath) then
+			error("Preview image was not created at: " .. previewPath)
 		end
-	end
 
-	-- Find and copy the selected font file
-	local selectedFontFile
-	for _, font in ipairs(constants.FONTS) do
-		if font.name == state.selectedFont then
-			selectedFontFile = font.file
-			break
+		-- Create name.txt file with the theme name
+		local nameFilePath = constants.WORKING_TEMPLATE_DIR .. "/name.txt"
+		local nameFile = io.open(nameFilePath, "w")
+		if not nameFile then
+			error("Failed to create name.txt file")
 		end
-	end
 
-	-- Copy the selected font file as default.bin
-	local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
-	local fontDestPath = constants.THEME_OUTPUT_DIR .. "/font/default.bin"
-	if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
+		nameFile:write("Aesthetic")
+		nameFile:close()
+
+		-- Create and return ZIP archive
+		local themeDir = os.getenv("THEME_DIR")
+		if not themeDir then
+			error("THEME_DIR environment variable not set")
+		end
+
+		local themeName = "Aesthetic"
+		local outputPath = themeDir .. "/" .. themeName .. ".muxthm"
+
+		-- Create the ZIP archive
+		local actualPath = fileUtils.createZipArchive(constants.WORKING_TEMPLATE_DIR, outputPath)
+		if not actualPath then
+			error("Failed to create theme archive")
+		end
+
+		return actualPath
+	end, debug.traceback)
+
+	if not status then
+		errorHandler.setError(tostring(err))
 		return false
 	end
 
-	-- Create preview image with dynamic resolution path
-	local screenWidth = state.screenWidth
-	local screenHeight = state.screenHeight
-	local resolutionDir = screenWidth .. "x" .. screenHeight
-
-	-- Create directory if it doesn't exist
-	ensureDir(constants.THEME_OUTPUT_DIR .. "/" .. resolutionDir)
-
-	-- Set preview path based on screen resolution
-	local previewPath = constants.THEME_OUTPUT_DIR .. "/" .. resolutionDir .. "/preview.png"
-	if not createPreviewImage(previewPath) then
-		errorHandler.setError("Failed to create preview image")
-		return false
-	end
-
-	-- Create and return ZIP archive
-	local themeDir = os.getenv("THEME_DIR")
-	if not themeDir then
-		errorHandler.setError("THEME_DIR environment variable not set")
-		return false
-	end
-	local themeName = "Aesthetic"
-	local outputPath = themeDir .. "/" .. themeName .. ".muxthm"
-
-	-- Determine the actual filename that will be used
-	local actualOutputPath = fileUtils.getNextAvailableFilename(outputPath)
-	if not actualOutputPath then
-		errorHandler.setError("Failed to get available filename")
-		return false
-	end
-
-	-- Extract the actual theme name from the path
-	local actualThemeName = actualOutputPath:match(".-/([^/]+)%.muxthm$")
-	if not actualThemeName then
-		actualThemeName = themeName -- Fallback to default name
-	else
-		-- Remove file extension
-		actualThemeName = actualThemeName:gsub("%.muxthm$", "")
-	end
-
-	-- Create name.txt file with the theme name directly in the output directory
-	local nameFilePath = constants.THEME_OUTPUT_DIR .. "/name.txt"
-	local nameFile = io.open(nameFilePath, "w")
-	if not nameFile then
-		errorHandler.setError("Failed to create name.txt file")
-		return false
-	end
-
-	nameFile:write(actualThemeName)
-	nameFile:close()
-
-	-- Create the ZIP archive
-	local actualPath = fileUtils.createZipArchive(constants.THEME_OUTPUT_DIR, outputPath)
-	if not actualPath then
-		errorHandler.setError("Failed to create theme archive")
-		return false
-	end
-
-	return actualPath
+	-- Return the path from the successful execution
+	return err
 end
 
 -- Function to install the theme
