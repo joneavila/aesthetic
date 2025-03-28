@@ -9,22 +9,17 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
--- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
-local function isSuccess(result)
-	return result == 0 or result == true
-end
-
 local function ensureDir(dir)
 	return os.execute('mkdir -p "' .. dir .. '"')
 end
 
 local function executeCommand(command, errorMessage)
 	local result = os.execute(command)
-	if not isSuccess(result) and errorMessage then
+	if not result and errorMessage then
 		errorHandler.setError(errorMessage)
 		return false
 	end
-	return isSuccess(result)
+	return result
 end
 
 -- Copy a file and create destination directory if needed
