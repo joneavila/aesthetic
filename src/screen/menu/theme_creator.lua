@@ -9,24 +9,6 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
--- Debug logging function that can be called from anywhere
-function themeCreator.debugLog(message, filePath)
-	local logPath = filePath or "/tmp/theme_creator_debug.log"
-	local f = io.open(logPath, "a")
-	if f then
-		f:write(os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
-		f:close()
-	end
-	print("DEBUG: " .. message)
-
-	-- Try LÖVE filesystem as fallback
-	pcall(function()
-		if love and love.filesystem then
-			love.filesystem.append("theme_creator_debug.log", os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
-		end
-	end)
-end
-
 -- Handles both Lua 5.1 (returns 0) and Lua 5.2+ (returns true) os.execute() success values
 local function isSuccess(result)
 	return result == 0 or result == true
@@ -259,78 +241,6 @@ end
 
 -- Function to create startup image with dynamic colors and centered SVG
 local function createStartImage()
-	-- Record start of function for debugging
-	themeCreator.debugLog("Starting createStartImage function")
-
-	-- Access the LOG_DIR from environment variable with fallback
-	local logDir = os.getenv("LOG_DIR")
-	if not logDir or logDir == "" then
-		logDir = "/tmp"
-		print("Warning: LOG_DIR not set, using /tmp instead")
-	end
-
-	-- Create logs directory if it doesn't exist
-	os.execute('mkdir -p "' .. logDir .. '"')
-
-	-- Create a log buffer for LÖVE fallback logging
-	local logBuffer = {}
-
-	-- Try to open log file with error handling
-	local logFilePath = logDir .. "/svg_debug.log"
-	print("Attempting to create log file at: " .. logFilePath)
-	local logFile, openError = io.open(logFilePath, "w")
-
-	if not logFile then
-		print("ERROR: Failed to create log file: " .. (openError or "unknown error"))
-		-- Try alternative location
-		logFilePath = "/tmp/svg_debug.log"
-		print("Trying alternative location: " .. logFilePath)
-		logFile, openError = io.open(logFilePath, "w")
-
-		if not logFile then
-			print("ERROR: Still failed to create log file: " .. (openError or "unknown error"))
-		end
-	else
-		print("Log file created successfully at: " .. logFilePath)
-	end
-
-	-- Check if LÖVE's filesystem is available as fallback
-	local loveFSAvailable = pcall(function()
-		return love.filesystem ~= nil
-	end)
-	if loveFSAvailable then
-		print("LÖVE filesystem is available as fallback")
-	else
-		print("LÖVE filesystem is NOT available as fallback")
-	end
-
-	local function log(message)
-		-- Store in buffer for fallback
-		table.insert(logBuffer, os.date("[%Y-%m-%d %H:%M:%S] ") .. message)
-
-		-- Try writing to regular log file
-		if logFile then
-			local status, err = pcall(function()
-				logFile:write(os.date("[%Y-%m-%d %H:%M:%S] ") .. message .. "\n")
-				logFile:flush() -- Ensure content is written immediately
-			end)
-
-			if not status then
-				print("Error writing to log: " .. (err or "unknown error"))
-			end
-		end
-
-		-- Also print to console for debugging
-		print("SVG_LOG: " .. message)
-
-		-- Try writing to LÖVE's save directory as fallback
-		if loveFSAvailable then
-			pcall(function()
-				love.filesystem.append("svg_debug_fallback.log", message .. "\n")
-			end)
-		end
-	end
-
 	-- Get dimensions from state
 	local width, height = state.screenWidth, state.screenHeight
 
@@ -396,27 +306,6 @@ local function createStartImage()
 		error("Failed to save BMP file")
 	end
 
-	-- Finalize logging after successful completion
-	local function finalizeLogging()
-		if logFile then
-			log("Function completed successfully")
-
-			-- Save log buffer to LÖVE filesystem regardless
-			if loveFSAvailable then
-				pcall(function()
-					love.filesystem.write("svg_debug_success.log", table.concat(logBuffer, "\n"))
-				end)
-			end
-
-			logFile:flush()
-			logFile:close()
-			logFile = nil
-		end
-	end
-
-	-- Close log file before returning
-	finalizeLogging()
-
 	-- Always return with no active canvas
 	return true
 end
@@ -441,20 +330,15 @@ function themeCreator.createTheme()
 		end
 
 		-- Create startup image
-		themeCreator.debugLog("About to create startup image")
 		local startupImagePath = constants.WORKING_TEMPLATE_DIR .. "/640x480/image/bootlogo.bmp"
 		if not createStartImage() then
-			themeCreator.debugLog("Failed to create startup image")
 			error("Failed to create startup image")
 		end
-		themeCreator.debugLog("Startup image creation completed successfully")
 
 		-- Verify startup image exists
 		if not love.filesystem.getInfo(startupImagePath) then
-			themeCreator.debugLog("Startup image file not found: " .. startupImagePath)
 			error("Startup image was not created at: " .. startupImagePath)
 		end
-		themeCreator.debugLog("Startup image verified at: " .. startupImagePath)
 
 		-- Get hex colors from state (remove # prefix)
 		local hexColors = {
