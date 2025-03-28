@@ -9,6 +9,11 @@ local colorUtils = require("utils.color")
 -- Module table to export public functions
 local themeCreator = {}
 
+-- Utility function to get resolution directory based on current dimensions
+local function getResolutionDir()
+	return state.screenWidth .. "x" .. state.screenHeight
+end
+
 local function ensureDir(dir)
 	return os.execute('mkdir -p "' .. dir .. '"')
 end
@@ -127,10 +132,7 @@ local function applyScreenWidthSettings(filepath, screenWidth)
 	local content = file:read("*all")
 	file:close()
 
-	-- Define content padding value
 	local contentPadding = 4
-
-	-- Calculate content width (screen width minus padding on both sides)
 	local contentWidth = screenWidth - (contentPadding * 2)
 
 	-- Replace content-padding placeholder
@@ -247,8 +249,7 @@ local function createStartImage()
 	local fgColor = { r, g, b, 1 }
 
 	-- Prepare file path first - do all non-canvas operations before setting any canvas
-	-- TODO: Make this dynamic based on the screen resolution
-	local resolutionDir = "640x480"
+	local resolutionDir = getResolutionDir()
 	local imageDir = resolutionDir .. "/image"
 	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/bootlogo.bmp"
 
@@ -280,16 +281,14 @@ local function createStartImage()
 	-- Draw logo centered correctly
 	love.graphics.push()
 
-	-- Calculate center points
+	-- Draw the logo at the center
 	local screenCenterX = width / 2
 	local screenCenterY = height / 2
-
-	-- Draw the logo with error handling
 	logo:draw(screenCenterX, screenCenterY, 0, 0.3, 0.3)
 
 	love.graphics.pop()
 
-	-- CRITICAL: Reset canvas BEFORE getting image data
+	-- Reset canvas BEFORE getting image data
 	love.graphics.setCanvas(prevCanvas)
 	love.graphics.setBlendMode(prevBlendMode)
 	love.graphics.setColor(prevColor)
@@ -308,6 +307,11 @@ end
 -- Function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
+		local SCHEME_DIR = constants.WORKING_TEMPLATE_DIR .. "/scheme"
+		local FONT_DIR = constants.WORKING_TEMPLATE_DIR .. "/font"
+		local RESOLUTION_DIR = getResolutionDir()
+		local RESOLUTION_IMAGE_DIR = constants.WORKING_TEMPLATE_DIR .. "/" .. RESOLUTION_DIR .. "/image"
+
 		-- Clean up and prepare working directory
 		executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
 		if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
@@ -316,16 +320,16 @@ function themeCreator.createTheme()
 
 		-- Verify directory structure
 		local requiredDirs = {
-			constants.WORKING_TEMPLATE_DIR .. "/scheme",
-			constants.WORKING_TEMPLATE_DIR .. "/font",
-			constants.WORKING_TEMPLATE_DIR .. "/640x480/image",
+			SCHEME_DIR,
+			FONT_DIR,
+			RESOLUTION_IMAGE_DIR,
 		}
 		for _, dir in ipairs(requiredDirs) do
 			ensureDir(dir)
 		end
 
 		-- Create startup image
-		local startupImagePath = constants.WORKING_TEMPLATE_DIR .. "/640x480/image/bootlogo.bmp"
+		local startupImagePath = RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp"
 		if not createStartImage() then
 			error("Failed to create startup image")
 		end
@@ -342,7 +346,7 @@ function themeCreator.createTheme()
 		}
 
 		-- Replace colors and apply glyph settings to theme files
-		local themeFiles = { constants.WORKING_TEMPLATE_DIR .. "/scheme/global.ini" }
+		local themeFiles = { SCHEME_DIR .. "/global.ini" }
 		local glyphSettings = {
 			list_pad_left = state.glyphs_enabled and 42 or 20,
 			glyph_alpha = state.glyphs_enabled and 255 or 0,
@@ -377,29 +381,19 @@ function themeCreator.createTheme()
 
 		-- Copy the selected font file as default.bin
 		local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
-		local fontDestPath = constants.WORKING_TEMPLATE_DIR .. "/font/default.bin"
+		local fontDestPath = FONT_DIR .. "/default.bin"
 		if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
 			return false
 		end
 
-		-- Create preview image with dynamic resolution path
-		local screenWidth = state.screenWidth
-		local screenHeight = state.screenHeight
-		local resolutionDir = screenWidth .. "x" .. screenHeight
-
 		-- Create directory if it doesn't exist
-		local previewDir = constants.WORKING_TEMPLATE_DIR .. "/" .. resolutionDir
+		local previewDir = constants.WORKING_TEMPLATE_DIR .. "/" .. RESOLUTION_DIR
 		ensureDir(previewDir)
 
 		-- Set preview path based on screen resolution
 		local previewPath = previewDir .. "/preview.png"
 		if not createPreviewImage(previewPath) then
 			error("Failed to create preview image at: " .. previewPath)
-		end
-
-		-- Double check the file exists
-		if not love.filesystem.getInfo(previewPath) then
-			error("Preview image was not created at: " .. previewPath)
 		end
 
 		-- Create name.txt file with the theme name
