@@ -6,10 +6,11 @@ local fileUtils = require("screen.menu.file_utils")
 local errorHandler = require("screen.menu.error_handler")
 local colorUtils = require("utils.color")
 
+local tove = require("tove")
+
 -- Module table to export public functions
 local themeCreator = {}
 
--- Utility function to get resolution directory based on current dimensions
 local function getResolutionDir()
 	return state.screenWidth .. "x" .. state.screenHeight
 end
@@ -39,7 +40,6 @@ end
 
 -- Function to create a preview image with the selected background color and "muOS" text
 local function createPreviewImage(outputPath)
-	-- Image dimensions
 	local width, height = 288, 216
 	local text = "muOS"
 
@@ -169,7 +169,6 @@ end
 
 -- Function to save image data as a 24-bit BMP file
 local function saveAsBMP(imageData, filepath)
-	-- Get image dimensions
 	local width = imageData:getWidth()
 	local height = imageData:getHeight()
 
@@ -236,29 +235,34 @@ local function saveAsBMP(imageData, filepath)
 	return true
 end
 
--- Function to create startup image with dynamic colors and centered SVG
+local function getBackgroundColor()
+	local bgHex = state.colors.background
+	local r, g, b = colorUtils.hexToRgb(bgHex)
+	return { r, g, b, 1 }
+end
+
+local function getForegroundColor()
+	local fgHex = state.colors.foreground
+	local r, g, b = colorUtils.hexToRgb(fgHex)
+	return { r, g, b, 1 }
+end
+
 local function createStartImage()
-	-- Get dimensions from state
 	local width, height = state.screenWidth, state.screenHeight
 
-	-- Get colors from state
-	local bgHex, fgHex = state.colors.background, state.colors.foreground
-	local r, g, b = colorUtils.hexToRgb(bgHex)
-	local bgColor = { r, g, b, 1 }
-	r, g, b = colorUtils.hexToRgb(fgHex)
-	local fgColor = { r, g, b, 1 }
+	local bgColor = getBackgroundColor()
+	local fgColor = getForegroundColor()
 
-	-- Prepare file path first - do all non-canvas operations before setting any canvas
+	-- Prepare file path
 	local resolutionDir = getResolutionDir()
 	local imageDir = resolutionDir .. "/image"
 	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/bootlogo.bmp"
 
-	-- Ensure directory exists before any drawing operations
 	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
 
-	local canvas = love.graphics.newCanvas(width, height)
+	local prevCanvas = love.graphics.getCanvas()
 
-	local tove = require("tove")
+	local canvas = love.graphics.newCanvas(width, height)
 
 	local logoPath = "assets/muOS/logo.svg"
 	local svgContent = love.filesystem.read(logoPath)
@@ -271,8 +275,8 @@ local function createStartImage()
 
 	-- Save current graphics state
 	local prevCanvas = love.graphics.getCanvas()
-	local prevBlendMode = love.graphics.getBlendMode()
-	local prevColor = { love.graphics.getColor() }
+	-- local prevBlendMode = love.graphics.getBlendMode()
+	-- local prevColor = { love.graphics.getColor() }
 
 	-- Drawing operations
 	love.graphics.setCanvas(canvas)
@@ -282,16 +286,16 @@ local function createStartImage()
 	love.graphics.push()
 
 	-- Draw the logo at the center
-	local screenCenterX = width / 2
-	local screenCenterY = height / 2
-	logo:draw(screenCenterX, screenCenterY, 0, 0.3, 0.3)
+	local centerX = width / 2
+	local centerY = height / 2
+	logo:draw(centerX, centerY, 0, 0.3, 0.3)
 
 	love.graphics.pop()
 
 	-- Reset canvas BEFORE getting image data
 	love.graphics.setCanvas(prevCanvas)
-	love.graphics.setBlendMode(prevBlendMode)
-	love.graphics.setColor(prevColor)
+	-- love.graphics.setBlendMode(prevBlendMode)
+	-- love.graphics.setColor(prevColor)
 
 	local imageData = canvas:newImageData()
 
@@ -301,6 +305,76 @@ local function createStartImage()
 	end
 
 	-- Always return with no active canvas
+	return true
+end
+
+-- Function to create reboot image with dynamic colors and centered icon
+local function createRebootImage()
+	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
+
+	local bgColor = getBackgroundColor()
+	local fgColor = getForegroundColor()
+
+	-- Prepare paths
+	local resolutionDir = getResolutionDir()
+	local imageDir = resolutionDir .. "/image"
+	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/reboot.png"
+	local svgPath = "assets/icons/rotate-ccw.svg"
+
+	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
+
+	local svg = love.filesystem.read(svgPath)
+	local icon = tove.newGraphics(svg, 200)
+
+	-- Save current graphics state
+	local prevCanvas = love.graphics.getCanvas()
+	-- local prevBlendMode = love.graphics.getBlendMode()
+	-- local prevColor = { love.graphics.getColor() }
+
+	-- Create a new canvas, set it as the current canvas, and clear it
+	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
+	love.graphics.setCanvas(canvas)
+	love.graphics.clear(bgColor)
+
+	-- Set the icon colors
+	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
+
+	-- Set up transformation for centered drawing
+	love.graphics.push()
+
+	-- Draw the icon
+	local x = screenWidth / 2
+	local y = screenHeight / 2 + 20
+	icon:draw(x, y)
+
+	-- Draw the text centered
+	love.graphics.setFont(state.fonts.body)
+	local text = "Reboot"
+	local textWidth = state.fonts.body:getWidth(text)
+	local textX = x - textWidth / 2
+	local textY = y + 100
+	love.graphics.print(text, textX, textY)
+
+	love.graphics.pop()
+
+	-- Reset graphics state BEFORE getting image data
+	love.graphics.setCanvas(prevCanvas)
+	-- love.graphics.setBlendMode(prevBlendMode)
+	-- love.graphics.setColor(prevColor)
+
+	-- Get image data and encode
+	local imageData = canvas:newImageData()
+	local pngData = imageData:encode("png")
+
+	-- Write file with error handling using direct file I/O
+	local file = io.open(outputPath, "wb")
+	if not file then
+		errorHandler.setError("Failed to open reboot image file for writing")
+		return false
+	end
+	file:write(pngData:getString())
+	file:close()
+
 	return true
 end
 
@@ -329,14 +403,13 @@ function themeCreator.createTheme()
 		end
 
 		-- Create startup image
-		local startupImagePath = RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp"
 		if not createStartImage() then
 			error("Failed to create startup image")
 		end
 
-		-- Verify startup image exists
-		if not love.filesystem.getInfo(startupImagePath) then
-			error("Startup image was not created at: " .. startupImagePath)
+		-- Create reboot image
+		if not createRebootImage() then
+			error("Failed to create reboot image")
 		end
 
 		-- Get hex colors from state (remove # prefix)
