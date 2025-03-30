@@ -3,8 +3,8 @@ local love = require("love")
 
 local state = {
 	applicationName = "Aesthetic",
-	screenWidth = tonumber(os.getenv("SCREEN_WIDTH")),
-	screenHeight = tonumber(os.getenv("SCREEN_HEIGHT")),
+	screenWidth = 0,
+	screenHeight = 0,
 	-- Use default font initially, set in main.lua
 	fonts = {
 		header = love.graphics.getFont(),

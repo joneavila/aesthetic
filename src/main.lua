@@ -78,6 +78,7 @@ local function setupFonts()
 end
 
 function love.load()
+	state.screenWidth, state.screenHeight = love.graphics.getDimensions()
 	state.fadeDuration = 0.5
 	setupFonts()
 

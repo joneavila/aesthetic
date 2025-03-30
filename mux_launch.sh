@@ -11,22 +11,15 @@ THEME_DIR="/run/muos/storage/theme"
 BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
 
-# Define variables
-SCREEN_WIDTH=$(GET_VAR device mux/width)
-SCREEN_HEIGHT=$(GET_VAR device mux/height)
-
 # Create required directories
 mkdir -p "$THEME_DIR/active"
 mkdir -p "$LOG_DIR"
-chmod 777 "$LOG_DIR"
 
 # Export environment variables
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
 export THEME_DIR
 export LOG_DIR
 export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/tove:$LD_LIBRARY_PATH"
-export SCREEN_WIDTH
-export SCREEN_HEIGHT
 
 # Launch application
 cd "$ROOT_DIR" || exit
