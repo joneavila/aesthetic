@@ -13,21 +13,22 @@ local tove = require("tove")
 -- Module table to export public functions
 local themeCreator = {}
 
-local function ensureDir(dir)
+--- Ensures a directory exists, creating it if necessary, setting an error message if it fails
+--- This function calls `errorHandler.setError()` so it does not need to be called separately
+local function ensurePath(path)
+	-- Extract directory from path if it is a file path
+	local dir = string.match(path, "(.*)/[^/]*$") or path
+
 	local result = os.execute('mkdir -p "' .. dir .. '"')
 	if not result then
 		errorHandler.setError("Failed to create directory: " .. dir)
 		return false
 	end
 	return result
-	-- Extract directory from path
-	-- local destDir = string.match(path, "(.*)/[^/]*$")
-	-- if destDir then
-	-- 	love.filesystem.createDirectory(destDir)
-	-- end
-	-- love.filesystem.write(path, data)
 end
 
+--- Executes a command and sets an error message if the command fails
+--- This function calls `errorHandler.setError()` so it does not need to be called separately
 local function executeCommand(command, errorMessage)
 	local result = os.execute(command)
 	if not result and errorMessage then
@@ -38,31 +39,60 @@ local function executeCommand(command, errorMessage)
 end
 
 -- Copy a file and create destination directory if needed
-local function copyFile(sourcePath, destPath, errorMessage)
+local function copyFile(sourcePath, destinationPath, errorMessage)
 	-- Extract directory from destination path
-	local destDir = string.match(destPath, "(.*)/[^/]*$")
-	if destDir then
-		if not ensureDir(destDir) then
-			return false -- ensureDir already set the error
+	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
+	if destinationDir then
+		if not ensurePath(destinationDir) then
+			return false
 		end
 	end
-	return executeCommand(string.format('cp "%s" "%s"', sourcePath, destPath), errorMessage)
+	return executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
 end
 
--- Function to create a preview image with the selected background color and "muOS" text
+local function createNameFile()
+	local nameFile = io.open(paths.THEME_NAME_PATH, "w")
+	if not nameFile then
+		errorHandler.setError("Failed to create name.txt file")
+		return false
+	end
+	nameFile:write(state.applicationName) -- Use application name as theme name
+	nameFile:close()
+end
+
+-- Function to create theme's preview image using the selected font and colors
 local function createPreviewImage()
-	local width, height = 288, 216
-	local text = "muOS"
+	-- Set the preview image dimensions based on the screen resolution
+	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
+
+	-- Define preview dimensions based on screen resolution
+	-- These dimensions are based on the default 2502.0 PIXIE theme
+	-- Default to the 640x480 ratio if no match is found
+	local previewImageWidth, previewImageHeight
+	if screenWidth == 640 and screenHeight == 480 then
+		previewImageWidth, previewImageHeight = 288, 216
+	elseif screenWidth == 720 and screenHeight == 480 then
+		previewImageWidth, previewImageHeight = 340, 227
+	elseif screenWidth == 720 and screenHeight == 756 then
+		previewImageWidth, previewImageHeight = 340, 272
+	elseif screenWidth == 720 and screenHeight == 720 then
+		previewImageWidth, previewImageHeight = 340, 340
+	elseif screenWidth == 1024 and screenHeight == 768 then
+		previewImageWidth, previewImageHeight = 484, 363
+	elseif screenWidth == 1280 and screenHeight == 720 then
+		previewImageWidth, previewImageHeight = 604, 340
+	else
+		previewImageWidth, previewImageHeight = 288, 216
+	end
+
+	local previewImageText = "muOS"
 
 	-- Get colors from state
-	local bgHex, fgHex = state.colors.background, state.colors.foreground
-	local r, g, b = colorUtils.hexToRgb(bgHex)
-	local bgColor = { r, g, b, 1 }
-	r, g, b = colorUtils.hexToRgb(fgHex)
-	local fgColor = { r, g, b, 1 }
+	local bgColor = colorUtils.hexToLove(state.colors.background)
+	local fgColor = colorUtils.hexToLove(state.colors.foreground)
 
 	-- Create canvas and draw
-	local canvas = love.graphics.newCanvas(width, height)
+	local canvas = love.graphics.newCanvas(previewImageWidth, previewImageHeight)
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
@@ -78,14 +108,16 @@ local function createPreviewImage()
 	love.graphics.setFont(font)
 
 	-- Center text
-	local textWidth, textHeight = font:getWidth(text), font:getHeight()
-	love.graphics.print(text, (width - textWidth) / 2, (height - textHeight) / 2)
+	local textWidth, textHeight = font:getWidth(previewImageText), font:getHeight()
+	local textX = (previewImageWidth - textWidth) / 2
+	local textY = (previewImageHeight - textHeight) / 2
+	love.graphics.print(previewImageText, textX, textY)
 	love.graphics.setCanvas()
 
 	-- Get image data and encode as PNG
 	local imageData = canvas:newImageData()
 	if not imageData then
-		errorHandler.setError("Failed to get image data from preview canvas")
+		errorHandler.setError("Failed to get image data from preview image canvas")
 		return false
 	end
 
@@ -95,20 +127,17 @@ local function createPreviewImage()
 		return false
 	end
 
-	-- Write file using direct file I/O
-	local file = io.open(paths.THEME_PREVIEW_IMAGE_PATH, "wb")
-	if not file then
-		errorHandler.setError("Failed to open preview image file for writing: " .. paths.THEME_PREVIEW_IMAGE_PATH)
-		return false
-	end
-
+	-- Write the preview image to its destination
 	local success, writeErr = pcall(function()
+		local file = io.open(paths.THEME_PREVIEW_IMAGE_PATH, "wb")
+		if not file then
+			error("Failed to open preview image file for writing: " .. paths.THEME_PREVIEW_IMAGE_PATH)
+		end
 		file:write(pngData:getString())
+		file:close()
 	end)
-	file:close()
-
 	if not success then
-		errorHandler.setError("Failed to write preview image data: " .. tostring(writeErr))
+		errorHandler.setError(writeErr)
 		return false
 	end
 
@@ -116,58 +145,72 @@ local function createPreviewImage()
 end
 
 -- Function to apply glyph settings to a scheme file
-local function applyGlyphSettings(filepath, glyphSettings)
-	local file = io.open(filepath, "r")
-	if not file then
-		errorHandler.setError("Failed to open file for glyph settings: " .. filepath)
+-- This sets scheme values to adapt to either enabled or disabled glyphs
+local function applyGlyphSettings(schemeFilePath)
+	-- Read the scheme file content
+	local schemeFile, err = io.open(schemeFilePath, "r")
+	if not schemeFile then
+		errorHandler.setError("Failed to open file for glyph settings: " .. schemeFilePath)
 		return false
 	end
 
-	local content = file:read("*all")
-	file:close()
+	local schemeFileContent = schemeFile:read("*all")
+	schemeFile:close()
+
+	local glyphSettings = {
+		list_pad_left = state.glyphs_enabled and 42 or 20,
+		glyph_alpha = state.glyphs_enabled and 255 or 0,
+	}
 
 	-- Replace placeholders
 	local listPadCount, glyphAlphaCount
-	content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
-	content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
+	schemeFileContent, listPadCount =
+		schemeFileContent:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
+	schemeFileContent, glyphAlphaCount =
+		schemeFileContent:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
 
 	-- Check if replacements were successful
-	if listPadCount == 0 or glyphAlphaCount == 0 then
-		errorHandler.setError("Failed to replace glyph settings in template")
+	if listPadCount == 0 then
+		errorHandler.setError("Failed to replace list pad left in template")
+		return false
+	end
+	if glyphAlphaCount == 0 then
+		errorHandler.setError("Failed to replace glyph alpha in template")
 		return false
 	end
 
 	-- Write the updated content back to the file
-	file = io.open(filepath, "w")
-	if not file then
-		errorHandler.setError("Failed to write file for glyph settings: " .. filepath)
+	schemeFile, err = io.open(schemeFilePath, "w")
+	if not schemeFile then
+		errorHandler.setError("Failed to write file for glyph settings: " .. schemeFilePath)
 		return false
 	end
 
-	file:write(content)
-	file:close()
+	schemeFile:write(schemeFileContent)
+	schemeFile:close()
 	return true
 end
 
 -- Function to apply screen width settings to a scheme file
-local function applyScreenWidthSettings(filepath, screenWidth)
-	local file = io.open(filepath, "r")
-	if not file then
-		errorHandler.setError("Failed to open file for screen width settings: " .. filepath)
+-- This sets scheme values to adapt to the screen width
+local function applyScreenWidthSettings(schemeFilePath, screenWidth)
+	-- Read the scheme file content
+	local schemeFile, err = io.open(schemeFilePath, "r")
+	if not schemeFile then
+		errorHandler.setError("Failed to open file for screen width settings: " .. schemeFilePath)
 		return false
 	end
 
-	local content = file:read("*all")
-	file:close()
+	local schemeFileContent = schemeFile:read("*all")
+	schemeFile:close()
 
 	local contentPadding = 4
 	local contentWidth = screenWidth - (contentPadding * 2)
 
 	-- Replace content-padding placeholder
 	local contentPaddingCount
-	content, contentPaddingCount = content:gsub("%%{%s*content%-padding%s*}", tostring(contentPadding))
-
-	-- Check if replacement was successful
+	schemeFileContent, contentPaddingCount =
+		schemeFileContent:gsub("%%{%s*content%-padding%s*}", tostring(contentPadding))
 	if contentPaddingCount == 0 then
 		errorHandler.setError("Failed to replace content padding settings in template")
 		return false
@@ -175,27 +218,27 @@ local function applyScreenWidthSettings(filepath, screenWidth)
 
 	-- Replace screen-width placeholder
 	local screenWidthCount
-	content, screenWidthCount = content:gsub("%%{%s*screen%-width%s*}", tostring(contentWidth))
-
-	-- Check if replacement was successful
+	schemeFileContent, screenWidthCount = schemeFileContent:gsub("%%{%s*screen%-width%s*}", tostring(contentWidth))
 	if screenWidthCount == 0 then
 		errorHandler.setError("Failed to replace screen width settings in template")
 		return false
 	end
 
 	-- Write the updated content back to the file
-	file = io.open(filepath, "w")
-	if not file then
-		errorHandler.setError("Failed to write file for screen width settings: " .. filepath)
+	schemeFile, err = io.open(schemeFilePath, "w")
+	if not schemeFile then
+		errorHandler.setError("Failed to write file for screen width settings: " .. schemeFilePath)
 		return false
 	end
 
-	file:write(content)
-	file:close()
+	schemeFile:write(schemeFileContent)
+	schemeFile:close()
 	return true
 end
 
 -- Function to save image data as a 24-bit BMP file
+-- Currently LÖVE does not support encoding BMP
+-- TODO: Consider using https://github.com/max1220/lua-bitmap
 local function saveAsBMP(imageData, filepath)
 	local width = imageData:getWidth()
 	local height = imageData:getHeight()
@@ -264,27 +307,15 @@ local function saveAsBMP(imageData, filepath)
 	return true
 end
 
-local function getBackgroundColor()
-	local bgHex = state.colors.background
-	local r, g, b = colorUtils.hexToRgb(bgHex)
-	return { r, g, b, 1 }
-end
-
-local function getForegroundColor()
-	local fgHex = state.colors.foreground
-	local r, g, b = colorUtils.hexToRgb(fgHex)
-	return { r, g, b, 1 }
-end
-
-local function createStartImage()
-	-- Read properties from state
+-- Function to create theme's boot logo image using selected font and colors
+local function createBootImage()
 	local width, height = state.screenWidth, state.screenHeight
-	local bgColor = getBackgroundColor()
-	local fgColor = getForegroundColor()
+	local bgColor = colorUtils.hexToLove(state.colors.background)
+	local fgColor = colorUtils.hexToLove(state.colors.foreground)
 
-	-- Load SVG
+	-- Load muOS logo SVG, set size and color
 	local svg = love.filesystem.read("assets/muOS/logo.svg")
-	local iconSize = 200
+	local iconSize = 180
 	local logo = tove.newGraphics(svg, iconSize)
 	logo:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
@@ -308,27 +339,26 @@ local function createStartImage()
 
 	local imageData = canvas:newImageData()
 	if not saveAsBMP(imageData, paths.THEME_BOOTLOGO_IMAGE_PATH) then
-		errorHandler.setError("Failed to save BMP file")
+		errorHandler.setError("Failed to save BMP file: " .. paths.THEME_BOOTLOGO_IMAGE_PATH)
 		return false
 	end
 
 	return true
 end
 
--- Function to create reboot image with dynamic colors and centered icon
+-- Function to create theme's reboot image with dynamic colors and centered icon
 local function createRebootImage()
 	-- Read properties from state
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
-	local bgColor = getBackgroundColor()
-	local fgColor = getForegroundColor()
+	local bgColor = colorUtils.hexToLove(state.colors.background)
+	local fgColor = colorUtils.hexToLove(state.colors.foreground)
 
-	-- Load SVG
+	-- Load reboot icon SVG, set size and color
 	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
 	if not svg then
-		errorHandler.setError("Failed to load reboot icon SVG file")
+		errorHandler.setError("Failed to load reboot icon SVG file: " .. paths.THEME_REBOOT_ICON_SVG_PATH)
 		return false
 	end
-
 	local iconSize = 150
 	local icon = tove.newGraphics(svg, iconSize)
 	if not icon then
@@ -356,7 +386,8 @@ local function createRebootImage()
 	icon:draw(iconX, iconY)
 
 	-- Get the selected font from state
-	-- TODO Refactor font code: Store fonts as pairs of name and loaded font (or find way to get name from loaded font)
+	-- TODO: Refactor font code – Store fonts as pairs of name and loaded font
+	-- (or find way to get name from loaded font)
 	local selectedFontName = state.selectedFont
 	local fontMap = {
 		["Inter"] = state.fonts.body,
@@ -371,9 +402,11 @@ local function createRebootImage()
 		return false
 	end
 
-	-- Draw the text centered
+	-- Set the font, size and color
 	love.graphics.setFont(font, constants.IMAGE_FONT_SIZE)
 	love.graphics.setColor(fgColor)
+
+	-- Draw the text centered
 	local text = "Rebooting..."
 	local textWidth = font:getWidth(text)
 	local textX = (screenWidth - textWidth) / 2
@@ -397,17 +430,16 @@ local function createRebootImage()
 		return false
 	end
 
-	-- Write file using direct file I/O since love.filesystem.write() doesn't work (?)
-	local file = io.open(paths.THEME_REBOOT_IMAGE_PATH, "wb")
-	if not file then
-		errorHandler.setError("Failed to open reboot image file for writing: " .. paths.THEME_REBOOT_IMAGE_PATH)
+	-- Write the PNG data to the reboot image file
+	local rebootImageFile = io.open(paths.THEME_REBOOT_IMAGE_PATH, "wb")
+	if not rebootImageFile then
+		errorHandler.setError("Failed to open reboot image file: " .. paths.THEME_REBOOT_IMAGE_PATH)
 		return false
 	end
-
 	local success, writeErr = pcall(function()
-		file:write(pngData:getString())
+		rebootImageFile:write(pngData:getString())
 	end)
-	file:close()
+	rebootImageFile:close()
 
 	if not success then
 		errorHandler.setError("Failed to write reboot image data: " .. tostring(writeErr))
@@ -417,19 +449,20 @@ local function createRebootImage()
 	return true
 end
 
--- Function to create the credits.txt file
+-- Function to create theme's `credits.txt` file
 local function createCreditsFile()
-	local file = io.open(paths.THEME_CREDITS_PATH, "w")
-	if not file then
-		errorHandler.setError("Failed to create credits.txt file")
+	local creditsFile = io.open(paths.THEME_CREDITS_PATH, "w")
+	if not creditsFile then
+		errorHandler.setError("Failed to create `credits.txt` file: " .. paths.THEME_CREDITS_PATH)
 		return false
 	end
-	file:write("Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic")
-	file:close()
+	local creditsText = "Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic"
+	creditsFile:write(creditsText)
+	creditsFile:close()
 	return true
 end
 
--- Function to create the version.txt file
+-- Function to create theme's `version.txt` file
 local function createVersionFile()
 	local sourceFile = io.open(paths.MUOS_VERSION_PATH, "r")
 	local versionContent = ""
@@ -455,13 +488,13 @@ local function createVersionFile()
 	end
 
 	-- Write to the theme version file
-	local file = io.open(paths.THEME_VERSION_PATH, "w")
-	if not file then
-		errorHandler.setError("Failed to create version.txt file")
+	local versionFile = io.open(paths.THEME_VERSION_PATH, "w")
+	if not versionFile then
+		errorHandler.setError("Failed to create `version.txt` file: " .. paths.THEME_VERSION_PATH)
 		return false
 	end
-	file:write(versionContent)
-	file:close()
+	versionFile:write(versionContent)
+	versionFile:close()
 	return true
 end
 
@@ -480,26 +513,24 @@ function themeCreator.createTheme()
 				-- Only ensure directories for path strings that don't already end with a slash
 				local dirPath = string.match(path, "(.*)/[^/]*$")
 				if dirPath then
-					if not ensureDir(dirPath) then
-						return false -- ensureDir already set the error
+					if not ensurePath(dirPath) then
+						return false
 					end
 				end
 			end
 		end
 
-		-- Create startup image
-		if not createStartImage() then
-			-- createStartImage() already sets the error handler message
+		-- Create theme's boot image
+		if not createBootImage() then
 			return false
 		end
 
-		-- Create reboot image
+		-- Create theme's reboot image
 		if not createRebootImage() then
-			-- Do not set error handler message here since it is set in createRebootImage()
 			return false
 		end
 
-		-- Set preview path based on screen resolution
+		-- Create theme's preview image
 		if not createPreviewImage() then
 			return false
 		end
@@ -511,22 +542,20 @@ function themeCreator.createTheme()
 		}
 
 		-- Replace colors and apply glyph settings to theme files
+		if not fileUtils.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, hexColors) then
+			errorHandler.setError("Failed to update colors in: " .. paths.THEME_SCHEME_GLOBAL_PATH)
+			return false
+		end
 
-		local glyphSettings = {
-			list_pad_left = state.glyphs_enabled and 42 or 20,
-			glyph_alpha = state.glyphs_enabled and 255 or 0,
-		}
-		local filepath = paths.THEME_SCHEME_GLOBAL_PATH
-		if not fileUtils.replaceColor(filepath, hexColors) then
-			errorHandler.setError("Failed to update colors in: " .. filepath)
+		-- Set theme's glyph settings
+		if not applyGlyphSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+			errorHandler.setError("Failed to apply glyph settings to: " .. paths.THEME_SCHEME_GLOBAL_PATH)
 			return false
 		end
-		if not applyGlyphSettings(filepath, glyphSettings) then
-			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
-			return false
-		end
-		if not applyScreenWidthSettings(filepath, state.screenWidth) then
-			errorHandler.setError("Failed to apply screen width settings to: " .. filepath)
+
+		-- Set theme's screen width settings
+		if not applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
+			errorHandler.setError("Failed to apply screen width settings to: " .. paths.THEME_SCHEME_GLOBAL_PATH)
 			return false
 		end
 
@@ -538,7 +567,6 @@ function themeCreator.createTheme()
 				break
 			end
 		end
-
 		if not selectedFontFile then
 			errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
 			return false
@@ -556,33 +584,29 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Create name.txt file with the theme name
-		local nameFile = io.open(paths.THEME_NAME_PATH, "w")
-		if not nameFile then
-			errorHandler.setError("Failed to create name.txt file")
-			return false
-		end
-		nameFile:write(state.applicationName) -- Use application name as theme name
-		nameFile:close()
-
-		-- Create credits.txt file
+		-- Create theme's `credits.txt` file
 		if not createCreditsFile() then
 			return false
 		end
 
-		-- Create version.txt file
+		-- Create theme's `version.txt` file
 		if not createVersionFile() then
 			return false
 		end
 
+		-- Create theme's `name.txt` file
+		if not createNameFile() then
+			return false
+		end
+
 		-- Create the ZIP archive
-		local finalOutputPath = fileUtils.createZipArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
-		if not finalOutputPath then
+		local outputThemePath = fileUtils.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
+		if not outputThemePath then
 			errorHandler.setError("Failed to create theme archive")
 			return false
 		end
 
-		return finalOutputPath
+		return outputThemePath
 	end, debug.traceback)
 
 	if not status then
@@ -595,6 +619,7 @@ function themeCreator.createTheme()
 end
 
 -- Function to install the theme
+-- TODO: Reference new PIXIE code to update and fix bugs
 function themeCreator.installTheme(outputPath)
 	-- Remove existing active theme directory and create a new one
 	executeCommand('rm -rf "' .. paths.THEME_ACTIVE_DIR .. '"')

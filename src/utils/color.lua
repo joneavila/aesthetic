@@ -230,4 +230,10 @@ function color.rgbToHex(r, g, b)
 	return "#" .. hexR .. hexG .. hexB
 end
 
+-- Convert hex string directly to LÖVE-compatible color array
+function color.hexToLove(hexString, alpha)
+	local r, g, b = color.hexToRgb(hexString)
+	return { r, g, b, alpha or 1 }
+end
+
 return color

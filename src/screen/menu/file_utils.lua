@@ -94,8 +94,8 @@ function fileUtils.replaceColor(filepath, replacements)
 	return true
 end
 
--- Helper function to create ZIP archive
-function fileUtils.createZipArchive(sourceDir, outputPath)
+-- Helper function to create archive
+function fileUtils.createArchive(sourceDir, outputPath)
 	-- Get next available filename
 	local finalPath = fileUtils.getNextAvailableFilename(outputPath)
 	if not finalPath then
