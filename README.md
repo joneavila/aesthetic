@@ -78,6 +78,14 @@ All Discord links redirect to muOS Discord discussion pages.
 - [**Bluetooth Settings**](https://github.com/nvcuong1312/bltMuos) by nvc • Bluetooth settings • [Discord](https://discord.com/channels/1152022492001603615/1326441936403435634)
 - [**RGB Controller**](https://github.com/JanTrueno) • Control RGB lighting • [Discord](https://discord.com/channels/1152022492001603615/1272215949474267187)
 
+## 👍 Support this project
+
+You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi.
+
+Any support is greatly appreciated – thank you for supporting open source software!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
+
 ## ⚖️ License
 
-This project is licensed under the [MIT License](LICENSE). **A shoutout to the repo is always appreciated – thank you for supporting open source!**
+This project is licensed under the MIT License. You are free to use, modify, and distribute this software, provided that you include the original copyright notice and a disclaimer of liability. For more details, see [LICENSE](LICENSE).
