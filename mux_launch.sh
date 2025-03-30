@@ -12,7 +12,7 @@ BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
 
 # Create required directories
-mkdir -p "$THEME_DIR/active"
+# Most directories are created by the application
 mkdir -p "$LOG_DIR"
 
 # Export environment variables
