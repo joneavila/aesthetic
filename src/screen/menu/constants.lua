@@ -90,11 +90,21 @@ paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 -- Generated theme path where the generated theme is written
 paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".muxthm"
 
+-- muOS version file path (contains version info)
+paths.MUOS_VERSION_PATH = "/opt/muos/config/version.txt"
+-- Theme version file path
+-- Assuming the application is updated with every release, this file will contain
+-- the version info read from muOS
+paths.THEME_VERSION_PATH = paths.THEME_DIR .. "/version.txt"
+
 -- Assets used by UI rather than generated theme
 paths.THEME_FONT_SOURCE_DIR = paths.TEMPLATE_DIR .. "/font"
 
 -- `credits.txt`
 paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"
+
+-- `version.txt`
+paths.THEME_VERSION_PATH = paths.WORKING_THEME_DIR .. "/version.txt"
 
 -- `name.txt`
 paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"

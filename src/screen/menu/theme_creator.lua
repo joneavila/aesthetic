@@ -429,6 +429,42 @@ local function createCreditsFile()
 	return true
 end
 
+-- Function to create the version.txt file
+local function createVersionFile()
+	local sourceFile = io.open(paths.MUOS_VERSION_PATH, "r")
+	local versionContent = ""
+
+	if sourceFile then
+		-- Read the content from the source file
+		local content = sourceFile:read("*all")
+		sourceFile:close()
+
+		-- Extract just the version number using pattern matching
+		-- Pattern matches: digits with zero or more periods followed by underscore
+		local versionNumber = content:match("(%d[%d%.]+)_")
+
+		if versionNumber then
+			versionContent = versionNumber
+		else
+			errorHandler.setError("Could not parse version number from muOS version file")
+			return false
+		end
+	else
+		errorHandler.setError("Could not read muOS version file at " .. paths.MUOS_VERSION_PATH)
+		return false
+	end
+
+	-- Write to the theme version file
+	local file = io.open(paths.THEME_VERSION_PATH, "w")
+	if not file then
+		errorHandler.setError("Failed to create version.txt file")
+		return false
+	end
+	file:write(versionContent)
+	file:close()
+	return true
+end
+
 -- Function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
@@ -531,6 +567,11 @@ function themeCreator.createTheme()
 
 		-- Create credits.txt file
 		if not createCreditsFile() then
+			return false
+		end
+
+		-- Create version.txt file
+		if not createVersionFile() then
 			return false
 		end
 
