@@ -70,10 +70,47 @@ constants.POPUP_BUTTONS = {
 	},
 }
 
--- Constants for paths
-constants.ORIGINAL_TEMPLATE_DIR = os.getenv("TEMPLATE_DIR") or "template" -- Store original template path
-constants.WORKING_TEMPLATE_DIR = constants.ORIGINAL_TEMPLATE_DIR .. "_working" -- Add working directory path
-constants.THEME_OUTPUT_DIR = constants.WORKING_TEMPLATE_DIR
+-- TODO: Make os.getenv() safer
+-- TODO: Create files like `name.txt` dynamically
+-- TODO: You can initialize the paths here
+constants.PATHS = {
+	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR"),
+	THEME_DIR = os.getenv("THEME_DIR"),
+}
+
+-- Create a local alias for easier access
+local paths = constants.PATHS
+
+-- Working theme directory where files are written before archiving into a theme
+paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
+
+-- Active theme directory where files of the currently active theme are stored
+paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
+
+-- Generated theme path where the generated theme is written
+paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".muxthm"
+
+-- Assets used by UI rather than generated theme
+paths.THEME_FONT_SOURCE_DIR = paths.TEMPLATE_DIR .. "/font"
+
+-- `name.txt`
+paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
+
+-- `scheme`
+paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
+paths.THEME_SCHEME_GLOBAL_PATH = paths.THEME_SCHEME_DIR .. "/global.ini"
+
+-- `font`
+paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
+paths.THEME_DEFAULT_FONT_PATH = paths.THEME_FONT_DIR .. "/default.bin"
+
+-- `<width>x<height>`
+paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight
+paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"
+-- `<width>x<height>/image`
+paths.THEME_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
+paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/bootlogo.bmp"
+paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
 
 -- Font options
 constants.FONTS = {

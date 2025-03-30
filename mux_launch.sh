@@ -20,6 +20,7 @@ export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
 export THEME_DIR
 export LOG_DIR
 export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/tove:$LD_LIBRARY_PATH"
+export TEMPLATE_DIR="$ROOT_DIR/template"
 
 # Launch application
 cd "$ROOT_DIR" || exit

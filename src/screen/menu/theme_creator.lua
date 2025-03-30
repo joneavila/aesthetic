@@ -6,17 +6,20 @@ local fileUtils = require("screen.menu.file_utils")
 local errorHandler = require("screen.menu.error_handler")
 local colorUtils = require("utils.color")
 
+local paths = constants.PATHS
+
 local tove = require("tove")
 
 -- Module table to export public functions
 local themeCreator = {}
 
-local function getImageDir()
-	return constants.WORKING_TEMPLATE_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight .. "/image"
-end
-
 local function ensureDir(dir)
-	return os.execute('mkdir -p "' .. dir .. '"')
+	local result = os.execute('mkdir -p "' .. dir .. '"')
+	if not result then
+		errorHandler.setError("Failed to create directory: " .. dir)
+		return false
+	end
+	return result
 	-- Extract directory from path
 	-- local destDir = string.match(path, "(.*)/[^/]*$")
 	-- if destDir then
@@ -39,13 +42,15 @@ local function copyFile(sourcePath, destPath, errorMessage)
 	-- Extract directory from destination path
 	local destDir = string.match(destPath, "(.*)/[^/]*$")
 	if destDir then
-		ensureDir(destDir)
+		if not ensureDir(destDir) then
+			return false -- ensureDir already set the error
+		end
 	end
 	return executeCommand(string.format('cp "%s" "%s"', sourcePath, destPath), errorMessage)
 end
 
 -- Function to create a preview image with the selected background color and "muOS" text
-local function createPreviewImage(outputPath)
+local function createPreviewImage()
 	local width, height = 288, 216
 	local text = "muOS"
 
@@ -77,20 +82,37 @@ local function createPreviewImage(outputPath)
 	love.graphics.print(text, (width - textWidth) / 2, (height - textHeight) / 2)
 	love.graphics.setCanvas()
 
-	-- Save image
-	local tempFilename = "preview_temp.png"
-	local success = love.filesystem.write(tempFilename, canvas:newImageData():encode("png"):getString())
-
-	if not success then
+	-- Get image data and encode as PNG
+	local imageData = canvas:newImageData()
+	if not imageData then
+		errorHandler.setError("Failed to get image data from preview canvas")
 		return false
 	end
 
-	-- Move to final location
-	local tempPath = love.filesystem.getSaveDirectory() .. "/" .. tempFilename
-	local result = copyFile(tempPath, outputPath)
-	love.filesystem.remove(tempFilename)
+	local pngData = imageData:encode("png")
+	if not pngData then
+		errorHandler.setError("Failed to encode preview image to PNG")
+		return false
+	end
 
-	return result
+	-- Write file using direct file I/O
+	local file = io.open(paths.THEME_PREVIEW_IMAGE_PATH, "wb")
+	if not file then
+		errorHandler.setError("Failed to open preview image file for writing: " .. paths.THEME_PREVIEW_IMAGE_PATH)
+		return false
+	end
+
+	local success, writeErr = pcall(function()
+		file:write(pngData:getString())
+	end)
+	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write preview image data: " .. tostring(writeErr))
+		return false
+	end
+
+	return true
 end
 
 -- Function to apply glyph settings to a scheme file
@@ -191,6 +213,7 @@ local function saveAsBMP(imageData, filepath)
 	-- Create file
 	local file = io.open(filepath, "wb")
 	if not file then
+		errorHandler.setError("Failed to open file for writing BMP: " .. filepath)
 		return false
 	end
 
@@ -259,10 +282,6 @@ local function createStartImage()
 	local bgColor = getBackgroundColor()
 	local fgColor = getForegroundColor()
 
-	local imageDir = getImageDir()
-	ensureDir(imageDir)
-	local outputPath = imageDir .. "/bootlogo.bmp"
-
 	-- Load SVG
 	local svg = love.filesystem.read("assets/muOS/logo.svg")
 	local iconSize = 200
@@ -288,7 +307,7 @@ local function createStartImage()
 	love.graphics.setCanvas(previousCanvas)
 
 	local imageData = canvas:newImageData()
-	if not saveAsBMP(imageData, outputPath) then
+	if not saveAsBMP(imageData, paths.THEME_BOOTLOGO_IMAGE_PATH) then
 		errorHandler.setError("Failed to save BMP file")
 		return false
 	end
@@ -303,20 +322,29 @@ local function createRebootImage()
 	local bgColor = getBackgroundColor()
 	local fgColor = getForegroundColor()
 
-	local imageDir = getImageDir()
-	ensureDir(imageDir)
-	local outputPath = imageDir .. "/reboot.png"
-
 	-- Load SVG
 	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
+	if not svg then
+		errorHandler.setError("Failed to load reboot icon SVG file")
+		return false
+	end
+
 	local iconSize = 150
 	local icon = tove.newGraphics(svg, iconSize)
+	if not icon then
+		errorHandler.setError("Failed to create graphics from reboot icon SVG")
+		return false
+	end
 	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
 	local previousCanvas = love.graphics.getCanvas()
 
 	-- Create a new canvas, set it as the current canvas, and clear it
 	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
+	if not canvas then
+		errorHandler.setError("Failed to create canvas for reboot image")
+		return false
+	end
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
@@ -336,6 +364,12 @@ local function createRebootImage()
 		["Retro Pixel"] = state.fonts.retroPixel,
 	}
 	local font = fontMap[selectedFontName] or state.fonts.body
+	if not font then
+		errorHandler.setError("Failed to get font for reboot image")
+		love.graphics.pop()
+		love.graphics.setCanvas(previousCanvas)
+		return false
+	end
 
 	-- Draw the text centered
 	love.graphics.setFont(font, constants.IMAGE_FONT_SIZE)
@@ -352,16 +386,33 @@ local function createRebootImage()
 
 	-- Get image data and encode
 	local imageData = canvas:newImageData()
-	local pngData = imageData:encode("png")
-
-	-- Write file using direct file I/O since love.filesystem.write() doesn't work (?)
-	local file = io.open(outputPath, "wb")
-	if not file then
-		errorHandler.setError("Failed to open reboot image file for writing")
+	if not imageData then
+		errorHandler.setError("Failed to get image data from reboot canvas")
 		return false
 	end
-	file:write(pngData:getString())
+
+	local pngData = imageData:encode("png")
+	if not pngData then
+		errorHandler.setError("Failed to encode reboot image to PNG")
+		return false
+	end
+
+	-- Write file using direct file I/O since love.filesystem.write() doesn't work (?)
+	local file = io.open(paths.THEME_REBOOT_IMAGE_PATH, "wb")
+	if not file then
+		errorHandler.setError("Failed to open reboot image file for writing: " .. paths.THEME_REBOOT_IMAGE_PATH)
+		return false
+	end
+
+	local success, writeErr = pcall(function()
+		file:write(pngData:getString())
+	end)
 	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write reboot image data: " .. tostring(writeErr))
+		return false
+	end
 
 	return true
 end
@@ -369,34 +420,40 @@ end
 -- Function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
-		local SCHEME_DIR = constants.WORKING_TEMPLATE_DIR .. "/scheme"
-		local FONT_DIR = constants.WORKING_TEMPLATE_DIR .. "/font"
-		local IMAGE_DIR = getImageDir()
-
 		-- Clean up and prepare working directory
-		executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
-		if not fileUtils.copyDir(constants.ORIGINAL_TEMPLATE_DIR, constants.WORKING_TEMPLATE_DIR) then
-			error("Failed to prepare working template directory")
+		executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
+		if not fileUtils.copyDir(paths.TEMPLATE_DIR, paths.WORKING_THEME_DIR) then
+			errorHandler.setError("Failed to prepare working template directory")
 		end
 
-		-- Verify directory structure
-		local requiredDirs = {
-			SCHEME_DIR,
-			FONT_DIR,
-			IMAGE_DIR,
-		}
-		for _, dir in ipairs(requiredDirs) do
-			ensureDir(dir)
+		-- Ensure all required directories exist
+		for key, path in pairs(paths) do
+			if type(path) == "string" and string.match(path, "/$") == nil then
+				-- Only ensure directories for path strings that don't already end with a slash
+				local dirPath = string.match(path, "(.*)/[^/]*$")
+				if dirPath then
+					if not ensureDir(dirPath) then
+						return false -- ensureDir already set the error
+					end
+				end
+			end
 		end
 
 		-- Create startup image
 		if not createStartImage() then
-			error("Failed to create startup image")
+			-- createStartImage() already sets the error handler message
+			return false
 		end
 
 		-- Create reboot image
 		if not createRebootImage() then
-			error("Failed to create reboot image")
+			-- Do not set error handler message here since it is set in createRebootImage()
+			return false
+		end
+
+		-- Set preview path based on screen resolution
+		if not createPreviewImage() then
+			return false
 		end
 
 		-- Get hex colors from state (remove # prefix)
@@ -406,24 +463,23 @@ function themeCreator.createTheme()
 		}
 
 		-- Replace colors and apply glyph settings to theme files
-		local themeFiles = { SCHEME_DIR .. "/global.ini" }
+
 		local glyphSettings = {
 			list_pad_left = state.glyphs_enabled and 42 or 20,
 			glyph_alpha = state.glyphs_enabled and 255 or 0,
 		}
-
-		for _, filepath in ipairs(themeFiles) do
-			if not fileUtils.replaceColor(filepath, hexColors) then
-				error("Failed to update colors in: " .. filepath)
-			end
-
-			if not applyGlyphSettings(filepath, glyphSettings) then
-				error("Failed to apply glyph settings to: " .. filepath)
-			end
-
-			if not applyScreenWidthSettings(filepath, state.screenWidth) then
-				error("Failed to apply screen width settings to: " .. filepath)
-			end
+		local filepath = paths.THEME_SCHEME_GLOBAL_PATH
+		if not fileUtils.replaceColor(filepath, hexColors) then
+			errorHandler.setError("Failed to update colors in: " .. filepath)
+			return false
+		end
+		if not applyGlyphSettings(filepath, glyphSettings) then
+			errorHandler.setError("Failed to apply glyph settings to: " .. filepath)
+			return false
+		end
+		if not applyScreenWidthSettings(filepath, state.screenWidth) then
+			errorHandler.setError("Failed to apply screen width settings to: " .. filepath)
+			return false
 		end
 
 		-- Find and copy the selected font file
@@ -436,52 +492,39 @@ function themeCreator.createTheme()
 		end
 
 		if not selectedFontFile then
-			error("Selected font not found: " .. tostring(state.selectedFont))
-		end
-
-		-- Copy the selected font file as default.bin
-		local fontSourcePath = constants.ORIGINAL_TEMPLATE_DIR .. "/font/" .. selectedFontFile
-		local fontDestPath = FONT_DIR .. "/default.bin"
-		if not copyFile(fontSourcePath, fontDestPath, "Failed to copy font file: " .. selectedFontFile) then
+			errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
 			return false
 		end
 
-		-- Create directory if it doesn't exist
-		local imageDir = getImageDir()
-		ensureDir(imageDir)
-
-		-- Set preview path based on screen resolution
-		local previewPath = imageDir .. "/preview.png"
-		if not createPreviewImage(previewPath) then
-			error("Failed to create preview image at: " .. previewPath)
+		-- Copy the selected font file as default.bin
+		local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
+		if
+			not copyFile(
+				fontSourcePath,
+				paths.THEME_DEFAULT_FONT_PATH,
+				"Failed to copy font file: " .. selectedFontFile
+			)
+		then
+			return false
 		end
 
 		-- Create name.txt file with the theme name
-		local nameFilePath = constants.WORKING_TEMPLATE_DIR .. "/name.txt"
-		local nameFile = io.open(nameFilePath, "w")
+		local nameFile = io.open(paths.THEME_NAME_PATH, "w")
 		if not nameFile then
-			error("Failed to create name.txt file")
+			errorHandler.setError("Failed to create name.txt file")
+			return false
 		end
-
-		nameFile:write("Aesthetic")
+		nameFile:write(state.applicationName) -- Use application name as theme name
 		nameFile:close()
 
-		-- Create and return ZIP archive
-		local themeDir = os.getenv("THEME_DIR")
-		if not themeDir then
-			error("THEME_DIR environment variable not set")
-		end
-
-		local themeName = "Aesthetic"
-		local outputPath = themeDir .. "/" .. themeName .. ".muxthm"
-
 		-- Create the ZIP archive
-		local actualPath = fileUtils.createZipArchive(constants.WORKING_TEMPLATE_DIR, outputPath)
-		if not actualPath then
-			error("Failed to create theme archive")
+		local finalOutputPath = fileUtils.createZipArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
+		if not finalOutputPath then
+			errorHandler.setError("Failed to create theme archive")
+			return false
 		end
 
-		return actualPath
+		return finalOutputPath
 	end, debug.traceback)
 
 	if not status then
@@ -495,23 +538,14 @@ end
 
 -- Function to install the theme
 function themeCreator.installTheme(outputPath)
-	local themeDir = os.getenv("THEME_DIR")
-	if not themeDir then
-		errorHandler.setError("THEME_DIR environment variable not set")
-		return false
-	end
-
-	local themeActiveDir = themeDir .. "/active"
-
 	-- Remove existing active theme directory and create a new one
-	executeCommand('rm -rf "' .. themeActiveDir .. '"')
+	executeCommand('rm -rf "' .. paths.THEME_ACTIVE_DIR .. '"')
 	executeCommand("sync")
-	ensureDir(themeActiveDir)
 
 	-- Extract the theme to the active directory
 	if
 		not executeCommand(
-			string.format('unzip "%s" -d "%s"', outputPath, themeActiveDir),
+			string.format('unzip "%s" -d "%s"', outputPath, paths.THEME_ACTIVE_DIR),
 			"Failed to install theme to active directory"
 		)
 	then
@@ -525,7 +559,7 @@ end
 
 -- Clean up working directory
 function themeCreator.cleanup()
-	executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
+	executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
 end
 
 return themeCreator
