@@ -11,12 +11,18 @@ local tove = require("tove")
 -- Module table to export public functions
 local themeCreator = {}
 
-local function getResolutionDir()
-	return state.screenWidth .. "x" .. state.screenHeight
+local function getImageDir()
+	return constants.WORKING_TEMPLATE_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight .. "/image"
 end
 
 local function ensureDir(dir)
 	return os.execute('mkdir -p "' .. dir .. '"')
+	-- Extract directory from path
+	-- local destDir = string.match(path, "(.*)/[^/]*$")
+	-- if destDir then
+	-- 	love.filesystem.createDirectory(destDir)
+	-- end
+	-- love.filesystem.write(path, data)
 end
 
 local function executeCommand(command, errorMessage)
@@ -248,93 +254,71 @@ local function getForegroundColor()
 end
 
 local function createStartImage()
+	-- Read properties from state
 	local width, height = state.screenWidth, state.screenHeight
-
 	local bgColor = getBackgroundColor()
 	local fgColor = getForegroundColor()
 
-	-- Prepare file path
-	local resolutionDir = getResolutionDir()
-	local imageDir = resolutionDir .. "/image"
-	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/bootlogo.bmp"
+	local imageDir = getImageDir()
+	ensureDir(imageDir)
+	local outputPath = imageDir .. "/bootlogo.bmp"
 
-	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
+	-- Load SVG
+	local svg = love.filesystem.read("assets/muOS/logo.svg")
+	local iconSize = 200
+	local logo = tove.newGraphics(svg, iconSize)
+	logo:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
-	local prevCanvas = love.graphics.getCanvas()
+	local previousCanvas = love.graphics.getCanvas()
 
+	-- Create new canvas, set it as the current canvas, and clear it
 	local canvas = love.graphics.newCanvas(width, height)
-
-	local logoPath = "assets/muOS/logo.svg"
-	local svgContent = love.filesystem.read(logoPath)
-	local logo = tove.newGraphics(svgContent)
-
-	logo:setLineColor(fgColor[1], fgColor[2], fgColor[3], 1)
-	logo:stroke()
-	logo:setFillColor(fgColor[1], fgColor[2], fgColor[3], 1)
-	logo:fill()
-
-	-- Save current graphics state
-	local prevCanvas = love.graphics.getCanvas()
-	-- local prevBlendMode = love.graphics.getBlendMode()
-	-- local prevColor = { love.graphics.getColor() }
-
-	-- Drawing operations
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
-	-- Draw logo centered correctly
 	love.graphics.push()
 
 	-- Draw the logo at the center
 	local centerX = width / 2
 	local centerY = height / 2
-	logo:draw(centerX, centerY, 0, 0.3, 0.3)
+	logo:draw(centerX, centerY)
 
 	love.graphics.pop()
 
-	-- Reset canvas BEFORE getting image data
-	love.graphics.setCanvas(prevCanvas)
-	-- love.graphics.setBlendMode(prevBlendMode)
-	-- love.graphics.setColor(prevColor)
+	love.graphics.setCanvas(previousCanvas)
 
 	local imageData = canvas:newImageData()
-
-	-- Save directly as BMP (with no active canvas)
 	if not saveAsBMP(imageData, outputPath) then
-		error("Failed to save BMP file")
+		errorHandler.setError("Failed to save BMP file")
+		return false
 	end
 
-	-- Always return with no active canvas
 	return true
 end
 
 -- Function to create reboot image with dynamic colors and centered icon
 local function createRebootImage()
+	-- Read properties from state
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
-
 	local bgColor = getBackgroundColor()
 	local fgColor = getForegroundColor()
 
-	-- Prepare paths
-	local resolutionDir = getResolutionDir()
-	local imageDir = resolutionDir .. "/image"
-	local outputPath = constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir .. "/reboot.png"
-	local svgPath = "assets/icons/rotate-ccw.svg"
+	local imageDir = getImageDir()
+	ensureDir(imageDir)
+	local outputPath = imageDir .. "/reboot.png"
 
-	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
-
-	local svg = love.filesystem.read(svgPath)
+	-- Load SVG
+	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
 	local iconSize = 150
 	local icon = tove.newGraphics(svg, iconSize)
+	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
-	local prevCanvas = love.graphics.getCanvas()
+	local previousCanvas = love.graphics.getCanvas()
 
 	-- Create a new canvas, set it as the current canvas, and clear it
 	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
-
-	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
 	love.graphics.push()
 
@@ -344,6 +328,7 @@ local function createRebootImage()
 	icon:draw(iconX, iconY)
 
 	-- Get the selected font from state
+	-- TODO Refactor font code: Store fonts as pairs of name and loaded font (or find way to get name from loaded font)
 	local selectedFontName = state.selectedFont
 	local fontMap = {
 		["Inter"] = state.fonts.body,
@@ -353,18 +338,17 @@ local function createRebootImage()
 	local font = fontMap[selectedFontName] or state.fonts.body
 
 	-- Draw the text centered
-	local fontSize = 45
-	love.graphics.setFont(font, fontSize)
+	love.graphics.setFont(font, constants.IMAGE_FONT_SIZE)
 	love.graphics.setColor(fgColor)
 	local text = "Rebooting..."
 	local textWidth = font:getWidth(text)
-	local textX = iconX - textWidth / 2
+	local textX = (screenWidth - textWidth) / 2
 	local textY = screenHeight / 2 + 50
 	love.graphics.print(text, textX, textY)
 
 	love.graphics.pop()
 
-	love.graphics.setCanvas(prevCanvas)
+	love.graphics.setCanvas(previousCanvas)
 
 	-- Get image data and encode
 	local imageData = canvas:newImageData()
@@ -387,8 +371,7 @@ function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		local SCHEME_DIR = constants.WORKING_TEMPLATE_DIR .. "/scheme"
 		local FONT_DIR = constants.WORKING_TEMPLATE_DIR .. "/font"
-		local RESOLUTION_DIR = getResolutionDir()
-		local RESOLUTION_IMAGE_DIR = constants.WORKING_TEMPLATE_DIR .. "/" .. RESOLUTION_DIR .. "/image"
+		local IMAGE_DIR = getImageDir()
 
 		-- Clean up and prepare working directory
 		executeCommand('rm -rf "' .. constants.WORKING_TEMPLATE_DIR .. '"')
@@ -400,7 +383,7 @@ function themeCreator.createTheme()
 		local requiredDirs = {
 			SCHEME_DIR,
 			FONT_DIR,
-			RESOLUTION_IMAGE_DIR,
+			IMAGE_DIR,
 		}
 		for _, dir in ipairs(requiredDirs) do
 			ensureDir(dir)
@@ -464,11 +447,11 @@ function themeCreator.createTheme()
 		end
 
 		-- Create directory if it doesn't exist
-		local previewDir = constants.WORKING_TEMPLATE_DIR .. "/" .. RESOLUTION_DIR
-		ensureDir(previewDir)
+		local imageDir = getImageDir()
+		ensureDir(imageDir)
 
 		-- Set preview path based on screen resolution
-		local previewPath = previewDir .. "/preview.png"
+		local previewPath = imageDir .. "/preview.png"
 		if not createPreviewImage(previewPath) then
 			error("Failed to create preview image at: " .. previewPath)
 		end

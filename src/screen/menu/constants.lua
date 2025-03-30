@@ -9,6 +9,8 @@ constants.COLOR_PICKER_SCREEN = "color_picker"
 constants.ABOUT_SCREEN = "about"
 constants.FONT_SCREEN = "font"
 
+constants.IMAGE_FONT_SIZE = 45
+
 -- Error display time
 constants.ERROR_DISPLAY_TIME_SECONDS = 5
 
