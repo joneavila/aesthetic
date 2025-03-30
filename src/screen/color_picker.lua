@@ -2,7 +2,7 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local controls = require("controls")
+local constants = require("screen.color_picker.constants")
 
 -- Import sub-screens
 local paletteScreen = require("screen.color_picker.palette")
@@ -12,18 +12,10 @@ local hexScreen = require("screen.color_picker.hex")
 -- Module table to export public functions
 local colorPicker = {}
 
--- Constants for tab UI
-local TAB = {
-	HEIGHT = 40,
-	PADDING = 10,
-	MARGIN = 0, -- Move tabs to the top of the screen
-	CORNER_RADIUS = 8,
-	ACTIVE_LINE_HEIGHT = 3,
-}
+-- Shared constants
+colorPicker.TAB_HEIGHT = constants.TAB_HEIGHT
 
--- Store these valuesglobally for other screens to access
-state.TAB_HEIGHT = TAB.MARGIN + TAB.HEIGHT
-state.CONTROLS_HEIGHT = controls.HEIGHT
+local TAB_ACTIVE_LINE_HEIGHT = 3
 
 -- Tab definitions
 local tabs = {
@@ -67,11 +59,11 @@ end
 
 function colorPicker.load()
 	-- Calculate tab widths
-	local availableWidth = state.screenWidth - (TAB.MARGIN * 2)
+	local availableWidth = state.screenWidth
 	local tabWidth = availableWidth / #tabs
 
 	for i, tab in ipairs(tabs) do
-		tab.x = TAB.MARGIN + (i - 1) * tabWidth
+		tab.x = (i - 1) * tabWidth
 		tab.width = tabWidth
 	end
 
@@ -113,7 +105,7 @@ function colorPicker.draw()
 
 	-- Draw tab bar background
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, TAB.HEIGHT + TAB.MARGIN)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, colorPicker.TAB_HEIGHT)
 
 	-- Draw tabs
 	for _, tab in ipairs(tabs) do
@@ -135,7 +127,7 @@ function colorPicker.draw()
 		local rightRadius = 0
 
 		-- Draw tab with appropriate corner rounding (none)
-		love.graphics.rectangle("fill", tab.x, TAB.MARGIN, tab.width, TAB.HEIGHT, leftRadius, rightRadius)
+		love.graphics.rectangle("fill", tab.x, 0, tab.width, colorPicker.TAB_HEIGHT, leftRadius, rightRadius)
 
 		-- Tab text
 		if tab.active then
@@ -147,7 +139,7 @@ function colorPicker.draw()
 		love.graphics.printf(
 			tab.name,
 			tab.x,
-			TAB.MARGIN + (TAB.HEIGHT - state.fonts.body:getHeight()) / 2,
+			(colorPicker.TAB_HEIGHT - state.fonts.body:getHeight()) / 2,
 			tab.width,
 			"center"
 		)
@@ -158,9 +150,9 @@ function colorPicker.draw()
 			love.graphics.rectangle(
 				"fill",
 				tab.x,
-				TAB.MARGIN + TAB.HEIGHT - TAB.ACTIVE_LINE_HEIGHT,
+				colorPicker.TAB_HEIGHT - TAB_ACTIVE_LINE_HEIGHT,
 				tab.width,
-				TAB.ACTIVE_LINE_HEIGHT,
+				TAB_ACTIVE_LINE_HEIGHT,
 				0
 			)
 		end

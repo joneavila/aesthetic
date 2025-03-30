@@ -5,8 +5,9 @@ local state = require("state")
 local menuScreen = require("screen.menu")
 local tween = require("tween")
 local controls = require("controls")
+local constants = require("screen.color_picker.constants")
 
-local colorpicker = {}
+local palette = {}
 
 local switchScreen = nil
 local MENU_SCREEN = "menu"
@@ -77,7 +78,7 @@ local function calculateGridDimensions()
 	local gridSize = calculateGridSize()
 
 	-- Calculate available space
-	local availableHeight = state.screenHeight - state.CONTROLS_HEIGHT - state.TAB_HEIGHT - (PADDING * 2)
+	local availableHeight = state.screenHeight - controls.HEIGHT - constants.TAB_HEIGHT - (PADDING * 2)
 	local availableWidth = state.screenWidth - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
 	-- Calculate square size based on available width and fixed number of columns
@@ -93,7 +94,7 @@ local function calculateGridDimensions()
 
 	-- Calculate grid position
 	local offsetX = math.floor((state.screenWidth - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
-	local offsetY = math.floor(state.TAB_HEIGHT + PADDING)
+	local offsetY = math.floor(constants.TAB_HEIGHT + PADDING)
 
 	return {
 		colorKeys = colorKeys,
@@ -107,7 +108,7 @@ local function calculateGridDimensions()
 	}
 end
 
-local colorpickerState = {
+local paletteState = {
 	colorKeys = getColorKeys(),
 	gridSize = nil,
 	squareSize = 0,
@@ -130,23 +131,23 @@ local colorpickerState = {
 	visibleGridHeight = 0,
 }
 
-function colorpicker.load()
+function palette.load()
 	-- Calculate grid dimensions and update state
 	local dimensions = calculateGridDimensions()
 
 	-- Update state with calculated dimensions
-	colorpickerState.colorKeys = dimensions.colorKeys
-	colorpickerState.gridSize = dimensions.gridSize
-	colorpickerState.squareSize = dimensions.squareSize
-	colorpickerState.visibleRows = dimensions.visibleRows
-	colorpickerState.totalGridHeight = dimensions.totalGridHeight
-	colorpickerState.visibleGridHeight = dimensions.visibleGridHeight
-	colorpickerState.offsetX = dimensions.offsetX
-	colorpickerState.offsetY = dimensions.offsetY
+	paletteState.colorKeys = dimensions.colorKeys
+	paletteState.gridSize = dimensions.gridSize
+	paletteState.squareSize = dimensions.squareSize
+	paletteState.visibleRows = dimensions.visibleRows
+	paletteState.totalGridHeight = dimensions.totalGridHeight
+	paletteState.visibleGridHeight = dimensions.visibleGridHeight
+	paletteState.offsetX = dimensions.offsetX
+	paletteState.offsetY = dimensions.offsetY
 
 	-- Only reset scroll position if it hasn't been set before
 	local colorType = state.lastSelectedColorButton
-	local currentState = colorpickerState[colorType] or colorpickerState.background -- Default to background if nil
+	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
 	if currentState.scrollY == nil then
 		currentState.scrollY = 0
 	end
@@ -155,24 +156,24 @@ end
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
 	-- Calculate scrollbar position and dimensions
-	local scrollbarHeight = state.screenHeight - state.CONTROLS_HEIGHT - state.TAB_HEIGHT - (PADDING * 2)
+	local scrollbarHeight = state.screenHeight - controls.HEIGHT - constants.TAB_HEIGHT - (PADDING * 2)
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
-	local scrollbarY = state.TAB_HEIGHT + PADDING
+	local scrollbarY = constants.TAB_HEIGHT + PADDING
 
 	-- Draw scrollbar background
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
 	love.graphics.rectangle("fill", scrollbarX, scrollbarY, SCROLLBAR.WIDTH, scrollbarHeight, SCROLLBAR.CORNER_RADIUS)
 
 	-- Calculate handle position and size
-	local contentRatio = colorpickerState.visibleGridHeight / colorpickerState.totalGridHeight
+	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
 	local handleHeight = math.max(SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
 
 	-- Calculate handle position based on scroll position
 	local scrollRatio = 0
 	local colorType = state.lastSelectedColorButton
-	local currentState = colorpickerState[colorType] or colorpickerState.background -- Default to background if nil
-	if colorpickerState.totalGridHeight > colorpickerState.visibleGridHeight then
-		scrollRatio = currentState.scrollY / (colorpickerState.totalGridHeight - colorpickerState.visibleGridHeight)
+	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
+	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
+		scrollRatio = currentState.scrollY / (paletteState.totalGridHeight - paletteState.visibleGridHeight)
 	end
 
 	local handleY = scrollbarY + (scrollbarHeight - handleHeight) * scrollRatio
@@ -185,62 +186,56 @@ end
 -- Helper function to draw the controls background
 local function drawControlsBackground()
 	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle(
-		"fill",
-		0,
-		state.screenHeight - state.CONTROLS_HEIGHT,
-		state.screenWidth,
-		state.CONTROLS_HEIGHT
-	)
+	love.graphics.rectangle("fill", 0, state.screenHeight - controls.HEIGHT, state.screenWidth, controls.HEIGHT)
 end
 
-function colorpicker.draw()
+function palette.draw()
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
-	local currentState = colorpickerState[colorType] or colorpickerState.background -- Default to background if nil
+	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
 
 	-- Calculate the first visible row based on scroll position
-	local firstVisibleRow = math.floor(currentState.scrollY / (colorpickerState.squareSize + SQUARE_SPACING))
+	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
 
 	-- Calculate the last visible row
-	local lastVisibleRow = math.min(firstVisibleRow + colorpickerState.visibleRows, colorpickerState.gridSize.rows - 1)
+	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows - 1)
 
 	-- Calculate the offset for smooth scrolling
-	local scrollOffset = currentState.scrollY % (colorpickerState.squareSize + SQUARE_SPACING)
+	local scrollOffset = currentState.scrollY % (paletteState.squareSize + SQUARE_SPACING)
 
 	-- Draw color grid (only visible rows)
 	for row = firstVisibleRow, lastVisibleRow do
-		for col = 0, colorpickerState.gridSize.cols - 1 do
-			local colorIndex = gridPosToIndex(row, col, colorpickerState.gridSize)
+		for col = 0, paletteState.gridSize.cols - 1 do
+			local colorIndex = gridPosToIndex(row, col, paletteState.gridSize)
 
 			-- Only draw if there is a color for this position
-			if colorIndex <= #colorpickerState.colorKeys then
-				local x = colorpickerState.offsetX + col * (colorpickerState.squareSize + SQUARE_SPACING)
-				local y = colorpickerState.offsetY
-					+ (row - firstVisibleRow) * (colorpickerState.squareSize + SQUARE_SPACING)
+			if colorIndex <= #paletteState.colorKeys then
+				local x = paletteState.offsetX + col * (paletteState.squareSize + SQUARE_SPACING)
+				local y = paletteState.offsetY
+					+ (row - firstVisibleRow) * (paletteState.squareSize + SQUARE_SPACING)
 					- scrollOffset
 
 				-- Calculate scale and offset for the selected square
 				local scale = 1
 				local offset = 0
 				if row == currentState.selectedRow and col == currentState.selectedCol then
-					scale = colorpickerState.currentScale
-					offset = (colorpickerState.squareSize * (scale - 1)) / 2
+					scale = paletteState.currentScale
+					offset = (paletteState.squareSize * (scale - 1)) / 2
 				end
 
 				-- Draw the color square with scale
-				local currentColor = colorpickerState.colorKeys[colorIndex]
+				local currentColor = paletteState.colorKeys[colorIndex]
 				love.graphics.setColor(colors.palette[currentColor])
 				love.graphics.rectangle(
 					"fill",
 					x - offset,
 					y - offset,
-					colorpickerState.squareSize * scale,
-					colorpickerState.squareSize * scale,
+					paletteState.squareSize * scale,
+					paletteState.squareSize * scale,
 					BORDER.CORNER_RADIUS
 				)
 
@@ -255,8 +250,8 @@ function colorpicker.draw()
 					"line",
 					x - offset,
 					y - offset,
-					colorpickerState.squareSize * scale,
-					colorpickerState.squareSize * scale,
+					paletteState.squareSize * scale,
+					paletteState.squareSize * scale,
 					BORDER.CORNER_RADIUS
 				)
 			end
@@ -287,12 +282,12 @@ function colorpicker.draw()
 	})
 end
 
-function colorpicker.update(dt)
+function palette.update(dt)
 	-- Update tween if it exists
-	if colorpickerState.scaleTween then
-		local complete = colorpickerState.scaleTween:update(dt)
+	if paletteState.scaleTween then
+		local complete = paletteState.scaleTween:update(dt)
 		if complete then
-			colorpickerState.scaleTween = nil
+			paletteState.scaleTween = nil
 		end
 	end
 
@@ -302,7 +297,7 @@ function colorpicker.update(dt)
 
 		-- Get current color type state
 		local colorType = state.lastSelectedColorButton
-		local currentState = colorpickerState[colorType] or colorpickerState.background -- Default to background if nil
+		local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
 
 		local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
@@ -312,7 +307,7 @@ function colorpicker.update(dt)
 				newRow = currentState.selectedRow - 1
 			end
 		elseif virtualJoystick:isGamepadDown("dpdown") then
-			if currentState.selectedRow < colorpickerState.gridSize.rows - 1 then
+			if currentState.selectedRow < paletteState.gridSize.rows - 1 then
 				newRow = currentState.selectedRow + 1
 			end
 		elseif virtualJoystick:isGamepadDown("dpleft") then
@@ -320,30 +315,30 @@ function colorpicker.update(dt)
 				newCol = currentState.selectedCol - 1
 			end
 		elseif virtualJoystick:isGamepadDown("dpright") then
-			if currentState.selectedCol < colorpickerState.gridSize.cols - 1 then
+			if currentState.selectedCol < paletteState.gridSize.cols - 1 then
 				newCol = currentState.selectedCol + 1
 			end
 		end
 
 		-- Only move if the new position has a color
-		if hasColorAt(newRow, newCol, colorpickerState.gridSize, #colorpickerState.colorKeys) then
+		if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.colorKeys) then
 			if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
 				currentState.selectedRow = newRow
 				currentState.selectedCol = newCol
 				moved = true
 
 				-- Start new hover animation
-				colorpickerState.currentScale = 1
-				colorpickerState.scaleTween = tween.new(ANIMATION.DURATION, colorpickerState, {
+				paletteState.currentScale = 1
+				paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
 					currentScale = ANIMATION.SCALE,
 				}, "outQuad")
 
 				-- Handle scrolling when selection moves out of view
-				local rowPosition = currentState.selectedRow * (colorpickerState.squareSize + SQUARE_SPACING)
+				local rowPosition = currentState.selectedRow * (paletteState.squareSize + SQUARE_SPACING)
 
 				-- Calculate the visible area boundaries
 				local visibleTop = currentState.scrollY
-				local visibleBottom = visibleTop + colorpickerState.visibleGridHeight - colorpickerState.squareSize
+				local visibleBottom = visibleTop + paletteState.visibleGridHeight - paletteState.squareSize
 
 				-- Scroll up if selection is above visible area
 				if rowPosition < visibleTop then
@@ -353,18 +348,15 @@ function colorpicker.update(dt)
 				-- Scroll down if selection is below visible area
 				if rowPosition > visibleBottom then
 					currentState.scrollY = rowPosition
-						- colorpickerState.visibleGridHeight
-						+ colorpickerState.squareSize
+						- paletteState.visibleGridHeight
+						+ paletteState.squareSize
 						+ SQUARE_SPACING
 				end
 
 				-- Ensure scroll position doesn't go out of bounds
 				currentState.scrollY = math.max(
 					0,
-					math.min(
-						currentState.scrollY,
-						colorpickerState.totalGridHeight - colorpickerState.visibleGridHeight
-					)
+					math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight)
 				)
 			end
 		end
@@ -378,8 +370,8 @@ function colorpicker.update(dt)
 		if virtualJoystick:isGamepadDown("a") then
 			-- Regular color selected
 			local selectedIndex =
-				gridPosToIndex(currentState.selectedRow, currentState.selectedCol, colorpickerState.gridSize)
-			local selectedKey = colorpickerState.colorKeys[selectedIndex]
+				gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
+			local selectedKey = paletteState.colorKeys[selectedIndex]
 			if selectedKey then
 				-- Convert the selected color key to hex code
 				local hexCode = colors.toHex(selectedKey, "palette")
@@ -395,28 +387,28 @@ function colorpicker.update(dt)
 	end
 end
 
-function colorpicker.setScreenSwitcher(switchFunc)
+function palette.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
 -- Function called when entering this screen
-function colorpicker.onEnter()
+function palette.onEnter()
 	-- Calculate grid dimensions and update state
 	local dimensions = calculateGridDimensions()
 
 	-- Update state with calculated dimensions
-	colorpickerState.colorKeys = dimensions.colorKeys
-	colorpickerState.gridSize = dimensions.gridSize
-	colorpickerState.squareSize = dimensions.squareSize
-	colorpickerState.visibleRows = dimensions.visibleRows
-	colorpickerState.totalGridHeight = dimensions.totalGridHeight
-	colorpickerState.visibleGridHeight = dimensions.visibleGridHeight
-	colorpickerState.offsetX = dimensions.offsetX
-	colorpickerState.offsetY = dimensions.offsetY
+	paletteState.colorKeys = dimensions.colorKeys
+	paletteState.gridSize = dimensions.gridSize
+	paletteState.squareSize = dimensions.squareSize
+	paletteState.visibleRows = dimensions.visibleRows
+	paletteState.totalGridHeight = dimensions.totalGridHeight
+	paletteState.visibleGridHeight = dimensions.visibleGridHeight
+	paletteState.offsetX = dimensions.offsetX
+	paletteState.offsetY = dimensions.offsetY
 
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
-	local currentState = colorpickerState[colorType] or colorpickerState.background -- Default to background if nil
+	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
 
 	-- Only reset selection and scroll position if they haven't been set before
 	-- This allows the screen to remember its position when returning to it
@@ -427,12 +419,12 @@ function colorpicker.onEnter()
 	else
 		-- Validate that the selected position is still valid after grid size changes
 		-- and adjust if necessary
-		if currentState.selectedRow >= colorpickerState.gridSize.rows then
-			currentState.selectedRow = colorpickerState.gridSize.rows - 1
+		if currentState.selectedRow >= paletteState.gridSize.rows then
+			currentState.selectedRow = paletteState.gridSize.rows - 1
 		end
 
-		if currentState.selectedCol >= colorpickerState.gridSize.cols then
-			currentState.selectedCol = colorpickerState.gridSize.cols - 1
+		if currentState.selectedCol >= paletteState.gridSize.cols then
+			currentState.selectedCol = paletteState.gridSize.cols - 1
 		end
 
 		-- Ensure the selected position has a color
@@ -440,8 +432,8 @@ function colorpicker.onEnter()
 			not hasColorAt(
 				currentState.selectedRow,
 				currentState.selectedCol,
-				colorpickerState.gridSize,
-				#colorpickerState.colorKeys
+				paletteState.gridSize,
+				#paletteState.colorKeys
 			)
 		then
 			-- If not, reset to the first color
@@ -450,10 +442,10 @@ function colorpicker.onEnter()
 		end
 
 		-- Ensure scroll position is still valid
-		if colorpickerState.totalGridHeight > colorpickerState.visibleGridHeight then
+		if paletteState.totalGridHeight > paletteState.visibleGridHeight then
 			currentState.scrollY = math.max(
 				0,
-				math.min(currentState.scrollY, colorpickerState.totalGridHeight - colorpickerState.visibleGridHeight)
+				math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight)
 			)
 		else
 			currentState.scrollY = 0
@@ -461,10 +453,10 @@ function colorpicker.onEnter()
 	end
 
 	-- Start hover animation for the selected color
-	colorpickerState.currentScale = 1
-	colorpickerState.scaleTween = tween.new(ANIMATION.DURATION, colorpickerState, {
+	paletteState.currentScale = 1
+	paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
 		currentScale = ANIMATION.SCALE,
 	}, "outQuad")
 end
 
-return colorpicker
+return palette

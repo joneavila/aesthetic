@@ -6,8 +6,9 @@ local menuScreen = require("screen.menu")
 local tween = require("tween")
 local colorUtils = require("utils.color")
 local controls = require("controls")
+local constants = require("screen.color_picker.constants")
 
-local colorpickerhsv = {}
+local hsv = {}
 
 -- Constants
 local EDGE_PADDING = 20
@@ -143,9 +144,9 @@ local function startWiggleAnimation()
 	}, "outElastic")
 end
 
-function colorpickerhsv.load()
+function hsv.load()
 	-- Calculate available space
-	local availableHeight = state.screenHeight - (EDGE_PADDING * 2) - state.CONTROLS_HEIGHT - state.TAB_HEIGHT
+	local availableHeight = state.screenHeight - (EDGE_PADDING * 2) - controls.HEIGHT - constants.TAB_HEIGHT
 	local availableWidth = state.screenWidth - (EDGE_PADDING * 2)
 
 	-- Calculate SV square size - should be a perfect square that fits the available height
@@ -175,7 +176,7 @@ function colorpickerhsv.load()
 	-- SV square position (rightmost, ensuring consistent right edge padding)
 	pickerState.startX = state.screenWidth - EDGE_PADDING - pickerState.squareSize
 	-- Store all positions
-	pickerState.startY = EDGE_PADDING + state.TAB_HEIGHT
+	pickerState.startY = EDGE_PADDING + constants.TAB_HEIGHT
 	pickerState.hueSliderX = hueSliderX
 	pickerState.previewX = previewX
 
@@ -193,7 +194,7 @@ function colorpickerhsv.load()
 	startWiggleAnimation()
 end
 
-function colorpickerhsv.draw()
+function hsv.draw()
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
@@ -419,7 +420,7 @@ local function updateSVSquare()
 	pickerState.lastRenderedHue = currentState.hue
 end
 
-function colorpickerhsv.update(dt)
+function hsv.update(dt)
 	-- Update any active tweens
 	if pickerState.tweens.svCursor then
 		pickerState.tweens.svCursor:update(dt)
@@ -539,12 +540,12 @@ function colorpickerhsv.update(dt)
 	end
 end
 
-function colorpickerhsv.setScreenSwitcher(switchFunc)
+function hsv.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
 -- Function to be called when entering this screen
-function colorpickerhsv.onEnter()
+function hsv.onEnter()
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
 	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
@@ -567,4 +568,4 @@ function colorpickerhsv.onEnter()
 	startWiggleAnimation()
 end
 
-return colorpickerhsv
+return hsv

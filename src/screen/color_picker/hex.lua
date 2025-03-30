@@ -4,6 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
+local constants = require("screen.color_picker.constants")
 
 local hex = {}
 
@@ -115,10 +116,10 @@ end
 local function getButtonDimensions()
 	local gridWidth = state.screenWidth - (2 * EDGE_PADDING) - LAST_COLUMN_EXTRA_PADDING
 	local availableHeight = state.screenHeight
-		- state.TAB_HEIGHT
+		- constants.TAB_HEIGHT
 		- TOP_PADDING
 		- PREVIEW_HEIGHT
-		- state.CONTROLS_HEIGHT
+		- controls.HEIGHT
 		- (2 * GRID_PADDING)
 
 	local buttonWidth = (gridWidth - (4 * GRID_PADDING)) / 5
@@ -131,7 +132,7 @@ end
 local function getButtonPosition(row, col)
 	local buttonWidth, buttonHeight = getButtonDimensions()
 	local startX = EDGE_PADDING
-	local startY = state.TAB_HEIGHT + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
+	local startY = constants.TAB_HEIGHT + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
 
 	local x = startX + (col - 1) * (buttonWidth + GRID_PADDING)
 
@@ -189,7 +190,7 @@ function hex.draw()
 
 	-- Draw color preview rectangle
 	local previewX = EDGE_PADDING
-	local previewY = state.TAB_HEIGHT + TOP_PADDING
+	local previewY = constants.TAB_HEIGHT + TOP_PADDING
 	local previewWidth = state.screenWidth - (2 * EDGE_PADDING)
 
 	-- Variables for input display
