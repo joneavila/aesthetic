@@ -324,7 +324,7 @@ local function createRebootImage()
 	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
 
 	local svg = love.filesystem.read(svgPath)
-	local iconSize = 100
+	local iconSize = 150
 	local icon = tove.newGraphics(svg, iconSize)
 
 	local prevCanvas = love.graphics.getCanvas()
@@ -343,12 +343,23 @@ local function createRebootImage()
 	local iconY = screenHeight / 2 - 50
 	icon:draw(iconX, iconY)
 
+	-- Get the selected font from state
+	local selectedFontName = state.selectedFont
+	local fontMap = {
+		["Inter"] = state.fonts.body,
+		["Cascadia Code"] = state.fonts.monoBody,
+		["Retro Pixel"] = state.fonts.retroPixel,
+	}
+	local font = fontMap[selectedFontName] or state.fonts.body
+
 	-- Draw the text centered
-	love.graphics.setFont(state.fonts.body)
+	local fontSize = 45
+	love.graphics.setFont(font, fontSize)
+	love.graphics.setColor(fgColor)
 	local text = "Rebooting..."
-	local textWidth = state.fonts.body:getWidth(text)
+	local textWidth = font:getWidth(text)
 	local textX = iconX - textWidth / 2
-	local textY = screenHeight / 2 + 100
+	local textY = screenHeight / 2 + 50
 	love.graphics.print(text, textX, textY)
 
 	love.graphics.pop()
