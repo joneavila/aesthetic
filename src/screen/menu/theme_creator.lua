@@ -417,6 +417,18 @@ local function createRebootImage()
 	return true
 end
 
+-- Function to create the credits.txt file
+local function createCreditsFile()
+	local file = io.open(paths.THEME_CREDITS_PATH, "w")
+	if not file then
+		errorHandler.setError("Failed to create credits.txt file")
+		return false
+	end
+	file:write("Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic")
+	file:close()
+	return true
+end
+
 -- Function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
@@ -516,6 +528,11 @@ function themeCreator.createTheme()
 		end
 		nameFile:write(state.applicationName) -- Use application name as theme name
 		nameFile:close()
+
+		-- Create credits.txt file
+		if not createCreditsFile() then
+			return false
+		end
 
 		-- Create the ZIP archive
 		local finalOutputPath = fileUtils.createZipArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)

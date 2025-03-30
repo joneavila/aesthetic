@@ -93,6 +93,9 @@ paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".m
 -- Assets used by UI rather than generated theme
 paths.THEME_FONT_SOURCE_DIR = paths.TEMPLATE_DIR .. "/font"
 
+-- `credits.txt`
+paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"
+
 -- `name.txt`
 paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
 
