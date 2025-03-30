@@ -1,5 +1,8 @@
---- Menu file utilities
+--- File utilities
+--- Some functions avoid using LÖVE's `love.filesystem` since files are outside of sandbox
+
 local errorHandler = require("screen.menu.error_handler")
+local commands = require("utils.commands")
 
 local fileUtils = {}
 
@@ -137,6 +140,32 @@ function fileUtils.copyDir(src, dest)
 	local success = os.execute(cmd)
 
 	return success == 0 or success == true
+end
+
+--- Ensures a directory exists, creating it if necessary, setting an error message if it fails
+--- This function calls `errorHandler.setError()` so it does not need to be called separately
+function fileUtils.ensurePath(path)
+	-- Extract directory from path if it is a file path
+	local dir = string.match(path, "(.*)/[^/]*$") or path
+
+	local result = os.execute('mkdir -p "' .. dir .. '"')
+	if not result then
+		errorHandler.setError("Failed to create directory: " .. dir)
+		return false
+	end
+	return result
+end
+
+-- Copy a file and create destination directory if needed
+function fileUtils.copyFile(sourcePath, destinationPath, errorMessage)
+	-- Extract directory from destination path
+	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
+	if destinationDir then
+		if not fileUtils.ensurePath(destinationDir) then
+			return false
+		end
+	end
+	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
 end
 
 return fileUtils

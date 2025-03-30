@@ -2,9 +2,10 @@
 local love = require("love")
 local state = require("state")
 local constants = require("screen.menu.constants")
-local fileUtils = require("screen.menu.file_utils")
+local fileUtils = require("utils.file")
 local errorHandler = require("screen.menu.error_handler")
 local colorUtils = require("utils.color")
+local commands = require("utils.commands")
 
 local paths = constants.PATHS
 
@@ -13,43 +14,7 @@ local tove = require("tove")
 -- Module table to export public functions
 local themeCreator = {}
 
---- Ensures a directory exists, creating it if necessary, setting an error message if it fails
---- This function calls `errorHandler.setError()` so it does not need to be called separately
-local function ensurePath(path)
-	-- Extract directory from path if it is a file path
-	local dir = string.match(path, "(.*)/[^/]*$") or path
-
-	local result = os.execute('mkdir -p "' .. dir .. '"')
-	if not result then
-		errorHandler.setError("Failed to create directory: " .. dir)
-		return false
-	end
-	return result
-end
-
---- Executes a command and sets an error message if the command fails
---- This function calls `errorHandler.setError()` so it does not need to be called separately
-local function executeCommand(command, errorMessage)
-	local result = os.execute(command)
-	if not result and errorMessage then
-		errorHandler.setError(errorMessage)
-		return false
-	end
-	return result
-end
-
--- Copy a file and create destination directory if needed
-local function copyFile(sourcePath, destinationPath, errorMessage)
-	-- Extract directory from destination path
-	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
-	if destinationDir then
-		if not ensurePath(destinationDir) then
-			return false
-		end
-	end
-	return executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
-end
-
+-- Function to create `name.txt` containing the theme's name
 local function createNameFile()
 	local nameFile = io.open(paths.THEME_NAME_PATH, "w")
 	if not nameFile then
@@ -60,7 +25,7 @@ local function createNameFile()
 	nameFile:close()
 end
 
--- Function to create theme's preview image using the selected font and colors
+-- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage()
 	-- Set the preview image dimensions based on the screen resolution
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
@@ -307,7 +272,7 @@ local function saveAsBMP(imageData, filepath)
 	return true
 end
 
--- Function to create theme's boot logo image using selected font and colors
+-- Function to create boot logo image shown during boot
 local function createBootImage()
 	local width, height = state.screenWidth, state.screenHeight
 	local bgColor = colorUtils.hexToLove(state.colors.background)
@@ -346,7 +311,7 @@ local function createBootImage()
 	return true
 end
 
--- Function to create theme's reboot image with dynamic colors and centered icon
+-- Function to create reboot image shown during reboot
 local function createRebootImage()
 	-- Read properties from state
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
@@ -449,7 +414,7 @@ local function createRebootImage()
 	return true
 end
 
--- Function to create theme's `credits.txt` file
+-- Function to create `credits.txt` file containing the theme's credits
 local function createCreditsFile()
 	local creditsFile = io.open(paths.THEME_CREDITS_PATH, "w")
 	if not creditsFile then
@@ -462,7 +427,7 @@ local function createCreditsFile()
 	return true
 end
 
--- Function to create theme's `version.txt` file
+-- Function to create `version.txt` file containing the compatible muOS version
 local function createVersionFile()
 	local sourceFile = io.open(paths.MUOS_VERSION_PATH, "r")
 	local versionContent = ""
@@ -498,11 +463,11 @@ local function createVersionFile()
 	return true
 end
 
--- Function to create theme
+-- Main function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
-		executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
+		commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
 		if not fileUtils.copyDir(paths.TEMPLATE_DIR, paths.WORKING_THEME_DIR) then
 			errorHandler.setError("Failed to prepare working template directory")
 		end
@@ -513,7 +478,7 @@ function themeCreator.createTheme()
 				-- Only ensure directories for path strings that don't already end with a slash
 				local dirPath = string.match(path, "(.*)/[^/]*$")
 				if dirPath then
-					if not ensurePath(dirPath) then
+					if not fileUtils.ensurePath(dirPath) then
 						return false
 					end
 				end
@@ -575,7 +540,7 @@ function themeCreator.createTheme()
 		-- Copy the selected font file as default.bin
 		local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
 		if
-			not copyFile(
+			not fileUtils.copyFile(
 				fontSourcePath,
 				paths.THEME_DEFAULT_FONT_PATH,
 				"Failed to copy font file: " .. selectedFontFile
@@ -618,16 +583,16 @@ function themeCreator.createTheme()
 	return err
 end
 
--- Function to install the theme
+-- Function to install the theme to muOS active theme directory
 -- TODO: Reference new PIXIE code to update and fix bugs
 function themeCreator.installTheme(outputPath)
 	-- Remove existing active theme directory and create a new one
-	executeCommand('rm -rf "' .. paths.THEME_ACTIVE_DIR .. '"')
-	executeCommand("sync")
+	commands.executeCommand('rm -rf "' .. paths.THEME_ACTIVE_DIR .. '"')
+	commands.executeCommand("sync")
 
 	-- Extract the theme to the active directory
 	if
-		not executeCommand(
+		not commands.executeCommand(
 			string.format('unzip "%s" -d "%s"', outputPath, paths.THEME_ACTIVE_DIR),
 			"Failed to install theme to active directory"
 		)
@@ -636,13 +601,13 @@ function themeCreator.installTheme(outputPath)
 	end
 
 	-- Sync to ensure all writes are complete
-	executeCommand("sync")
+	commands.executeCommand("sync")
 	return true
 end
 
 -- Clean up working directory
 function themeCreator.cleanup()
-	executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
+	commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
 end
 
 return themeCreator
