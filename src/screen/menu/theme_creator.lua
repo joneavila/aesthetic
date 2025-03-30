@@ -324,49 +324,42 @@ local function createRebootImage()
 	ensureDir(constants.WORKING_TEMPLATE_DIR .. "/" .. imageDir)
 
 	local svg = love.filesystem.read(svgPath)
-	local icon = tove.newGraphics(svg, 200)
+	local iconSize = 100
+	local icon = tove.newGraphics(svg, iconSize)
 
-	-- Save current graphics state
 	local prevCanvas = love.graphics.getCanvas()
-	-- local prevBlendMode = love.graphics.getBlendMode()
-	-- local prevColor = { love.graphics.getColor() }
 
 	-- Create a new canvas, set it as the current canvas, and clear it
 	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
-	-- Set the icon colors
 	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
-	-- Set up transformation for centered drawing
 	love.graphics.push()
 
 	-- Draw the icon
-	local x = screenWidth / 2
-	local y = screenHeight / 2 + 20
-	icon:draw(x, y)
+	local iconX = screenWidth / 2
+	local iconY = screenHeight / 2 - 50
+	icon:draw(iconX, iconY)
 
 	-- Draw the text centered
 	love.graphics.setFont(state.fonts.body)
-	local text = "Reboot"
+	local text = "Rebooting..."
 	local textWidth = state.fonts.body:getWidth(text)
-	local textX = x - textWidth / 2
-	local textY = y + 100
+	local textX = iconX - textWidth / 2
+	local textY = screenHeight / 2 + 100
 	love.graphics.print(text, textX, textY)
 
 	love.graphics.pop()
 
-	-- Reset graphics state BEFORE getting image data
 	love.graphics.setCanvas(prevCanvas)
-	-- love.graphics.setBlendMode(prevBlendMode)
-	-- love.graphics.setColor(prevColor)
 
 	-- Get image data and encode
 	local imageData = canvas:newImageData()
 	local pngData = imageData:encode("png")
 
-	-- Write file with error handling using direct file I/O
+	-- Write file using direct file I/O since love.filesystem.write() doesn't work (?)
 	local file = io.open(outputPath, "wb")
 	if not file then
 		errorHandler.setError("Failed to open reboot image file for writing")
