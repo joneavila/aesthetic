@@ -1,9 +1,10 @@
 --- Global state management module
 local love = require("love")
+
 local state = {
 	applicationName = "Aesthetic",
-	screenWidth = 0, -- Set in main.lua
-	screenHeight = 0, -- Set in main.lua
+	screenWidth = tonumber(os.getenv("SCREEN_WIDTH")),
+	screenHeight = tonumber(os.getenv("SCREEN_HEIGHT")),
 	-- Use default font initially, set in main.lua
 	fonts = {
 		header = love.graphics.getFont(),
