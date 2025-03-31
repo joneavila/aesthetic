@@ -75,11 +75,13 @@ constants.POPUP_BUTTONS = {
 -- TODO: You can initialize the paths here
 constants.PATHS = {
 	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR"),
-	THEME_DIR = os.getenv("THEME_DIR"),
 }
 
 -- Create a local alias for easier access
 local paths = constants.PATHS
+
+-- muOS themes directory
+paths.THEME_DIR = "/run/muos/storage/theme"
 
 -- Working theme directory where files are written before archiving into a theme
 paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
