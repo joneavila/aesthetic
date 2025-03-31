@@ -5,7 +5,6 @@ local state = require("state")
 local colorUtils = require("utils.color")
 
 local constants = require("screen.menu.constants")
-local errorHandler = require("screen.menu.error_handler")
 
 -- Module table to export public functions
 local ui = {}
@@ -256,37 +255,6 @@ function ui.drawPopup()
 
 			buttonX = buttonX + buttonWidth + spacing
 		end
-	end
-end
-
--- Draw error message if present
-function ui.drawError()
-	local errorMessage = errorHandler.getErrorMessage()
-	if errorMessage then
-		love.graphics.push()
-
-		-- Use a smaller font
-		local smallFont = love.graphics.newFont(14)
-		love.graphics.setFont(smallFont)
-
-		-- Calculate dimensions for error box
-		local padding = 10
-		local maxWidth = state.screenWidth - (padding * 2)
-
-		-- Wrap the text
-		local wrappedText = love.graphics.newText(smallFont)
-		wrappedText:setf(errorMessage, maxWidth, "left")
-		local textHeight = wrappedText:getHeight()
-
-		-- Draw semi-transparent background
-		love.graphics.setColor(0, 0, 0, 0.8)
-		love.graphics.rectangle("fill", padding, padding, maxWidth, textHeight + (padding * 2))
-
-		-- Draw error text
-		love.graphics.setColor(1, 0.3, 0.3, 1) -- Red-ish color
-		love.graphics.draw(wrappedText, padding * 2, padding * 2)
-
-		love.graphics.pop()
 	end
 end
 

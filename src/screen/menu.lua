@@ -133,9 +133,6 @@ function menu.draw()
 		end
 	end
 
-	-- Draw error message if present
-	ui.drawError()
-
 	-- Draw popup if active
 	if ui.isPopupVisible() then
 		ui.drawPopup()
