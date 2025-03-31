@@ -1,19 +1,20 @@
---- File utilities
---- Some functions avoid using LÖVE's `love.filesystem` since files are outside of sandbox
-
+--- System utilities
+--- This module avoids using `love.filesystem` since most functions are not sandboxed
 local errorHandler = require("screen.menu.error_handler")
 local commands = require("utils.commands")
 
-local fileUtils = {}
+local system = {}
+
+-- TODO: Add a function for reading, writing files and update theme_creator.lua
 
 -- Helper function to escape pattern special characters
-function fileUtils.escapePattern(str)
+function system.escapePattern(str)
 	-- Escape these special characters: ^$()%.[]*+-?
 	return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
 end
 
 -- Function to check if file exists
-function fileUtils.fileExists(path)
+function system.fileExists(path)
 	local file = io.open(path, "r")
 	if file then
 		file:close()
@@ -23,9 +24,9 @@ function fileUtils.fileExists(path)
 end
 
 -- Function to find next available filename
-function fileUtils.getNextAvailableFilename(basePath)
+function system.getNextAvailableFilename(basePath)
 	-- Try without number first
-	if not fileUtils.fileExists(basePath) then
+	if not system.fileExists(basePath) then
 		return basePath
 	end
 
@@ -39,7 +40,7 @@ function fileUtils.getNextAvailableFilename(basePath)
 	local i = 1
 	while true do
 		local newPath = string.format("%s (%d)%s", baseName, i, extension)
-		if not fileUtils.fileExists(newPath) then
+		if not system.fileExists(newPath) then
 			return newPath
 		end
 		i = i + 1
@@ -52,7 +53,7 @@ function fileUtils.getNextAvailableFilename(basePath)
 end
 
 -- Helper function to replace color in file (text replacement)
-function fileUtils.replaceColor(filepath, replacements)
+function system.replaceColor(filepath, replacements)
 	local file = io.open(filepath, "r")
 	if not file then
 		errorHandler.setError("Cannot read theme file: " .. filepath)
@@ -72,7 +73,7 @@ function fileUtils.replaceColor(filepath, replacements)
 	local totalReplacements = 0
 
 	for placeholder, hexColor in pairs(replacements) do
-		local escapedPlaceholder = fileUtils.escapePattern(placeholder)
+		local escapedPlaceholder = system.escapePattern(placeholder)
 		local pattern = "%%{" .. escapedPlaceholder .. "}"
 		local count
 		newContent, count = string.gsub(newContent, pattern, hexColor)
@@ -98,9 +99,9 @@ function fileUtils.replaceColor(filepath, replacements)
 end
 
 -- Helper function to create archive
-function fileUtils.createArchive(sourceDir, outputPath)
+function system.createArchive(sourceDir, outputPath)
 	-- Get next available filename
-	local finalPath = fileUtils.getNextAvailableFilename(outputPath)
+	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
 		errorHandler.setError("Failed to get available filename")
 		return false
@@ -131,7 +132,7 @@ function fileUtils.createArchive(sourceDir, outputPath)
 end
 
 -- Helper function to copy directory contents
-function fileUtils.copyDir(src, dest)
+function system.copyDir(src, dest)
 	-- Create destination directory
 	os.execute('mkdir -p "' .. dest .. '"')
 
@@ -144,7 +145,7 @@ end
 
 --- Ensures a directory exists, creating it if necessary, setting an error message if it fails
 --- This function calls `errorHandler.setError()` so it does not need to be called separately
-function fileUtils.ensurePath(path)
+function system.ensurePath(path)
 	-- Extract directory from path if it is a file path
 	local dir = string.match(path, "(.*)/[^/]*$") or path
 
@@ -157,15 +158,25 @@ function fileUtils.ensurePath(path)
 end
 
 -- Copy a file and create destination directory if needed
-function fileUtils.copyFile(sourcePath, destinationPath, errorMessage)
+function system.copyFile(sourcePath, destinationPath, errorMessage)
 	-- Extract directory from destination path
 	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
 	if destinationDir then
-		if not fileUtils.ensurePath(destinationDir) then
+		if not system.ensurePath(destinationDir) then
 			return false
 		end
 	end
 	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
 end
 
-return fileUtils
+-- Get environment variable, setting error if not found
+function system.getRequiredEnv(name)
+	local value = os.getenv(name)
+	if value == nil then
+		errorHandler.setError("Environment variable not found: " .. name)
+		return nil
+	end
+	return value
+end
+
+return system

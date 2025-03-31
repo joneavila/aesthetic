@@ -2,7 +2,7 @@
 local love = require("love")
 local state = require("state")
 local constants = require("screen.menu.constants")
-local fileUtils = require("utils.file")
+local system = require("utils.system")
 local errorHandler = require("screen.menu.error_handler")
 local colorUtils = require("utils.color")
 local commands = require("utils.commands")
@@ -468,7 +468,7 @@ function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
 		commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
-		if not fileUtils.copyDir(paths.TEMPLATE_DIR, paths.WORKING_THEME_DIR) then
+		if not system.copyDir(paths.TEMPLATE_DIR, paths.WORKING_THEME_DIR) then
 			errorHandler.setError("Failed to prepare working template directory")
 		end
 
@@ -478,7 +478,7 @@ function themeCreator.createTheme()
 				-- Only ensure directories for path strings that don't already end with a slash
 				local dirPath = string.match(path, "(.*)/[^/]*$")
 				if dirPath then
-					if not fileUtils.ensurePath(dirPath) then
+					if not system.ensurePath(dirPath) then
 						return false
 					end
 				end
@@ -507,7 +507,7 @@ function themeCreator.createTheme()
 		}
 
 		-- Replace colors and apply glyph settings to theme files
-		if not fileUtils.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, hexColors) then
+		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, hexColors) then
 			errorHandler.setError("Failed to update colors in: " .. paths.THEME_SCHEME_GLOBAL_PATH)
 			return false
 		end
@@ -540,7 +540,7 @@ function themeCreator.createTheme()
 		-- Copy the selected font file as default.bin
 		local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
 		if
-			not fileUtils.copyFile(
+			not system.copyFile(
 				fontSourcePath,
 				paths.THEME_DEFAULT_FONT_PATH,
 				"Failed to copy font file: " .. selectedFontFile
@@ -565,7 +565,7 @@ function themeCreator.createTheme()
 		end
 
 		-- Create the ZIP archive
-		local outputThemePath = fileUtils.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
+		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
 		if not outputThemePath then
 			errorHandler.setError("Failed to create theme archive")
 			return false
