@@ -77,9 +77,11 @@ local function calculateGridDimensions()
 	local colorKeys = getColorKeys()
 	local gridSize = calculateGridSize()
 
+	local contentArea = constants.calculateContentArea()
+
 	-- Calculate available space
-	local availableHeight = state.screenHeight - controls.HEIGHT - constants.TAB_HEIGHT - (PADDING * 2)
-	local availableWidth = state.screenWidth - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	local availableHeight = contentArea.height - (PADDING * 2)
+	local availableWidth = contentArea.width - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
 	-- Calculate square size based on available width and fixed number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
@@ -93,8 +95,8 @@ local function calculateGridDimensions()
 	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
 
 	-- Calculate grid position
-	local offsetX = math.floor((state.screenWidth - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
-	local offsetY = math.floor(constants.TAB_HEIGHT + PADDING)
+	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
+	local offsetY = math.floor(contentArea.y + PADDING)
 
 	return {
 		colorKeys = colorKeys,
@@ -155,10 +157,12 @@ end
 
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
+	local contentArea = constants.calculateContentArea()
+
 	-- Calculate scrollbar position and dimensions
-	local scrollbarHeight = state.screenHeight - controls.HEIGHT - constants.TAB_HEIGHT - (PADDING * 2)
+	local scrollbarHeight = contentArea.height - (PADDING * 2)
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
-	local scrollbarY = constants.TAB_HEIGHT + PADDING
+	local scrollbarY = contentArea.y + PADDING
 
 	-- Draw scrollbar background
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)

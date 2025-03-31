@@ -13,7 +13,7 @@ local hexScreen = require("screen.color_picker.hex")
 local colorPicker = {}
 
 -- Shared constants
-colorPicker.TAB_HEIGHT = constants.TAB_HEIGHT
+colorPicker.TAB_HEIGHT = constants.getTabHeight()
 
 local TAB_ACTIVE_LINE_HEIGHT = 3
 

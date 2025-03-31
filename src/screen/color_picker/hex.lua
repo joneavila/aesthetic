@@ -114,13 +114,10 @@ end
 
 -- Helper function to get button dimensions
 local function getButtonDimensions()
-	local gridWidth = state.screenWidth - (2 * EDGE_PADDING) - LAST_COLUMN_EXTRA_PADDING
-	local availableHeight = state.screenHeight
-		- constants.TAB_HEIGHT
-		- TOP_PADDING
-		- PREVIEW_HEIGHT
-		- controls.HEIGHT
-		- (2 * GRID_PADDING)
+	local contentArea = constants.calculateContentArea()
+
+	local gridWidth = contentArea.width - (2 * EDGE_PADDING) - LAST_COLUMN_EXTRA_PADDING
+	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT - (2 * GRID_PADDING)
 
 	local buttonWidth = (gridWidth - (4 * GRID_PADDING)) / 5
 	local buttonHeight = (availableHeight - (3 * GRID_PADDING)) / 4
@@ -130,9 +127,11 @@ end
 
 -- Helper function to get button position
 local function getButtonPosition(row, col)
+	local contentArea = constants.calculateContentArea()
+
 	local buttonWidth, buttonHeight = getButtonDimensions()
 	local startX = EDGE_PADDING
-	local startY = constants.TAB_HEIGHT + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
+	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
 
 	local x = startX + (col - 1) * (buttonWidth + GRID_PADDING)
 
@@ -184,14 +183,16 @@ function hex.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
+	local contentArea = constants.calculateContentArea()
+
 	-- Get current color type state
 	local colorType = state.lastSelectedColorButton
 	local currentState = hexState[colorType] or hexState.background -- Default to background if nil
 
 	-- Draw color preview rectangle
 	local previewX = EDGE_PADDING
-	local previewY = constants.TAB_HEIGHT + TOP_PADDING
-	local previewWidth = state.screenWidth - (2 * EDGE_PADDING)
+	local previewY = contentArea.y + TOP_PADDING
+	local previewWidth = contentArea.width - (2 * EDGE_PADDING)
 
 	-- Variables for input display
 	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2

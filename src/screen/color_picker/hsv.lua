@@ -145,9 +145,11 @@ local function startWiggleAnimation()
 end
 
 function hsv.load()
+	local contentArea = constants.calculateContentArea()
+
 	-- Calculate available space
-	local availableHeight = state.screenHeight - (EDGE_PADDING * 2) - controls.HEIGHT - constants.TAB_HEIGHT
-	local availableWidth = state.screenWidth - (EDGE_PADDING * 2)
+	local availableHeight = contentArea.height - (EDGE_PADDING * 2)
+	local availableWidth = contentArea.width - (EDGE_PADDING * 2)
 
 	-- Calculate SV square size - should be a perfect square that fits the available height
 	pickerState.squareSize = availableHeight
@@ -174,9 +176,9 @@ function hsv.load()
 	-- Hue slider position (after preview)
 	local hueSliderX = previewX + pickerState.previewWidth + ELEMENT_SPACING + CURSOR.TRIANGLE_HEIGHT
 	-- SV square position (rightmost, ensuring consistent right edge padding)
-	pickerState.startX = state.screenWidth - EDGE_PADDING - pickerState.squareSize
+	pickerState.startX = contentArea.width - EDGE_PADDING - pickerState.squareSize
 	-- Store all positions
-	pickerState.startY = EDGE_PADDING + constants.TAB_HEIGHT
+	pickerState.startY = contentArea.y + EDGE_PADDING
 	pickerState.hueSliderX = hueSliderX
 	pickerState.previewX = previewX
 
