@@ -465,6 +465,36 @@ local function createVersionFile()
 	return true
 end
 
+-- Function to find and copy the selected font file to theme directory
+local function copySelectedFont()
+	-- Find and copy the selected font file
+	local selectedFontFile
+	for _, font in ipairs(constants.FONTS) do
+		if font.name == state.selectedFont then
+			selectedFontFile = font.file
+			break
+		end
+	end
+	if not selectedFontFile then
+		errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
+		return false
+	end
+
+	-- Copy the selected font file as default.bin
+	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
+	if
+		not system.copyFile(
+			fontSourcePath,
+			paths.THEME_DEFAULT_FONT_PATH,
+			"Failed to copy font file: " .. selectedFontFile
+		)
+	then
+		return false
+	end
+
+	return true
+end
+
 -- Main function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
@@ -514,13 +544,13 @@ function themeCreator.createTheme()
 		end
 
 		-- Get hex colors from state (remove # prefix)
-		local hexColors = {
+		local colorReplacementts = {
 			background = state.colors.background:gsub("^#", ""),
 			foreground = state.colors.foreground:gsub("^#", ""),
 		}
 
 		-- Replace colors and apply glyph settings to theme files
-		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, hexColors) then
+		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, colorReplacementts) then
 			return false
 		end
 
@@ -536,28 +566,8 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Find and copy the selected font file
-		local selectedFontFile
-		for _, font in ipairs(constants.FONTS) do
-			if font.name == state.selectedFont then
-				selectedFontFile = font.file
-				break
-			end
-		end
-		if not selectedFontFile then
-			errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
-			return false
-		end
-
-		-- Copy the selected font file as default.bin
-		local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
-		if
-			not system.copyFile(
-				fontSourcePath,
-				paths.THEME_DEFAULT_FONT_PATH,
-				"Failed to copy font file: " .. selectedFontFile
-			)
-		then
+		-- Copy the selected font file
+		if not copySelectedFont() then
 			return false
 		end
 
