@@ -175,7 +175,7 @@ function menu.update(dt)
 			)
 		else
 			-- Show error popup
-			ui.showPopup("Error creating theme.")
+			errorHandler.showErrorPopup("Error creating theme")
 		end
 		return -- Skip the rest of the update to avoid input processing
 	elseif waitingState == "install_theme" then
