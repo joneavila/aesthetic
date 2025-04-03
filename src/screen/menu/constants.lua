@@ -113,11 +113,16 @@ paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
 
 -- `scheme`
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
+paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL_PATH = paths.THEME_SCHEME_DIR .. "/global.ini"
 
 -- `font`
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT_PATH = paths.THEME_FONT_DIR .. "/default.bin"
+
+-- `glyph`
+paths.THEME_GLYPH_SOURCE_PATH = paths.TEMPLATE_DIR .. "/glyph"
+paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 
 -- `<width>x<height>`
 paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight

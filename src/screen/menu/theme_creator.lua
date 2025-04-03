@@ -18,11 +18,13 @@ local themeCreator = {}
 local function createNameFile()
 	local nameFile = io.open(paths.THEME_NAME_PATH, "w")
 	if not nameFile then
-		errorHandler.setError("Failed to create name.txt file")
+		errorHandler.setError("Failed to create `name.txt` file: " .. paths.THEME_NAME_PATH)
 		return false
 	end
-	nameFile:write(state.applicationName) -- Use application name as theme name
+	local content = state.applicationName -- Use application name as theme name
+	nameFile:write(content)
 	nameFile:close()
+	return true
 end
 
 -- Function to create preview image displayed in muOS theme selection menu
@@ -468,20 +470,33 @@ function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
 		commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
-		if not system.copyDir(paths.TEMPLATE_DIR, paths.WORKING_THEME_DIR) then
-			errorHandler.setError("Failed to prepare working template directory")
+
+		-- Create the working theme directory
+		system.ensurePath(paths.WORKING_THEME_DIR)
+
+		-- Copy glyph directory and contents
+		if not system.copyDir(paths.THEME_GLYPH_SOURCE_PATH, paths.THEME_GLYPH_PATH) then
+			errorHandler.setError("Failed to copy glyph directory")
+			return false
+		end
+
+		-- Copy scheme directory and contents
+		if not system.copyDir(paths.THEME_SCHEME_SOURCE_DIR, paths.THEME_SCHEME_DIR) then
+			errorHandler.setError("Failed to copy scheme directory")
+			return false
 		end
 
 		-- Ensure all required directories exist
 		for key, path in pairs(paths) do
-			if type(path) == "string" and string.match(path, "/$") == nil then
-				-- Only ensure directories for path strings that don't already end with a slash
-				local dirPath = string.match(path, "(.*)/[^/]*$")
-				if dirPath then
-					if not system.ensurePath(dirPath) then
-						return false
-					end
+			if type(path) == "string" then
+				-- print("[Directory] Ensuring path exists: " .. path)
+				print("")
+				if not system.ensurePath(path) then
+					print("[Directory] Failed to create path: " .. path)
+					return false
 				end
+				print("[Directory] Successfully created/verified path: " .. path)
+				print("")
 			end
 		end
 
@@ -508,7 +523,6 @@ function themeCreator.createTheme()
 
 		-- Replace colors and apply glyph settings to theme files
 		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, hexColors) then
-			errorHandler.setError("Failed to update colors in: " .. paths.THEME_SCHEME_GLOBAL_PATH)
 			return false
 		end
 

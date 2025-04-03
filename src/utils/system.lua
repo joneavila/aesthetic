@@ -143,18 +143,33 @@ function system.copyDir(src, dest)
 	return success == 0 or success == true
 end
 
---- Ensures a directory exists, creating it if necessary, setting an error message if it fails
---- This function calls `errorHandler.setError()` so it does not need to be called separately
+--- Ensures a directory exists, creating it if necessary
+--- If path points to a file, creates the parent directory
+--- If path points to a directory, creates that directory
 function system.ensurePath(path)
-	-- Extract directory from path if it is a file path
-	local dir = string.match(path, "(.*)/[^/]*$") or path
+	if not path then
+		errorHandler.setError("No path provided to ensurePath")
+		return false
+	end
+
+	-- If path ends with a slash, treat as directory path
+	-- Otherwise, extract parent directory from potential file path
+	local dir
+	if path:match("/$") then
+		dir = path:sub(1, -2) -- Remove trailing slash
+	else
+		dir = path:match("(.+)/[^/]+$") or path
+	end
 
 	local result = os.execute('mkdir -p "' .. dir .. '"')
 	if not result then
+		print(
+			"[ensurePath] Failed to create directory: " .. dir .. " (os.execute returned: " .. tostring(result) .. ")"
+		)
 		errorHandler.setError("Failed to create directory: " .. dir)
 		return false
 	end
-	return result
+	return true
 end
 
 -- Copy a file and create destination directory if needed
