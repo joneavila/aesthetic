@@ -194,4 +194,13 @@ function system.getRequiredEnv(name)
 	return value
 end
 
+-- Remove a directory and all its contents recursively
+function system.removeDir(dir)
+	if not dir then
+		errorHandler.setError("No directory path provided to removeDir")
+		return false
+	end
+	return commands.executeCommand('rm -rf "' .. dir .. '"')
+end
+
 return system

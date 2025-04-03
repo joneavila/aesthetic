@@ -469,9 +469,7 @@ end
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
-		commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
-
-		-- Create the working theme directory
+		system.removeDir(paths.WORKING_THEME_DIR)
 		system.ensurePath(paths.WORKING_THEME_DIR)
 
 		-- Copy glyph directory and contents
@@ -621,7 +619,7 @@ end
 
 -- Clean up working directory
 function themeCreator.cleanup()
-	commands.executeCommand('rm -rf "' .. paths.WORKING_THEME_DIR .. '"')
+	system.removeDir(paths.WORKING_THEME_DIR)
 end
 
 return themeCreator
