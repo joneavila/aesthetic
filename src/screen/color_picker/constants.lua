@@ -4,7 +4,7 @@ local state = require("state")
 local constants = {}
 
 -- Calculate tab height as a percentage of the screen height
-local TAB_HEIGHT_PERCENT = 0.9
+local TAB_HEIGHT_PERCENT = 0.08
 local TAB_HEIGHT = math.floor(state.screenHeight * TAB_HEIGHT_PERCENT)
 
 -- Function to provide tab height to main color picker screen
