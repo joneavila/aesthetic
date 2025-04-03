@@ -517,14 +517,9 @@ function themeCreator.createTheme()
 		-- Ensure all required directories exist
 		for key, path in pairs(paths) do
 			if type(path) == "string" then
-				-- print("[Directory] Ensuring path exists: " .. path)
-				print("")
 				if not system.ensurePath(path) then
-					print("[Directory] Failed to create path: " .. path)
 					return false
 				end
-				print("[Directory] Successfully created/verified path: " .. path)
-				print("")
 			end
 		end
 
