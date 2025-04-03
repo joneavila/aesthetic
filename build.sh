@@ -5,6 +5,20 @@
 # If --clean is provided, the script will delete files from the device (left over from previous builds)
 # before building a new version
 
+echoHeader() {
+    local text="$1"
+    local PURPLE="\033[35m"
+    local RESET="\033[0m"
+    echo -e "${PURPLE}${text}...${RESET}"
+}
+
+echoSuccess() {
+    local text="$1"
+    local GREEN="\033[32m"
+    local RESET="\033[0m"
+    echo -e "${GREEN}${text}${RESET}"
+}
+
 # Check for --clean option
 if [[ "$1" == "--clean" ]]; then
     CLEAN=true
@@ -17,15 +31,12 @@ PRIVATE_KEY_PATH=$1
 DEVICE_IP=$2
 
 APPLICATION_DIR=mnt/mmc/MUOS/application/Aesthetic
-
 LOG_DIR="${APPLICATION_DIR}/.aesthetic/logs"
-mkdir -p "${LOG_DIR}"
-
-
 GLYPH_DIR=opt/muos/default/MUOS/theme/active/glyph/muxapp
+
 ARCHIVE_BASE_NAME=Aesthetic
 
-
+mkdir -p "${LOG_DIR}"
 
 # Get version from src/version.lua
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -40,9 +51,7 @@ fi
 
 # Items to delete with --clean
 ITEMS_TO_DELETE=(
-    "/.local/share/love/Aesthetic"
     "/mnt/mmc/MUOS/application/Aesthetic"
-    "/run/muos/storage/theme/Aesthetic.muxthm"
     "/mnt/sdcard/MUOS/theme/active/glyph/muxapp/aesthetic.png"
     "/mnt/sdcard/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/mmc/ARCHIVE/Aesthetic_*.muxupd"
@@ -56,7 +65,7 @@ if [ "$CLEAN" = true ]; then
         exit 1
     fi
     
-    echo "Cleaning..."
+    echoHeader "[0/6] Removing existing files"
     
     # Execute delete commands one by one to better handle wildcards
     for file in "${ITEMS_TO_DELETE[@]}"; do
@@ -65,81 +74,45 @@ if [ "$CLEAN" = true ]; then
         
         # Handle files with wildcards differently
         if [[ "$remote_file" == *"*"* ]]; then
-            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "for f in ${remote_file}; do if [ -e \"\$f\" ]; then echo \"Found: \$f\"; rm -rf \"\$f\" && echo \"Deleted: \$f\"; else echo \"No matching files for pattern: ${remote_file}\"; fi; done"
+            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "for f in ${remote_file}; do if [ -e \"\$f\" ]; then rm -rf \"\$f\" && echo \"\$f\"; fi; done"
         else
-            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo 'Deleted: ${remote_file}'; else echo 'Not found: ${remote_file}'; fi"
+            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
         fi
     done
-    
-    echo "Clean completed."
 fi
 
 mkdir -p .dist
 mkdir -p .build/"${APPLICATION_DIR}"
-rsync -a mux_launch.sh .build/"${APPLICATION_DIR}"
-rsync -av src/ .build/"${APPLICATION_DIR}"/.aesthetic/
-
-# Debug: Check if SVG was copied
-if [ -f ".build/${APPLICATION_DIR}/.aesthetic/assets/muOS/logo.svg" ]; then
-    echo "SVG file copied successfully"
-    ls -l ".build/${APPLICATION_DIR}/.aesthetic/assets/muOS/logo.svg"
-else
-    echo "ERROR: SVG file not found in build directory!"
-    exit 1
-fi
-
-rsync -a bin/ .build/"${APPLICATION_DIR}"/.aesthetic/bin
-rsync -a lib/ .build/"${APPLICATION_DIR}"/.aesthetic/lib
-rsync -a src/tove/ .build/"${APPLICATION_DIR}"/.aesthetic/tove
-# rsync -a src/ .build/"${APPLICATION_DIR}"
-
-# Check for required directories and files
-if [ ! -d "src/tove" ]; then
-    echo "ERROR: 'tove' directory not found!"
-    echo "Please ensure the Tove library is installed in the 'tove' directory"
-    echo "Expected location: ./tove/libTove.so"
-    exit 1
-fi
-
-if [ ! -f "src/tove/libTove.so" ]; then
-    echo "ERROR: 'libTove.so' not found!"
-    echo "Please ensure the Tove library is installed at: ./src/tove/libTove.so"
-    exit 1
-fi
-
-
-
-# Debug: Check if Tove library exists and has correct permissions
-if [ -f ".build/${APPLICATION_DIR}/.aesthetic/tove/libTove.so" ]; then
-    echo "Tove library found"
-    ls -l ".build/${APPLICATION_DIR}/.aesthetic/tove/libTove.so"
-else
-    echo "ERROR: Tove library not found!"
-    exit 1
-fi
-
-# Copy application glyph
 mkdir -p .build/"${GLYPH_DIR}"
-rsync -a src/template/glyph/muxapp/aesthetic.png .build/"${GLYPH_DIR}"
 
+echoHeader "Copying files to build directory"
+rsync -aq mux_launch.sh .build/"${APPLICATION_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
+rsync -aq src/ .build/"${APPLICATION_DIR}"/.aesthetic/ && echo "src/" || { echo "Failed to copy src/"; exit 1; }
+rsync -aq bin/ .build/"${APPLICATION_DIR}"/.aesthetic/bin && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
+rsync -aq lib/ .build/"${APPLICATION_DIR}"/.aesthetic/lib && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
+rsync -aq src/tove/ .build/"${APPLICATION_DIR}"/.aesthetic/tove && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
+rsync -aq src/template/glyph/muxapp/aesthetic.png .build/"${GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
+
+echoHeader "Creating archive"
 # Create archive, exclude macOS system files
-(cd .build && zip -9r "../.dist/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store" -x "._*")
+(cd .build && zip -9qr "../.dist/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" || { echo "Failed to create archive"; exit 1; }
 
+echoHeader "Cleaning up"
 # Delete temporary build directory
-rm -rf .build
+rm -rf .build && echo "Removed build directory" || echo "Failed to remove build directory"
 
+echoHeader "Uploading to $DEVICE_IP"
 if [ -z "$PRIVATE_KEY_PATH" ]; then
-    echo "No PRIVATE_KEY_PATH provided, skipping SCP upload"
+    echo "No PRIVATE_KEY_PATH provided"
     exit 0
 elif [ -z "$DEVICE_IP" ]; then
-    echo "No DEVICE_IP provided, skipping SCP upload"
+    echo "No DEVICE_IP provided"
     exit 0
 else
-    echo "Uploading to $DEVICE_IP"
     scp -i "${PRIVATE_KEY_PATH}" .dist/"${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${DEVICE_IP}":/mnt/mmc/ARCHIVE
-    
-    # Set proper permissions for libraries
-    ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "chmod 755 /mnt/mmc/MUOS/application/Aesthetic/.aesthetic/tove/libTove.so"
+    echoHeader "Extracting on $DEVICE_IP"
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi
 
-echo "Done!"
+# echoHeader "Running application"
+# ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh"
