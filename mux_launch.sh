@@ -4,6 +4,7 @@
 
 # Source muOS system functions
 . /opt/muos/script/var/func.sh
+. -n /opt/muos/script/package/theme.sh
 
 # Define paths
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic/.aesthetic"

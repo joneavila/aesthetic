@@ -180,7 +180,8 @@ function menu.update(dt)
 		return -- Skip the rest of the update to avoid input processing
 	elseif waitingState == "install_theme" then
 		-- Execute theme installation
-		local success = themeCreator.installTheme(waitingThemePath)
+		local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
+		local success = themeCreator.installTheme(waitingThemeName)
 		waitingState = "none"
 		waitingThemePath = nil
 

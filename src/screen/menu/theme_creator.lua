@@ -584,9 +584,11 @@ function themeCreator.createTheme()
 		-- Create the ZIP archive
 		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
 		if not outputThemePath then
-			errorHandler.setError("Failed to create theme archive")
 			return false
 		end
+
+		-- Call sync to make the theme available
+		commands.executeCommand("sync")
 
 		return outputThemePath
 	end, debug.traceback)
@@ -602,24 +604,13 @@ end
 
 -- Function to install the theme to muOS active theme directory
 -- TODO: Reference new PIXIE code to update and fix bugs
-function themeCreator.installTheme(outputPath)
-	-- Remove existing active theme directory and create a new one
-	commands.executeCommand('rm -rf "' .. paths.THEME_ACTIVE_DIR .. '"')
-	commands.executeCommand("sync")
+function themeCreator.installTheme(themeName)
+	local status, err = xpcall(function()
+		local cmd = string.format('/opt/muos/script/package/theme.sh install "%s"', themeName)
+		commands.executeCommand(cmd)
+	end, debug.traceback)
 
-	-- Extract the theme to the active directory
-	if
-		not commands.executeCommand(
-			string.format('unzip "%s" -d "%s"', outputPath, paths.THEME_ACTIVE_DIR),
-			"Failed to install theme to active directory"
-		)
-	then
-		return false
-	end
-
-	-- Sync to ensure all writes are complete
-	commands.executeCommand("sync")
-	return true
+	return status, err
 end
 
 -- Clean up working directory
