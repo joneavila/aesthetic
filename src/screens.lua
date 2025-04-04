@@ -1,22 +1,15 @@
 --- Screen manager module
 local screens = {}
-
--- Screen states as an enum-like table
-screens.STATES = {
-	MENU = "menu",
-	COLOR_PICKER = "color_picker",
-	ABOUT = "about",
-	FONT = "font",
-}
+local love = require("love")
 
 -- Private state
-local currentScreen = screens.STATES.MENU
+local currentScreen = "menu" -- Default screen
 local registeredScreens = {}
 
 -- Register a screen module
 function screens.register(screenName, screenModule)
-	if not screens.STATES[screenName:upper()] then
-		error("Attempting to register invalid screen: " .. screenName)
+	if not screenName then
+		error("Screen name cannot be nil")
 	end
 
 	registeredScreens[screenName] = screenModule
@@ -35,7 +28,7 @@ end
 
 function screens.switchTo(screenName, tabName)
 	-- Validate screen name
-	if not screens.STATES[screenName:upper()] then
+	if not registeredScreens[screenName] then
 		error("Attempting to switch to invalid screen: " .. screenName)
 		return
 	end
@@ -71,6 +64,18 @@ function screens.update(dt)
 end
 
 function screens.load()
+	-- Auto-load screens from the screen directory
+	local screenFiles = love.filesystem.getDirectoryItems("screen")
+
+	for _, file in ipairs(screenFiles) do
+		-- Remove the .lua extension to get the screen name
+		local screenName = file:match("^(.+)%.lua$")
+		if screenName then
+			local screenModule = require("screen." .. screenName)
+			screens.register(screenName, screenModule)
+		end
+	end
+
 	-- Load all registered screens
 	for _, module in pairs(registeredScreens) do
 		if module.load then

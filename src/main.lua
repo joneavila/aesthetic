@@ -111,12 +111,6 @@ function love.load()
 		end,
 		onDone = onSplashDone, -- Store callback reference
 	}
-
-	-- Register screens
-	screens.register("menu", require("screen.menu"))
-	screens.register("about", require("screen.about"))
-	screens.register("color_picker", require("screen.color_picker"))
-	screens.register("font", require("screen.font"))
 end
 
 function love.update(dt)
