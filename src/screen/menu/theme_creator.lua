@@ -204,7 +204,7 @@ local function applyScreenWidthSettings(schemeFilePath, screenWidth)
 end
 
 -- Function to apply content height settings to a scheme file
--- This sets the content height to match the device screen height
+-- This sets the content height based on screen height minus header and footer heights
 local function applyContentHeightSettings(schemeFilePath, screenHeight)
 	-- Read the scheme file content
 	local schemeFile, err = io.open(schemeFilePath, "r")
@@ -216,8 +216,42 @@ local function applyContentHeightSettings(schemeFilePath, screenHeight)
 	local schemeFileContent = schemeFile:read("*all")
 	schemeFile:close()
 
-	-- Use screen height directly as content height
-	local contentHeight = screenHeight
+	-- Extract HEADER_HEIGHT and FOOTER_HEIGHT from the scheme file
+	local headerHeight = 0
+	local footerHeight = 0
+
+	-- Find HEADER_HEIGHT using pattern matching (allowing spaces around equals sign)
+	local headerHeightMatch = schemeFileContent:match("HEADER_HEIGHT%s*=%s*(%d+)")
+	if headerHeightMatch then
+		local parsedHeight = tonumber(headerHeightMatch)
+		if parsedHeight then
+			headerHeight = parsedHeight
+		else
+			errorHandler.setError("HEADER_HEIGHT value is not a valid number")
+			return false
+		end
+	else
+		errorHandler.setError("Failed to find HEADER_HEIGHT in scheme file")
+		return false
+	end
+
+	-- Find FOOTER_HEIGHT using pattern matching (allowing spaces around equals sign)
+	local footerHeightMatch = schemeFileContent:match("FOOTER_HEIGHT%s*=%s*(%d+)")
+	if footerHeightMatch then
+		local parsedHeight = tonumber(footerHeightMatch)
+		if parsedHeight then
+			footerHeight = parsedHeight
+		else
+			errorHandler.setError("FOOTER_HEIGHT value is not a valid number")
+			return false
+		end
+	else
+		errorHandler.setError("Failed to find FOOTER_HEIGHT in scheme file")
+		return false
+	end
+
+	-- Calculate content height (screen height minus header and footer heights)
+	local contentHeight = screenHeight - headerHeight - footerHeight
 
 	-- Replace content-height placeholder
 	local contentHeightCount
