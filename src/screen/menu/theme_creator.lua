@@ -465,7 +465,7 @@ local function createVersionFile()
 	return true
 end
 
--- Function to find and copy the selected font file to theme directory
+-- Function to find and copy the selected font file to theme directory based on screen height
 local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
@@ -480,13 +480,20 @@ local function copySelectedFont()
 		return false
 	end
 
+	-- Determine font size based on screen height
+	local sizeInfo = constants.getFontSizeInfo(state.screenHeight)
+	if not sizeInfo then
+		return false
+	end
+	local fontSizeDir = sizeInfo.fontSizeDir
+
 	-- Copy the selected font file as default.bin
-	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. selectedFontFile
+	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. fontSizeDir .. "/" .. selectedFontFile
 	if
 		not system.copyFile(
 			fontSourcePath,
 			paths.THEME_DEFAULT_FONT_PATH,
-			"Failed to copy font file: " .. selectedFontFile
+			"Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")"
 		)
 	then
 		return false

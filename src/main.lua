@@ -38,11 +38,16 @@ local function updateInputTimer(dt)
 end
 
 local function setupFonts()
-	-- See: https://love2d.org/wiki/love.graphics.newFont
 	-- Calculate font sizes as a percentage of the screen height
 
-	-- All muOS Ambernic supported devices have height of 480
-	local maxScreenHeight = 480
+	-- The default muOS Pixie theme includes the following resolutions:
+	-- 	640x480
+	-- 	720x480
+	-- 	720x576
+	-- 	720x720
+	-- 	1024x768
+	-- 	1280x720
+	local maxScreenHeight = 768
 
 	local fontSizeHeader = 32 * (state.screenHeight / maxScreenHeight)
 	local fontHeader = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeHeader)

@@ -9,7 +9,32 @@ constants.COLOR_PICKER_SCREEN = "color_picker"
 constants.ABOUT_SCREEN = "about"
 constants.FONT_SCREEN = "font"
 
-constants.IMAGE_FONT_SIZE = 45
+-- Screen height to font size mapping
+constants.SCREEN_HEIGHT_MAPPING = {
+	[768] = { fontSizeDir = "38", imageFontSize = 45 },
+	[720] = { fontSizeDir = "36", imageFontSize = 42 },
+	[576] = { fontSizeDir = "29", imageFontSize = 34 },
+	[480] = { fontSizeDir = "24", imageFontSize = 28 },
+}
+
+-- Helper function to get font size info based on screen height
+constants.getFontSizeInfo = function(height)
+	local sizeInfo = constants.SCREEN_HEIGHT_MAPPING[height]
+	if not sizeInfo then
+		-- Simple error message without using errorHandler
+		print("Unexpected screen height: " .. height)
+		return nil
+	end
+	return sizeInfo
+end
+
+-- Image font size based on screen height
+constants.getImageFontSize = function()
+	local sizeInfo = constants.getFontSizeInfo(state.screenHeight)
+	return sizeInfo and sizeInfo.imageFontSize
+end
+
+constants.IMAGE_FONT_SIZE = constants.getImageFontSize()
 
 -- Error display time
 constants.ERROR_DISPLAY_TIME_SECONDS = 5
@@ -74,7 +99,8 @@ constants.POPUP_BUTTONS = {
 -- TODO: Create files like `name.txt` dynamically
 -- TODO: You can initialize the paths here
 constants.PATHS = {
-	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR"),
+	-- Since the environment variable is set in the run script it will not be set when debugging
+	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR") or "some/path",
 }
 
 -- Create a local alias for easier access
@@ -101,6 +127,11 @@ paths.THEME_VERSION_PATH = paths.THEME_DIR .. "/version.txt"
 
 -- Assets used by UI rather than generated theme
 paths.THEME_FONT_SOURCE_DIR = paths.TEMPLATE_DIR .. "/font"
+
+-- Create font size directory paths from the mapping
+for _, info in pairs(constants.SCREEN_HEIGHT_MAPPING) do
+	paths["THEME_FONT_SIZE_" .. info.fontSizeDir .. "_DIR"] = paths.THEME_FONT_SOURCE_DIR .. "/" .. info.fontSizeDir
+end
 
 -- `credits.txt`
 paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"

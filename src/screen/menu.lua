@@ -5,9 +5,12 @@ local state = require("state")
 local controls = require("controls")
 
 local constants = require("screen.menu.constants")
-local ui = require("screen.menu.ui")
 local errorHandler = require("screen.menu.error_handler")
+local ui = require("screen.menu.ui")
 local themeCreator = require("screen.menu.theme_creator")
+
+-- Initialize errorHandler with UI reference
+errorHandler.setUI(ui)
 
 -- Module table to export public functions
 local menu = {}
