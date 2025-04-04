@@ -203,6 +203,42 @@ local function applyScreenWidthSettings(schemeFilePath, screenWidth)
 	return true
 end
 
+-- Function to apply content height settings to a scheme file
+-- This sets the content height to match the device screen height
+local function applyContentHeightSettings(schemeFilePath, screenHeight)
+	-- Read the scheme file content
+	local schemeFile, err = io.open(schemeFilePath, "r")
+	if not schemeFile then
+		errorHandler.setError("Failed to open file for content height settings: " .. schemeFilePath)
+		return false
+	end
+
+	local schemeFileContent = schemeFile:read("*all")
+	schemeFile:close()
+
+	-- Use screen height directly as content height
+	local contentHeight = screenHeight
+
+	-- Replace content-height placeholder
+	local contentHeightCount
+	schemeFileContent, contentHeightCount = schemeFileContent:gsub("%%{%s*content%-height%s*}", tostring(contentHeight))
+	if contentHeightCount == 0 then
+		errorHandler.setError("Failed to replace content height settings in template")
+		return false
+	end
+
+	-- Write the updated content back to the file
+	schemeFile, err = io.open(schemeFilePath, "w")
+	if not schemeFile then
+		errorHandler.setError("Failed to write file for content height settings: " .. schemeFilePath)
+		return false
+	end
+
+	schemeFile:write(schemeFileContent)
+	schemeFile:close()
+	return true
+end
+
 -- Function to save image data as a 24-bit BMP file
 -- Currently LÖVE does not support encoding BMP
 -- TODO: Consider using https://github.com/max1220/lua-bitmap
@@ -565,6 +601,12 @@ function themeCreator.createTheme()
 		-- Set theme's screen width settings
 		if not applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
 			errorHandler.setError("Failed to apply screen width settings to: " .. paths.THEME_SCHEME_GLOBAL_PATH)
+			return false
+		end
+
+		-- Set theme's content height settings
+		if not applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
+			errorHandler.setError("Failed to apply content height settings to: " .. paths.THEME_SCHEME_GLOBAL_PATH)
 			return false
 		end
 
