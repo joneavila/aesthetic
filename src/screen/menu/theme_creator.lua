@@ -516,12 +516,8 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Determine font size based on screen height
-	local sizeInfo = constants.getFontSizeInfo(state.screenHeight)
-	if not sizeInfo then
-		return false
-	end
-	local fontSizeDir = sizeInfo.fontSizeDir
+	-- For now, always use size 24 fonts
+	local fontSizeDir = "24"
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. fontSizeDir .. "/" .. selectedFontFile
