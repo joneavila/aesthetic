@@ -35,7 +35,7 @@ function errorHandler.showErrorPopup(prefix)
 	ui.showPopup(message, { { text = "Exit", selected = true } })
 end
 
-function errorHandler.update(dt)
+function errorHandler.update(_dt)
 	-- No timer logic needed
 end
 

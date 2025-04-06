@@ -117,7 +117,7 @@ local function applyGlyphSettings(schemeFilePath)
 	-- Read the scheme file content
 	local schemeFile, err = io.open(schemeFilePath, "r")
 	if not schemeFile then
-		errorHandler.setError("Failed to open file for glyph settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to open file for glyph settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -149,7 +149,7 @@ local function applyGlyphSettings(schemeFilePath)
 	-- Write the updated content back to the file
 	schemeFile, err = io.open(schemeFilePath, "w")
 	if not schemeFile then
-		errorHandler.setError("Failed to write file for glyph settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to write file for glyph settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -164,7 +164,7 @@ local function applyScreenWidthSettings(schemeFilePath, screenWidth)
 	-- Read the scheme file content
 	local schemeFile, err = io.open(schemeFilePath, "r")
 	if not schemeFile then
-		errorHandler.setError("Failed to open file for screen width settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to open file for screen width settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -194,7 +194,7 @@ local function applyScreenWidthSettings(schemeFilePath, screenWidth)
 	-- Write the updated content back to the file
 	schemeFile, err = io.open(schemeFilePath, "w")
 	if not schemeFile then
-		errorHandler.setError("Failed to write file for screen width settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to write file for screen width settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -209,7 +209,7 @@ local function applyContentHeightSettings(schemeFilePath, screenHeight)
 	-- Read the scheme file content
 	local schemeFile, err = io.open(schemeFilePath, "r")
 	if not schemeFile then
-		errorHandler.setError("Failed to open file for content height settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to open file for content height settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -264,7 +264,7 @@ local function applyContentHeightSettings(schemeFilePath, screenHeight)
 	-- Write the updated content back to the file
 	schemeFile, err = io.open(schemeFilePath, "w")
 	if not schemeFile then
-		errorHandler.setError("Failed to write file for content height settings: " .. schemeFilePath)
+		errorHandler.setError("Failed to write file for content height settings (" .. schemeFilePath .. "): " .. err)
 		return false
 	end
 
@@ -300,7 +300,7 @@ local function saveAsBMP(imageData, filepath)
 	-- Helper function to write little-endian integers
 	local function writeInt(value, bytes)
 		local result = ""
-		for i = 1, bytes do
+		for _ = 1, bytes do
 			result = result .. string.char(value % 256)
 			value = math.floor(value / 256)
 		end
@@ -330,7 +330,7 @@ local function saveAsBMP(imageData, filepath)
 	local padBytes = string.rep("\0", padding)
 	for y = height - 1, 0, -1 do
 		for x = 0, width - 1 do
-			local r, g, b, a = imageData:getPixel(x, y)
+			local r, g, b, _ = imageData:getPixel(x, y)
 			-- Convert from 0-1 to 0-255 range and write BGR
 			file:write(string.char(math.floor(b * 255), math.floor(g * 255), math.floor(r * 255)))
 		end
@@ -588,7 +588,7 @@ function themeCreator.createTheme()
 		end
 
 		-- Ensure all required directories exist
-		for key, path in pairs(paths) do
+		for _, path in pairs(paths) do
 			if type(path) == "string" then
 				if not system.ensurePath(path) then
 					return false
