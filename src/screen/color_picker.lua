@@ -3,6 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local constants = require("screen.color_picker.constants")
+local errorHandler = require("screen.menu.error_handler")
 
 -- Import sub-screens
 local paletteScreen = require("screen.color_picker.palette")
@@ -84,7 +85,11 @@ function colorPicker.load()
 					-- Otherwise just stay on current tab
 				else
 					-- Switch to another main screen
-					switchScreen(targetScreen)
+					if switchScreen then
+						switchScreen(targetScreen)
+					else
+						errorHandler.setError("Failed to switch screen: switchScreen function not set")
+					end
 				end
 			end)
 		end
