@@ -37,7 +37,7 @@ function ui.drawButton(button, x, y, isSelected)
 	-- If this is a color selection button
 	if button.colorKey then
 		-- Get the color from state
-		local hexColor = state.colors[button.colorKey]
+		local hexColor = state.getColorValue(button.colorKey)
 
 		-- Only draw color display if we have a valid color
 		if hexColor then
@@ -72,7 +72,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 			-- Draw color hex code
 			love.graphics.setColor(colors.ui.foreground)
-			local hexCode = state.colors[button.colorKey]
+			local hexCode = state.getColorValue(button.colorKey)
 
 			-- Use monospace font for hex codes
 			if button.colorKey == "background" or button.colorKey == "foreground" then

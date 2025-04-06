@@ -55,8 +55,8 @@ local function createPreviewImage()
 	local previewImageText = "muOS"
 
 	-- Get colors from state
-	local bgColor = colorUtils.hexToLove(state.colors.background)
-	local fgColor = colorUtils.hexToLove(state.colors.foreground)
+	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Create canvas and draw
 	local canvas = love.graphics.newCanvas(previewImageWidth, previewImageHeight)
@@ -347,8 +347,8 @@ end
 -- Function to create boot logo image shown during boot
 local function createBootImage()
 	local width, height = state.screenWidth, state.screenHeight
-	local bgColor = colorUtils.hexToLove(state.colors.background)
-	local fgColor = colorUtils.hexToLove(state.colors.foreground)
+	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Load muOS logo SVG, set size and color
 	local svg = love.filesystem.read("assets/muOS/logo.svg")
@@ -387,8 +387,8 @@ end
 local function createRebootImage()
 	-- Read properties from state
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
-	local bgColor = colorUtils.hexToLove(state.colors.background)
-	local fgColor = colorUtils.hexToLove(state.colors.foreground)
+	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Load reboot icon SVG, set size and color
 	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
@@ -613,8 +613,8 @@ function themeCreator.createTheme()
 
 		-- Get hex colors from state (remove # prefix)
 		local colorReplacementts = {
-			background = state.colors.background:gsub("^#", ""),
-			foreground = state.colors.foreground:gsub("^#", ""),
+			background = state.getColorValue("background"):gsub("^#", ""),
+			foreground = state.getColorValue("foreground"):gsub("^#", ""),
 		}
 
 		-- Replace colors and apply glyph settings to theme files

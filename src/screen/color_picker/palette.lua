@@ -38,6 +38,13 @@ local ANIMATION = {
 	DURATION = 0.2,
 }
 
+-- Helper function to get current palette state from central state manager
+local function getCurrentPaletteState()
+	local colorType = state.lastSelectedColorButton
+	local context = state.getColorContext(colorType)
+	return context.palette -- Return the palette specific state for this color context
+end
+
 -- Helper function to get all color keys
 local function getColorKeys()
 	-- Use the ordered keys directly from the colors.palette module
@@ -114,16 +121,6 @@ local paletteState = {
 	colorKeys = getColorKeys(),
 	gridSize = nil,
 	squareSize = 0,
-	background = {
-		selectedRow = 0,
-		selectedCol = 0,
-		scrollY = 0,
-	},
-	foreground = {
-		selectedRow = 0,
-		selectedCol = 0,
-		scrollY = 0,
-	},
 	currentScale = 1,
 	scaleTween = nil,
 	offsetX = 0,
@@ -147,12 +144,9 @@ function palette.load()
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
 
-	-- Only reset scroll position if it hasn't been set before
-	local colorType = state.lastSelectedColorButton
-	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
-	if currentState.scrollY == nil then
-		currentState.scrollY = 0
-	end
+	-- Initialize palette state for both context types if not already done
+	local bgContext = state.getColorContext("background")
+	local fgContext = state.getColorContext("foreground")
 end
 
 -- Helper function to draw the scrollbar
@@ -174,8 +168,7 @@ local function drawScrollbar()
 
 	-- Calculate handle position based on scroll position
 	local scrollRatio = 0
-	local colorType = state.lastSelectedColorButton
-	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
+	local currentState = getCurrentPaletteState()
 	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
 		scrollRatio = currentState.scrollY / (paletteState.totalGridHeight - paletteState.visibleGridHeight)
 	end
@@ -199,8 +192,7 @@ function palette.draw()
 	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
+	local currentState = getCurrentPaletteState()
 
 	-- Calculate the first visible row based on scroll position
 	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
@@ -300,8 +292,7 @@ function palette.update(dt)
 		local moved = false
 
 		-- Get current color type state
-		local colorType = state.lastSelectedColorButton
-		local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
+		local currentState = getCurrentPaletteState()
 
 		local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
@@ -380,6 +371,11 @@ function palette.update(dt)
 				-- Convert the selected color key to hex code
 				local hexCode = colors.toHex(selectedKey, "palette")
 				if hexCode then
+					-- Store in central state
+					local context = state.getColorContext(state.lastSelectedColorButton)
+					context.currentColor = hexCode
+
+					-- Pass to menu
 					menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 					if switchScreen then
 						switchScreen(MENU_SCREEN)
@@ -411,8 +407,7 @@ function palette.onEnter()
 	paletteState.offsetY = dimensions.offsetY
 
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = paletteState[colorType] or paletteState.background -- Default to background if nil
+	local currentState = getCurrentPaletteState()
 
 	-- Only reset selection and scroll position if they haven't been set before
 	-- This allows the screen to remember its position when returning to it

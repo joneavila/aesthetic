@@ -31,28 +31,6 @@ local HUE_UPDATE_THRESHOLD = 5 -- Only regenerate SV texture when hue changes by
 
 -- State
 local pickerState = {
-	background = {
-		hue = 0, -- 0 to 360
-		sat = 1, -- 0 to 1
-		val = 1, -- 0 to 1
-		focusSquare = false, -- true = SV square, false = Hue slider
-		cursor = {
-			svX = nil,
-			svY = nil,
-			hueY = nil,
-		},
-	},
-	foreground = {
-		hue = 0, -- 0 to 360
-		sat = 1, -- 0 to 1
-		val = 1, -- 0 to 1
-		focusSquare = false, -- true = SV square, false = Hue slider
-		cursor = {
-			svX = nil,
-			svY = nil,
-			hueY = nil,
-		},
-	},
 	squareSize = nil, -- Will be calculated in load()
 	sliderWidth = 40,
 	startX = nil, -- Will be calculated in load()
@@ -81,11 +59,17 @@ local pickerState = {
 local switchScreen = nil
 local MENU_SCREEN = "menu"
 
+-- Helper function to get current HSV state from central state manager
+local function getCurrentHsvState()
+	local colorType = state.lastSelectedColorButton
+	local context = state.getColorContext(colorType)
+	return context.hsv -- Return the HSV specific state for this color context
+end
+
 -- Texture initialization
 local function initializeCachedTextures()
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+	local currentState = getCurrentHsvState()
 
 	local cacheWidth = math.ceil(pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
 	local cacheHeight = math.ceil(pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
@@ -183,8 +167,7 @@ function hsv.load()
 	pickerState.previewX = previewX
 
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+	local currentState = getCurrentHsvState()
 
 	-- Initialize cursor positions
 	currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
@@ -202,14 +185,13 @@ function hsv.draw()
 	love.graphics.clear(colors.ui.background)
 
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+	local currentState = getCurrentHsvState()
 
 	local lineWidth = 4
 	local halfLine = lineWidth / 2
 
 	-- Draw current color preview
-	local hexColor = state.colors[state.lastSelectedColorButton]
+	local hexColor = state.getColorValue(state.lastSelectedColorButton)
 	local r, g, b = colorUtils.hexToRgb(hexColor)
 
 	love.graphics.setColor(r, g, b, 1)
@@ -396,8 +378,7 @@ end
 -- Only regenerates the texture when necessary and at reduced resolution
 local function updateSVSquare()
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+	local currentState = getCurrentHsvState()
 
 	-- Skip updates if hue hasn't changed enough to be noticeable
 	-- This prevents unnecessary texture regeneration
@@ -439,8 +420,7 @@ function hsv.update(dt)
 		local moved = false
 
 		-- Get current color type state
-		local colorType = state.lastSelectedColorButton
-		local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+		local currentState = getCurrentHsvState()
 
 		-- Handle Y button for cursor swapping
 		if virtualJoystick:isGamepadDown("y") then
@@ -525,6 +505,10 @@ function hsv.update(dt)
 			-- Create hex code using the utility function
 			local hexCode = colorUtils.rgbToHex(r, g, b)
 
+			-- Store in the central state
+			local context = state.getColorContext(state.lastSelectedColorButton)
+			context.currentColor = hexCode
+
 			-- Pass the hex code to menu
 			menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 
@@ -549,8 +533,7 @@ end
 -- Function to be called when entering this screen
 function hsv.onEnter()
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = pickerState[colorType] or pickerState.background -- Default to background if nil
+	local currentState = getCurrentHsvState()
 
 	-- Initialize cursor positions if they haven't been set
 	if currentState.cursor.svX == nil then

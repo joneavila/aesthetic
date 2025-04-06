@@ -371,17 +371,19 @@ function menu.setScreenSwitcher(switchFunc)
 end
 
 function menu.setSelectedColor(buttonType, colorKey)
-	if state.colors[buttonType] then
-		if colorKey:sub(1, 1) == "#" then
-			-- Case 1: Already a hex code from HSV or hex color picker
-			state.colors[buttonType] = colorKey
-		else
-			-- Case 2: Color key from palette picker, needs conversion to hex
-			local hexCode = colors.toHex(colorKey)
-			if hexCode then
-				state.colors[buttonType] = hexCode
-			end
-		end
+	local colorValue = nil
+
+	if colorKey:sub(1, 1) == "#" then
+		-- Case 1: Already a hex code from HSV or hex color picker
+		colorValue = colorKey
+	else
+		-- Case 2: Color key from palette picker, needs conversion to hex
+		colorValue = colors.toHex(colorKey)
+	end
+
+	if colorValue then
+		-- Store in the centralized context using the setter
+		state.setColorValue(buttonType, colorValue)
 	end
 end
 

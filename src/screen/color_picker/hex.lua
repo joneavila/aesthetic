@@ -30,16 +30,15 @@ local iconShader = nil
 
 -- State
 local hexState = {
-	background = {
-		input = "",
-		selectedButton = { row = 1, col = 1 }, -- Default selection
-	},
-	foreground = {
-		input = "",
-		selectedButton = { row = 1, col = 1 }, -- Default selection
-	},
 	maxInputLength = 6,
 }
+
+-- Helper function to get current hex state from central state manager
+local function getCurrentHexState()
+	local colorType = state.lastSelectedColorButton
+	local context = state.getColorContext(colorType)
+	return context.hex -- Return the hex specific state for this color context
+end
 
 -- Button grid layout (5x4)
 local buttons = {
@@ -146,11 +145,9 @@ local function getButtonPosition(row, col)
 end
 
 function hex.load()
-	-- Initialize state
-	hexState.background.input = ""
-	hexState.background.selectedButton = { row = 1, col = 1 }
-	hexState.foreground.input = ""
-	hexState.foreground.selectedButton = { row = 1, col = 1 }
+	-- Initialize default hex states in state manager if needed
+	local bgContext = state.getColorContext("background")
+	local fgContext = state.getColorContext("foreground")
 
 	-- Create shader for icon coloring
 	local success, result = pcall(function()
@@ -186,8 +183,7 @@ function hex.draw()
 	local contentArea = constants.calculateContentArea()
 
 	-- Get current color type state
-	local colorType = state.lastSelectedColorButton
-	local currentState = hexState[colorType] or hexState.background -- Default to background if nil
+	local currentState = getCurrentHexState()
 
 	-- Draw color preview rectangle
 	local previewX = EDGE_PADDING
@@ -342,8 +338,7 @@ function hex.update(_dt)
 		local virtualJoystick = require("input").virtualJoystick
 
 		-- Get current color type state
-		local colorType = state.lastSelectedColorButton
-		local currentState = hexState[colorType] or hexState.background -- Default to background if nil
+		local currentState = getCurrentHexState()
 
 		-- Handle D-pad navigation
 		if virtualJoystick:isGamepadDown("dpup") then
@@ -424,6 +419,10 @@ function hex.update(_dt)
 					-- Create hex code
 					local hexCode = "#" .. currentState.input:upper()
 
+					-- Store in central state
+					local context = state.getColorContext(state.lastSelectedColorButton)
+					context.currentColor = hexCode
+
 					-- Return to menu and apply the color
 					if switchScreen then
 						switchScreen("menu")
@@ -449,7 +448,19 @@ end
 
 -- Function to be called when entering this screen
 function hex.onEnter()
-	-- The state is already maintained separately
+	-- No additional initialization needed as state is managed centrally
+	-- If hex-specific state needs to be initialized, do it here
+
+	-- Optionally initialize input with current color if it's empty
+	local currentState = getCurrentHexState()
+	if currentState.input == "" then
+		local colorType = state.lastSelectedColorButton
+		local currentColorHex = state.getColorValue(colorType)
+		if currentColorHex and currentColorHex:sub(1, 1) == "#" then
+			-- Remove the # and convert to uppercase
+			currentState.input = currentColorHex:sub(2):upper()
+		end
+	end
 end
 
 return hex
