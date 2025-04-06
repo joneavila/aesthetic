@@ -349,9 +349,15 @@ function menu.update(dt)
 					-- Toggle glyphs enabled state
 					state.glyphs_enabled = not state.glyphs_enabled
 					state.resetInputTimer()
+				elseif button.rgbLighting and switchScreen then
+					-- RGB lighting screen
+					switchScreen("rgb")
+					state.resetInputTimer()
+					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
 					state.lastSelectedColorButton = button.colorKey
+					state.previousScreen = "menu" -- Set previous screen to return to
 					switchScreen("color_picker")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens

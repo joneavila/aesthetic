@@ -8,6 +8,7 @@ local constants = {}
 constants.COLOR_PICKER_SCREEN = "color_picker"
 constants.ABOUT_SCREEN = "about"
 constants.FONT_SCREEN = "font"
+constants.RGB_SCREEN = "rgb"
 
 -- Screen height to font size mapping
 constants.SCREEN_HEIGHT_MAPPING = {
@@ -65,6 +66,11 @@ constants.BUTTONS = {
 		text = "Foreground color",
 		selected = false,
 		colorKey = "foreground",
+	},
+	{
+		text = "RGB lighting",
+		selected = false,
+		rgbLighting = true,
 	},
 	{
 		text = "Font",

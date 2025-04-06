@@ -20,7 +20,13 @@ local state = {
 	},
 	selectedFont = "Inter", -- Default selected font
 	lastSelectedColorButton = "background", -- Default selected button for color picker
+	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
+
+	-- RGB lighting related settings
+	rgbMode = "Static", -- Default RGB lighting mode
+	rgbBrightness = 100, -- Default RGB brightness (0-100%)
+	rgbSpeed = 50, -- Default RGB speed (0-100%)
 
 	-- Centralized color contexts storage
 	colorContexts = {},
@@ -30,6 +36,7 @@ local state = {
 local colorDefaults = {
 	background = "#1E1E2E", -- Default background color
 	foreground = "#CDD6F4", -- Default foreground color
+	rgb = "#1E1E2E", -- Default RGB color (same as background)
 }
 
 -- Helper function to get or create a color context
@@ -80,5 +87,6 @@ end
 -- Initialize default contexts
 state.getColorContext("background")
 state.getColorContext("foreground")
+state.getColorContext("rgb")
 
 return state

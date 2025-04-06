@@ -57,7 +57,6 @@ local pickerState = {
 
 -- Store screen switching function and target screen
 local switchScreen = nil
-local MENU_SCREEN = "menu"
 
 -- Helper function to get current HSV state from central state manager
 local function getCurrentHsvState()
@@ -514,7 +513,7 @@ function hsv.update(dt)
 
 			-- Switch back to menu
 			if switchScreen then
-				switchScreen(MENU_SCREEN)
+				switchScreen(state.previousScreen)
 				state.resetInputTimer()
 			end
 			moved = true

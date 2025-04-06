@@ -177,7 +177,7 @@ function colorPicker.update(dt)
 		-- Handle B button (return to menu screen)
 		if virtualJoystick:isGamepadDown("b") then
 			if switchScreen then
-				switchScreen("menu")
+				switchScreen(state.previousScreen)
 				state.resetInputTimer()
 			end
 			return

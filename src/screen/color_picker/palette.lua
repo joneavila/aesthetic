@@ -10,7 +10,6 @@ local constants = require("screen.color_picker.constants")
 local palette = {}
 
 local switchScreen = nil
-local MENU_SCREEN = "menu"
 
 -- Constants
 local PADDING = 20
@@ -143,10 +142,6 @@ function palette.load()
 	paletteState.visibleGridHeight = dimensions.visibleGridHeight
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
-
-	-- Initialize palette state for both context types if not already done
-	local bgContext = state.getColorContext("background")
-	local fgContext = state.getColorContext("foreground")
 end
 
 -- Helper function to draw the scrollbar
@@ -378,7 +373,7 @@ function palette.update(dt)
 					-- Pass to menu
 					menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
 					if switchScreen then
-						switchScreen(MENU_SCREEN)
+						switchScreen(state.previousScreen)
 						state.resetInputTimer()
 					end
 				end
