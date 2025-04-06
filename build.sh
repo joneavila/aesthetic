@@ -1,22 +1,16 @@
 #!/bin/bash
-# Usage: ./scripts/build.sh [--clean] [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
+# Usage: ./build.sh [--clean] [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
 #
-# If PRIVATE_KEY_PATH and DEVICE_IP are provided, the archive will be uploaded to the device using scp
-# If --clean is provided, the script will delete files from the device (left over from previous builds)
-# before building a new version
+# If `PRIVATE_KEY_PATH` and `DEVICE_IP` are provided, the archive will be uploaded to the handheld using `scp`
+# and automatically extracted.
+# If `--clean` is provided, files from previous builds will be deleted from the handheld before the new archive is
+# extracted.
 
 echoHeader() {
     local text="$1"
     local PURPLE="\033[35m"
     local RESET="\033[0m"
     echo -e "${PURPLE}${text}...${RESET}"
-}
-
-echoSuccess() {
-    local text="$1"
-    local GREEN="\033[32m"
-    local RESET="\033[0m"
-    echo -e "${GREEN}${text}${RESET}"
 }
 
 # Check for --clean option
