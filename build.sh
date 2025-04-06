@@ -24,13 +24,16 @@ fi
 PRIVATE_KEY_PATH=$1
 DEVICE_IP=$2
 
-APPLICATION_DIR=mnt/mmc/MUOS/application/Aesthetic
-LOG_DIR="${APPLICATION_DIR}/.aesthetic/logs"
-GLYPH_DIR=opt/muos/default/MUOS/theme/active/glyph/muxapp
+APPLICATION_DIR="mnt/mmc/MUOS/application/Aesthetic"
+LOGS_DIR="${APPLICATION_DIR}/.aesthetic/logs"
+GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
 
 ARCHIVE_BASE_NAME=Aesthetic
 
-mkdir -p "${LOG_DIR}"
+mkdir -p .dist
+mkdir -p .build/"${APPLICATION_DIR}"
+mkdir -p .build/"${GLYPH_DIR}"
+mkdir -p .build/"${LOGS_DIR}"
 
 # Get version from src/version.lua
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -74,10 +77,6 @@ if [ "$CLEAN" = true ]; then
         fi
     done
 fi
-
-mkdir -p .dist
-mkdir -p .build/"${APPLICATION_DIR}"
-mkdir -p .build/"${GLYPH_DIR}"
 
 echoHeader "Copying files to build directory"
 rsync -aq mux_launch.sh .build/"${APPLICATION_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
