@@ -1,8 +1,6 @@
 --- Global state management module
 local love = require("love")
 
--- TODO: Ensure state variables are not added outside of this file
-
 local state = {
 	applicationName = "Aesthetic",
 

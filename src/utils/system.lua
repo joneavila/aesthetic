@@ -5,8 +5,6 @@ local commands = require("utils.commands")
 
 local system = {}
 
--- TODO: Add a function for reading, writing files and update theme_creator.lua
-
 -- Helper function to escape pattern special characters
 function system.escapePattern(str)
 	-- Escape these special characters: ^$()%.[]*+-?

@@ -275,7 +275,6 @@ end
 
 -- Function to save image data as a 24-bit BMP file
 -- Currently LÖVE does not support encoding BMP
--- TODO: Consider using https://github.com/max1220/lua-bitmap
 local function saveAsBMP(imageData, filepath)
 	local width = imageData:getWidth()
 	local height = imageData:getHeight()
@@ -423,8 +422,6 @@ local function createRebootImage()
 	icon:draw(iconX, iconY)
 
 	-- Get the selected font from state
-	-- TODO: Refactor font code – Store fonts as pairs of name and loaded font
-	-- (or find way to get name from loaded font)
 	local selectedFontName = state.selectedFont
 	local fontMap = {
 		["Inter"] = state.fonts.body,
@@ -754,7 +751,6 @@ function themeCreator.createTheme()
 end
 
 -- Function to install the theme to muOS active theme directory
--- TODO: Reference new PIXIE code to update and fix bugs
 function themeCreator.installTheme(themeName)
 	local status, err = xpcall(function()
 		local cmd = string.format('/opt/muos/script/package/theme.sh install "%s"', themeName)

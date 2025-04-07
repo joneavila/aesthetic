@@ -101,9 +101,6 @@ constants.POPUP_BUTTONS = {
 	},
 }
 
--- TODO: Make os.getenv() safer
--- TODO: Create files like `name.txt` dynamically
--- TODO: You can initialize the paths here
 constants.PATHS = {
 	-- Since the environment variable is set in the run script it will not be set when debugging
 	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR") or "some/path",
