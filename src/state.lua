@@ -24,7 +24,7 @@ local state = {
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
 	-- RGB lighting related settings
-	rgbMode = "Static", -- Default RGB lighting mode
+	rgbMode = "Solid", -- Default RGB lighting mode
 	rgbBrightness = 100, -- Default RGB brightness (0-100%)
 	rgbSpeed = 50, -- Default RGB speed (0-100%)
 

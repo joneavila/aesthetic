@@ -15,9 +15,9 @@ local COLOR_PICKER_SCREEN = "color_picker"
 
 -- RGB mode options
 local RGB_MODES = {
-	"Static",
+	"Solid",
 	"Fast Breathing",
-	"Med Breathing",
+	"Medium Breathing",
 	"Slow Breathing",
 	"Mono Rainbow",
 	"Multi Rainbow",
@@ -84,9 +84,9 @@ end
 local function isSpeedDisabled()
 	local currentMode = state.rgbMode
 	return currentMode == "Off"
-		or currentMode == "Static"
+		or currentMode == "Solid"
 		or currentMode == "Fast Breathing"
-		or currentMode == "Med Breathing"
+		or currentMode == "Medium Breathing"
 		or currentMode == "Slow Breathing"
 end
 
