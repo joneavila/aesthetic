@@ -166,7 +166,7 @@ function system.ensurePath(path)
 		print(
 			"[ensurePath] Failed to create directory: " .. dir .. " (os.execute returned: " .. tostring(result) .. ")"
 		)
-		errorHandler.setError("Failed to create directory: " .. dir)
+		errorHandler.setError("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		return false
 	end
 	return true

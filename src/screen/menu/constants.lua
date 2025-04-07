@@ -161,6 +161,10 @@ paths.THEME_DEFAULT_FONT_PATH = paths.THEME_FONT_DIR .. "/default.bin"
 paths.THEME_GLYPH_SOURCE_PATH = paths.TEMPLATE_DIR .. "/glyph"
 paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 
+-- `rgb`
+paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
+paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
+
 -- `<width>x<height>`
 paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight
 paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"

@@ -568,6 +568,73 @@ local function copySelectedFont()
 	return true
 end
 
+-- Function to create `rgb/rgbconf.sh` file containing the RGB lighting configuration
+local function createRgbConfFile()
+	-- Ensure path exists for RGB directory
+	local rgbDir = paths.THEME_RGB_DIR
+	if not system.ensurePath(rgbDir) then
+		return false
+	end
+
+	-- Open `rgbconf.sh` for writing
+	local rgbConfPath = paths.THEME_RGB_CONF_PATH
+	local rgbConfFile = io.open(rgbConfPath, "w")
+	if not rgbConfFile then
+		errorHandler.setError("Failed to create rgbconf.sh file: " .. rgbConfPath)
+		return false
+	end
+
+	-- Base command for led_control.sh
+	local command = "/opt/muos/device/current/script/led_control.sh"
+
+	-- Map RGB brightness from 0-100 to 0-255
+	local brightness = math.floor((state.rgbBrightness / 100) * 255)
+
+	-- Get RGB color and convert to RGB components (0-255)
+	local rgbColor = state.getColorValue("rgb")
+	local r, g, b = colorUtils.hexToRgb(rgbColor)
+	r = math.floor(r * 255)
+	g = math.floor(g * 255)
+	b = math.floor(b * 255)
+
+	-- Format command based on rgbMode
+	if state.rgbMode == "Solid" then
+		-- Mode 1: Solid Color (No Effects)
+		-- Format: $0 1 <brightness> <right_r> <right_g> <right_b> <left_r> <left_g> <left_b>
+		-- Both joysticks get the same color in this implementation
+		command = command .. string.format(" 1 %d %d %d %d %d %d %d", brightness, r, g, b, r, g, b)
+	elseif state.rgbMode == "Fast Breathing" then
+		-- Mode 2: Solid Color (Breathing, Fast)
+		-- Format: $0 2 <brightness> <r> <g> <b>
+		command = command .. string.format(" 2 %d %d %d %d", brightness, r, g, b)
+	elseif state.rgbMode == "Medium Breathing" then
+		-- Mode 3: Solid Color (Breathing, Medium)
+		-- Format: $0 3 <brightness> <r> <g> <b>
+		command = command .. string.format(" 3 %d %d %d %d", brightness, r, g, b)
+	elseif state.rgbMode == "Slow Breathing" then
+		-- Mode 4: Solid Color (Breathing, Slow)
+		-- Format: $0 4 <brightness> <r> <g> <b>
+		command = command .. string.format(" 4 %d %d %d %d", brightness, r, g, b)
+	elseif state.rgbMode == "Mono Rainbow" then
+		-- Mode 5: Monochromatic Rainbow (Cycle Between RGB Colors)
+		-- Format: $0 5 <brightness_value> <speed_value>
+		command = command .. string.format(" 5 %d %d", brightness, state.rgbSpeed)
+	elseif state.rgbMode == "Multi Rainbow" then
+		-- Mode 6: Multicolor Rainbow (Rainbow Swirl Effect)
+		-- Format: $0 6 <brightness_value> <speed_value>
+		command = command .. string.format(" 6 %d %d", brightness, state.rgbSpeed)
+	end
+
+	-- Write command to file
+	rgbConfFile:write(command)
+	rgbConfFile:close()
+
+	-- Make the file executable
+	commands.executeCommand(string.format('chmod +x "%s"', rgbConfPath))
+
+	return true
+end
+
 -- Main function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
@@ -657,6 +724,11 @@ function themeCreator.createTheme()
 
 		-- Create theme's `name.txt` file
 		if not createNameFile() then
+			return false
+		end
+
+		-- Create theme's RGB configuration file
+		if not createRgbConfFile() then
 			return false
 		end
 
