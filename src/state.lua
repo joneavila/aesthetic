@@ -23,8 +23,8 @@ local state = {
 
 	-- RGB lighting related settings
 	rgbMode = "Solid", -- Default RGB lighting mode
-	rgbBrightness = 100, -- Default RGB brightness (0-100%)
-	rgbSpeed = 50, -- Default RGB speed (0-100%)
+	rgbBrightness = 5, -- Default RGB brightness (1-10)
+	rgbSpeed = 5, -- Default RGB speed (1-10)
 
 	-- Centralized color contexts storage
 	colorContexts = {},

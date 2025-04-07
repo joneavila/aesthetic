@@ -58,19 +58,17 @@ local BUTTONS = {
 		text = "Brightness",
 		selected = false,
 		value = state.rgbBrightness,
-		min = 0,
-		max = 100,
-		step = 5,
-		suffix = "%",
+		min = 1,
+		max = 10,
+		step = 1,
 	},
 	{
 		text = "Speed",
 		selected = false,
 		value = state.rgbSpeed,
-		min = 0,
-		max = 100,
-		step = 5,
-		suffix = "%",
+		min = 1,
+		max = 10,
+		step = 1,
 	},
 }
 
@@ -214,7 +212,7 @@ function rgb.draw()
 		-- Draw brightness value with triangles
 		if button.min ~= nil and button.max ~= nil then
 			local currentValue = button.text == "Brightness" and state.rgbBrightness or state.rgbSpeed
-			local valueText = currentValue .. button.suffix
+			local valueText = tostring(currentValue)
 			local valueWidth = state.fonts.body:getWidth(valueText)
 
 			-- Calculate total width of the text and triangles

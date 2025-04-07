@@ -615,11 +615,11 @@ local function createRgbConfFile()
 	elseif state.rgbMode == "Mono Rainbow" then
 		-- Mode 5: Monochromatic Rainbow (Cycle Between RGB Colors)
 		-- Format: $0 5 <brightness_value> <speed_value>
-		command = command .. string.format(" 5 %d %d", brightness, state.rgbSpeed)
+		command = command .. string.format(" 5 %d %d", brightness, state.rgbSpeed * 5)
 	elseif state.rgbMode == "Multi Rainbow" then
 		-- Mode 6: Multicolor Rainbow (Rainbow Swirl Effect)
 		-- Format: $0 6 <brightness_value> <speed_value>
-		command = command .. string.format(" 6 %d %d", brightness, state.rgbSpeed)
+		command = command .. string.format(" 6 %d %d", brightness, state.rgbSpeed * 5)
 	end
 
 	-- Write command to file
