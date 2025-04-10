@@ -25,6 +25,7 @@ local state = {
 	rgbMode = "Solid", -- Default RGB lighting mode
 	rgbBrightness = 5, -- Default RGB brightness (1-10)
 	rgbSpeed = 5, -- Default RGB speed (1-10)
+	themeApplied = false, -- Whether the theme has been applied
 
 	-- Centralized color contexts storage
 	colorContexts = {},

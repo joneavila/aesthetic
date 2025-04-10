@@ -3,6 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
+local rgbUtils = require("utils.rgb")
 
 local constants = require("screen.menu.constants")
 local errorHandler = require("screen.menu.error_handler")
@@ -226,6 +227,8 @@ function menu.update(dt)
 								-- Queue theme installation for next frame
 								waitingState = "install_theme"
 								waitingThemePath = createdThemePath
+								-- Mark theme as applied so RGB settings aren't restored
+								state.themeApplied = true
 							end
 							break
 						end
@@ -255,6 +258,8 @@ function menu.update(dt)
 					for _, button in ipairs(popupButtons) do
 						if button.selected then
 							if button.text == "Exit" then
+								-- Restore original RGB configuration if no theme was applied
+								rgbUtils.restoreConfig()
 								love.event.quit()
 							else
 								ui.hidePopup()
@@ -316,6 +321,8 @@ function menu.update(dt)
 
 	-- Handle B button (Exit)
 	if virtualJoystick:isGamepadDown("b") then
+		-- Restore original RGB configuration if no theme was applied
+		rgbUtils.restoreConfig()
 		love.event.quit()
 		return
 	end

@@ -118,6 +118,11 @@ paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
 -- Active theme directory where files of the currently active theme are stored
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
+-- Active RGB configuration paths
+paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
+paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
+paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
+
 -- Generated theme path where the generated theme is written
 paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".muxthm"
 

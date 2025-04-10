@@ -4,6 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
+local rgbUtils = require("utils.rgb")
 
 -- Module table to export public functions
 local rgb = {}
@@ -97,6 +98,9 @@ end
 function rgb.load()
 	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
 	BUTTON.START_Y = BUTTON.PADDING
+
+	-- Initialize RGB state from current configuration
+	rgbUtils.initializeFromCurrentConfig()
 
 	-- Set the correct current option index based on state.rgbMode
 	for i, option in ipairs(RGB_MODES) do
@@ -322,6 +326,9 @@ function rgb.update(_dt)
 					-- Update state with selected option
 					state.rgbMode = button.options[button.currentOption]
 
+					-- Apply RGB settings immediately
+					rgbUtils.updateConfig()
+
 					state.resetInputTimer()
 					break
 				elseif button.min ~= nil and button.max ~= nil then
@@ -350,6 +357,9 @@ function rgb.update(_dt)
 					else
 						state.rgbBrightness = newValue
 					end
+
+					-- Apply RGB settings immediately
+					rgbUtils.updateConfig()
 
 					state.resetInputTimer()
 					break
@@ -395,10 +405,13 @@ end
 
 function rgb.onEnter()
 	-- Called when entering this screen
+	-- Apply RGB settings in case they were changed in the color picker
+	rgbUtils.updateConfig()
 end
 
 function rgb.onExit()
 	-- Called when leaving this screen
+	-- No need to restore RGB settings here - let them persist while previewing
 end
 
 return rgb
