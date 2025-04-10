@@ -19,6 +19,17 @@ function rgb.brightnessToUI(brightness)
 	return math.min(10, math.max(1, math.floor((brightness / 255) * 9) + 1))
 end
 
+-- Function to convert hex color to standard RGB (0-255) values
+function rgb.hexToStandardRGB(hexColor)
+	local r, g, b = colorUtils.hexToRgb(hexColor)
+	return math.floor(r * 255), math.floor(g * 255), math.floor(b * 255)
+end
+
+-- Function to convert standard RGB (0-255) values to hex color
+function rgb.standardRGBToHex(r, g, b)
+	return colorUtils.rgbToHex(r / 255, g / 255, b / 255)
+end
+
 -- Function to create RGB configuration file at the specified path
 function rgb.createConfigFile(rgbDir, rgbConfPath)
 	-- Ensure path exists for RGB directory
@@ -38,12 +49,9 @@ function rgb.createConfigFile(rgbDir, rgbConfPath)
 	-- Map RGB brightness from 1-10 to 0-255
 	local brightness = rgb.brightnessToHardware(state.rgbBrightness)
 
-	-- Get RGB color and convert to RGB components (0-255)
+	-- Get RGB color and convert to standard RGB components (0-255)
 	local rgbColor = state.getColorValue("rgb")
-	local r, g, b = colorUtils.hexToRgb(rgbColor)
-	r = math.floor(r * 255)
-	g = math.floor(g * 255)
-	b = math.floor(b * 255)
+	local r, g, b = rgb.hexToStandardRGB(rgbColor)
 
 	-- Format command based on rgbMode
 	if state.rgbMode == "Solid" then
@@ -157,10 +165,10 @@ function rgb.parseConfig(filePath)
 	-- Parse remaining parameters based on mode
 	if modeNum == "1" then
 		-- Solid: brightness, right_r, right_g, right_b, left_r, left_g, left_b
-		config.color = colorUtils.rgbToHex(params[2] / 255, params[3] / 255, params[4] / 255)
+		config.color = rgb.standardRGBToHex(params[2], params[3], params[4])
 	elseif modeNum == "2" or modeNum == "3" or modeNum == "4" then
 		-- Breathing modes: brightness, r, g, b
-		config.color = colorUtils.rgbToHex(params[2] / 255, params[3] / 255, params[4] / 255)
+		config.color = rgb.standardRGBToHex(params[2], params[3], params[4])
 	elseif modeNum == "5" or modeNum == "6" then
 		-- Rainbow modes: brightness, speed
 		config.speed = math.floor(params[2] / 5)
