@@ -33,9 +33,9 @@ local state = {
 
 -- Color defaults to initialize contexts with
 local colorDefaults = {
-	background = "#1E1E2E", -- Default background color
-	foreground = "#CDD6F4", -- Default foreground color
-	rgb = "#1E1E2E", -- Default RGB color (same as background)
+	background = "#1E40AF", -- Default background color
+	foreground = "#DBEAFE", -- Default foreground color
+	rgb = "#1E40AF", -- Default RGB lighting color
 }
 
 -- Helper function to get or create a color context
