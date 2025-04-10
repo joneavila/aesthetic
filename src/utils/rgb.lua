@@ -9,6 +9,16 @@ local paths = constants.PATHS
 -- Module table to export public functions
 local rgb = {}
 
+-- Function to convert brightness from UI range (1-10) to hardware range (0-255)
+function rgb.brightnessToHardware(brightness)
+	return math.floor(((brightness - 1) / 9) * 255)
+end
+
+-- Function to convert brightness from hardware range (0-255) to UI range (1-10)
+function rgb.brightnessToUI(brightness)
+	return math.min(10, math.max(1, math.floor((brightness / 255) * 9) + 1))
+end
+
 -- Function to create RGB configuration file at the specified path
 function rgb.createConfigFile(rgbDir, rgbConfPath)
 	-- Ensure path exists for RGB directory
@@ -25,8 +35,8 @@ function rgb.createConfigFile(rgbDir, rgbConfPath)
 	-- Base command for led_control.sh
 	local command = "/opt/muos/device/current/script/led_control.sh"
 
-	-- Map RGB brightness from 0-100 to 0-255
-	local brightness = math.floor((state.rgbBrightness / 100) * 255)
+	-- Map RGB brightness from 1-10 to 0-255
+	local brightness = rgb.brightnessToHardware(state.rgbBrightness)
 
 	-- Get RGB color and convert to RGB components (0-255)
 	local rgbColor = state.getColorValue("rgb")
@@ -141,7 +151,7 @@ function rgb.parseConfig(filePath)
 
 	local config = {
 		mode = modeMap[modeNum] or "Solid",
-		brightness = math.floor((params[1] / 255) * 100), -- Convert 0-255 to 0-100
+		brightness = rgb.brightnessToUI(params[1]),
 	}
 
 	-- Parse remaining parameters based on mode
