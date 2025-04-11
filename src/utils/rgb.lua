@@ -50,39 +50,45 @@ function rgb.createConfigFile(rgbDir, rgbConfPath)
 	-- Base command for led_control.sh
 	local command = "/opt/muos/device/current/script/led_control.sh"
 
-	-- Map RGB brightness from 1-10 to 0-255
-	local brightness = rgb.brightnessToHardware(state.rgbBrightness)
+	-- Special case for "Off" mode
+	if state.rgbMode == "Off" then
+		-- Format: $0 1 0 0 0 0 0 0 0
+		command = command .. " 1 0 0 0 0 0 0 0"
+	else
+		-- Map RGB brightness from 1-10 to 0-255
+		local brightness = rgb.brightnessToHardware(state.rgbBrightness)
 
-	-- Get RGB color and convert to standard RGB components (0-255)
-	local rgbColor = state.getColorValue("rgb")
-	local r, g, b = rgb.hexToStandardRGB(rgbColor)
+		-- Get RGB color and convert to standard RGB components (0-255)
+		local rgbColor = state.getColorValue("rgb")
+		local r, g, b = rgb.hexToStandardRGB(rgbColor)
 
-	-- Format command based on rgbMode
-	if state.rgbMode == "Solid" then
-		-- Mode 1: Solid Color (No Effects)
-		-- Format: $0 1 <brightness> <right_r> <right_g> <right_b> <left_r> <left_g> <left_b>
-		-- Both joysticks get the same color in this implementation
-		command = command .. string.format(" 1 %d %d %d %d %d %d %d", brightness, r, g, b, r, g, b)
-	elseif state.rgbMode == "Fast Breathing" then
-		-- Mode 2: Solid Color (Breathing, Fast)
-		-- Format: $0 2 <brightness> <r> <g> <b>
-		command = command .. string.format(" 2 %d %d %d %d", brightness, r, g, b)
-	elseif state.rgbMode == "Medium Breathing" then
-		-- Mode 3: Solid Color (Breathing, Medium)
-		-- Format: $0 3 <brightness> <r> <g> <b>
-		command = command .. string.format(" 3 %d %d %d %d", brightness, r, g, b)
-	elseif state.rgbMode == "Slow Breathing" then
-		-- Mode 4: Solid Color (Breathing, Slow)
-		-- Format: $0 4 <brightness> <r> <g> <b>
-		command = command .. string.format(" 4 %d %d %d %d", brightness, r, g, b)
-	elseif state.rgbMode == "Mono Rainbow" then
-		-- Mode 5: Monochromatic Rainbow (Cycle Between RGB Colors)
-		-- Format: $0 5 <brightness_value> <speed_value>
-		command = command .. string.format(" 5 %d %d", brightness, state.rgbSpeed * 5)
-	elseif state.rgbMode == "Multi Rainbow" then
-		-- Mode 6: Multicolor Rainbow (Rainbow Swirl Effect)
-		-- Format: $0 6 <brightness_value> <speed_value>
-		command = command .. string.format(" 6 %d %d", brightness, state.rgbSpeed * 5)
+		-- Format command based on rgbMode
+		if state.rgbMode == "Solid" then
+			-- Mode 1: Solid Color (No Effects)
+			-- Format: $0 1 <brightness> <right_r> <right_g> <right_b> <left_r> <left_g> <left_b>
+			-- Both joysticks get the same color in this implementation
+			command = command .. string.format(" 1 %d %d %d %d %d %d %d", brightness, r, g, b, r, g, b)
+		elseif state.rgbMode == "Fast Breathing" then
+			-- Mode 2: Solid Color (Breathing, Fast)
+			-- Format: $0 2 <brightness> <r> <g> <b>
+			command = command .. string.format(" 2 %d %d %d %d", brightness, r, g, b)
+		elseif state.rgbMode == "Medium Breathing" then
+			-- Mode 3: Solid Color (Breathing, Medium)
+			-- Format: $0 3 <brightness> <r> <g> <b>
+			command = command .. string.format(" 3 %d %d %d %d", brightness, r, g, b)
+		elseif state.rgbMode == "Slow Breathing" then
+			-- Mode 4: Solid Color (Breathing, Slow)
+			-- Format: $0 4 <brightness> <r> <g> <b>
+			command = command .. string.format(" 4 %d %d %d %d", brightness, r, g, b)
+		elseif state.rgbMode == "Mono Rainbow" then
+			-- Mode 5: Monochromatic Rainbow (Cycle Between RGB Colors)
+			-- Format: $0 5 <brightness_value> <speed_value>
+			command = command .. string.format(" 5 %d %d", brightness, state.rgbSpeed * 5)
+		elseif state.rgbMode == "Multi Rainbow" then
+			-- Mode 6: Multicolor Rainbow (Rainbow Swirl Effect)
+			-- Format: $0 6 <brightness_value> <speed_value>
+			command = command .. string.format(" 6 %d %d", brightness, state.rgbSpeed * 5)
+		end
 	end
 
 	-- Write command to file
