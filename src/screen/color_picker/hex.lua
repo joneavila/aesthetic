@@ -35,7 +35,7 @@ local hexState = {
 
 -- Helper function to get current hex state from central state manager
 local function getCurrentHexState()
-	local colorType = state.lastSelectedColorButton
+	local colorType = state.activeColorContext
 	local context = state.getColorContext(colorType)
 	return context.hex -- Return the hex specific state for this color context
 end
@@ -420,14 +420,14 @@ function hex.update(_dt)
 					local hexCode = "#" .. currentState.input:upper()
 
 					-- Store in central state
-					local context = state.getColorContext(state.lastSelectedColorButton)
+					local context = state.getColorContext(state.activeColorContext)
 					context.currentColor = hexCode
 
 					-- Return to menu and apply the color
 					if switchScreen then
 						switchScreen(state.previousScreen)
 						local menuScreen = require("screen.menu")
-						menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
+						menuScreen.setSelectedColor(state.activeColorContext, hexCode)
 					end
 				end
 			else
@@ -454,7 +454,7 @@ function hex.onEnter()
 	-- Optionally initialize input with current color if it's empty
 	local currentState = getCurrentHexState()
 	if currentState.input == "" then
-		local colorType = state.lastSelectedColorButton
+		local colorType = state.activeColorContext
 		local currentColorHex = state.getColorValue(colorType)
 		if currentColorHex and currentColorHex:sub(1, 1) == "#" then
 			-- Remove the # and convert to uppercase

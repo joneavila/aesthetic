@@ -363,7 +363,7 @@ function menu.update(dt)
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
-					state.lastSelectedColorButton = button.colorKey
+					state.activeColorContext = button.colorKey
 					state.previousScreen = "menu" -- Set previous screen to return to
 					switchScreen("color_picker")
 					state.resetInputTimer()

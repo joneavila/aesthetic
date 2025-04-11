@@ -39,7 +39,7 @@ local ANIMATION = {
 
 -- Helper function to get current palette state from central state manager
 local function getCurrentPaletteState()
-	local colorType = state.lastSelectedColorButton
+	local colorType = state.activeColorContext
 	local context = state.getColorContext(colorType)
 	return context.palette -- Return the palette specific state for this color context
 end
@@ -367,11 +367,11 @@ function palette.update(dt)
 				local hexCode = colors.toHex(selectedKey, "palette")
 				if hexCode then
 					-- Store in central state
-					local context = state.getColorContext(state.lastSelectedColorButton)
+					local context = state.getColorContext(state.activeColorContext)
 					context.currentColor = hexCode
 
 					-- Pass to menu
-					menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
+					menuScreen.setSelectedColor(state.activeColorContext, hexCode)
 					if switchScreen then
 						switchScreen(state.previousScreen)
 						state.resetInputTimer()

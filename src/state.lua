@@ -4,10 +4,7 @@ local love = require("love")
 local state = {
 	applicationName = "Aesthetic",
 
-	-- Screen dimensions are set using `love.graphics.getDimensions()`
-	-- Alternatively, use the muOS GET_VAR function (load the file containing the GET_VAR function first)
-	-- 		$(GET_VAR device mux/width)
-	-- 		$(GET_VAR device mux/height)
+	-- Screen dimensions are set in `src/main.lua`
 	screenWidth = 0,
 	screenHeight = 0,
 
@@ -17,7 +14,6 @@ local state = {
 		caption = love.graphics.getFont(),
 	},
 	selectedFont = "Inter", -- Default selected font
-	lastSelectedColorButton = "background", -- Default selected button for color picker
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
@@ -27,8 +23,8 @@ local state = {
 	rgbSpeed = 5, -- Default RGB speed (1-10)
 	themeApplied = false, -- Whether the theme has been applied
 
-	-- Centralized color contexts storage
-	colorContexts = {},
+	activeColorContext = "background", -- Default color context (which color context will be modified by color picker)
+	colorContexts = {}, -- Centralized color contexts storage
 }
 
 -- Color defaults to initialize contexts with

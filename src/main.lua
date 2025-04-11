@@ -106,6 +106,9 @@ local function setupFonts()
 end
 
 function love.load()
+	-- Alternatively, use the muOS GET_VAR function (load the file containing the GET_VAR function first)
+	-- 		$(GET_VAR device mux/width)
+	-- 		$(GET_VAR device mux/height)
 	state.screenWidth, state.screenHeight = love.graphics.getDimensions()
 	state.fadeDuration = 0.5
 	setupFonts()

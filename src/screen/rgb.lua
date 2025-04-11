@@ -383,7 +383,7 @@ function rgb.update(_dt)
 					-- Mode is changed with left/right, so A button does nothing here
 				elseif button.colorKey and switchScreen and not isColorDisabled() then
 					-- Open color picker for this color, but only if not disabled
-					state.lastSelectedColorButton = button.colorKey
+					state.activeColorContext = button.colorKey
 					state.previousScreen = "rgb" -- Set previous screen to return to
 					switchScreen(COLOR_PICKER_SCREEN)
 					state.resetInputTimer()

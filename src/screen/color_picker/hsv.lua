@@ -60,7 +60,7 @@ local switchScreen = nil
 
 -- Helper function to get current HSV state from central state manager
 local function getCurrentHsvState()
-	local colorType = state.lastSelectedColorButton
+	local colorType = state.activeColorContext
 	local context = state.getColorContext(colorType)
 	return context.hsv -- Return the HSV specific state for this color context
 end
@@ -190,7 +190,7 @@ function hsv.draw()
 	local halfLine = lineWidth / 2
 
 	-- Draw current color preview
-	local hexColor = state.getColorValue(state.lastSelectedColorButton)
+	local hexColor = state.getColorValue(state.activeColorContext)
 	local r, g, b = colorUtils.hexToRgb(hexColor)
 
 	love.graphics.setColor(r, g, b, 1)
@@ -505,11 +505,11 @@ function hsv.update(dt)
 			local hexCode = colorUtils.rgbToHex(r, g, b)
 
 			-- Store in the central state
-			local context = state.getColorContext(state.lastSelectedColorButton)
+			local context = state.getColorContext(state.activeColorContext)
 			context.currentColor = hexCode
 
 			-- Pass the hex code to menu
-			menuScreen.setSelectedColor(state.lastSelectedColorButton, hexCode)
+			menuScreen.setSelectedColor(state.activeColorContext, hexCode)
 
 			-- Switch back to menu
 			if switchScreen then
