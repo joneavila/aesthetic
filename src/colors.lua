@@ -301,7 +301,7 @@ colors._custom_colors = {
 -- Colors are stored in the user table to display them across the UI
 colors.addCustomColor = function(self, r, g, b)
 	-- Get the current color type from state
-	local colorType = require("state").lastSelectedColorButton
+	local colorType = require("state").activeColorContext
 
 	local colorKey = "custom_" .. colorType
 	self.user[colorKey] = { r, g, b, 1 }

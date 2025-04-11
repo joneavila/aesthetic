@@ -106,6 +106,9 @@ local function setupFonts()
 end
 
 function love.load()
+	-- Alternatively, use the muOS GET_VAR function (load the file containing the GET_VAR function first)
+	-- 		$(GET_VAR device mux/width)
+	-- 		$(GET_VAR device mux/height)
 	state.screenWidth, state.screenHeight = love.graphics.getDimensions()
 	state.fadeDuration = 0.5
 	setupFonts()
@@ -171,6 +174,15 @@ function love.draw()
 			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
 			love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 		end
+	end
+end
+
+-- Handle application exit
+function love.quit()
+	-- Restore original RGB configuration if no theme was applied
+	local rgbUtils = require("utils.rgb")
+	if not state.themeApplied then
+		rgbUtils.restoreConfig()
 	end
 end
 

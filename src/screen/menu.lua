@@ -187,7 +187,11 @@ function menu.update(dt)
 		local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
 		local success = themeCreator.installTheme(waitingThemeName)
 		waitingState = "none"
+		local themePath = waitingThemePath
 		waitingThemePath = nil
+
+		-- After theme is installed, apply RGB settings from theme
+		rgbUtils.installFromTheme()
 
 		ui.showPopup(
 			success and "Applied theme successfully." or "Failed to apply theme.",
@@ -363,7 +367,7 @@ function menu.update(dt)
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
-					state.lastSelectedColorButton = button.colorKey
+					state.activeColorContext = button.colorKey
 					state.previousScreen = "menu" -- Set previous screen to return to
 					switchScreen("color_picker")
 					state.resetInputTimer()

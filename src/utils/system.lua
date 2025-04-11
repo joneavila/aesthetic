@@ -183,7 +183,7 @@ function system.copyFile(sourcePath, destinationPath, errorMessage)
 end
 
 -- Get environment variable, setting error if not found
-function system.getRequiredEnv(name)
+function system.getEnvironmentVariable(name)
 	local value = os.getenv(name)
 	if value == nil then
 		errorHandler.setError("Environment variable not found: " .. name)
