@@ -3,7 +3,7 @@ local version = {}
 
 -- Version components
 version.major = 1
-version.minor = 3
+version.minor = 4
 version.patch = 1
 version.prerelease = nil -- e.g., "beta.1", can be nil for stable releases
 
