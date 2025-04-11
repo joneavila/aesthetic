@@ -1,6 +1,7 @@
 --- Menu constants
 local state = require("state")
 local controls = require("controls")
+local system = require("utils.system")
 
 local constants = {}
 
@@ -103,7 +104,7 @@ constants.POPUP_BUTTONS = {
 
 constants.PATHS = {
 	-- Since the environment variable is set in the run script it will not be set when debugging
-	TEMPLATE_DIR = os.getenv("TEMPLATE_DIR") or "some/path",
+	TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR"),
 }
 
 -- Create a local alias for easier access
