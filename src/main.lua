@@ -38,7 +38,7 @@ local function updateInputTimer(dt)
 end
 
 local function setupFonts()
-	-- Calculate font sizes as a percentage of the screen height
+	-- Calculate font sizes based on reference resolution and aspect ratio
 
 	-- The default muOS Pixie theme includes the following resolutions:
 	-- 	640x480
@@ -47,27 +47,50 @@ local function setupFonts()
 	-- 	720x720
 	-- 	1024x768
 	-- 	1280x720
-	local maxScreenHeight = 768
 
-	local fontSizeHeader = 32 * (state.screenHeight / maxScreenHeight)
+	-- Reference resolution is 720x720 (square display)
+	local referenceWidth = 720
+	local referenceHeight = 720
+
+	-- Calculate scaling factors
+	local widthRatio = state.screenWidth / referenceWidth
+	local heightRatio = state.screenHeight / referenceHeight
+
+	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
+	-- Add a minimum scale factor to prevent fonts from becoming too small
+	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 0.8)
+
+	-- Define base font sizes for 720x720 reference display
+	local baseFontSizes = {
+		header = 32,
+		body = 24,
+		caption = 18,
+		monoTitle = 48,
+		monoBody = 22,
+		nunito = 24,
+		retroPixel = 24,
+	}
+
+	-- Apply scaling
+	local fontSizeHeader = baseFontSizes.header * scaleFactor
 	local fontHeader = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeHeader)
 
-	local fontSizeBody = 24 * (state.screenHeight / maxScreenHeight)
+	local fontSizeBody = baseFontSizes.body * scaleFactor
 	local fontBody = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeBody)
 
-	local fontSizeCaption = 18 * (state.screenHeight / maxScreenHeight)
+	local fontSizeCaption = baseFontSizes.caption * scaleFactor
 	local fontCaption = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeCaption)
 
-	local fontSizeMonoTitle = 48 * (state.screenHeight / maxScreenHeight)
+	local fontSizeMonoTitle = baseFontSizes.monoTitle * scaleFactor
 	local fontMonoTitle = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoTitle)
 
-	local fontSizeMonoBody = 22 * (state.screenHeight / maxScreenHeight)
+	local fontSizeMonoBody = baseFontSizes.monoBody * scaleFactor
 	local fontMonoBody = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoBody)
 
-	local fontSizeNunito = 24 * (state.screenHeight / maxScreenHeight)
+	local fontSizeNunito = baseFontSizes.nunito * scaleFactor
 	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
 
-	local fontSizeRetroPixel = 24 * (state.screenHeight / maxScreenHeight)
+	local fontSizeRetroPixel = baseFontSizes.retroPixel * scaleFactor
 	local fontRetroPixel = love.graphics.newFont("assets/fonts/retro_pixel/retro-pixel-thick.ttf", fontSizeRetroPixel)
 
 	-- Store fonts in a table for easy access
