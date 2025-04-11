@@ -34,19 +34,52 @@ function rgb.standardRGBToHex(r, g, b)
 	return colorUtils.rgbToHex(r / 255, g / 255, b / 255)
 end
 
--- Function to create RGB configuration file at the specified path
-function rgb.createConfigFile(rgbDir, rgbConfPath)
-	-- Ensure path exists for RGB directory
-	if not system.ensurePath(rgbDir) then
+-- Function to execute the RGB configuration file or its contents
+function rgb.executeConfig(rgbConfPath)
+	if not rgbConfPath then
 		return false
 	end
 
-	-- Open `rgbconf.sh` for writing
-	local rgbConfFile = io.open(rgbConfPath, "w")
-	if not rgbConfFile then
+	local file = io.open(rgbConfPath, "r")
+	if not file then
 		return false
 	end
 
+	local command = file:read("*all")
+	file:close()
+
+	if not command or command == "" then
+		return false
+	end
+
+	-- Always execute the command directly due to permission issues
+	local result = commands.executeCommand(command)
+
+	return result == 0
+end
+
+-- Function to update RGB configuration and apply it immediately
+function rgb.updateConfig()
+	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
+	local rgbConfPath = rgbDir .. "/rgbconf.sh"
+
+	system.ensurePath(rgbDir)
+
+	-- Generate the command
+	local command = rgb.buildCommand()
+
+	-- Create the configuration file for persistence
+	if rgb.writeCommandToFile(command, rgbConfPath) then
+		-- Execute the command directly
+		local result = commands.executeCommand(command)
+		return result == 0
+	end
+
+	return false
+end
+
+-- Function to build the RGB command string based on current settings
+function rgb.buildCommand()
 	-- Base command for led_control.sh
 	local command = "/opt/muos/device/current/script/led_control.sh"
 
@@ -91,9 +124,13 @@ function rgb.createConfigFile(rgbDir, rgbConfPath)
 		end
 	end
 
-	-- Write command to file
-	rgbConfFile:write(command)
-	rgbConfFile:close()
+	return command
+end
+
+-- Function to write command to config file
+function rgb.writeCommandToFile(command, rgbConfPath)
+	-- Write directly to the target file using command
+	commands.executeCommand(string.format('echo "%s" > "%s"', command, rgbConfPath))
 
 	-- Make the file executable
 	commands.executeCommand(string.format('chmod +x "%s"', rgbConfPath))
@@ -101,25 +138,15 @@ function rgb.createConfigFile(rgbDir, rgbConfPath)
 	return true
 end
 
--- Function to execute the RGB configuration file
-function rgb.executeConfig(rgbConfPath)
-	if not rgbConfPath then
-		return false
-	end
-	commands.executeCommand(rgbConfPath)
-	return true
-end
+-- Function to create RGB configuration file at the specified path
+function rgb.createConfigFile(rgbDir, rgbConfPath)
+	system.ensurePath(rgbDir)
 
--- Function to update RGB configuration and apply it immediately
-function rgb.updateConfig()
-	local rgbDir = "/run/muos/storage/theme/active/rgb"
-	local rgbConfPath = rgbDir .. "/rgbconf.sh"
+	-- Build the command
+	local command = rgb.buildCommand()
 
-	-- Create and execute the configuration
-	if rgb.createConfigFile(rgbDir, rgbConfPath) then
-		return rgb.executeConfig(rgbConfPath)
-	end
-	return false
+	-- Write the command to file
+	return rgb.writeCommandToFile(command, rgbConfPath)
 end
 
 -- Function to parse RGB configuration from a file
@@ -203,40 +230,87 @@ function rgb.backupConfig()
 	return system.copyFile(paths.ACTIVE_RGB_CONF_PATH, paths.ACTIVE_RGB_CONF_BACKUP_PATH)
 end
 
--- Function to restore RGB configuration from backup
+-- Function to restore RGB configuration from backup or turn off if no backup
 function rgb.restoreConfig()
-	-- Only restore if we haven't applied a theme and backup exists
-	if state.themeApplied or not system.fileExists(paths.ACTIVE_RGB_CONF_BACKUP_PATH) then
+	-- Only restore if we haven't applied a theme
+	if state.themeApplied then
 		return false
 	end
 
-	-- Copy backup back to active config
-	if not system.copyFile(paths.ACTIVE_RGB_CONF_BACKUP_PATH, paths.ACTIVE_RGB_CONF_PATH) then
-		return false
-	end
+	-- If backup exists, restore it
+	if system.fileExists(paths.ACTIVE_RGB_CONF_BACKUP_PATH) then
+		-- Copy backup back to active config
+		if not system.copyFile(paths.ACTIVE_RGB_CONF_BACKUP_PATH, paths.ACTIVE_RGB_CONF_PATH) then
+			return false
+		end
 
-	-- Execute the restored config
-	return rgb.executeConfig(paths.ACTIVE_RGB_CONF_PATH)
+		-- Execute the restored config
+		return rgb.executeConfig(paths.ACTIVE_RGB_CONF_PATH)
+	else
+		-- No backup exists, which means there was no RGB lighting
+		-- when the application started. Turn off RGB lighting.
+		local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
+		local rgbConfPath = rgbDir .. "/rgbconf.sh"
+
+		-- Ensure directory exists
+		system.ensurePath(rgbDir)
+
+		-- Create an "off" command for RGB
+		local command = "/opt/muos/device/current/script/led_control.sh 1 0 0 0 0 0 0 0"
+
+		-- Write the command to file
+		rgb.writeCommandToFile(command, rgbConfPath)
+
+		-- Execute the command directly to turn off lighting
+		return commands.executeCommand(command) == 0
+	end
 end
 
 -- Function to initialize RGB state from current configuration
 function rgb.initializeFromCurrentConfig()
 	-- Try to read current configuration
-	local config = rgb.parseConfig(paths.ACTIVE_RGB_CONF_PATH)
-	if config then
-		-- Update state with current settings
-		state.rgbMode = config.mode
-		state.rgbBrightness = config.brightness
-		if config.color then
-			state.setColorValue("rgb", config.color)
-		end
-		if config.speed then
-			state.rgbSpeed = config.speed
-		end
-	end
+	if system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
+		local config = rgb.parseConfig(paths.ACTIVE_RGB_CONF_PATH)
 
-	-- Backup current configuration
-	return rgb.backupConfig()
+		if config then
+			-- Update state with current settings
+			state.rgbMode = config.mode
+			state.rgbBrightness = config.brightness
+			if config.color then
+				state.setColorValue("rgb", config.color)
+			end
+			if config.speed then
+				state.rgbSpeed = config.speed
+			end
+		end
+
+		-- Backup current configuration
+		return rgb.backupConfig()
+	else
+		-- If no RGB configuration exists, just take note of this fact
+		-- We'll use this later to turn off RGB when exiting without applying a theme
+		return true
+	end
+end
+
+-- Function to install RGB config from theme to active config
+function rgb.installFromTheme()
+	-- Get the active RGB directory and configuration path
+	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
+	local rgbConfPath = rgbDir .. "/rgbconf.sh"
+
+	system.ensurePath(rgbDir)
+
+	-- Build command string based on current RGB settings
+	local command = rgb.buildCommand()
+
+	-- Write command to config file for persistence
+	rgb.writeCommandToFile(command, rgbConfPath)
+
+	-- Execute the command directly
+	commands.executeCommand(command)
+
+	return true
 end
 
 return rgb

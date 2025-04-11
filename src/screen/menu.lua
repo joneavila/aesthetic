@@ -187,7 +187,11 @@ function menu.update(dt)
 		local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
 		local success = themeCreator.installTheme(waitingThemeName)
 		waitingState = "none"
+		local themePath = waitingThemePath
 		waitingThemePath = nil
+
+		-- After theme is installed, apply RGB settings from theme
+		rgbUtils.installFromTheme()
 
 		ui.showPopup(
 			success and "Applied theme successfully." or "Failed to apply theme.",
@@ -403,6 +407,11 @@ end
 function menu.onExit()
 	-- Clean up working directory when leaving menu screen
 	themeCreator.cleanup()
+
+	-- Restore RGB lighting to original state if no theme was applied
+	if not state.themeApplied then
+		rgbUtils.restoreConfig()
+	end
 end
 
 return menu
