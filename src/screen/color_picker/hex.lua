@@ -5,6 +5,8 @@ local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
 local constants = require("screen.color_picker.constants")
+local tove = require("tove")
+local errorHandler = require("screen.menu.error_handler")
 
 local hex = {}
 
@@ -24,9 +26,6 @@ local INPUT_RECT_WIDTH = 30
 local INPUT_RECT_HEIGHT = 40
 local INPUT_RECT_SPACING = 5
 local ICON_SIZE = 24
-
--- Icon coloring shader
-local iconShader = nil
 
 -- State
 local hexState = {
@@ -54,45 +53,15 @@ local iconCache = {}
 -- Helper function to load an icon
 local function loadIcon(name)
 	if not iconCache[name] then
-		local path = "assets/icons/" .. name
-		iconCache[name] = love.graphics.newImage(path)
+		local svgPath = "assets/icons/" .. name .. ".svg"
+		local svg = love.filesystem.read(svgPath)
+		if svg then
+			iconCache[name] = tove.newGraphics(svg, ICON_SIZE)
+		else
+			errorHandler.setError("Failed to load SVG icon: " .. svgPath)
+		end
 	end
 	return iconCache[name]
-end
-
--- Helper function to draw an icon with the specified color
-local function drawColoredIcon(icon, x, y, color, scale)
-	-- Check if shader is available
-	if not iconShader then
-		-- Fallback to regular drawing if shader is not available
-		love.graphics.setColor(color)
-		love.graphics.draw(icon, x, y, 0, scale, scale)
-		return
-	end
-
-	-- Save current shader
-	local prevShader = love.graphics.getShader()
-
-	-- Set our icon shader and its parameters
-	love.graphics.setShader(iconShader)
-
-	-- Ensure color values are valid
-	local r = color[1] or 1
-	local g = color[2] or 1
-	local b = color[3] or 1
-	local a = color[4] or 1
-
-	-- Send color values to shader
-	if iconShader.send then
-		iconShader:send("tint", { r, g, b, a })
-	end
-
-	-- Draw the icon
-	love.graphics.setColor(1, 1, 1, 1) -- Reset color to white for shader to work properly
-	love.graphics.draw(icon, x, y, 0, scale, scale)
-
-	-- Restore previous shader
-	love.graphics.setShader(prevShader)
 end
 
 -- Helper function to check if hex input is valid
@@ -149,30 +118,10 @@ function hex.load()
 	local bgContext = state.getColorContext("background")
 	local fgContext = state.getColorContext("foreground")
 
-	-- Create shader for icon coloring
-	local success, result = pcall(function()
-		return love.graphics.newShader([[
-			extern vec4 tint;
-			vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
-				vec4 pixel = Texel(texture, texture_coords);
-				// Use the alpha channel from the texture but the RGB from the tint
-				return vec4(tint.rgb, pixel.a * tint.a);
-			}
-		]])
-	end)
-
-	if success then
-		iconShader = result
-	else
-		print("Warning: Failed to create shader: " .. tostring(result))
-		iconShader = nil
-	end
-
 	-- Preload icons
-	-- Lucide icons were generated using stroke width 3px, size 48px.
-	loadIcon("delete.png")
-	loadIcon("trash.png")
-	loadIcon("check.png")
+	loadIcon("delete")
+	loadIcon("trash")
+	loadIcon("check")
 end
 
 function hex.draw()
@@ -283,38 +232,79 @@ function hex.draw()
 				end
 				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
-				-- Determine icon color - use semi-transparent if confirm button is disabled
-				local iconColor
-				if isConfirmButton and isSelected and isValidHex(currentState.input) then
-					-- Valid confirm button that is selected - use background color for icon
-					iconColor = colors.ui.background
-				elseif isConfirmDisabled then
-					-- Invalid confirm button - use semi-transparent foreground
-					iconColor = { colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.5 }
-				else
-					-- All other buttons - use foreground color
-					iconColor = colors.ui.foreground
+				-- Set text/icon color - always use foreground color for better visibility
+				local buttonColor = colors.ui.foreground
+
+				-- Only for the confirm button when it's disabled and not selected, use a dimmed color
+				if isConfirmButton and isConfirmDisabled and not isSelected then
+					buttonColor = {
+						colors.ui.foreground[1] * 0.5,
+						colors.ui.foreground[2] * 0.5,
+						colors.ui.foreground[3] * 0.5,
+						1.0, -- Always use full alpha
+					}
 				end
 
 				-- Special handling for icon buttons
 				if buttonText == "BACKSPACE" then
 					-- Backspace icon
-					local icon = loadIcon("delete.png")
-					local scale = ICON_SIZE / icon:getWidth()
-					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
+					local icon = loadIcon("delete")
+					if icon then
+						-- Set icon color directly using foreground color
+						icon:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
+						-- Also set the LÖVE draw color to foreground
+						love.graphics.setColor(colors.ui.foreground)
+						-- Draw the icon centered on the button
+						local centerX = x + width / 2
+						local centerY = y + height / 2
+						icon:draw(centerX, centerY)
+					end
 				elseif buttonText == "CLEAR" then
 					-- Trash icon
-					local icon = loadIcon("trash.png")
-					local scale = ICON_SIZE / icon:getWidth()
-					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
+					local icon = loadIcon("trash")
+					if icon then
+						-- Set icon color directly using foreground color
+						icon:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
+						-- Also set the LÖVE draw color to foreground
+						love.graphics.setColor(colors.ui.foreground)
+						-- Draw the icon centered on the button
+						local centerX = x + width / 2
+						local centerY = y + height / 2
+						icon:draw(centerX, centerY)
+					end
 				elseif buttonText == "CONFIRM" then
 					-- Check icon (confirm)
-					local icon = loadIcon("check.png")
-					local scale = ICON_SIZE / icon:getWidth()
-					drawColoredIcon(icon, x + (width - ICON_SIZE) / 2, y + (height - ICON_SIZE) / 2, iconColor, scale)
+					local icon = loadIcon("check")
+					if icon then
+						-- Use foreground color for icon
+						if isConfirmDisabled and not isSelected then
+							-- If disabled and not selected, use dimmed foreground color
+							local dimmedColor = {
+								colors.ui.foreground[1] * 0.5,
+								colors.ui.foreground[2] * 0.5,
+								colors.ui.foreground[3] * 0.5,
+							}
+							icon:setMonochrome(dimmedColor[1], dimmedColor[2], dimmedColor[3])
+							-- Also set the LÖVE draw color to the same dimmed foreground
+							love.graphics.setColor(dimmedColor)
+						else
+							-- Otherwise use full foreground color
+							icon:setMonochrome(
+								colors.ui.foreground[1],
+								colors.ui.foreground[2],
+								colors.ui.foreground[3]
+							)
+							-- Also set the LÖVE draw color to foreground
+							love.graphics.setColor(colors.ui.foreground)
+						end
+						-- Draw the icon centered on the button
+						local centerX = x + width / 2
+						local centerY = y + height / 2
+						icon:draw(centerX, centerY)
+					end
 				else
-					-- Regular text button
-					love.graphics.setColor(iconColor)
+					-- Regular text button - set color for text
+					love.graphics.setColor(colors.ui.foreground)
 					love.graphics.setFont(state.fonts.body)
 					local textWidth = state.fonts.body:getWidth(buttonText)
 					local textHeight = state.fonts.body:getHeight()
