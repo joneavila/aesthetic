@@ -177,4 +177,13 @@ function love.draw()
 	end
 end
 
+-- Handle application exit
+function love.quit()
+	-- Restore original RGB configuration if no theme was applied
+	local rgbUtils = require("utils.rgb")
+	if not state.themeApplied then
+		rgbUtils.restoreConfig()
+	end
+end
+
 return state

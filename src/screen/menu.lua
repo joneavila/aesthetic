@@ -407,11 +407,6 @@ end
 function menu.onExit()
 	-- Clean up working directory when leaving menu screen
 	themeCreator.cleanup()
-
-	-- Restore RGB lighting to original state if no theme was applied
-	if not state.themeApplied then
-		rgbUtils.restoreConfig()
-	end
 end
 
 return menu

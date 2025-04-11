@@ -33,6 +33,10 @@ function screens.switchTo(screenName, tabName)
 		return
 	end
 
+	-- Ensure RGB settings persist when switching screens
+	local rgbUtils = require("utils.rgb")
+	rgbUtils.updateConfig()
+
 	-- Call exit handler on current screen if it exists
 	local currentModule = registeredScreens[currentScreen]
 	if currentModule and currentModule.onExit then
