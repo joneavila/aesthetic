@@ -13,10 +13,6 @@ BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
 RGB_DIR="/run/muos/storage/theme/active/rgb"
 
-# Create RGB directory with proper permissions if it doesn't exist
-# mkdir -p "$RGB_DIR"
-# chmod 777 "$RGB_DIR"
-
 # Export environment variables
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
 export LOG_DIR
