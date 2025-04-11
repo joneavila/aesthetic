@@ -11,7 +11,11 @@ local rgb = {}
 
 -- Function to convert brightness from UI range (1-10) to hardware range (0-255)
 function rgb.brightnessToHardware(brightness)
-	return math.floor(((brightness - 1) / 9) * 255)
+	if brightness <= 1 then
+		return 10 -- Minimum value to ensure LEDs stay on
+	else
+		return math.floor(((brightness - 1) / 9) * 255)
+	end
 end
 
 -- Function to convert brightness from hardware range (0-255) to UI range (1-10)
