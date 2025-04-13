@@ -164,7 +164,6 @@ function rgb.parseConfig(filePath)
 	file:close()
 
 	-- Extract parameters from the command
-	local mode, brightness, r, g, b, speed
 	local params = {}
 
 	-- Parse mode number (first parameter after the script path)
