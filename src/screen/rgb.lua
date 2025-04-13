@@ -378,22 +378,13 @@ function rgb.update(_dt)
 	-- Handle A button to go to color picker for RGB color
 	if virtualJoystick:isGamepadDown("a") then
 		for _, button in ipairs(BUTTONS) do
-			if button.selected then
-				if button.text == "Mode" then
-					-- Mode is changed with left/right, so A button does nothing here
-				elseif button.colorKey and switchScreen and not isColorDisabled() then
-					-- Open color picker for this color, but only if not disabled
-					state.activeColorContext = button.colorKey
-					state.previousScreen = "rgb" -- Set previous screen to return to
-					switchScreen(COLOR_PICKER_SCREEN)
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
-				elseif button.text == "Brightness" and not isBrightnessDisabled() then
-					-- Brightness is adjusted with left/right, so A button does nothing here
-				elseif button.text == "Speed" and not isSpeedDisabled() then
-					-- Speed is adjusted with left/right, so A button does nothing here
-				end
-				break
+			if button.selected and button.colorKey and switchScreen and not isColorDisabled() then
+				-- Open color picker for this color, but only if not disabled
+				state.activeColorContext = button.colorKey
+				state.previousScreen = "rgb" -- Set previous screen to return to
+				switchScreen(COLOR_PICKER_SCREEN)
+				state.resetInputTimer()
+				state.forceInputDelay(0.2) -- Add extra delay when switching screens
 			end
 		end
 	end
