@@ -86,6 +86,11 @@ Any support is greatly appreciated – thank you for supporting open source soft
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
 
+## 🗺️ Roadmap
+
+- [ ] Remember most recent theme settings
+- [ ] Customize font size in themes
+
 ## ⚖️ License
 
 This project is licensed under the MIT License. You are free to use, modify, and distribute this software, provided that you include the original copyright notice and a disclaimer of liability. For more details, see [LICENSE](LICENSE).
