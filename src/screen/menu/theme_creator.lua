@@ -470,6 +470,77 @@ local function createRebootImage()
 	return true
 end
 
+-- Function to create shutdown image shown during shutdown
+-- This function is identical to `createRebootImage` (except for the icon and text)
+local function createShutdownImage()
+	-- Read properties from state
+	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
+	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
+
+	-- Load shutdown icon SVG, set size and color
+	local svg = love.filesystem.read("assets/icons/power.svg")
+	local iconSize = 100
+	local icon = tove.newGraphics(svg, iconSize)
+	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
+
+	local previousCanvas = love.graphics.getCanvas()
+
+	-- Create a new canvas, set it as the current canvas, and clear it
+	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
+	love.graphics.setCanvas(canvas)
+	love.graphics.clear(bgColor)
+
+	love.graphics.push()
+
+	-- Draw the icon
+	local iconX = screenWidth / 2
+	local iconY = screenHeight / 2 - 50
+	icon:draw(iconX, iconY)
+
+	-- Create a larger version of the font
+	local fontSize = math.floor(constants.IMAGE_FONT_SIZE * 1.3)
+	local fontDef = state.fontDefs[state.fontNameToKey[state.selectedFont]]
+	local largerFont = love.graphics.newFont(fontDef.path, fontSize)
+
+	-- Set the font and color
+	love.graphics.setFont(largerFont)
+	love.graphics.setColor(fgColor)
+
+	-- Draw the text centered
+	local text = "Shutting down..."
+	local textWidth = largerFont:getWidth(text)
+	local textX = (screenWidth - textWidth) / 2
+	local textY = screenHeight / 2 + 30
+	love.graphics.print(text, textX, textY)
+
+	love.graphics.pop()
+
+	love.graphics.setCanvas(previousCanvas)
+
+	-- Get image data and encode
+	local imageData = canvas:newImageData()
+	local pngData = imageData:encode("png")
+
+	-- Write the PNG data to the shutdown image file
+	local shutdownImageFile = io.open(paths.THEME_SHUTDOWN_IMAGE_PATH, "wb")
+	if not shutdownImageFile then
+		errorHandler.setError("Failed to open shutdown image file: " .. paths.THEME_SHUTDOWN_IMAGE_PATH)
+		return false
+	end
+	local success, writeErr = pcall(function()
+		shutdownImageFile:write(pngData:getString())
+	end)
+	shutdownImageFile:close()
+
+	if not success then
+		errorHandler.setError("Failed to write shutdown image data: " .. tostring(writeErr))
+		return false
+	end
+
+	return true
+end
+
 -- Function to create `credits.txt` file containing the theme's credits
 local function createCreditsFile()
 	local creditsFile = io.open(paths.THEME_CREDITS_PATH, "w")
@@ -593,6 +664,11 @@ function themeCreator.createTheme()
 
 		-- Create theme's reboot image
 		if not createRebootImage() then
+			return false
+		end
+
+		-- Create theme's shutdown image
+		if not createShutdownImage() then
 			return false
 		end
 
