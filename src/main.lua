@@ -117,6 +117,12 @@ function love.load()
 	local function onSplashDone()
 		state.splash = nil -- Clear splash screen
 		input.load()
+
+		-- Apply RGB lighting settings when first launching application
+		local rgbUtils = require("utils.rgb")
+		rgbUtils.initializeFromCurrentConfig()
+		rgbUtils.updateConfig()
+
 		screens.load()
 		state.fading = true -- Start the fade effect
 		state.fadeTimer = 0 -- Reset fade timer
