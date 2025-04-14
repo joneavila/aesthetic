@@ -28,10 +28,10 @@ local fontItems = {}
 -- Initialize font items based on constants.FONTS
 local function initFontItems()
 	fontItems = {}
-	for _, font in ipairs(constants.FONTS) do
+	for _, fontItem in ipairs(constants.FONTS) do
 		table.insert(fontItems, {
-			name = font.name,
-			selected = font.name == state.selectedFont,
+			name = fontItem.name,
+			selected = fontItem.name == state.selectedFont,
 		})
 	end
 end
@@ -187,8 +187,8 @@ function font.update(_dt)
 				state.selectedFont = item.name
 
 				-- Update constants.FONTS to match
-				for _, font in ipairs(constants.FONTS) do
-					font.selected = (font.name == item.name)
+				for _, fontItem in ipairs(constants.FONTS) do
+					fontItem.selected = (fontItem.name == item.name)
 				end
 
 				-- Return to menu
