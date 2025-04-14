@@ -60,16 +60,8 @@ function font.draw()
 		-- Draw item text in its own font
 		love.graphics.setColor(colors.ui.foreground)
 
-		-- Use the appropriate font for the item
-		if item.name == "Inter" then
-			love.graphics.setFont(state.fonts.body)
-		elseif item.name == "Cascadia Code" then
-			love.graphics.setFont(state.fonts.monoBody)
-		elseif item.name == "Retro Pixel" then
-			love.graphics.setFont(state.fonts.retroPixel)
-		else
-			love.graphics.setFont(state.fonts.nunito)
-		end
+		-- Use getFontByName to get the appropriate font instead of if-else statements
+		love.graphics.setFont(state.getFontByName(item.name))
 
 		local textHeight = love.graphics.getFont():getHeight()
 		love.graphics.print(item.name, FONT_SCREEN.PADDING, y + (FONT_SCREEN.ITEM_HEIGHT - textHeight) / 2)
@@ -84,16 +76,8 @@ function font.draw()
 		end
 	end
 
-	-- Set the font for preview text based on the hovered font
-	if hoveredFontName == "Inter" then
-		love.graphics.setFont(state.fonts.body)
-	elseif hoveredFontName == "Cascadia Code" then
-		love.graphics.setFont(state.fonts.monoBody)
-	elseif hoveredFontName == "Retro Pixel" then
-		love.graphics.setFont(state.fonts.retroPixel)
-	else
-		love.graphics.setFont(state.fonts.nunito)
-	end
+	-- Set the font for preview text using getFontByName
+	love.graphics.setFont(state.getFontByName(hoveredFontName))
 
 	-- Calculate preview text area dimensions
 	local previewWidth = state.screenWidth - (FONT_SCREEN.PADDING * 2)

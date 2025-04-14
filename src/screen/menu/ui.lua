@@ -99,16 +99,8 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Calculate the right edge position
 		local rightEdge = state.screenWidth - 20
 
-		-- Use the appropriate font for measurement and display
-		if selectedFontName == "Inter" then
-			love.graphics.setFont(state.fonts.body)
-		elseif selectedFontName == "Cascadia Code" then
-			love.graphics.setFont(state.fonts.monoBody)
-		elseif selectedFontName == "Retro Pixel" then
-			love.graphics.setFont(state.fonts.retroPixel)
-		else
-			love.graphics.setFont(state.fonts.nunito)
-		end
+		-- Use the appropriate font for measurement and display using getFontByName
+		love.graphics.setFont(state.getFontByName(selectedFontName))
 
 		-- Calculate font name width for positioning
 		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)

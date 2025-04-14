@@ -60,49 +60,15 @@ local function setupFonts()
 	-- Add a minimum scale factor to prevent fonts from becoming too small
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 0.8)
 
-	-- Define base font sizes for 720x720 reference display
-	local baseFontSizes = {
-		header = 32,
-		body = 24,
-		caption = 18,
-		monoTitle = 48,
-		monoBody = 22,
-		nunito = 24,
-		retroPixel = 24,
-	}
+	-- Initialize the font name mapping
+	state.initFontNameMapping()
 
-	-- Apply scaling
-	local fontSizeHeader = baseFontSizes.header * scaleFactor
-	local fontHeader = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeHeader)
-
-	local fontSizeBody = baseFontSizes.body * scaleFactor
-	local fontBody = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeBody)
-
-	local fontSizeCaption = baseFontSizes.caption * scaleFactor
-	local fontCaption = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeCaption)
-
-	local fontSizeMonoTitle = baseFontSizes.monoTitle * scaleFactor
-	local fontMonoTitle = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoTitle)
-
-	local fontSizeMonoBody = baseFontSizes.monoBody * scaleFactor
-	local fontMonoBody = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoBody)
-
-	local fontSizeNunito = baseFontSizes.nunito * scaleFactor
-	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
-
-	local fontSizeRetroPixel = baseFontSizes.retroPixel * scaleFactor
-	local fontRetroPixel = love.graphics.newFont("assets/fonts/retro_pixel/retro-pixel-thick.ttf", fontSizeRetroPixel)
-
-	-- Store fonts in a table for easy access
-	state.fonts = {
-		header = fontHeader,
-		body = fontBody,
-		caption = fontCaption,
-		monoTitle = fontMonoTitle,
-		monoBody = fontMonoBody,
-		nunito = fontNunito,
-		retroPixel = fontRetroPixel,
-	}
+	-- Create all fonts using the font definitions and scaling
+	state.fonts = {}
+	for key, def in pairs(state.fontDefs) do
+		local fontSize = def.size * scaleFactor
+		state.fonts[key] = love.graphics.newFont(def.path, fontSize)
+	end
 end
 
 function love.load()

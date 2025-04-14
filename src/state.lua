@@ -45,11 +45,22 @@ local state = {
 	screenWidth = 0,
 	screenHeight = 0,
 
-	fonts = {
-		header = love.graphics.getFont(),
-		body = love.graphics.getFont(),
-		caption = love.graphics.getFont(),
+	fonts = {},
+
+	-- Font definitions mapping
+	fontDefs = {
+		header = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 32 },
+		body = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 24 },
+		caption = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 18 },
+		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 48 },
+		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 22 },
+		nunito = { name = "Nunito", path = "assets/fonts/nunito/Nunito-Bold.ttf", size = 24 },
+		retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro-pixel-thick.ttf", size = 24 },
 	},
+
+	-- Font name to font key mapping for easy lookup
+	fontNameToKey = {},
+
 	selectedFont = "Inter", -- Default selected font
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
@@ -89,6 +100,23 @@ function state.setColorValue(contextKey, colorValue)
 	local context = state.getColorContext(contextKey)
 	context.currentColor = colorValue
 	return colorValue
+end
+
+--- Helper function to get a font by name
+function state.getFontByName(fontName)
+	local fontKey = state.fontNameToKey[fontName]
+	if fontKey then
+		return state.fonts[fontKey]
+	end
+	return state.fonts.body -- Return default font if not found
+end
+
+--- Helper function to initialize font name to key mapping
+function state.initFontNameMapping()
+	state.fontNameToKey = {}
+	for key, def in pairs(state.fontDefs) do
+		state.fontNameToKey[def.name] = key
+	end
 end
 
 return state
