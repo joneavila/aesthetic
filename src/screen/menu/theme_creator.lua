@@ -409,26 +409,14 @@ local function createRebootImage()
 
 	-- Load reboot icon SVG, set size and color
 	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
-	if not svg then
-		errorHandler.setError("Failed to load reboot icon SVG file: " .. paths.THEME_REBOOT_ICON_SVG_PATH)
-		return false
-	end
-	local iconSize = 150
+	local iconSize = 100
 	local icon = tove.newGraphics(svg, iconSize)
-	if not icon then
-		errorHandler.setError("Failed to create graphics from reboot icon SVG")
-		return false
-	end
 	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
 
 	local previousCanvas = love.graphics.getCanvas()
 
 	-- Create a new canvas, set it as the current canvas, and clear it
 	local canvas = love.graphics.newCanvas(screenWidth, screenHeight)
-	if not canvas then
-		errorHandler.setError("Failed to create canvas for reboot image")
-		return false
-	end
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
@@ -439,30 +427,20 @@ local function createRebootImage()
 	local iconY = screenHeight / 2 - 50
 	icon:draw(iconX, iconY)
 
-	-- Get the selected font from state
-	local selectedFontName = state.selectedFont
-	local fontMap = {
-		["Inter"] = state.fonts.body,
-		["Cascadia Code"] = state.fonts.monoBody,
-		["Retro Pixel"] = state.fonts.retroPixel,
-	}
-	local font = fontMap[selectedFontName] or state.fonts.body
-	if not font then
-		errorHandler.setError("Failed to get font for reboot image")
-		love.graphics.pop()
-		love.graphics.setCanvas(previousCanvas)
-		return false
-	end
+	-- Create a larger version of the font
+	local fontSize = math.floor(constants.IMAGE_FONT_SIZE * 1.3)
+	local fontDef = state.fontDefs[state.fontNameToKey[state.selectedFont]]
+	local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 
-	-- Set the font, size and color
-	love.graphics.setFont(font, constants.IMAGE_FONT_SIZE)
+	-- Set the font and color
+	love.graphics.setFont(largerFont)
 	love.graphics.setColor(fgColor)
 
 	-- Draw the text centered
 	local text = "Rebooting..."
-	local textWidth = font:getWidth(text)
+	local textWidth = largerFont:getWidth(text)
 	local textX = (screenWidth - textWidth) / 2
-	local textY = screenHeight / 2 + 50
+	local textY = screenHeight / 2 + 30
 	love.graphics.print(text, textX, textY)
 
 	love.graphics.pop()
@@ -471,16 +449,7 @@ local function createRebootImage()
 
 	-- Get image data and encode
 	local imageData = canvas:newImageData()
-	if not imageData then
-		errorHandler.setError("Failed to get image data from reboot canvas")
-		return false
-	end
-
 	local pngData = imageData:encode("png")
-	if not pngData then
-		errorHandler.setError("Failed to encode reboot image to PNG")
-		return false
-	end
 
 	-- Write the PNG data to the reboot image file
 	local rebootImageFile = io.open(paths.THEME_REBOOT_IMAGE_PATH, "wb")
