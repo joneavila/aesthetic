@@ -120,8 +120,7 @@ paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
 -- Active RGB configuration paths
--- paths.ACTIVE_RGB_DIR = system.getEnvironmentVariable("RGB_DIR") or paths.THEME_ACTIVE_DIR .. "/rgb"
-paths.ACTIVE_RGB_DIR = system.getEnvironmentVariable("RGB_DIR")
+paths.ACTIVE_RGB_DIR = "/run/muos/storage/theme/active/rgb"
 paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
 paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
 
@@ -166,8 +165,7 @@ paths.THEME_GLYPH_SOURCE_PATH = paths.TEMPLATE_DIR .. "/glyph"
 paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 
 -- `rgb`
--- paths.THEME_RGB_DIR = system.getEnvironmentVariable("RGB_DIR") or paths.WORKING_THEME_DIR .. "/rgb"
-paths.THEME_RGB_DIR = system.getEnvironmentVariable("RGB_DIR")
+paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
 paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 
 -- `<width>x<height>`
