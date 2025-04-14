@@ -84,10 +84,10 @@ function love.load()
 		state.splash = nil -- Clear splash screen
 		input.load()
 
-		-- Apply RGB lighting settings when first launching application
+		-- Apply default RGB lighting settings when first launching application
 		local rgbUtils = require("utils.rgb")
-		rgbUtils.initializeFromCurrentConfig()
-		rgbUtils.updateConfig()
+		rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+		rgbUtils.updateConfig() -- Apply default RGB settings from state
 
 		screens.load()
 		state.fading = true -- Start the fade effect

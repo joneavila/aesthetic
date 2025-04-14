@@ -99,9 +99,6 @@ function rgb.load()
 	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
 	BUTTON.START_Y = BUTTON.PADDING
 
-	-- Initialize RGB state from current configuration
-	rgbUtils.initializeFromCurrentConfig()
-
 	-- Set the correct current option index based on state.rgbMode
 	for i, option in ipairs(RGB_MODES) do
 		if option == state.rgbMode then

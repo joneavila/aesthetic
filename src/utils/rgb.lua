@@ -265,31 +265,12 @@ function rgb.restoreConfig()
 	end
 end
 
--- Function to initialize RGB state from current configuration
-function rgb.initializeFromCurrentConfig()
-	-- Try to read current configuration
+-- Function to backup the current RGB configuration if it exists
+function rgb.backupCurrentConfig()
 	if system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
-		local config = rgb.parseConfig(paths.ACTIVE_RGB_CONF_PATH)
-
-		if config then
-			-- Update state with current settings
-			state.rgbMode = config.mode
-			state.rgbBrightness = config.brightness
-			if config.color then
-				state.setColorValue("rgb", config.color)
-			end
-			if config.speed then
-				state.rgbSpeed = config.speed
-			end
-		end
-
-		-- Backup current configuration
 		return rgb.backupConfig()
-	else
-		-- If no RGB configuration exists, just take note of this fact
-		-- We'll use this later to turn off RGB when exiting without applying a theme
-		return true
 	end
+	return true
 end
 
 -- Function to install RGB config from theme to active config
