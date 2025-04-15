@@ -122,7 +122,7 @@ end
 -- Popup drawing function
 function ui.drawPopup()
 	-- Draw semi-transparent background
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.8)
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
 	-- Calculate popup dimensions based on text
@@ -162,11 +162,12 @@ function ui.drawPopup()
 	love.graphics.rectangle("fill", x, y, popupWidth, popupHeight, 10)
 
 	-- Draw popup border
-	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setColor(colors.ui.surface)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", x, y, popupWidth, popupHeight, 10)
 
 	-- Draw message with wrapping
+	love.graphics.setColor(colors.ui.foreground)
 	local textY = y + padding
 	love.graphics.printf(popupMessage, x + padding, textY, availableTextWidth, "center")
 
@@ -180,23 +181,15 @@ function ui.drawPopup()
 
 		for i, button in ipairs(popupButtons) do
 			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
+			local isSelected = button.selected
 
 			-- Draw button background
-			if button.selected then
-				love.graphics.setColor(colors.ui.surface)
-			else
-				love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
-			end
+			love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
 			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
-			-- Draw button border
-			love.graphics.setColor(
-				colors.ui.foreground[1],
-				colors.ui.foreground[2],
-				colors.ui.foreground[3],
-				button.selected and 1 or 0.5
-			)
-			love.graphics.setLineWidth(button.selected and 3 or 1)
+			-- Draw button outline
+			love.graphics.setLineWidth(isSelected and 4 or 2)
+			love.graphics.setColor(colors.ui.surface)
 			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button text
@@ -217,22 +210,15 @@ function ui.drawPopup()
 		local buttonX = (state.screenWidth - totalButtonsWidth) / 2
 
 		for _, button in ipairs(popupButtons) do
+			local isSelected = button.selected
+
 			-- Draw button background
-			if button.selected then
-				love.graphics.setColor(colors.ui.surface)
-			else
-				love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.1)
-			end
+			love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
 			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
-			-- Draw button border
-			love.graphics.setColor(
-				colors.ui.foreground[1],
-				colors.ui.foreground[2],
-				colors.ui.foreground[3],
-				button.selected and 1 or 0.5
-			)
-			love.graphics.setLineWidth(button.selected and 3 or 1)
+			-- Draw button outline
+			love.graphics.setLineWidth(isSelected and 4 or 2)
+			love.graphics.setColor(colors.ui.surface)
 			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 			-- Draw button text
