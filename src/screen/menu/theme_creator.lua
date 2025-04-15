@@ -605,8 +605,13 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- For now, always use size 24 fonts
-	local fontSizeDir = "24"
+	-- Determine font size based on user setting
+	local fontSizeDir = "24" -- Default font size
+	if state.fontSize == "Large" then
+		fontSizeDir = "28" -- "Large" font size
+	elseif state.fontSize == "Extra Large" then
+		fontSizeDir = "32" -- "Extra Large" font size
+	end
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. fontSizeDir .. "/" .. selectedFontFile

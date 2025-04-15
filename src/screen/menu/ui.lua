@@ -18,12 +18,34 @@ local popupVerticalButtons = false
 -- Function to draw a button
 function ui.drawButton(button, x, y, isSelected)
 	-- Determine button width based on type
-	local buttonWidth = state.screenWidth
+	local buttonWidth = constants.BUTTON.WIDTH
 
-	-- Draw button background only when selected (hovered)
+	-- Define consistent padding for text and content
+	local leftPadding = 20
+	local rightPadding = 20
+
+	-- If there's no scrollbar needed, reduce right padding to match left
+	-- and adjust the right edge position for content
+	local hasFullWidth = buttonWidth >= state.screenWidth - constants.BUTTON.PADDING
+	local rightEdge = x + buttonWidth - rightPadding
+
+	-- When no scrollbar, position content from the screen edge
+	if hasFullWidth then
+		rightPadding = leftPadding
+		rightEdge = state.screenWidth - rightPadding
+	end
+
+	-- For selected buttons, check if we need to draw the background to the edge
+	local drawWidth = buttonWidth
 	if isSelected then
+		-- If there's no scrollbar needed (width is almost full screen width),
+		-- extend the background to the right edge of the screen
+		if hasFullWidth then
+			drawWidth = state.screenWidth
+		end
+
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 0, y, buttonWidth, constants.BUTTON.HEIGHT, 0)
+		love.graphics.rectangle("fill", 0, y, drawWidth, constants.BUTTON.HEIGHT, 0)
 	end
 
 	-- Draw button text with different color when selected
@@ -32,7 +54,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 	love.graphics.setColor(colors.ui.foreground)
 
-	love.graphics.print(button.text, x + 20, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
+	love.graphics.print(button.text, x + leftPadding, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
 
 	-- If this is a color selection button
 	if button.colorKey then
@@ -42,7 +64,7 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Only draw color display if we have a valid color
 		if hexColor then
 			-- Draw color square on the right side of the button
-			local colorX = state.screenWidth - constants.BUTTON.COLOR_DISPLAY_SIZE - 20
+			local colorX = rightEdge - constants.BUTTON.COLOR_DISPLAY_SIZE
 			local colorY = y + (constants.BUTTON.HEIGHT - constants.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
 			local r, g, b = colorUtils.hexToRgb(hexColor)
@@ -96,26 +118,44 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Get the selected font name from state
 		local selectedFontName = state.selectedFont
 
-		-- Calculate the right edge position
-		local rightEdge = state.screenWidth - 20
-
-		-- Use the appropriate font for measurement and display using getFontByName
+		-- Use the appropriate font for measurement and display
 		love.graphics.setFont(state.getFontByName(selectedFontName))
 
-		-- Calculate font name width for positioning
-		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
-
 		-- Position the font name at the right edge
-		local fontNameX = rightEdge - fontNameWidth
+		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
 		local fontNameY = y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
-
 		love.graphics.setColor(colors.ui.foreground)
-
-		-- Draw font name
-		love.graphics.print(selectedFontName, fontNameX, fontNameY)
+		love.graphics.print(selectedFontName, rightEdge - fontNameWidth, fontNameY)
 
 		-- Reset font
 		love.graphics.setFont(state.fonts.body)
+	elseif button.fontSizeToggle then
+		-- Get the selected font size from state
+		local selectedFontSize = state.fontSize
+
+		local fontSizeWidth = state.fonts.body:getWidth(selectedFontSize)
+		local fontSizeY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(selectedFontSize, rightEdge - fontSizeWidth, fontSizeY)
+	elseif button.glyphsToggle then
+		-- Get glyphs state
+		local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
+
+		local statusWidth = state.fonts.body:getWidth(statusText)
+		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
+	elseif button.rgbLighting then
+		-- Get RGB lighting state
+		local statusText = state.rgbMode .. " (" .. state.rgbBrightness .. ")"
+
+		local statusWidth = state.fonts.body:getWidth(statusText)
+		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
 	end
 end
 

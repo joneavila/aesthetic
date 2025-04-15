@@ -50,8 +50,11 @@ function settings.saveToFile()
 	file:write("    speed = " .. state.rgbSpeed .. ",\n")
 	file:write("  },\n")
 
-	-- Font
+	-- Font family
 	file:write('  font = "' .. state.selectedFont .. '",\n')
+
+	-- Font size
+	file:write('  fontSize = "' .. state.fontSize .. '",\n')
 
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
@@ -126,6 +129,11 @@ function settings.loadFromFile()
 	-- Font
 	if loadedSettings.font then
 		state.selectedFont = loadedSettings.font
+	end
+
+	-- Font size
+	if loadedSettings.fontSize then
+		state.fontSize = loadedSettings.fontSize
 	end
 
 	-- Glyphs

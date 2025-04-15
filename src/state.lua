@@ -62,6 +62,7 @@ local state = {
 	fontNameToKey = {},
 
 	selectedFont = "Inter", -- Default selected font
+	fontSize = "Default", -- Default font size
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 

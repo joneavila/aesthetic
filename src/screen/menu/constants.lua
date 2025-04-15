@@ -69,9 +69,14 @@ constants.BUTTONS = {
 		rgbLighting = true,
 	},
 	{
-		text = "Font",
+		text = "Font family",
 		selected = false,
 		fontSelection = true,
+	},
+	{
+		text = "Font size",
+		selected = false,
+		fontSizeToggle = true,
 	},
 	{
 		text = "Icons",
