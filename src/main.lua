@@ -15,6 +15,7 @@ local splash = require("splash")
 local screens = require("screens")
 local colors = require("colors")
 local state = require("state")
+local settings = require("utils.settings")
 
 -- Input delay handling
 local lastInpuSeconds = 0
@@ -71,6 +72,30 @@ local function setupFonts()
 	end
 end
 
+-- Function to load settings from file
+local function loadSettings()
+	-- Try to load settings from file
+	local success = settings.loadFromFile()
+
+	if success then
+		-- Update font selection based on loaded state
+		-- This is done here rather than in settings.lua because the FONTS array is a UI-specific representation of the
+		-- font state, and the 'selected' property for each font needs to be updated to reflect the loaded
+		-- state.selectedFont, while other settings (colors, RGB settings) are read directly from state when UI
+		-- screens are rendered
+		for _, font in ipairs(require("screen.menu.constants").FONTS) do
+			font.selected = (font.name == state.selectedFont)
+		end
+	end
+
+	return success
+end
+
+-- Function to save settings to file
+local function saveSettings()
+	return settings.saveToFile()
+end
+
 function love.load()
 	-- Alternatively, use the muOS GET_VAR function (load the file containing the GET_VAR function first)
 	-- 		$(GET_VAR device mux/width)
@@ -84,10 +109,13 @@ function love.load()
 		state.splash = nil -- Clear splash screen
 		input.load()
 
+		-- Load user settings if they exist
+		loadSettings()
+
 		-- Apply default RGB lighting settings when first launching application
 		local rgbUtils = require("utils.rgb")
 		rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
-		rgbUtils.updateConfig() -- Apply default RGB settings from state
+		rgbUtils.updateConfig() -- Apply RGB settings from state
 
 		screens.load()
 		state.fading = true -- Start the fade effect
@@ -151,6 +179,9 @@ end
 
 -- Handle application exit
 function love.quit()
+	-- Save current settings before exiting
+	saveSettings()
+
 	-- Restore original RGB configuration if no theme was applied
 	local rgbUtils = require("utils.rgb")
 	if not state.themeApplied then

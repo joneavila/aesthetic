@@ -228,6 +228,9 @@ end
 
 -- Function called when entering this screen
 function colorPicker.onEnter(tabName)
+	-- Log palette state
+	local context = state.getColorContext(state.activeColorContext)
+
 	-- If a specific tab is requested, switch to it
 	if tabName then
 		switchToTab(tabName)

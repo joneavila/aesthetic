@@ -392,7 +392,14 @@ function rgb.setScreenSwitcher(switchFunc)
 end
 
 function rgb.onEnter()
-	-- Called when entering this screen
+	-- Set the correct current option index based on state.rgbMode
+	for i, option in ipairs(RGB_MODES) do
+		if option == state.rgbMode then
+			BUTTONS[1].currentOption = i
+			break
+		end
+	end
+
 	-- Apply RGB settings in case they were changed in the color picker
 	rgbUtils.updateConfig()
 end

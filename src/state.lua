@@ -99,6 +99,18 @@ end
 function state.setColorValue(contextKey, colorValue)
 	local context = state.getColorContext(contextKey)
 	context.currentColor = colorValue
+
+	-- Initialize the hex input with the new value
+	context.hex.input = colorValue:sub(2) -- Remove # sign
+
+	-- Initialize HSV values based on RGB
+	local colorUtils = require("utils.color")
+	local r, g, b = colorUtils.hexToRgb(colorValue)
+	local h, s, v = colorUtils.rgbToHsv(r, g, b)
+	context.hsv.hue = h * 360 -- Convert 0-1 to 0-360
+	context.hsv.sat = s
+	context.hsv.val = v
+
 	return colorValue
 end
 

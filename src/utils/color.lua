@@ -236,4 +236,44 @@ function color.hexToLove(hexString, alpha)
 	return { r, g, b, alpha or 1 }
 end
 
+-- Convert RGB to HSV values (0-1 range for all)
+function color.rgbToHsv(r, g, b)
+	local max = math.max(r, g, b)
+	local min = math.min(r, g, b)
+	local h, s, v
+
+	v = max
+
+	local delta = max - min
+
+	if max ~= 0 then
+		s = delta / max
+	else
+		-- r = g = b = 0, s = 0, v = 0
+		s = 0
+		h = 0 -- undefined, but set to 0
+		return h, s, v
+	end
+
+	if delta == 0 then
+		h = 0 -- gray
+	else
+		if r == max then
+			h = (g - b) / delta -- between yellow & magenta
+		elseif g == max then
+			h = 2 + (b - r) / delta -- between cyan & yellow
+		else
+			h = 4 + (r - g) / delta -- between magenta & cyan
+		end
+
+		h = h / 6
+
+		if h < 0 then
+			h = h + 1
+		end
+	end
+
+	return h, s, v
+end
+
 return color

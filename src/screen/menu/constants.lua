@@ -22,11 +22,6 @@ constants.SCREEN_HEIGHT_MAPPING = {
 -- Helper function to get font size info based on screen height
 constants.getFontSizeInfo = function(height)
 	local sizeInfo = constants.SCREEN_HEIGHT_MAPPING[height]
-	if not sizeInfo then
-		-- Simple error message without using errorHandler
-		print("Unexpected screen height: " .. height)
-		return nil
-	end
 	return sizeInfo
 end
 
