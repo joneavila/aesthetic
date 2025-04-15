@@ -132,6 +132,18 @@ function menu.draw()
 			love.graphics.print(statusText, rightX - textWidth, textY)
 		end
 
+		-- Draw the RGB lighting mode and brightness level on the right side of the button
+		if button.rgbLighting then
+			local statusText = state.rgbMode .. " (" .. state.rgbBrightness .. ")"
+			local font = love.graphics.getFont()
+			local textWidth = font:getWidth(statusText)
+			local rightX = state.screenWidth - 20 -- 20px padding from right edge
+			local textY = y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
+
+			love.graphics.setColor(colors.ui.foreground)
+			love.graphics.print(statusText, rightX - textWidth, textY)
+		end
+
 		if not button.isBottomButton then
 			regularButtonCount = regularButtonCount + 1
 		end
