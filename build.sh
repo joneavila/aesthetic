@@ -13,6 +13,18 @@ echoHeader() {
     echo -e "${PURPLE}${text}...${RESET}"
 }
 
+# Check connection to handheld
+checkConnection() {
+    if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$DEVICE_IP" ]; then
+        echoHeader "Checking connection to $DEVICE_IP"
+        if ! ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${DEVICE_IP}" exit 2>/dev/null; then
+            echo "Error: Could not connect to ${DEVICE_IP}. Exiting."
+            exit 1
+        fi
+        echo "Connection successful"
+    fi
+}
+
 # Check for --clean option
 if [[ "$1" == "--clean" ]]; then
     CLEAN=true
@@ -23,6 +35,12 @@ fi
 
 PRIVATE_KEY_PATH=$1
 DEVICE_IP=$2
+
+# Check connection if both PRIVATE_KEY_PATH and DEVICE_IP are provided
+# This assumes that the connection remains valid for the duration of the script
+if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$DEVICE_IP" ]; then
+    checkConnection
+fi
 
 APPLICATION_DIR="mnt/mmc/MUOS/application/Aesthetic"
 LOGS_DIR="${APPLICATION_DIR}/.aesthetic/logs"
@@ -107,5 +125,6 @@ else
     ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi
 
+# TODO: Run application automatically after extraction (the following command does not work as expected)
 # echoHeader "Running application"
 # ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh"
