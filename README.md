@@ -88,7 +88,7 @@ Any support is greatly appreciated – thank you for supporting open source soft
 
 ## 🗺️ Roadmap
 
-- [ ] Remember most recent theme settings
+- [x] Remember most recent theme settings
 - [ ] Customize font size in themes
 - [ ] Limit theme content width in content screens
 
