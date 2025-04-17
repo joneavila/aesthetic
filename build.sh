@@ -19,9 +19,9 @@
 # Display formatted message
 echoHeader() {
     local text="$1"
-    local PURPLE="\033[35m"
+    local MAGENTA="\033[35m"
     local RESET="\033[0m"
-    echo -e "${PURPLE}${text}...${RESET}"
+    echo -e "${MAGENTA}${text}...${RESET}"
 }
 
 # Verify SSH connection to the handheld
