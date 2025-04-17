@@ -65,11 +65,15 @@ if [ ! -z "$PRERELEASE" ]; then
 fi
 
 # Items to delete with --clean
+# Some items are listed for both SD1 (/mnt/mmc/...) and SD2 (/mnt/sdcard/...) locations
 ITEMS_TO_DELETE=(
     "/mnt/mmc/MUOS/application/Aesthetic"
+    "/mnt/mmc/MUOS/theme/active/glyph/muxapp/aesthetic.png"
     "/mnt/sdcard/MUOS/theme/active/glyph/muxapp/aesthetic.png"
+    "/mnt/mmc/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/sdcard/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/mmc/ARCHIVE/Aesthetic_*.muxupd"
+    "/mnt/sdcard/ARCHIVE/Aesthetic_*.muxupd"
     "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxupd.done"
     "/opt/muos/default/MUOS/theme/active/glyph/muxapp/aesthetic.png"
 )
