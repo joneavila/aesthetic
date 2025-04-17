@@ -1,7 +1,7 @@
 #!/bin/bash
-# Usage: ./build.sh [--clean] [<PRIVATE_KEY_PATH>] [<DEVICE_IP>]
+# Usage: ./build.sh [--clean] [<PRIVATE_KEY_PATH>] [<HANDHELD_IP>]
 #
-# If `PRIVATE_KEY_PATH` and `DEVICE_IP` are provided, the archive will be uploaded to the handheld using `scp`
+# If `PRIVATE_KEY_PATH` and `HANDHELD_IP` are provided, the archive will be uploaded to the handheld using `scp`
 # and automatically extracted.
 # If `--clean` is provided, files from previous builds will be deleted from the handheld before the new archive is
 # extracted.
@@ -15,10 +15,10 @@ echoHeader() {
 
 # Check connection to handheld
 checkConnection() {
-    if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$DEVICE_IP" ]; then
-        echoHeader "Checking connection to $DEVICE_IP"
-        if ! ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${DEVICE_IP}" exit 2>/dev/null; then
-            echo "Error: Could not connect to ${DEVICE_IP}. Exiting."
+    if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
+        echoHeader "Checking connection to $HANDHELD_IP"
+        if ! ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>/dev/null; then
+            echo "Error: Could not connect to ${HANDHELD_IP}. Exiting."
             exit 1
         fi
         echo "Connection successful"
@@ -34,11 +34,11 @@ else
 fi
 
 PRIVATE_KEY_PATH=$1
-DEVICE_IP=$2
+HANDHELD_IP=$2
 
-# Check connection if both PRIVATE_KEY_PATH and DEVICE_IP are provided
+# Check connection if both PRIVATE_KEY_PATH and HANDHELD_IP are provided
 # This assumes that the connection remains valid for the duration of the script
-if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$DEVICE_IP" ]; then
+if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
     checkConnection
 fi
 
@@ -79,12 +79,12 @@ ITEMS_TO_DELETE=(
 )
 
 if [ "$CLEAN" = true ]; then
-    if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$DEVICE_IP" ]; then
-        echo "Error: --clean requires both PRIVATE_KEY_PATH and DEVICE_IP"
+    if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
+        echo "Error: --clean requires both PRIVATE_KEY_PATH and HANDHELD_IP"
         exit 1
     fi
     
-    echoHeader "Removing existing files on $DEVICE_IP"
+    echoHeader "Removing existing files on $HANDHELD_IP"
     
     # Execute delete commands one by one to better handle wildcards
     for file in "${ITEMS_TO_DELETE[@]}"; do
@@ -93,9 +93,9 @@ if [ "$CLEAN" = true ]; then
         
         # Handle files with wildcards differently
         if [[ "$remote_file" == *"*"* ]]; then
-            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "for f in ${remote_file}; do if [ -e \"\$f\" ]; then rm -rf \"\$f\" && echo \"\$f\"; fi; done"
+            ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "for f in ${remote_file}; do if [ -e \"\$f\" ]; then rm -rf \"\$f\" && echo \"\$f\"; fi; done"
         else
-            ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
+            ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
         fi
     done
 fi
@@ -116,19 +116,19 @@ echoHeader "Cleaning up"
 # Delete temporary build directory
 rm -rf .build && echo "Removed build directory" || echo "Failed to remove build directory"
 
-echoHeader "Uploading to $DEVICE_IP"
+echoHeader "Uploading to $HANDHELD_IP"
 if [ -z "$PRIVATE_KEY_PATH" ]; then
     echo "No PRIVATE_KEY_PATH provided"
     exit 0
-elif [ -z "$DEVICE_IP" ]; then
-    echo "No DEVICE_IP provided"
+elif [ -z "$HANDHELD_IP" ]; then
+    echo "No HANDHELD_IP provided"
     exit 0
 else
-    scp -i "${PRIVATE_KEY_PATH}" .dist/"${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${DEVICE_IP}":/mnt/mmc/ARCHIVE
-    echoHeader "Extracting on $DEVICE_IP"
-    ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
+    scp -i "${PRIVATE_KEY_PATH}" .dist/"${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
+    echoHeader "Extracting on $HANDHELD_IP"
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi
 
 # TODO: Run application automatically after extraction (the following command does not work as expected)
 # echoHeader "Running application"
-# ssh -i "${PRIVATE_KEY_PATH}" root@"${DEVICE_IP}" "bash /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh"
+# ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh"
