@@ -82,6 +82,7 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 - [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
 - [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
 - [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
+- [**TÖVE**](https://github.com/poke1024/tove2d) • LÖVE library • [MIT](src/tove/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
 
 ## ⚖️ License
