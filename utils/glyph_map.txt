@@ -25,7 +25,7 @@ muxassign/default, star
 muxassign/system, gamepad
 muxcollect/collection, library-big
 muxcollect/folder, folder
-muxconfig/connect, house-wifi
+muxconfig/connect, wifi
 muxconfig/custom, user-round-cog
 muxconfig/general, settings-2
 muxconfig/interface, layout-panel-top
