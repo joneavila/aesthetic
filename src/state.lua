@@ -66,6 +66,9 @@ local state = {
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
+	-- Box art settings
+	boxArtWidth = "Disabled", -- Default box art width
+
 	-- RGB lighting related settings
 	rgbMode = "Solid", -- Default RGB lighting mode
 	rgbBrightness = 5, -- Default RGB brightness (1-10)

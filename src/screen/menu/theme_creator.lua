@@ -634,8 +634,54 @@ local function createRgbConfFile()
 	return rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH)
 end
 
+-- Function to apply content width settings to the `muxplore.ini` file
+-- This sets the content width based on screen width minus box art width
+local function applyContentWidth(schemeFilePath)
+	-- Read the scheme file content
+	local schemeFile, err = io.open(schemeFilePath, "r")
+	if not schemeFile then
+		errorHandler.setError("Failed to open file for content width settings (" .. schemeFilePath .. "): " .. err)
+		return false
+	end
+
+	local schemeFileContent = schemeFile:read("*all")
+	schemeFile:close()
+
+	-- Calculate content width based on box art setting
+	local boxArtWidth = 0
+	if type(state.boxArtWidth) == "number" then
+		-- Add some padding to account for list selected padding
+		-- TODO: This padding is not shown in the UI
+		boxArtWidth = state.boxArtWidth + 20
+	end
+	-- For "Disabled", boxArtWidth remains 0
+
+	-- Calculate content width (screen width minus box art width)
+	local contentWidth = state.screenWidth - boxArtWidth
+
+	-- Replace content-width placeholder
+	local contentWidthCount
+	schemeFileContent, contentWidthCount = schemeFileContent:gsub("%%{%s*content%-width%s*}", tostring(contentWidth))
+	if contentWidthCount == 0 then
+		errorHandler.setError("Failed to replace content width settings in template")
+		return false
+	end
+
+	-- Write the updated content back to the file
+	schemeFile, err = io.open(schemeFilePath, "w")
+	if not schemeFile then
+		errorHandler.setError("Failed to write file for content width settings (" .. schemeFilePath .. "): " .. err)
+		return false
+	end
+
+	schemeFile:write(schemeFileContent)
+	schemeFile:close()
+	return true
+end
+
 -- Main function to create theme
 function themeCreator.createTheme()
+	-- TODO: Remove `errorHandler.setError` calls overwritting helpful error messages
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
 		system.removeDir(paths.WORKING_THEME_DIR)
@@ -708,6 +754,11 @@ function themeCreator.createTheme()
 		-- Set theme's content height settings
 		if not applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
 			errorHandler.setError("Failed to apply content height settings to: " .. paths.THEME_SCHEME_GLOBAL_PATH)
+			return false
+		end
+
+		-- Set theme's content width settings for `muxplore.ini`
+		if not applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
 			return false
 		end
 

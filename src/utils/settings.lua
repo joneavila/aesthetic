@@ -50,6 +50,14 @@ function settings.saveToFile()
 	file:write("    speed = " .. state.rgbSpeed .. ",\n")
 	file:write("  },\n")
 
+	-- Box art width
+	-- This value can be an integer or a string since the option "Disabled" has been added
+	if type(state.boxArtWidth) == "string" then
+		file:write('  boxArtWidth = "' .. state.boxArtWidth .. '",\n')
+	else
+		file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
+	end
+
 	-- Font family
 	file:write('  font = "' .. state.selectedFont .. '",\n')
 
@@ -124,6 +132,11 @@ function settings.loadFromFile()
 		if loadedSettings.rgb.speed then
 			state.rgbSpeed = loadedSettings.rgb.speed
 		end
+	end
+
+	-- Box art width
+	if loadedSettings.boxArtWidth then
+		state.boxArtWidth = loadedSettings.boxArtWidth
 	end
 
 	-- Font

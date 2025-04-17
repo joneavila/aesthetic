@@ -84,6 +84,11 @@ constants.BUTTONS = {
 		glyphsToggle = true,
 	},
 	{
+		text = "Box art width",
+		selected = false,
+		boxArt = true,
+	},
+	{
 		text = "Create theme",
 		selected = false,
 		isBottomButton = true,
@@ -155,6 +160,7 @@ paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
 paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL_PATH = paths.THEME_SCHEME_DIR .. "/global.ini"
+paths.THEME_SCHEME_MUXPLORE_PATH = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
 
 -- `font`
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"

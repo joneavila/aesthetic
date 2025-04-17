@@ -440,6 +440,11 @@ function menu.update(dt)
 					switchScreen("rgb")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
+				elseif button.boxArt and switchScreen then
+					-- Box art settings screen
+					switchScreen("box_art")
+					state.resetInputTimer()
+					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.colorKey and switchScreen then
 					-- Any color selection button
 					state.activeColorContext = button.colorKey

@@ -147,6 +147,18 @@ function ui.drawButton(button, x, y, isSelected)
 
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
+	elseif button.boxArt then
+		-- Draw box art width value on right
+		local boxArtText = state.boxArtWidth
+		if boxArtText == "Disabled" then
+			boxArtText = "0 (Disabled)"
+		end
+
+		local statusWidth = state.fonts.body:getWidth(boxArtText)
+		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(boxArtText, rightEdge - statusWidth, statusY)
 	elseif button.rgbLighting then
 		-- Get RGB lighting state
 		local statusText = state.rgbMode
