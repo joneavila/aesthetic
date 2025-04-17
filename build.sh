@@ -52,17 +52,14 @@ if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
     checkConnection
 fi
 
-# TODO: Get APPLICATION_DIR using GET_VAR
-APPLICATION_DIR="mnt/mmc/MUOS/application/Aesthetic"
-LOGS_DIR="${APPLICATION_DIR}/.aesthetic/logs"
-GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
+APP_DIR="mnt/mmc/MUOS/application/Aesthetic"
+APP_GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
 ARCHIVE_BASE_NAME=Aesthetic
 
 # Create build directories
 mkdir -p .dist
-mkdir -p .build/"${APPLICATION_DIR}"
-mkdir -p .build/"${GLYPH_DIR}"
-mkdir -p .build/"${LOGS_DIR}"
+mkdir -p .build/"${APP_DIR}"
+mkdir -p .build/"${APP_GLYPH_DIR}"
 
 # Extract version information from Lua source
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -112,12 +109,12 @@ fi
 
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
-rsync -aq mux_launch.sh .build/"${APPLICATION_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
-rsync -aq src/ .build/"${APPLICATION_DIR}"/.aesthetic/ && echo "src/" || { echo "Failed to copy src/"; exit 1; }
-rsync -aq bin/ .build/"${APPLICATION_DIR}"/.aesthetic/bin && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
-rsync -aq lib/ .build/"${APPLICATION_DIR}"/.aesthetic/lib && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
-rsync -aq src/tove/ .build/"${APPLICATION_DIR}"/.aesthetic/tove && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
-rsync -aq src/template/glyph/muxapp/aesthetic.png .build/"${GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
+rsync -aq mux_launch.sh .build/"${APP_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
+rsync -aq src/ .build/"${APP_DIR}"/.aesthetic/ && echo "src/" || { echo "Failed to copy src/"; exit 1; }
+rsync -aq bin/ .build/"${APP_DIR}"/.aesthetic/bin && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
+rsync -aq lib/ .build/"${APP_DIR}"/.aesthetic/lib && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
+rsync -aq src/tove/ .build/"${APP_DIR}"/.aesthetic/tove && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
+rsync -aq src/template/glyph/muxapp/aesthetic.png .build/"${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
 
 # Create .muxupd archive
 echoHeader "Creating archive"
