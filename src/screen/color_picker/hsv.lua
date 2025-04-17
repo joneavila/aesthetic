@@ -356,7 +356,7 @@ function hsv.draw()
 			text = "Switch Tabs",
 		},
 		{
-			icon = "d_pad.png",
+			icon = { "d_pad.png", "stick_l.png" },
 			text = "Cursor",
 		},
 		{
@@ -428,11 +428,28 @@ function hsv.update(dt)
 			moved = true
 		end
 
+		-- Get left stick values if joystick is connected
+		local leftX, leftY = 0, 0
+		local joystick = love.joystick.getJoysticks()[1]
+		if joystick and joystick:isConnected() then
+			-- Gamepad axes are typically:
+			-- leftx = axis 1, lefty = axis 2
+			if joystick:isGamepad() then
+				leftX = joystick:getGamepadAxis("leftx")
+				leftY = joystick:getGamepadAxis("lefty")
+			else
+				-- Fallback for non-gamepad joysticks
+				leftX = joystick:getAxis(1)
+				leftY = joystick:getAxis(2)
+			end
+		end
+
 		if currentState.focusSquare then
 			-- Handle SV square navigation
 			local step = 0.03
 			local newSat, newVal = currentState.sat, currentState.val
 
+			-- D-pad controls
 			if virtualJoystick:isGamepadDown("dpleft") then
 				newSat = math.max(0, newSat - step)
 				moved = true
@@ -445,6 +462,16 @@ function hsv.update(dt)
 				moved = true
 			elseif virtualJoystick:isGamepadDown("dpdown") then
 				newVal = math.max(0, newVal - step)
+				moved = true
+			end
+
+			-- Left joystick controls
+			if leftX ~= 0 then
+				newSat = math.max(0, math.min(1, newSat + leftX * step))
+				moved = true
+			end
+			if leftY ~= 0 then
+				newVal = math.max(0, math.min(1, newVal - leftY * step))
 				moved = true
 			end
 
@@ -463,6 +490,8 @@ function hsv.update(dt)
 		else
 			-- Handle Hue slider navigation
 			local step = 6
+
+			-- D-pad controls
 			if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 				local newHue = currentState.hue
 				if virtualJoystick:isGamepadDown("dpup") then
@@ -470,6 +499,36 @@ function hsv.update(dt)
 				else
 					newHue = (newHue - step) % 360
 				end
+
+				currentState.hue = newHue
+				-- Update the SV square when hue changes
+				updateSVSquare()
+
+				-- Calculate new cursor Y position
+				local baseY = pickerState.startY + ((360 - newHue) / 360 * pickerState.contentHeight)
+				local sliderBottom = pickerState.startY + pickerState.contentHeight
+
+				-- Handle wrapping when cursor goes halfway off either end
+				if baseY < pickerState.startY - (CURSOR.HUE_HEIGHT / 2) then
+					-- Wrap from top to bottom
+					baseY = sliderBottom - (CURSOR.HUE_HEIGHT / 2)
+				elseif baseY > sliderBottom + (CURSOR.HUE_HEIGHT / 2) then
+					-- Wrap from bottom to top
+					baseY = pickerState.startY + (CURSOR.HUE_HEIGHT / 2)
+				end
+
+				-- Create new tween for hue cursor
+				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
+					hueY = baseY,
+				}, "outQuad")
+
+				moved = true
+			end
+
+			-- Left joystick Y-axis controls for hue
+			if leftY ~= 0 then
+				local newHue = currentState.hue
+				newHue = (newHue - leftY * step) % 360
 
 				currentState.hue = newHue
 				-- Update the SV square when hue changes
