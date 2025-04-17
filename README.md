@@ -12,10 +12,9 @@
     <img src="/.github/preview_animated.webp" width="50%" height="50%" alt="Preview of Aesthetic">
   </p>
   <p>
-    <img src="/.github/screenshot_menu_main.png" width="30%" alt="Aesthetic main menu">
-    <img src="/.github/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette screen">
-    <img src="/.github/screenshot_menu_picker.png" width="30%" alt="Aesthetic HSV picker screen">
-    <img src="/.github/screenshot_menu_hex.png" width="30%" alt="Aesthetic hex code screen">
+    <img src="/.github/screenshot_main_menu_screen.png" width="30%" alt="Aesthetic main menu screen">
+    <img src="/.github/screenshot_palette_screen.png" width="30%" alt="Aesthetic color palette screen">
+    <img src="/.github/screenshot_font_screen.png" width="30%" alt="Aesthetic font screen">
   </p>
 </div>
 
