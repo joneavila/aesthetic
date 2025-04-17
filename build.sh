@@ -84,7 +84,7 @@ if [ "$CLEAN" = true ]; then
         exit 1
     fi
     
-    echoHeader "Removing existing files"
+    echoHeader "Removing existing files on $DEVICE_IP"
     
     # Execute delete commands one by one to better handle wildcards
     for file in "${ITEMS_TO_DELETE[@]}"; do
