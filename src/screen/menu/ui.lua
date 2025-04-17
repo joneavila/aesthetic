@@ -149,7 +149,11 @@ function ui.drawButton(button, x, y, isSelected)
 		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
 	elseif button.rgbLighting then
 		-- Get RGB lighting state
-		local statusText = state.rgbMode .. " (" .. state.rgbBrightness .. ")"
+		local statusText = state.rgbMode
+		-- Do not display the brightness level if mode is set to "Off"
+		if state.rgbMode ~= "Off" then
+			statusText = statusText .. " (" .. state.rgbBrightness .. ")"
+		end
 
 		local statusWidth = state.fonts.body:getWidth(statusText)
 		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
