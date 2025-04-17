@@ -22,11 +22,13 @@
 ## ✨ Features
 
 - **Customize** your theme to match your style
-  - **Colors**: Select foreground and background colors from presets or create your own
-  - **Font**: Choose between Inter for clean lines or Nunito for friendly curves
+  - **Colors**: Select background and foreground colors from palette or create your own using HSV picker or hex input
+  - **RGB Lighting**: Configure mode (solid, breathing, rainbow, off), with adjustable color, speed, and brightness where supported
+  - **Font**: Select from Inter (clean), Nunito (rounded), Cascadia Code (monospaced), or Retro Pixel (pixelated) with three size options
   - **Icons**: Toggle system glyphs for a minimal or informative interface
-- **Export** your theme directly to your device's theme collection
-- **Apply** your new theme automatically when exiting the application (optional)
+- **Export** your theme directly to your theme collection
+- **Apply** your theme automatically upon exiting to instantly see your creation
+- **Remember** last theme configuration for easy adjustments when you return
 
 ## 📦 Installation
 
