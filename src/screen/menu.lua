@@ -21,13 +21,46 @@ local switchScreen = nil
 local createdThemePath = nil
 local popupState = "none" -- none, created, manual, automatic
 
+-- Scrolling
+local scrollPosition = 0
+local visibleButtonCount = 0
+local totalRegularButtonCount = 0
+local scrollBarWidth = 10
+local scrollBarGap = 1 -- Gap between button and scrollbar
+
 -- IO operation states
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 -- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
 
 function menu.load()
-	constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING * 2)
+	-- Count total regular buttons (non-bottom buttons)
+	totalRegularButtonCount = 0
+	for _, button in ipairs(constants.BUTTONS) do
+		if not button.isBottomButton then
+			totalRegularButtonCount = totalRegularButtonCount + 1
+		end
+	end
+
+	-- Calculate how many buttons can be displayed at once
+	local availableHeight = state.screenHeight - constants.BUTTON.BOTTOM_MARGIN - constants.BUTTON.PADDING
+	visibleButtonCount = math.floor(availableHeight / (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING))
+
+	-- Ensure at least some buttons are visible
+	visibleButtonCount = math.max(3, visibleButtonCount)
+
+	-- Determine if scroll bar is needed
+	local needsScrollBar = totalRegularButtonCount > visibleButtonCount
+
+	-- Adjust button width based on whether scrollbar is needed
+	if needsScrollBar then
+		-- If scrollbar is needed, account for scrollbar width and gap
+		constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING + scrollBarWidth + scrollBarGap)
+	else
+		-- If scrollbar is not needed, buttons can extend to edge minus padding
+		constants.BUTTON.WIDTH = state.screenWidth - constants.BUTTON.PADDING
+	end
+
 	constants.BUTTON.START_Y = constants.BUTTON.PADDING
 
 	-- Initialize font selection based on state
@@ -63,10 +96,24 @@ function menu.draw()
 
 	-- Draw all buttons based on their type
 	local regularButtonCount = 0
+	local visibleRegularButtonCount = 0
 
 	for _, button in ipairs(constants.BUTTONS) do
+		-- Skip buttons that are outside the visible range
+		if not button.isBottomButton then
+			regularButtonCount = regularButtonCount + 1
+
+			-- Skip if button is scrolled out of view
+			if regularButtonCount <= scrollPosition or regularButtonCount > scrollPosition + visibleButtonCount then
+				goto continue
+			end
+
+			visibleRegularButtonCount = visibleRegularButtonCount + 1
+		end
+
 		local y = button.isBottomButton and state.screenHeight - constants.BUTTON.BOTTOM_MARGIN
-			or constants.BUTTON.START_Y + regularButtonCount * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
+			or constants.BUTTON.START_Y
+				+ (visibleRegularButtonCount - 1) * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
 
 		local x = 0
 
@@ -120,21 +167,39 @@ function menu.draw()
 			ui.drawButton(button, x, y, button.selected)
 		end
 
-		-- Draw the Glyphs state (Enabled/Disabled) on the right side of the button
-		if button.glyphsToggle then
-			local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
-			local font = love.graphics.getFont()
-			local textWidth = font:getWidth(statusText)
-			local rightX = state.screenWidth - 20 -- 20px padding from right edge
-			local textY = y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
+		::continue::
+	end
 
-			love.graphics.setColor(colors.ui.foreground)
-			love.graphics.print(statusText, rightX - textWidth, textY)
-		end
+	-- Draw scroll bar if needed
+	if totalRegularButtonCount > visibleButtonCount then
+		-- Calculate the visible area height
+		local scrollAreaHeight = visibleButtonCount * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
+			- constants.BUTTON.PADDING
 
-		if not button.isBottomButton then
-			regularButtonCount = regularButtonCount + 1
-		end
+		-- Calculate scroll bar height and position
+		local scrollBarHeight = (visibleButtonCount / totalRegularButtonCount) * scrollAreaHeight
+
+		-- Calculate maximum scroll position to keep handle in bounds
+		local maxScrollY = scrollAreaHeight - scrollBarHeight
+		local scrollPercentage = scrollPosition / (totalRegularButtonCount - visibleButtonCount)
+		local scrollBarY = constants.BUTTON.START_Y + (scrollPercentage * maxScrollY)
+
+		-- Ensure the scrollbar handle stays within the visible area
+		scrollBarY = math.min(scrollBarY, constants.BUTTON.START_Y + maxScrollY)
+
+		-- Draw scroll bar background - position it flush with right edge
+		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.3)
+		love.graphics.rectangle(
+			"fill",
+			state.screenWidth - scrollBarWidth,
+			constants.BUTTON.START_Y,
+			scrollBarWidth,
+			scrollAreaHeight
+		)
+
+		-- Draw scroll bar handle - position it flush with right edge
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("fill", state.screenWidth - scrollBarWidth, scrollBarY, scrollBarWidth, scrollBarHeight)
 	end
 
 	-- Draw popup if active
@@ -356,6 +421,16 @@ function menu.update(dt)
 						state.resetInputTimer()
 						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
+				elseif button.fontSizeToggle then
+					-- Toggle font size between "Default", "Large", and "Extra Large"
+					if state.fontSize == "Default" then
+						state.fontSize = "Large"
+					elseif state.fontSize == "Large" then
+						state.fontSize = "Extra Large"
+					else
+						state.fontSize = "Default"
+					end
+					state.resetInputTimer()
 				elseif button.glyphsToggle then
 					-- Toggle glyphs enabled state
 					state.glyphs_enabled = not state.glyphs_enabled
@@ -363,6 +438,11 @@ function menu.update(dt)
 				elseif button.rgbLighting and switchScreen then
 					-- RGB lighting screen
 					switchScreen("rgb")
+					state.resetInputTimer()
+					state.forceInputDelay(0.2) -- Add extra delay when switching screens
+				elseif button.boxArt and switchScreen then
+					-- Box art settings screen
+					switchScreen("box_art")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				elseif button.colorKey and switchScreen then
@@ -378,6 +458,34 @@ function menu.update(dt)
 					-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
 				end
 				break
+			end
+		end
+	end
+
+	-- Update scroll position based on selected button
+	local selectedButtonIndex = nil
+	for i, button in ipairs(navButtons) do
+		if button.selected and not button.isBottomButton then
+			selectedButtonIndex = i
+			break
+		end
+	end
+
+	if selectedButtonIndex and not navButtons[selectedButtonIndex].isBottomButton then
+		-- Adjust scroll position if the selected button is outside the visible area
+		local buttonIndex = 0
+		for i, button in ipairs(constants.BUTTONS) do
+			if not button.isBottomButton then
+				buttonIndex = buttonIndex + 1
+				if button.selected then
+					-- Ensure the selected button is visible
+					if buttonIndex <= scrollPosition then
+						scrollPosition = buttonIndex - 1
+					elseif buttonIndex > scrollPosition + visibleButtonCount then
+						scrollPosition = buttonIndex - visibleButtonCount
+					end
+					break
+				end
 			end
 		end
 	end

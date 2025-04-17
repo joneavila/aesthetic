@@ -99,9 +99,6 @@ function rgb.load()
 	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
 	BUTTON.START_Y = BUTTON.PADDING
 
-	-- Initialize RGB state from current configuration
-	rgbUtils.initializeFromCurrentConfig()
-
 	-- Set the correct current option index based on state.rgbMode
 	for i, option in ipairs(RGB_MODES) do
 		if option == state.rgbMode then
@@ -378,22 +375,13 @@ function rgb.update(_dt)
 	-- Handle A button to go to color picker for RGB color
 	if virtualJoystick:isGamepadDown("a") then
 		for _, button in ipairs(BUTTONS) do
-			if button.selected then
-				if button.text == "Mode" then
-					-- Mode is changed with left/right, so A button does nothing here
-				elseif button.colorKey and switchScreen and not isColorDisabled() then
-					-- Open color picker for this color, but only if not disabled
-					state.activeColorContext = button.colorKey
-					state.previousScreen = "rgb" -- Set previous screen to return to
-					switchScreen(COLOR_PICKER_SCREEN)
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
-				elseif button.text == "Brightness" and not isBrightnessDisabled() then
-					-- Brightness is adjusted with left/right, so A button does nothing here
-				elseif button.text == "Speed" and not isSpeedDisabled() then
-					-- Speed is adjusted with left/right, so A button does nothing here
-				end
-				break
+			if button.selected and button.colorKey and switchScreen and not isColorDisabled() then
+				-- Open color picker for this color, but only if not disabled
+				state.activeColorContext = button.colorKey
+				state.previousScreen = "rgb" -- Set previous screen to return to
+				switchScreen(COLOR_PICKER_SCREEN)
+				state.resetInputTimer()
+				state.forceInputDelay(0.2) -- Add extra delay when switching screens
 			end
 		end
 	end
@@ -404,7 +392,14 @@ function rgb.setScreenSwitcher(switchFunc)
 end
 
 function rgb.onEnter()
-	-- Called when entering this screen
+	-- Set the correct current option index based on state.rgbMode
+	for i, option in ipairs(RGB_MODES) do
+		if option == state.rgbMode then
+			BUTTONS[1].currentOption = i
+			break
+		end
+	end
+
 	-- Apply RGB settings in case they were changed in the color picker
 	rgbUtils.updateConfig()
 end

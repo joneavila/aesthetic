@@ -386,6 +386,82 @@ function palette.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
+-- Helper function to find the closest color in the palette to a given hex value
+function palette.findClosestColor(hexColor)
+	-- Convert hex to RGB
+	local colorUtil = require("utils.color")
+	local targetR, targetG, targetB = colorUtil.hexToRgb(hexColor)
+
+	local minDistance = math.huge
+	local closestColor = nil
+	local closestRow = 0
+	local closestCol = 0
+
+	-- Loop through all colors
+	local colorKeys = getColorKeys()
+	local gridSize = calculateGridSize()
+
+	for i, colorKey in ipairs(colorKeys) do
+		local row = math.floor((i - 1) / gridSize.cols)
+		local col = (i - 1) % gridSize.cols
+
+		local paletteColor = colors.palette[colorKey]
+		if paletteColor then
+			local r, g, b = paletteColor[1], paletteColor[2], paletteColor[3]
+
+			-- Calculate color distance (simple Euclidean distance in RGB space)
+			local distance = math.sqrt((r - targetR) ^ 2 + (g - targetG) ^ 2 + (b - targetB) ^ 2)
+
+			if distance < minDistance then
+				minDistance = distance
+				closestColor = colorKey
+				closestRow = row
+				closestCol = col
+			end
+		end
+	end
+
+	return {
+		colorKey = closestColor,
+		row = closestRow,
+		col = closestCol,
+	}
+end
+
+-- Function to initialize palette state for the current color
+function palette.initializePaletteState()
+	local currentContext = state.activeColorContext
+	local hexColor = state.getColorValue(currentContext)
+
+	-- Find the closest color in the palette
+	local closestInfo = palette.findClosestColor(hexColor)
+
+	if closestInfo and closestInfo.colorKey then
+		-- Get palette state for the current color context
+		local paletteState = getCurrentPaletteState()
+
+		-- Update the palette state with the closest color's position
+		paletteState.selectedRow = closestInfo.row
+		paletteState.selectedCol = closestInfo.col
+
+		-- Ensure proper scrolling to make the selection visible
+		local dimensions = calculateGridDimensions()
+		local squareSize = dimensions.squareSize
+		local spacing = SQUARE_SPACING
+
+		-- Calculate scroll position to center the selected color
+		paletteState.scrollY = (closestInfo.row * (squareSize + spacing))
+			- (dimensions.visibleRows / 2 * (squareSize + spacing))
+
+		-- Clamp scroll position
+		paletteState.scrollY = math.max(0, paletteState.scrollY)
+		paletteState.scrollY = math.min(
+			(dimensions.gridSize.rows * (squareSize + spacing)) - dimensions.visibleGridHeight,
+			paletteState.scrollY
+		)
+	end
+end
+
 -- Function called when entering this screen
 function palette.onEnter()
 	-- Calculate grid dimensions and update state
@@ -401,49 +477,42 @@ function palette.onEnter()
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
 
+	-- Try to initialize palette state based on current color
+	palette.initializePaletteState()
+
 	-- Get current color type state
 	local currentState = getCurrentPaletteState()
 
-	-- Only reset selection and scroll position if they haven't been set before
-	-- This allows the screen to remember its position when returning to it
-	if currentState.selectedRow == nil or currentState.selectedCol == nil then
+	-- Validate that the selected position is still valid after grid size changes
+	-- and adjust if necessary
+	if currentState.selectedRow >= paletteState.gridSize.rows then
+		currentState.selectedRow = paletteState.gridSize.rows - 1
+	end
+
+	if currentState.selectedCol >= paletteState.gridSize.cols then
+		currentState.selectedCol = paletteState.gridSize.cols - 1
+	end
+
+	-- Ensure the selected position has a color
+	if
+		not hasColorAt(
+			currentState.selectedRow,
+			currentState.selectedCol,
+			paletteState.gridSize,
+			#paletteState.colorKeys
+		)
+	then
+		-- If not, reset to the first color
 		currentState.selectedRow = 0
 		currentState.selectedCol = 0
-		currentState.scrollY = 0
+	end
+
+	-- Ensure scroll position is still valid
+	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
+		currentState.scrollY =
+			math.max(0, math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight))
 	else
-		-- Validate that the selected position is still valid after grid size changes
-		-- and adjust if necessary
-		if currentState.selectedRow >= paletteState.gridSize.rows then
-			currentState.selectedRow = paletteState.gridSize.rows - 1
-		end
-
-		if currentState.selectedCol >= paletteState.gridSize.cols then
-			currentState.selectedCol = paletteState.gridSize.cols - 1
-		end
-
-		-- Ensure the selected position has a color
-		if
-			not hasColorAt(
-				currentState.selectedRow,
-				currentState.selectedCol,
-				paletteState.gridSize,
-				#paletteState.colorKeys
-			)
-		then
-			-- If not, reset to the first color
-			currentState.selectedRow = 0
-			currentState.selectedCol = 0
-		end
-
-		-- Ensure scroll position is still valid
-		if paletteState.totalGridHeight > paletteState.visibleGridHeight then
-			currentState.scrollY = math.max(
-				0,
-				math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight)
-			)
-		else
-			currentState.scrollY = 0
-		end
+		currentState.scrollY = 0
 	end
 
 	-- Start hover animation for the selected color

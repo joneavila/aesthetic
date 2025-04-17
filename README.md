@@ -12,21 +12,22 @@
     <img src="/.github/preview_animated.webp" width="50%" height="50%" alt="Preview of Aesthetic">
   </p>
   <p>
-    <img src="/.github/screenshot_menu_main.png" width="30%" alt="Aesthetic main menu">
-    <img src="/.github/screenshot_menu_palette.png" width="30%" alt="Aesthetic color palette screen">
-    <img src="/.github/screenshot_menu_picker.png" width="30%" alt="Aesthetic HSV picker screen">
-    <img src="/.github/screenshot_menu_hex.png" width="30%" alt="Aesthetic hex code screen">
+    <img src="/.github/screenshot_main_menu_screen.png" width="30%" alt="Aesthetic main menu screen">
+    <img src="/.github/screenshot_palette_screen.png" width="30%" alt="Aesthetic color palette screen">
+    <img src="/.github/screenshot_font_screen.png" width="30%" alt="Aesthetic font screen">
   </p>
 </div>
 
 ## ✨ Features
 
 - **Customize** your theme to match your style
-  - **Colors**: Select foreground and background colors from presets or create your own
-  - **Font**: Choose between Inter for clean lines or Nunito for friendly curves
+  - **Colors**: Select background and foreground colors from palette or create your own using HSV picker or hex input
+  - **RGB Lighting**: Configure mode (solid, breathing, rainbow, off), with adjustable color, speed, and brightness where supported
+  - **Font**: Select from Inter (clean), Nunito (rounded), Cascadia Code (monospaced), or Retro Pixel (pixelated) with three size options
   - **Icons**: Toggle system glyphs for a minimal or informative interface
-- **Export** your theme directly to your device's theme collection
-- **Apply** your new theme automatically when exiting the application (optional)
+- **Export** your theme directly to your theme collection
+- **Apply** your theme automatically upon exiting to instantly see your creation
+- **Remember** last theme configuration for easy adjustments when you return
 
 ## 📦 Installation
 
@@ -53,6 +54,20 @@ Want to improve **Aesthetic**?
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
 - Check out the wiki for the development guide.
 
+## ❤️ Support
+
+You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi. Any support is greatly appreciated – thank you for supporting open source software!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
+
+Looking for more muOS community apps? Check out: [**RomM**](https://github.com/rommapp/muos-app) (connect to self-hosted ROM manager), [**Scrappy**](https://github.com/gabrielfvale/scrappy) (art scraper), [**Bluetooth App**](https://github.com/nvcuong1312/bltMuos) (Bluetooth settings), [**RGB Controller**](https://github.com/JanTrueno) (RGB lighting settings).
+
+## 🗺️ Roadmap
+
+- [x] Remember most recent theme settings
+- [x] Customize theme font size
+- [x] Limit theme content width in content screens
+
 ## ⭐ Credits
 
 - [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](src/assets/fonts/cascadia_code/LICENSE)
@@ -66,25 +81,8 @@ Want to improve **Aesthetic**?
 - [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
 - [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
 - [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
+- [**TÖVE**](https://github.com/poke1024/tove2d) • LÖVE library • [MIT](src/tove/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
-
-## ❤️ More open-source muOS applications
-
-All Discord links redirect to muOS Discord discussion pages.
-
-- [**RomM**](https://github.com/rommapp/muos-app) by The RomM Project • Connect to your RomM instance (self-hosted ROM manager + player) • [Discord](https://discord.com/channels/1152022492001603615/1337110104591564911)
-- [**Scrappy**](https://github.com/gabrielfvale/scrappy) by Gabriel Freire • On-device art scraper • [Discord](https://discord.com/channels/1152022492001603615/1301609580459200533)
-- [**Artie**](https://github.com/milouk/artie) by Michael Loukeris • On-device art scraper • [Discord](https://discord.com/channels/1152022492001603615/1290041622519742474)
-- [**Bluetooth Settings**](https://github.com/nvcuong1312/bltMuos) by nvc • Bluetooth settings • [Discord](https://discord.com/channels/1152022492001603615/1326441936403435634)
-- [**RGB Controller**](https://github.com/JanTrueno) • Control RGB lighting • [Discord](https://discord.com/channels/1152022492001603615/1272215949474267187)
-
-## 👍 Support this project
-
-You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi.
-
-Any support is greatly appreciated – thank you for supporting open source software!
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
 
 ## ⚖️ License
 

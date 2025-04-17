@@ -161,9 +161,6 @@ function system.ensurePath(path)
 
 	local result = os.execute('mkdir -p "' .. dir .. '"')
 	if not result then
-		print(
-			"[ensurePath] Failed to create directory: " .. dir .. " (os.execute returned: " .. tostring(result) .. ")"
-		)
 		errorHandler.setError("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		return false
 	end

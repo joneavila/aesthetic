@@ -15,6 +15,7 @@ local splash = require("splash")
 local screens = require("screens")
 local colors = require("colors")
 local state = require("state")
+local settings = require("utils.settings")
 
 -- Input delay handling
 local lastInpuSeconds = 0
@@ -60,49 +61,39 @@ local function setupFonts()
 	-- Add a minimum scale factor to prevent fonts from becoming too small
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 0.8)
 
-	-- Define base font sizes for 720x720 reference display
-	local baseFontSizes = {
-		header = 32,
-		body = 24,
-		caption = 18,
-		monoTitle = 48,
-		monoBody = 22,
-		nunito = 24,
-		retroPixel = 24,
-	}
+	-- Initialize the font name mapping
+	state.initFontNameMapping()
 
-	-- Apply scaling
-	local fontSizeHeader = baseFontSizes.header * scaleFactor
-	local fontHeader = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeHeader)
+	-- Create all fonts using the font definitions and scaling
+	state.fonts = {}
+	for key, def in pairs(state.fontDefs) do
+		local fontSize = def.size * scaleFactor
+		state.fonts[key] = love.graphics.newFont(def.path, fontSize)
+	end
+end
 
-	local fontSizeBody = baseFontSizes.body * scaleFactor
-	local fontBody = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeBody)
+-- Function to load settings from file
+local function loadSettings()
+	-- Try to load settings from file
+	local success = settings.loadFromFile()
 
-	local fontSizeCaption = baseFontSizes.caption * scaleFactor
-	local fontCaption = love.graphics.newFont("assets/fonts/inter/Inter_24pt-SemiBold.ttf", fontSizeCaption)
+	if success then
+		-- Update font selection based on loaded state
+		-- This is done here rather than in settings.lua because the FONTS array is a UI-specific representation of the
+		-- font state, and the 'selected' property for each font needs to be updated to reflect the loaded
+		-- state.selectedFont, while other settings (colors, RGB settings) are read directly from state when UI
+		-- screens are rendered
+		for _, font in ipairs(require("screen.menu.constants").FONTS) do
+			font.selected = (font.name == state.selectedFont)
+		end
+	end
 
-	local fontSizeMonoTitle = baseFontSizes.monoTitle * scaleFactor
-	local fontMonoTitle = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoTitle)
+	return success
+end
 
-	local fontSizeMonoBody = baseFontSizes.monoBody * scaleFactor
-	local fontMonoBody = love.graphics.newFont("assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", fontSizeMonoBody)
-
-	local fontSizeNunito = baseFontSizes.nunito * scaleFactor
-	local fontNunito = love.graphics.newFont("assets/fonts/nunito/Nunito-Bold.ttf", fontSizeNunito)
-
-	local fontSizeRetroPixel = baseFontSizes.retroPixel * scaleFactor
-	local fontRetroPixel = love.graphics.newFont("assets/fonts/retro_pixel/retro-pixel-thick.ttf", fontSizeRetroPixel)
-
-	-- Store fonts in a table for easy access
-	state.fonts = {
-		header = fontHeader,
-		body = fontBody,
-		caption = fontCaption,
-		monoTitle = fontMonoTitle,
-		monoBody = fontMonoBody,
-		nunito = fontNunito,
-		retroPixel = fontRetroPixel,
-	}
+-- Function to save settings to file
+local function saveSettings()
+	return settings.saveToFile()
 end
 
 function love.load()
@@ -117,6 +108,15 @@ function love.load()
 	local function onSplashDone()
 		state.splash = nil -- Clear splash screen
 		input.load()
+
+		-- Load user settings if they exist
+		loadSettings()
+
+		-- Apply default RGB lighting settings when first launching application
+		local rgbUtils = require("utils.rgb")
+		rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+		rgbUtils.updateConfig() -- Apply RGB settings from state
+
 		screens.load()
 		state.fading = true -- Start the fade effect
 		state.fadeTimer = 0 -- Reset fade timer
@@ -179,6 +179,9 @@ end
 
 -- Handle application exit
 function love.quit()
+	-- Save current settings before exiting
+	saveSettings()
+
 	-- Restore original RGB configuration if no theme was applied
 	local rgbUtils = require("utils.rgb")
 	if not state.themeApplied then

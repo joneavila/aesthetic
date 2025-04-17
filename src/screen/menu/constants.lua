@@ -22,11 +22,6 @@ constants.SCREEN_HEIGHT_MAPPING = {
 -- Helper function to get font size info based on screen height
 constants.getFontSizeInfo = function(height)
 	local sizeInfo = constants.SCREEN_HEIGHT_MAPPING[height]
-	if not sizeInfo then
-		-- Simple error message without using errorHandler
-		print("Unexpected screen height: " .. height)
-		return nil
-	end
 	return sizeInfo
 end
 
@@ -74,14 +69,24 @@ constants.BUTTONS = {
 		rgbLighting = true,
 	},
 	{
-		text = "Font",
+		text = "Font family",
 		selected = false,
 		fontSelection = true,
+	},
+	{
+		text = "Font size",
+		selected = false,
+		fontSizeToggle = true,
 	},
 	{
 		text = "Icons",
 		selected = false,
 		glyphsToggle = true,
+	},
+	{
+		text = "Box art width",
+		selected = false,
+		boxArt = true,
 	},
 	{
 		text = "Create theme",
@@ -120,8 +125,7 @@ paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
 -- Active RGB configuration paths
--- paths.ACTIVE_RGB_DIR = system.getEnvironmentVariable("RGB_DIR") or paths.THEME_ACTIVE_DIR .. "/rgb"
-paths.ACTIVE_RGB_DIR = system.getEnvironmentVariable("RGB_DIR")
+paths.ACTIVE_RGB_DIR = "/run/muos/storage/theme/active/rgb"
 paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
 paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
 
@@ -156,6 +160,7 @@ paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
 paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL_PATH = paths.THEME_SCHEME_DIR .. "/global.ini"
+paths.THEME_SCHEME_MUXPLORE_PATH = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
 
 -- `font`
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
@@ -166,8 +171,7 @@ paths.THEME_GLYPH_SOURCE_PATH = paths.TEMPLATE_DIR .. "/glyph"
 paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 
 -- `rgb`
--- paths.THEME_RGB_DIR = system.getEnvironmentVariable("RGB_DIR") or paths.WORKING_THEME_DIR .. "/rgb"
-paths.THEME_RGB_DIR = system.getEnvironmentVariable("RGB_DIR")
+paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
 paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 
 -- `<width>x<height>`
@@ -177,6 +181,7 @@ paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"
 paths.THEME_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
 paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/bootlogo.bmp"
 paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
+paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
 
 -- Font options
 constants.FONTS = {

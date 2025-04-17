@@ -11,12 +11,11 @@
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic/.aesthetic"
 BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
-RGB_DIR="/run/muos/storage/theme/active/rgb"
 
 # Export environment variables
+export ROOT_DIR
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
 export LOG_DIR
-export RGB_DIR
 export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/tove:$LD_LIBRARY_PATH" # Add libraries to the library path
 export TEMPLATE_DIR="$ROOT_DIR/template"
 
