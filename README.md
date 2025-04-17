@@ -55,6 +55,20 @@ Want to improve **Aesthetic**?
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
 - Check out the wiki for the development guide.
 
+## ❤️ Support
+
+You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi. Any support is greatly appreciated – thank you for supporting open source software!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
+
+Looking for more muOS community apps? Check out: [**RomM**](https://github.com/rommapp/muos-app) (connect to self-hosted ROM manager), [**Scrappy**](https://github.com/gabrielfvale/scrappy) (art scraper), [**Bluetooth App**](https://github.com/nvcuong1312/bltMuos) (Bluetooth settings), [**RGB Controller**](https://github.com/JanTrueno) (RGB lighting settings).
+
+## 🗺️ Roadmap
+
+- [x] Remember most recent theme settings
+- [x] Customize theme font size
+- [ ] Limit theme content width in content screens
+
 ## ⭐ Credits
 
 - [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](src/assets/fonts/cascadia_code/LICENSE)
@@ -69,20 +83,6 @@ Want to improve **Aesthetic**?
 - [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
 - [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
-
-## ❤️ Support
-
-You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi. Any support is greatly appreciated – thank you for supporting open source software!
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
-
-Looking for more muOS community apps? Check out: [**RomM**](https://github.com/rommapp/muos-app) (connect to self-hosted ROM manager), [**Scrappy**](https://github.com/gabrielfvale/scrappy) (art scraper), [**Bluetooth App**](https://github.com/nvcuong1312/bltMuos) (Bluetooth settings), [**RGB Controller**](https://github.com/JanTrueno) (RGB lighting settings).
-
-## 🗺️ Roadmap
-
-- [x] Remember most recent theme settings
-- [x] Customize theme font size
-- [ ] Limit theme content width in content screens
 
 ## ⚖️ License
 
