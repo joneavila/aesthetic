@@ -70,23 +70,13 @@ Want to improve **Aesthetic**?
 - [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
 
-## ❤️ More open-source muOS applications
+## ❤️ Support
 
-All Discord links redirect to muOS Discord discussion pages.
-
-- [**RomM**](https://github.com/rommapp/muos-app) by The RomM Project • Connect to your RomM instance (self-hosted ROM manager + player) • [Discord](https://discord.com/channels/1152022492001603615/1337110104591564911)
-- [**Scrappy**](https://github.com/gabrielfvale/scrappy) by Gabriel Freire • On-device art scraper • [Discord](https://discord.com/channels/1152022492001603615/1301609580459200533)
-- [**Artie**](https://github.com/milouk/artie) by Michael Loukeris • On-device art scraper • [Discord](https://discord.com/channels/1152022492001603615/1290041622519742474)
-- [**Bluetooth Settings**](https://github.com/nvcuong1312/bltMuos) by nvc • Bluetooth settings • [Discord](https://discord.com/channels/1152022492001603615/1326441936403435634)
-- [**RGB Controller**](https://github.com/JanTrueno) • Control RGB lighting • [Discord](https://discord.com/channels/1152022492001603615/1272215949474267187)
-
-## 👍 Support this project
-
-You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi.
-
-Any support is greatly appreciated – thank you for supporting open source software!
+You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi. Any support is greatly appreciated – thank you for supporting open source software!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F51COHHT)
+
+Looking for more muOS community apps? Check out: [**RomM**](https://github.com/rommapp/muos-app) (connect to self-hosted ROM manager), [**Scrappy**](https://github.com/gabrielfvale/scrappy) (art scraper), [**Bluetooth App**](https://github.com/nvcuong1312/bltMuos) (Bluetooth settings), [**RGB Controller**](https://github.com/JanTrueno) (RGB lighting settings).
 
 ## 🗺️ Roadmap
 
