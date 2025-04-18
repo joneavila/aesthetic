@@ -50,7 +50,7 @@
 
 Want to improve **Aesthetic**?
 
-- If you've found a bug or have a suggestion or question, [open an issue](https://github.com/joneavila/aesthetic/issues/new) or join the discussion on the [dedicated thread in the muOS Discord server](https://discord.com/channels/1152022492001603615/1346862844402208791).
+- If you've found a bug or have a suggestion or question, [open an issue](https://github.com/joneavila/aesthetic/issues/new) or join the discussion on the [dedicated thread in the muOS community forum](https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld).
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
 - Check out the wiki for the development guide.
 
