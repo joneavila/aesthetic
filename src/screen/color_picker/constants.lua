@@ -6,6 +6,9 @@ local constants = {}
 -- Calculate tab height as a percentage of the screen height
 local TAB_HEIGHT_PERCENT = 0.08
 local TAB_HEIGHT = math.floor(state.screenHeight * TAB_HEIGHT_PERCENT)
+local TAB_CONTAINER_HEIGHT = TAB_HEIGHT * 1.4 -- Match the increased container height in color_picker.lua
+local HEADER_HEIGHT = 50 -- Header height for the color context display
+local TAB_CONTENT_OVERLAP = -25 -- Negative value to eliminate any gap between tabs and content
 
 -- Function to provide tab height to main color picker screen
 constants.getTabHeight = function()
@@ -17,9 +20,9 @@ constants.calculateContentArea = function()
 	local controls = require("controls")
 	return {
 		x = 0,
-		y = TAB_HEIGHT,
+		y = HEADER_HEIGHT + TAB_CONTAINER_HEIGHT + TAB_CONTENT_OVERLAP, -- Negative margin
 		width = state.screenWidth,
-		height = state.screenHeight - TAB_HEIGHT - controls.HEIGHT,
+		height = state.screenHeight - HEADER_HEIGHT - TAB_CONTAINER_HEIGHT - controls.HEIGHT - TAB_CONTENT_OVERLAP, -- Adjust height to compensate for overlap
 	}
 end
 
