@@ -216,6 +216,7 @@ function menu.draw()
 		{ icon = "d_pad.png", text = "Navigate" },
 		{ icon = "a.png", text = "Select" },
 		{ icon = "y.png", text = "About" },
+		{ icon = "a.png", text = "Settings" }, -- TODO: Replace placeholder with start button
 		{ icon = "b.png", text = "Exit" },
 	})
 end
@@ -252,7 +253,6 @@ function menu.update(dt)
 		local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
 		local success = themeCreator.installTheme(waitingThemeName)
 		waitingState = "none"
-		local themePath = waitingThemePath
 		waitingThemePath = nil
 
 		-- After theme is installed, apply RGB settings from theme
@@ -404,6 +404,14 @@ function menu.update(dt)
 		return
 	end
 
+	-- Handle Start button (Settings)
+	if virtualJoystick:isGamepadDown("start") and switchScreen then
+		switchScreen("settings")
+		state.resetInputTimer()
+		state.forceInputDelay(0.2) -- Add extra delay when switching screens
+		return
+	end
+
 	-- Reset input timer if moved
 	if moved then
 		state.resetInputTimer()
@@ -474,7 +482,7 @@ function menu.update(dt)
 	if selectedButtonIndex and not navButtons[selectedButtonIndex].isBottomButton then
 		-- Adjust scroll position if the selected button is outside the visible area
 		local buttonIndex = 0
-		for i, button in ipairs(constants.BUTTONS) do
+		for _, button in ipairs(constants.BUTTONS) do
 			if not button.isBottomButton then
 				buttonIndex = buttonIndex + 1
 				if button.selected then
@@ -496,20 +504,20 @@ function menu.setScreenSwitcher(switchFunc)
 end
 
 function menu.setSelectedColor(buttonType, colorKey)
-	local colorValue = nil
+	-- Assume colorKey is already a hex code (Case 1: From HSV or hex color picker)
+	local colorValue = colorKey
 
-	if colorKey:sub(1, 1) == "#" then
-		-- Case 1: Already a hex code from HSV or hex color picker
-		colorValue = colorKey
-	else
-		-- Case 2: Color key from palette picker, needs conversion to hex
+	if colorKey:sub(1, 1) ~= "#" then
+		-- Case 2:From palette picker, needs conversion to hex
 		colorValue = colors.toHex(colorKey)
 	end
 
-	if colorValue then
-		-- Store in the centralized context using the setter
-		state.setColorValue(buttonType, colorValue)
+	if not colorValue then
+		errorHandler.setError("Failed to set color value: " .. colorKey)
 	end
+
+	-- Store in the centralized context using the setter
+	state.setColorValue(buttonType, colorValue)
 end
 
 function menu.onExit()

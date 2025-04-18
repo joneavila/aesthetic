@@ -114,9 +114,7 @@ local function getButtonPosition(row, col)
 end
 
 function hex.load()
-	-- Initialize default hex states in state manager if needed
-	local bgContext = state.getColorContext("background")
-	local fgContext = state.getColorContext("foreground")
+	-- Default context values are set in `state.lua`, nothing to do here
 
 	-- Preload icons
 	loadIcon("delete")
@@ -231,19 +229,6 @@ function hex.draw()
 					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.surface)
 				end
 				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
-
-				-- Set text/icon color - always use foreground color for better visibility
-				local buttonColor = colors.ui.foreground
-
-				-- Only for the confirm button when it's disabled and not selected, use a dimmed color
-				if isConfirmButton and isConfirmDisabled and not isSelected then
-					buttonColor = {
-						colors.ui.foreground[1] * 0.5,
-						colors.ui.foreground[2] * 0.5,
-						colors.ui.foreground[3] * 0.5,
-						1.0, -- Always use full alpha
-					}
-				end
 
 				-- Special handling for icon buttons
 				if buttonText == "BACKSPACE" then

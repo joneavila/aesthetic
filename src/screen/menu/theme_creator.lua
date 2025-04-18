@@ -218,8 +218,8 @@ local function applyContentHeightSettings(schemeFilePath, screenHeight)
 	schemeFile:close()
 
 	-- Extract HEADER_HEIGHT and FOOTER_HEIGHT from the scheme file
-	local headerHeight = 0
-	local footerHeight = 0
+	local headerHeight
+	local footerHeight
 
 	-- Find HEADER_HEIGHT using pattern matching (allowing spaces around equals sign)
 	local headerHeightMatch = schemeFileContent:match("HEADER_HEIGHT%s*=%s*(%d+)")
@@ -557,7 +557,7 @@ end
 -- Function to create `version.txt` file containing the compatible muOS version
 local function createVersionFile()
 	local sourceFile = io.open(paths.MUOS_VERSION_PATH, "r")
-	local versionContent = ""
+	local versionContent
 
 	if sourceFile then
 		-- Read the content from the source file

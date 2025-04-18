@@ -154,7 +154,7 @@ function colorPicker.draw()
 	)
 
 	-- Draw tabs
-	for i, tab in ipairs(tabs) do
+	for _, tab in ipairs(tabs) do
 		local tabY = HEADER_HEIGHT
 
 		-- Calculate tab position to ensure it fits flush with the container
@@ -261,9 +261,6 @@ end
 
 -- Function called when entering this screen
 function colorPicker.onEnter(tabName)
-	-- Log palette state
-	local context = state.getColorContext(state.activeColorContext)
-
 	-- If a specific tab is requested, switch to it
 	if tabName then
 		switchToTab(tabName)

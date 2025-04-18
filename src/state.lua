@@ -1,7 +1,6 @@
 --- State management module
 ---
 --- This module centralizes all global application state
-local love = require("love")
 
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application

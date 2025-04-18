@@ -22,7 +22,8 @@ constants.calculateContentArea = function()
 		x = 0,
 		y = HEADER_HEIGHT + TAB_CONTAINER_HEIGHT + TAB_CONTENT_OVERLAP, -- Negative margin
 		width = state.screenWidth,
-		height = state.screenHeight - HEADER_HEIGHT - TAB_CONTAINER_HEIGHT - controls.HEIGHT - TAB_CONTENT_OVERLAP, -- Adjust height to compensate for overlap
+		-- Adjust height to compensate for overlap
+		height = state.screenHeight - HEADER_HEIGHT - TAB_CONTAINER_HEIGHT - controls.HEIGHT - TAB_CONTENT_OVERLAP,
 	}
 end
 

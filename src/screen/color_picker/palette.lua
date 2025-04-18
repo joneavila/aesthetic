@@ -438,11 +438,11 @@ function palette.initializePaletteState()
 
 	if closestInfo and closestInfo.colorKey then
 		-- Get palette state for the current color context
-		local paletteState = getCurrentPaletteState()
+		local currentPaletteState = getCurrentPaletteState()
 
 		-- Update the palette state with the closest color's position
-		paletteState.selectedRow = closestInfo.row
-		paletteState.selectedCol = closestInfo.col
+		currentPaletteState.selectedRow = closestInfo.row
+		currentPaletteState.selectedCol = closestInfo.col
 
 		-- Ensure proper scrolling to make the selection visible
 		local dimensions = calculateGridDimensions()
@@ -450,14 +450,14 @@ function palette.initializePaletteState()
 		local spacing = SQUARE_SPACING
 
 		-- Calculate scroll position to center the selected color
-		paletteState.scrollY = (closestInfo.row * (squareSize + spacing))
+		currentPaletteState.scrollY = (closestInfo.row * (squareSize + spacing))
 			- (dimensions.visibleRows / 2 * (squareSize + spacing))
 
 		-- Clamp scroll position
-		paletteState.scrollY = math.max(0, paletteState.scrollY)
-		paletteState.scrollY = math.min(
+		currentPaletteState.scrollY = math.max(0, currentPaletteState.scrollY)
+		currentPaletteState.scrollY = math.min(
 			(dimensions.gridSize.rows * (squareSize + spacing)) - dimensions.visibleGridHeight,
-			paletteState.scrollY
+			currentPaletteState.scrollY
 		)
 	end
 end
