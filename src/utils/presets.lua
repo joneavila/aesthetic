@@ -4,6 +4,9 @@ local state = require("state")
 local system = require("utils.system")
 local errorHandler = require("screen.menu.error_handler")
 
+local constants = require("screen.menu.constants")
+local paths = constants.PATHS
+
 local presets = {}
 
 -- Function to save a preset file
@@ -12,14 +15,9 @@ function presets.savePreset(presetName)
 		presetName = "preset1"
 	end
 
-	-- Get the ROOT_DIR from environment variable
-	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
-	if not rootDir then
-		return false
-	end
-
 	-- Create the presets directory if it doesn't exist
-	local presetsDir = rootDir .. "/presets"
+	-- Unlike most paths in `constants.lua` this path must be created regardless if theme is created
+	local presetsDir = paths.PRESETS_DIR
 	os.execute("test -d " .. presetsDir .. " || mkdir -p " .. presetsDir)
 
 	-- Prepare the file path

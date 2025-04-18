@@ -108,7 +108,7 @@ constants.POPUP_BUTTONS = {
 }
 
 constants.PATHS = {
-	-- Since the environment variable is set in the run script it will not be set when debugging
+	ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR"),
 	TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR"),
 }
 
@@ -182,6 +182,9 @@ paths.THEME_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
 paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/bootlogo.bmp"
 paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
 paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
+
+-- Theme presets directory
+paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 
 -- Font options
 constants.FONTS = {
