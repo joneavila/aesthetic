@@ -9,6 +9,43 @@ local paths = constants.PATHS
 
 local presets = {}
 
+-- Function to validate a preset file
+function presets.validatePreset(presetName)
+	if not presetName then
+		return false
+	end
+
+	-- Prepare the file path
+	local filePath = paths.PRESETS_DIR .. "/" .. presetName .. ".lua"
+
+	-- Check if the file exists
+	if not system.fileExists(filePath) then
+		return false
+	end
+
+	-- Try to load the preset file
+	local success, loadedPreset = pcall(function()
+		local chunk, err = loadfile(filePath)
+		if not chunk then
+			error("Failed to load preset file: " .. (err or "unknown error"))
+		end
+		return chunk()
+	end)
+
+	if not success or type(loadedPreset) ~= "table" then
+		print("Invalid preset found: " .. presetName)
+		return false
+	end
+
+	-- Check essential preset properties
+	if not loadedPreset.background or not loadedPreset.foreground or not loadedPreset.rgb then
+		print("Preset missing required properties: " .. presetName)
+		return false
+	end
+
+	return true
+end
+
 -- Function to save a preset file
 function presets.savePreset(presetName)
 	if not presetName then

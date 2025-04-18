@@ -34,6 +34,28 @@ local popupButtons = {}
 local popupMode = "none" -- none, save_success, load_success, error
 local presetName = "preset1" -- Default preset name
 
+-- Helper function to generate a unique preset name
+local function generatePresetName()
+	-- Get list of existing presets
+	local existingPresets = presets.listPresets()
+
+	-- Find the highest preset number
+	local highestNumber = 0
+	for _, name in ipairs(existingPresets) do
+		-- Extract number from preset name (if it follows the "Preset N" format)
+		local number = name:match("^Preset%s*(%d+)$")
+		if number then
+			number = tonumber(number)
+			if number and number > highestNumber then
+				highestNumber = number
+			end
+		end
+	end
+
+	-- Generate a new name with the next number
+	return "Preset " .. (highestNumber + 1)
+end
+
 function settings.load()
 	-- Calculate button width based on screen dimensions
 	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
@@ -259,6 +281,8 @@ function settings.update(_dt)
 		for _, button in ipairs(BUTTONS) do
 			if button.selected then
 				if button.text == "Save preset" then
+					presetName = generatePresetName()
+
 					-- Show save preset popup
 					popupMode = "save_input"
 					showPopup(
@@ -266,20 +290,11 @@ function settings.update(_dt)
 						{ { text = "Cancel", selected = false }, { text = "Save", selected = true } }
 					)
 				elseif button.text == "Load preset" then
-					-- Show load preset popup
-					local success = presets.loadPreset(presetName)
-					if success then
-						-- Update RGB configuration immediately after loading preset
-						rgbUtils.updateConfig()
-
-						popupMode = "load_success"
-						showPopup("Preset loaded successfully!", { { text = "Close", selected = true } })
-					else
-						popupMode = "error"
-						showPopup(
-							"Failed to load preset. Preset may not exist.",
-							{ { text = "Close", selected = true } }
-						)
+					-- Navigate to the load preset screen
+					if switchScreen then
+						switchScreen("load_preset")
+						state.resetInputTimer()
+						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
 				end
 				break
