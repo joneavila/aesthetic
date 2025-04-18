@@ -5,6 +5,7 @@ local state = require("state")
 local controls = require("controls")
 local input = require("input")
 local presets = require("utils.presets")
+local rgbUtils = require("utils.rgb")
 
 -- Screen module
 local settings = {}
@@ -268,6 +269,9 @@ function settings.update(_dt)
 					-- Show load preset popup
 					local success = presets.loadPreset(presetName)
 					if success then
+						-- Update RGB configuration immediately after loading preset
+						rgbUtils.updateConfig()
+
 						popupMode = "load_success"
 						showPopup("Preset loaded successfully!", { { text = "Close", selected = true } })
 					else
