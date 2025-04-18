@@ -59,6 +59,7 @@ ARCHIVE_BASE_NAME=Aesthetic
 # Create build directories
 mkdir -p .dist
 mkdir -p .build/"${APP_DIR}"
+mkdir -p .build/"${APP_DIR}/.aesthetic"
 mkdir -p .build/"${APP_GLYPH_DIR}"
 
 # Extract version information from Lua source
