@@ -16,7 +16,12 @@ local colorPicker = {}
 -- Shared constants
 colorPicker.TAB_HEIGHT = constants.getTabHeight()
 
-local TAB_ACTIVE_LINE_HEIGHT = 3
+-- Constants for styling
+local HEADER_HEIGHT = 50
+local HEADER_PADDING = 20
+local TAB_CONTAINER_PADDING = 15
+local TAB_CONTAINER_HEIGHT = (colorPicker.TAB_HEIGHT * 1.4) - (TAB_CONTAINER_PADDING * 2)
+local TAB_CORNER_RADIUS = TAB_CONTAINER_HEIGHT / 4
 
 -- Tab definitions
 local tabs = {
@@ -58,13 +63,27 @@ local function switchToTab(tabName)
 	return false -- Tab not found
 end
 
+-- Helper function to format color context for display
+local function formatColorContext(context)
+	if context == "background" then
+		return "Background color"
+	elseif context == "foreground" then
+		return "Foreground color"
+	elseif context == "rgb" then
+		return "RGB lighting color"
+	else
+		-- Capitalize first letter and add " color" suffix for other contexts
+		return context:sub(1, 1):upper() .. context:sub(2) .. " color"
+	end
+end
+
 function colorPicker.load()
 	-- Calculate tab widths
-	local availableWidth = state.screenWidth
+	local availableWidth = state.screenWidth - (TAB_CONTAINER_PADDING * 2)
 	local tabWidth = availableWidth / #tabs
 
 	for i, tab in ipairs(tabs) do
-		tab.x = (i - 1) * tabWidth
+		tab.x = TAB_CONTAINER_PADDING + (i - 1) * tabWidth
 		tab.width = tabWidth
 	end
 
@@ -108,59 +127,73 @@ function colorPicker.draw()
 		activeTab.screen.draw()
 	end
 
-	-- Draw tab bar background
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, colorPicker.TAB_HEIGHT)
+	-- Draw header with current color context
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
+
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(state.fonts.body)
+	local contextTitle = formatColorContext(state.activeColorContext)
+	love.graphics.print(contextTitle, HEADER_PADDING, (HEADER_HEIGHT - state.fonts.body:getHeight()) / 2)
+
+	-- Draw tab container (pill-shaped background)
+	love.graphics.setColor(
+		colors.ui.background[1] * 1.3,
+		colors.ui.background[2] * 1.3,
+		colors.ui.background[3] * 1.3,
+		0.9
+	)
+	love.graphics.rectangle(
+		"fill",
+		TAB_CONTAINER_PADDING,
+		HEADER_HEIGHT,
+		state.screenWidth - (TAB_CONTAINER_PADDING * 2),
+		TAB_CONTAINER_HEIGHT,
+		TAB_CORNER_RADIUS,
+		TAB_CORNER_RADIUS
+	)
 
 	-- Draw tabs
-	for _, tab in ipairs(tabs) do
-		-- Tab background
+	for i, tab in ipairs(tabs) do
+		local tabY = HEADER_HEIGHT
+
+		-- Calculate tab position to ensure it fits flush with the container
+		local tabX = tab.x
+		local tabWidth = tab.width
+
+		-- All tabs have the same corner radius as the container
+		local cornerRadius = TAB_CORNER_RADIUS
+
 		if tab.active then
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+			-- Active tab with accent color background
+			love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.9)
 		else
-			-- Make inactive tabs slightly lighter than the background for subtle distinction
+			-- Inactive tab background (transparent)
 			love.graphics.setColor(
-				colors.ui.background[1] * 1.2,
-				colors.ui.background[2] * 1.2,
-				colors.ui.background[3] * 1.2,
-				1
+				colors.ui.background[1] * 1.3,
+				colors.ui.background[2] * 1.3,
+				colors.ui.background[3] * 1.3,
+				0.7
 			)
 		end
 
-		-- Determine corner radius based on position
-		local leftRadius = 0
-		local rightRadius = 0
-
-		-- Draw tab with appropriate corner rounding (none)
-		love.graphics.rectangle("fill", tab.x, 0, tab.width, colorPicker.TAB_HEIGHT, leftRadius, rightRadius)
+		-- Draw tab background
+		love.graphics.rectangle("fill", tabX, tabY, tabWidth, TAB_CONTAINER_HEIGHT, cornerRadius, cornerRadius)
 
 		-- Tab text
 		if tab.active then
-			love.graphics.setColor(colors.ui.foreground)
+			love.graphics.setColor(colors.ui.background)
 		else
 			love.graphics.setColor(colors.ui.subtext)
 		end
 		love.graphics.setFont(state.fonts.body)
 		love.graphics.printf(
 			tab.name,
-			tab.x,
-			(colorPicker.TAB_HEIGHT - state.fonts.body:getHeight()) / 2,
-			tab.width,
+			tabX,
+			tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2,
+			tabWidth,
 			"center"
 		)
-
-		-- Active tab indicator
-		if tab.active then
-			love.graphics.setColor(colors.ui.foreground)
-			love.graphics.rectangle(
-				"fill",
-				tab.x,
-				colorPicker.TAB_HEIGHT - TAB_ACTIVE_LINE_HEIGHT,
-				tab.width,
-				TAB_ACTIVE_LINE_HEIGHT,
-				0
-			)
-		end
 	end
 end
 
@@ -243,6 +276,13 @@ function colorPicker.onEnter(tabName)
 		-- Call onEnter for palette screen if it exists
 		if tabs[1].screen.onEnter then
 			tabs[1].screen.onEnter()
+		end
+	end
+
+	-- Notify all sub-screens about header height for positioning
+	for _, tab in ipairs(tabs) do
+		if tab.screen.updateLayout then
+			tab.screen.updateLayout()
 		end
 	end
 end
