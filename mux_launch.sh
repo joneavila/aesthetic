@@ -13,6 +13,9 @@ ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic/.ae
 BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
 
+# Make sure the directory exists
+mkdir -p "$LOG_DIR"
+
 # Export environment variables
 export ROOT_DIR
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
