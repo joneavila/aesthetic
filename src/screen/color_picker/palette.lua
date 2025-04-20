@@ -195,9 +195,6 @@ function palette.draw()
 	-- Calculate the last visible row
 	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows - 1)
 
-	-- Calculate the offset for smooth scrolling
-	local scrollOffset = currentState.scrollY % (paletteState.squareSize + SQUARE_SPACING)
-
 	-- Draw color grid (only visible rows)
 	for row = firstVisibleRow, lastVisibleRow do
 		for col = 0, paletteState.gridSize.cols - 1 do
@@ -206,9 +203,10 @@ function palette.draw()
 			-- Only draw if there is a color for this position
 			if colorIndex <= #paletteState.colorKeys then
 				local x = paletteState.offsetX + col * (paletteState.squareSize + SQUARE_SPACING)
-				local y = paletteState.offsetY
-					+ (row - firstVisibleRow) * (paletteState.squareSize + SQUARE_SPACING)
-					- scrollOffset
+
+				-- Draw each row at a fixed position regardless of scroll offset
+				local rowIndex = row - firstVisibleRow
+				local y = paletteState.offsetY + rowIndex * (paletteState.squareSize + SQUARE_SPACING)
 
 				-- Calculate scale and offset for the selected square
 				local scale = 1
