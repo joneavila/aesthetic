@@ -17,6 +17,7 @@ local switchScreen = nil
 local BUTTONS = {
 	{ text = "Save preset", selected = true },
 	{ text = "Load preset", selected = false },
+	{ text = "About", selected = false },
 }
 
 -- Button properties
@@ -306,6 +307,13 @@ function settings.update(_dt)
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")
+						state.resetInputTimer()
+						state.forceInputDelay(0.2) -- Add extra delay when switching screens
+					end
+				elseif button.text == "About" then
+					-- Navigate to the about screen
+					if switchScreen then
+						switchScreen("about")
 						state.resetInputTimer()
 						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end

@@ -215,7 +215,6 @@ function menu.draw()
 	controls.draw({
 		{ button = "d_pad", text = "Navigate" },
 		{ button = "a", text = "Select" },
-		{ button = "y", text = "About" },
 		{ button = "start", text = "Settings" },
 		{ button = "b", text = "Exit" },
 	})
@@ -393,14 +392,6 @@ function menu.update(dt)
 		-- Restore original RGB configuration if no theme was applied
 		rgbUtils.restoreConfig()
 		love.event.quit()
-		return
-	end
-
-	-- Handle Y button (About)
-	if virtualJoystick:isGamepadDown("y") and switchScreen then
-		switchScreen(constants.ABOUT_SCREEN)
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 		return
 	end
 
