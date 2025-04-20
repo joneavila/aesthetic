@@ -11,10 +11,10 @@ local constants = require("screen.color_picker.constants")
 local hsv = {}
 
 -- Constants
-local EDGE_PADDING = 20
+local EDGE_PADDING = 10
 local HUE_SLIDER_WIDTH = 32
-local ELEMENT_SPACING = 20
-local PREVIEW_SQUARE_SPACING = 60
+local ELEMENT_SPACING = 10
+local PREVIEW_SQUARE_SPACING = 30
 local PREVIEW_HEIGHT = nil -- Will be calculated in load()
 local CURSOR = {
 	CIRCLE_RADIUS = 12,
@@ -151,7 +151,8 @@ function hsv.load()
 
 	-- Calculate preview height
 	local labelHeight = 20
-	PREVIEW_HEIGHT = math.floor((availableHeight - PREVIEW_SQUARE_SPACING - (labelHeight * 2)) / 2)
+	local labelPadding = 15 -- Match the value used in draw function
+	PREVIEW_HEIGHT = math.floor((availableHeight - PREVIEW_SQUARE_SPACING - labelPadding - (labelHeight * 2)) / 2)
 
 	-- Calculate positions for all elements (left to right)
 	-- Preview squares position (leftmost)
@@ -213,12 +214,14 @@ function hsv.draw()
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.7)
 	love.graphics.setFont(state.fonts.caption)
 	love.graphics.printf(
-		"Current",
+		"Old",
 		pickerState.previewX,
 		pickerState.startY + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
+
+	local labelPadding = 15
 
 	-- Draw new color preview with increased spacing
 	r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
@@ -226,7 +229,7 @@ function hsv.draw()
 	love.graphics.rectangle(
 		"fill",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding,
 		pickerState.previewWidth,
 		PREVIEW_HEIGHT
 	)
@@ -237,7 +240,7 @@ function hsv.draw()
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX - halfLine,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING - halfLine,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding - halfLine,
 		pickerState.previewWidth + lineWidth,
 		PREVIEW_HEIGHT + lineWidth,
 		CURSOR.CORNER_RADIUS
@@ -248,7 +251,7 @@ function hsv.draw()
 	love.graphics.printf(
 		"New",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + PREVIEW_HEIGHT + 5,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
