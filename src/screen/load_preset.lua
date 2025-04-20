@@ -13,12 +13,15 @@ local loadPreset = {}
 -- Screen switching
 local switchScreen = nil
 
+-- Constants for styling
+local HEADER_HEIGHT = 50
+local HEADER_PADDING = 20
+
 -- Screen constants
 local SCREEN = {
 	PADDING = 20,
 	ITEM_HEIGHT = 50,
 	ITEM_SPACING = 10,
-	TITLE_HEIGHT = 60,
 }
 
 -- Preset items list
@@ -58,7 +61,7 @@ local function loadPresetsList()
 	end
 
 	-- Calculate how many items can be displayed
-	local availableHeight = state.screenHeight - SCREEN.TITLE_HEIGHT - controls.HEIGHT - (SCREEN.PADDING * 2)
+	local availableHeight = state.screenHeight - HEADER_HEIGHT - controls.HEIGHT - (SCREEN.PADDING * 2)
 	visibleItemCount = math.floor(availableHeight / (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING))
 end
 
@@ -71,15 +74,18 @@ function loadPreset.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
-	-- Draw title
+	-- Draw header with title
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
+
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.header)
-	love.graphics.print("Load Preset", SCREEN.PADDING, SCREEN.PADDING)
+	love.graphics.setFont(state.fonts.bodyBold)
+	love.graphics.print("Load preset", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
 
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print("No presets found", SCREEN.PADDING, SCREEN.TITLE_HEIGHT + SCREEN.PADDING)
+		love.graphics.print("No presets found", SCREEN.PADDING, HEADER_HEIGHT + SCREEN.PADDING)
 
 		-- Draw controls
 		controls.draw({
@@ -96,7 +102,7 @@ function loadPreset.draw()
 	love.graphics.setFont(state.fonts.body)
 	for i = startIndex, endIndex do
 		local item = presetItems[i]
-		local y = SCREEN.TITLE_HEIGHT + ((i - startIndex) * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING))
+		local y = HEADER_HEIGHT + ((i - startIndex) * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING)) + SCREEN.PADDING
 
 		-- Draw item background if selected
 		if item.selected then
@@ -123,7 +129,7 @@ function loadPreset.draw()
 		love.graphics.rectangle(
 			"fill",
 			state.screenWidth - scrollBarWidth,
-			SCREEN.TITLE_HEIGHT,
+			HEADER_HEIGHT + SCREEN.PADDING,
 			scrollBarWidth,
 			scrollbarBgHeight
 		)
@@ -132,7 +138,7 @@ function loadPreset.draw()
 		love.graphics.setColor(colors.ui.foreground)
 		local scrollRatio = scrollPosition / (#presetItems - visibleItemCount)
 		local handleHeight = (visibleItemCount / #presetItems) * scrollbarBgHeight
-		local handleY = SCREEN.TITLE_HEIGHT + scrollRatio * (scrollbarBgHeight - handleHeight)
+		local handleY = HEADER_HEIGHT + SCREEN.PADDING + scrollRatio * (scrollbarBgHeight - handleHeight)
 		love.graphics.rectangle("fill", state.screenWidth - scrollBarWidth, handleY, scrollBarWidth, handleHeight)
 	end
 

@@ -13,6 +13,10 @@ local settings = {}
 -- Screen switching
 local switchScreen = nil
 
+-- Constants for styling
+local HEADER_HEIGHT = 50
+local HEADER_PADDING = 20
+
 -- Button constants
 local BUTTONS = {
 	{ text = "Save preset", selected = true },
@@ -25,7 +29,7 @@ local BUTTON = {
 	HEIGHT = 50,
 	WIDTH = 0, -- Will be calculated in load()
 	PADDING = 20,
-	START_Y = 100,
+	START_Y = 20,
 }
 
 -- Popup state
@@ -182,17 +186,17 @@ function settings.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
-	-- Draw heading
+	-- Draw header with title
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
+
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.header)
-	local headingText = "Settings"
-	local headingX = BUTTON.PADDING
-	local headingY = BUTTON.PADDING
-	love.graphics.print(headingText, headingX, headingY)
+	love.graphics.setFont(state.fonts.bodyBold)
+	love.graphics.print("Settings", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
 
 	-- Draw buttons
 	for i, button in ipairs(BUTTONS) do
-		local y = BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
+		local y = HEADER_HEIGHT + BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
 		drawButton(button, BUTTON.PADDING, y, button.selected)
 	end
 
