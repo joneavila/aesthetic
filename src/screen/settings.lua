@@ -5,7 +5,6 @@ local state = require("state")
 local controls = require("controls")
 local input = require("input")
 local presets = require("utils.presets")
-local rgbUtils = require("utils.rgb")
 
 -- Screen module
 local settings = {}
@@ -74,10 +73,6 @@ end
 local function drawButton(button, x, y, selected)
 	-- Define consistent padding for text
 	local leftPadding = 20
-	local rightPadding = 20
-
-	-- For selected buttons, draw the background to the edge
-	local drawWidth = BUTTON.WIDTH
 
 	if selected then
 		-- Selected state: Background extends to full width
@@ -125,7 +120,6 @@ local function drawPopup()
 	-- Calculate final popup dimensions
 	local popupWidth = minWidth -- Always use the minimum width to ensure consistent wrapping
 	local buttonHeight = 40
-	local buttonSpacing = 20
 
 	-- Calculate extra height needed for buttons
 	local buttonsExtraHeight = buttonHeight + padding

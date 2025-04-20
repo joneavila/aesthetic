@@ -5,7 +5,6 @@ local state = require("state")
 local controls = require("controls")
 local presets = require("utils.presets")
 local rgbUtils = require("utils.rgb")
-local system = require("utils.system")
 
 -- Module table to export public functions
 local loadPreset = {}
