@@ -14,6 +14,10 @@ local switchScreen = nil
 local MENU_SCREEN = "menu"
 local COLOR_PICKER_SCREEN = "color_picker"
 
+-- Constants for styling
+local HEADER_HEIGHT = 50
+local HEADER_PADDING = 20
+
 -- RGB mode options
 local RGB_MODES = {
 	"Solid",
@@ -113,12 +117,20 @@ function rgb.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
+	-- Draw header with title
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
+
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(state.fonts.bodyBold)
+	love.graphics.print("RGB lighting", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+
 	-- Set font to body font to match menu.lua
 	love.graphics.setFont(state.fonts.body)
 
 	-- Draw each button
 	for i, button in ipairs(BUTTONS) do
-		local y = BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
+		local y = HEADER_HEIGHT + BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
 
 		-- Check if button should be disabled
 		local disabled = (button.text == "Color" and isColorDisabled())

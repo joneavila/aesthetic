@@ -12,6 +12,10 @@ local font = {}
 -- Screen switching
 local switchScreen = nil
 
+-- Constants for styling
+local HEADER_HEIGHT = 50
+local HEADER_PADDING = 20
+
 -- Constants for font screen
 local FONT_SCREEN = {
 	PADDING = 20,
@@ -45,8 +49,16 @@ function font.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
-	-- Draw font items (moved upward by removing title)
-	local startY = FONT_SCREEN.PADDING
+	-- Draw header with title
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
+	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
+
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(state.fonts.bodyBold)
+	love.graphics.print("Font family", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+
+	-- Draw font items
+	local startY = HEADER_HEIGHT + FONT_SCREEN.PADDING
 
 	for i, item in ipairs(fontItems) do
 		local y = startY + (i - 1) * (FONT_SCREEN.ITEM_HEIGHT + FONT_SCREEN.PADDING)
