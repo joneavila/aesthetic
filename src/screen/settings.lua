@@ -21,7 +21,7 @@ local BUTTONS = {
 
 -- Button properties
 local BUTTON = {
-	HEIGHT = 60,
+	HEIGHT = 50,
 	WIDTH = 0, -- Will be calculated in load()
 	PADDING = 20,
 	START_Y = 100,
@@ -67,31 +67,25 @@ end
 
 -- Draw a button with the given properties
 local function drawButton(button, x, y, selected)
-	local font = love.graphics.getFont()
-	local cornerRadius = 8
+	-- Define consistent padding for text
+	local leftPadding = 20
+	local rightPadding = 20
+
+	-- For selected buttons, draw the background to the edge
+	local drawWidth = BUTTON.WIDTH
 
 	if selected then
-		-- Selected state: accent background, background text
-		love.graphics.setColor(colors.ui.accent)
-		love.graphics.rectangle("fill", x, y, BUTTON.WIDTH, BUTTON.HEIGHT, cornerRadius)
-
-		-- Draw text
-		love.graphics.setColor(colors.ui.background)
-		love.graphics.print(button.text, x + BUTTON.PADDING, y + (BUTTON.HEIGHT - font:getHeight()) / 2)
-	else
-		-- Unselected state: background with surface outline
-		love.graphics.setColor(colors.ui.background)
-		love.graphics.rectangle("fill", x, y, BUTTON.WIDTH, BUTTON.HEIGHT, cornerRadius)
-
-		-- Draw outline
+		-- Selected state: Background extends to full width
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.setLineWidth(2)
-		love.graphics.rectangle("line", x, y, BUTTON.WIDTH, BUTTON.HEIGHT, cornerRadius)
-
-		-- Draw text
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(button.text, x + BUTTON.PADDING, y + (BUTTON.HEIGHT - font:getHeight()) / 2)
+		love.graphics.rectangle("fill", 0, y, state.screenWidth, BUTTON.HEIGHT, 0)
 	end
+
+	-- Draw button text
+	love.graphics.setFont(state.fonts.body)
+	local textHeight = state.fonts.body:getHeight()
+
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.print(button.text, x + leftPadding, y + (BUTTON.HEIGHT - textHeight) / 2)
 end
 
 -- Show a popup with the given message and buttons
@@ -104,62 +98,81 @@ end
 -- Draw the popup overlay
 local function drawPopup()
 	-- Semi-transparent background overlay
-	love.graphics.setColor(0, 0, 0, 0.7)
+	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
-	-- Popup container
-	local popupWidth = math.min(state.screenWidth * 0.8, 600)
-	local popupHeight = 200
-	local popupX = (state.screenWidth - popupWidth) / 2
-	local popupY = (state.screenHeight - popupHeight) / 2
+	-- Calculate popup dimensions based on text
+	local padding = 40
+	local maxWidth = state.screenWidth * 0.9 -- Maximum width is 90% of screen width
+	local minWidth = math.min(state.screenWidth * 0.8, maxWidth)
+	local minHeight = state.screenHeight * 0.3
 
-	-- Popup background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle("fill", popupX, popupY, popupWidth, popupHeight, 12)
-
-	-- Popup border
-	love.graphics.setColor(colors.ui.accent)
-	love.graphics.setLineWidth(2)
-	love.graphics.rectangle("line", popupX, popupY, popupWidth, popupHeight, 12)
-
-	-- Popup message
-	love.graphics.setColor(colors.ui.foreground)
+	-- Set font for text measurement
 	love.graphics.setFont(state.fonts.body)
 
-	-- Center the message text
-	local messageWidth = state.fonts.body:getWidth(popupMessage)
-	local messageX = popupX + (popupWidth - messageWidth) / 2
-	love.graphics.print(popupMessage, messageX, popupY + 40)
+	-- Calculate available width for text
+	local availableTextWidth = minWidth - (padding * 2)
 
-	-- Popup buttons
-	local buttonWidth = popupWidth * 0.4
-	local buttonHeight = 50
-	local buttonY = popupY + popupHeight - buttonHeight - 20
+	-- Get wrapped text info
+	local _, lines = state.fonts.body:getWrap(popupMessage, availableTextWidth)
+	local textHeight = #lines * state.fonts.body:getHeight()
 
-	-- Calculate button positions based on how many buttons we have
+	-- Calculate final popup dimensions
+	local popupWidth = minWidth -- Always use the minimum width to ensure consistent wrapping
+	local buttonHeight = 40
 	local buttonSpacing = 20
-	local totalButtonsWidth = (#popupButtons * buttonWidth) + ((#popupButtons - 1) * buttonSpacing)
-	local startX = popupX + (popupWidth - totalButtonsWidth) / 2
 
-	for i, button in ipairs(popupButtons) do
-		local buttonX = startX + (i - 1) * (buttonWidth + buttonSpacing)
+	-- Calculate extra height needed for buttons
+	local buttonsExtraHeight = buttonHeight + padding
+	local popupHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
+
+	local x = (state.screenWidth - popupWidth) / 2
+	local y = (state.screenHeight - popupHeight) / 2
+
+	-- Draw popup background
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.rectangle("fill", x, y, popupWidth, popupHeight, 10)
+
+	-- Draw popup border with surface color
+	love.graphics.setColor(colors.ui.surface)
+	love.graphics.setLineWidth(2)
+	love.graphics.rectangle("line", x, y, popupWidth, popupHeight, 10)
+
+	-- Draw message with wrapping
+	love.graphics.setColor(colors.ui.foreground)
+	local textY = y + padding
+	love.graphics.printf(popupMessage, x + padding, textY, availableTextWidth, "center")
+
+	-- Draw buttons
+	local buttonWidth = math.min(200, popupWidth * 0.4) -- Width is either 200px or 40% of popup width
+	local buttonY = y + popupHeight - buttonHeight - padding
+	local spacing = 20
+	local totalButtonsWidth = (#popupButtons * buttonWidth) + ((#popupButtons - 1) * spacing)
+	local buttonX = x + (popupWidth - totalButtonsWidth) / 2 -- Position relative to popup
+
+	for _, button in ipairs(popupButtons) do
+		local isSelected = button.selected
 
 		-- Draw button background
-		if button.selected then
-			love.graphics.setColor(colors.ui.accent)
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 8)
-			love.graphics.setColor(colors.ui.background)
-		else
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 8)
-			love.graphics.setColor(colors.ui.foreground)
-		end
+		love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
+		love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+		-- Draw button outline
+		love.graphics.setLineWidth(isSelected and 4 or 2)
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
 		-- Draw button text
-		local textWidth = state.fonts.body:getWidth(button.text)
-		local textX = buttonX + (buttonWidth - textWidth) / 2
-		local textY = buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2
-		love.graphics.print(button.text, textX, textY)
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.printf(
+			button.text,
+			buttonX,
+			buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
+			buttonWidth,
+			"center"
+		)
+
+		buttonX = buttonX + buttonWidth + spacing
 	end
 end
 
