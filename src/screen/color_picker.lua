@@ -132,9 +132,9 @@ function colorPicker.draw()
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
 
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(state.fonts.bodyBold)
 	local contextTitle = formatColorContext(state.activeColorContext)
-	love.graphics.print(contextTitle, HEADER_PADDING, (HEADER_HEIGHT - state.fonts.body:getHeight()) / 2)
+	love.graphics.print(contextTitle, HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
 
 	-- Draw tab container (pill-shaped background)
 	love.graphics.setColor(

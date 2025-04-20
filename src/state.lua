@@ -50,6 +50,7 @@ local state = {
 	fontDefs = {
 		header = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 32 },
 		body = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 24 },
+		bodyBold = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-Black.ttf", size = 24 },
 		caption = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 18 },
 		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 48 },
 		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 22 },
