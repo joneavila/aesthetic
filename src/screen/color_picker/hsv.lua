@@ -352,23 +352,23 @@ function hsv.draw()
 	-- Draw controls
 	controls.draw({
 		{
-			icon = { "l1.png", "r1.png" },
+			button = { "l1", "r1" },
 			text = "Switch Tabs",
 		},
 		{
-			icon = { "d_pad.png", "stick_l.png" },
+			button = { "d_pad", "stick_l" },
 			text = "Cursor",
 		},
 		{
-			icon = "y.png",
+			button = "y",
 			text = "HS/V",
 		},
 		{
-			icon = "a.png",
+			button = "a",
 			text = "Confirm",
 		},
 		{
-			icon = "b.png",
+			button = "b",
 			text = "Back",
 		},
 	})

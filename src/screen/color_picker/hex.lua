@@ -301,10 +301,10 @@ function hex.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ icon = { "l1.png", "r1.png" }, text = "Switch Tabs" },
-		{ icon = "d_pad.png", text = "Navigate" },
-		{ icon = "a.png", text = "Select" },
-		{ icon = "b.png", text = "Back" },
+		{ button = { "l1", "r1" }, text = "Switch Tabs" },
+		{ button = "d_pad", text = "Navigate" },
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
 	})
 end
 

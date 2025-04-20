@@ -255,19 +255,19 @@ function palette.draw()
 	drawControlsBackground()
 	controls.draw({
 		{
-			icon = { "l1.png", "r1.png" },
+			button = { "l1", "r1" },
 			text = "Switch Tabs",
 		},
 		{
-			icon = "d_pad.png",
+			button = "d_pad",
 			text = "Navigate",
 		},
 		{
-			icon = "a.png",
+			button = "a",
 			text = "Confirm",
 		},
 		{
-			icon = "b.png",
+			button = "b",
 			text = "Back",
 		},
 	})

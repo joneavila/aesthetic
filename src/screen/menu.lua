@@ -213,11 +213,11 @@ function menu.draw()
 	end
 
 	controls.draw({
-		{ icon = "d_pad.png", text = "Navigate" },
-		{ icon = "a.png", text = "Select" },
-		{ icon = "y.png", text = "About" },
-		{ icon = "a.png", text = "Settings" }, -- TODO: Replace placeholder with start button
-		{ icon = "b.png", text = "Exit" },
+		{ button = "d_pad", text = "Navigate" },
+		{ button = "a", text = "Select" },
+		{ button = "y", text = "About" },
+		{ button = "start", text = "Settings" },
+		{ button = "b", text = "Exit" },
 	})
 end
 

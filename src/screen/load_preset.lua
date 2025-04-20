@@ -83,7 +83,7 @@ function loadPreset.draw()
 
 		-- Draw controls
 		controls.draw({
-			{ icon = "b.png", text = "Back" },
+			{ button = "b", text = "Back" },
 		})
 		return
 	end
@@ -138,9 +138,9 @@ function loadPreset.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ icon = "d_pad.png", text = "Navigate" },
-		{ icon = "a.png", text = "Select" },
-		{ icon = "b.png", text = "Back" },
+		{ button = "d_pad", text = "Navigate" },
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
 	})
 end
 

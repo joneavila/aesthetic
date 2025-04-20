@@ -189,9 +189,9 @@ function settings.draw()
 
 	-- Draw controls at bottom of screen
 	controls.draw({
-		{ icon = "d_pad.png", text = "Navigate" },
-		{ icon = "a.png", text = "Select" },
-		{ icon = "b.png", text = "Back" },
+		{ button = "d_pad", text = "Navigate" },
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
 	})
 end
 

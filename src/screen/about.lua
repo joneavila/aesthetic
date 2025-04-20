@@ -50,8 +50,8 @@ function about.draw()
 
 	-- Draw controls
 	controls.draw({ {
-		icon = "b.png",
-		text = "back",
+		button = "b",
+		text = "Back",
 	} })
 end
 

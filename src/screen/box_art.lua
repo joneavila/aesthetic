@@ -224,9 +224,8 @@ function box_art.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ icon = "d_pad.png", text = "Navigate" },
-		{ icon = "d_pad.png", text = "Change value" },
-		{ icon = "b.png", text = "Back" },
+		{ button = "d_pad", text = "Navigate / Change value" },
+		{ button = "b", text = "Back" },
 	})
 end
 
