@@ -10,10 +10,15 @@ local about = {}
 -- Constants
 local PADDING = 20
 local MENU_SCREEN = "menu"
-local ABOUT_TEXT = [[
-Check out the source code on GitHub!
-https://github.com/joneavila/aesthetic
-Made with LÖVE by @joneavila]]
+local ABOUT_TEXT_PART1 = "Check out the source code on GitHub!"
+local GITHUB_LINK = "https://github.com/joneavila/aesthetic"
+local ABOUT_TEXT_PART2 = [[
+
+Made with LÖVE by mxdamp.
+
+Contact:
+@mxdamp (muOS community forum)
+@joneavila (GitHub)]]
 
 -- Store screen switching function
 local switchScreen = nil
@@ -33,6 +38,11 @@ function about.draw()
 	local headerY = PADDING
 	local bodyY = headerY + headerHeight + PADDING
 
+	-- Calculate text heights for positioning
+	local font = state.fonts.body
+	local part1Height = font:getHeight()
+	local linkHeight = font:getHeight()
+
 	-- Draw header
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(state.fonts.header)
@@ -44,9 +54,20 @@ function about.draw()
 		"center"
 	)
 
-	-- Draw body text
+	-- Draw body text in parts
 	love.graphics.setFont(state.fonts.body)
-	love.graphics.printf(ABOUT_TEXT, PADDING, bodyY, contentWidth, "left")
+
+	-- Part 1
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.printf(ABOUT_TEXT_PART1, PADDING, bodyY, contentWidth, "left")
+
+	-- GitHub link with accent color
+	love.graphics.setColor(colors.ui.accent)
+	love.graphics.printf(GITHUB_LINK, PADDING, bodyY + part1Height, contentWidth, "left")
+
+	-- Part 2
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.printf(ABOUT_TEXT_PART2, PADDING, bodyY + part1Height + linkHeight, contentWidth, "left")
 
 	-- Draw controls
 	controls.draw({ {
