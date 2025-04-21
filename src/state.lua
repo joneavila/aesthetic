@@ -75,6 +75,7 @@ local state = {
 	rgbSpeed = 5, -- Default RGB speed (1-10)
 
 	themeApplied = false, -- Whether the theme has been applied
+	source = "user", -- Default source type for themes (user-created vs built-in)
 
 	-- Color contexts
 	activeColorContext = "background", -- Default active color context

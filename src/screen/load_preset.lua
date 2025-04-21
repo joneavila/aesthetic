@@ -48,6 +48,7 @@ local function loadPresetsList()
 
 		local createdTime = 0
 		local displayName = presetName
+		local source = "user"
 
 		if presetData then
 			if presetData.created then
@@ -57,6 +58,10 @@ local function loadPresetsList()
 			if presetData.displayName then
 				displayName = presetData.displayName
 			end
+
+			if presetData.source then
+				source = presetData.source
+			end
 		end
 
 		table.insert(presetDetails, {
@@ -64,6 +69,7 @@ local function loadPresetsList()
 			displayName = displayName, -- Name to display
 			isValid = isValid,
 			created = createdTime,
+			source = source,
 		})
 	end
 
@@ -79,6 +85,7 @@ local function loadPresetsList()
 			displayName = detail.displayName, -- Use the display name for showing
 			selected = false,
 			isValid = detail.isValid,
+			source = detail.source, -- Track source (user or built-in)
 		})
 	end
 
@@ -152,6 +159,20 @@ function loadPreset.draw()
 			SCREEN.PADDING,
 			y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2
 		)
+
+		-- Show built-in indicator if applicable
+		if item.source == "built-in" then
+			local indicatorText = "[Built-in]"
+			local textWidth = state.fonts.body:getWidth(indicatorText)
+
+			-- Use a slightly different color for the built-in indicator
+			love.graphics.setColor(0.5, 0.7, 1.0, 1.0)
+			love.graphics.print(
+				indicatorText,
+				state.screenWidth - scrollBarWidth - scrollBarGap - textWidth - SCREEN.PADDING,
+				y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2
+			)
+		end
 	end
 
 	-- Draw scrollbar if needed

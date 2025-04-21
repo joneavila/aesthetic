@@ -9,6 +9,10 @@ local settings = {}
 -- The filename to use for storing settings
 settings.FILENAME = "settings.lua"
 
+-- Preset source type (built-in vs user-created)
+settings.SOURCE_BUILTIN = "built-in"
+settings.SOURCE_USER = "user"
+
 -- Function to save the current settings to a file
 function settings.saveToFile()
 	-- Get the ROOT_DIR from environment variable
@@ -66,6 +70,9 @@ function settings.saveToFile()
 
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
+
+	-- Source (user-created by default when saving)
+	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
 
 	file:write("}\n")
 
@@ -152,6 +159,13 @@ function settings.loadFromFile()
 	-- Glyphs
 	if loadedSettings.glyphs_enabled ~= nil then
 		state.glyphs_enabled = loadedSettings.glyphs_enabled
+	end
+
+	-- Source
+	if loadedSettings.source then
+		state.source = loadedSettings.source
+	else
+		state.source = settings.SOURCE_USER -- Default to user-created if not specified
 	end
 
 	return true

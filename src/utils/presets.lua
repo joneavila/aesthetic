@@ -115,6 +115,9 @@ function presets.savePreset(presetName)
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
+	-- Source (user-created by default when saving)
+	file:write('  source = "' .. state.source .. '",\n')
+
 	file:write("}\n")
 
 	file:close()
@@ -201,6 +204,13 @@ function presets.loadPreset(presetName)
 	-- Glyphs
 	if loadedPreset.glyphs_enabled ~= nil then
 		state.glyphs_enabled = loadedPreset.glyphs_enabled
+	end
+
+	-- Source
+	if loadedPreset.source then
+		state.source = loadedPreset.source
+	else
+		state.source = "user" -- Default to user-created if not specified
 	end
 
 	return true
