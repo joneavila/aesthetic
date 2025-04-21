@@ -1,5 +1,6 @@
 --- Settings management module
---- Handles saving and loading application (or configured theme) settings
+--- Manages persistent application-wide settings that are automatically saved and loaded between sessions in a single
+--- configuration file
 local state = require("state")
 local system = require("utils.system")
 local errorHandler = require("screen.menu.error_handler")

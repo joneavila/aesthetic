@@ -1,5 +1,6 @@
 --- Presets management module
---- Handles saving and loading theme configuration presets
+--- Enables user to save, load, and switch between multiple named theme configurations stored as separate files in a
+--- presets directory
 local state = require("state")
 local system = require("utils.system")
 local errorHandler = require("screen.menu.error_handler")
