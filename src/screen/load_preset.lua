@@ -194,9 +194,9 @@ function loadPreset.update(_dt)
 				-- Update RGB configuration immediately after loading preset
 				rgbUtils.updateConfig()
 
-				-- Return to settings screen
+				-- Return to main menu screen
 				if switchScreen then
-					switchScreen("settings")
+					switchScreen("menu")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				end
