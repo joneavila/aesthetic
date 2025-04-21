@@ -26,7 +26,6 @@ local scrollPosition = 0
 local visibleButtonCount = 0
 local totalRegularButtonCount = 0
 local scrollBarWidth = 10
-local scrollBarGap = 1 -- Gap between button and scrollbar
 
 -- IO operation states
 local waitingState = "none" -- none, create_theme, install_theme
@@ -54,8 +53,8 @@ function menu.load()
 
 	-- Adjust button width based on whether scrollbar is needed
 	if needsScrollBar then
-		-- If scrollbar is needed, account for scrollbar width and gap
-		constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING + scrollBarWidth + scrollBarGap)
+		-- If scrollbar is needed, account for scrollbar width
+		constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING + scrollBarWidth)
 	else
 		-- If scrollbar is not needed, buttons can extend to edge minus padding
 		constants.BUTTON.WIDTH = state.screenWidth - constants.BUTTON.PADDING
@@ -194,12 +193,20 @@ function menu.draw()
 			state.screenWidth - scrollBarWidth,
 			constants.BUTTON.START_Y,
 			scrollBarWidth,
-			scrollAreaHeight
+			scrollAreaHeight,
+			4 -- Add corner radius of 4px for the scrollbar background
 		)
 
 		-- Draw scroll bar handle - position it flush with right edge
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", state.screenWidth - scrollBarWidth, scrollBarY, scrollBarWidth, scrollBarHeight)
+		love.graphics.rectangle(
+			"fill",
+			state.screenWidth - scrollBarWidth,
+			scrollBarY,
+			scrollBarWidth,
+			scrollBarHeight,
+			4 -- Add corner radius of 4px for the scrollbar handle
+		)
 	end
 
 	-- Draw popup if active

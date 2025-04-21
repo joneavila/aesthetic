@@ -9,6 +9,9 @@ local constants = require("screen.menu.constants")
 -- Module table to export public functions
 local ui = {}
 
+-- Define the scrollbar width (must match the value in menu.lua)
+local scrollBarWidth = 10
+
 -- Popup state variables
 local showPopup = false
 local popupMessage = ""
@@ -22,7 +25,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 	-- Define consistent padding for text and content
 	local leftPadding = 20
-	local rightPadding = 20
+	local rightPadding = 0 -- Consistent padding for right-aligned content
 
 	-- If there's no scrollbar needed, reduce right padding to match left
 	-- and adjust the right edge position for content
@@ -41,11 +44,15 @@ function ui.drawButton(button, x, y, isSelected)
 		-- If there's no scrollbar needed (width is almost full screen width),
 		-- extend the background to the right edge of the screen
 		if hasFullWidth then
-			drawWidth = state.screenWidth
+			drawWidth = state.screenWidth - 20 -- Add 20px padding on both sides
+		else
+			-- When scrollbar is present, extend background to right edge of screen
+			drawWidth = state.screenWidth - scrollBarWidth - 20 -- Add 20px padding on right side
 		end
 
+		-- Draw background with rounded corners (8px radius)
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 0, y, drawWidth, constants.BUTTON.HEIGHT, 0)
+		love.graphics.rectangle("fill", 10, y, drawWidth, constants.BUTTON.HEIGHT, 8)
 	end
 
 	-- Draw button text with different color when selected
@@ -63,7 +70,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 		-- Only draw color display if we have a valid color
 		if hexColor then
-			-- Draw color square on the right side of the button
+			-- Draw color square on the right side of the button with consistent padding
 			local colorX = rightEdge - constants.BUTTON.COLOR_DISPLAY_SIZE
 			local colorY = y + (constants.BUTTON.HEIGHT - constants.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
@@ -121,7 +128,7 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Use the appropriate font for measurement and display
 		love.graphics.setFont(state.getFontByName(selectedFontName))
 
-		-- Position the font name at the right edge
+		-- Position the font name with consistent padding
 		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
 		local fontNameY = y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 		love.graphics.setColor(colors.ui.foreground)
