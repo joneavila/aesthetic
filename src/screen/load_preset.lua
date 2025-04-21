@@ -40,16 +40,45 @@ local function loadPresetsList()
 
 	-- Get list of presets
 	local availablePresets = presets.listPresets()
+	local presetDetails = {}
 
-	-- Validate each preset using the presets.validatePreset function
+	-- Validate each preset and gather creation dates
 	for _, presetName in ipairs(availablePresets) do
-		local isValid = presets.validatePreset(presetName)
+		local isValid, presetData = presets.validatePreset(presetName)
 
-		-- Add to the list regardless, but mark invalid ones
-		table.insert(presetItems, {
-			name = presetName,
-			selected = false,
+		local createdTime = 0
+		local displayName = presetName
+
+		if presetData then
+			if presetData.created then
+				createdTime = presetData.created
+			end
+
+			if presetData.displayName then
+				displayName = presetData.displayName
+			end
+		end
+
+		table.insert(presetDetails, {
+			name = presetName, -- Original filename (sanitized)
+			displayName = displayName, -- Name to display
 			isValid = isValid,
+			created = createdTime,
+		})
+	end
+
+	-- Sort by creation date (newest first)
+	table.sort(presetDetails, function(a, b)
+		return a.created > b.created
+	end)
+
+	-- Create the sorted list of preset items
+	for _, detail in ipairs(presetDetails) do
+		table.insert(presetItems, {
+			name = detail.name, -- Keep the original name for loading
+			displayName = detail.displayName, -- Use the display name for showing
+			selected = false,
+			isValid = detail.isValid,
 		})
 	end
 
@@ -117,7 +146,12 @@ function loadPreset.draw()
 			love.graphics.setColor(0.8, 0.2, 0.2, 1)
 		end
 
-		love.graphics.print(item.name, SCREEN.PADDING, y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2)
+		-- Display the preset name
+		love.graphics.print(
+			item.displayName,
+			SCREEN.PADDING,
+			y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2
+		)
 	end
 
 	-- Draw scrollbar if needed

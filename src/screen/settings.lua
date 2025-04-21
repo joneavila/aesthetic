@@ -40,24 +40,9 @@ local presetName = "preset1" -- Default preset name
 
 -- Helper function to generate a unique preset name
 local function generatePresetName()
-	-- Get list of existing presets
-	local existingPresets = presets.listPresets()
-
-	-- Find the highest preset number
-	local highestNumber = 0
-	for _, name in ipairs(existingPresets) do
-		-- Extract number from preset name (if it follows the "Preset N" format)
-		local number = name:match("^Preset%s*(%d+)$")
-		if number then
-			number = tonumber(number)
-			if number and number > highestNumber then
-				highestNumber = number
-			end
-		end
-	end
-
-	-- Generate a new name with the next number
-	return "Preset " .. (highestNumber + 1)
+	local currentTime = os.time()
+	local dateString = os.date("%B %d, %Y %I:%M:%S%p", currentTime)
+	return dateString
 end
 
 function settings.load()

@@ -12,7 +12,7 @@ local presets = {}
 -- Function to validate a preset file
 function presets.validatePreset(presetName)
 	if not presetName then
-		return false
+		return false, nil
 	end
 
 	-- Prepare the file path
@@ -20,7 +20,7 @@ function presets.validatePreset(presetName)
 
 	-- Check if the file exists
 	if not system.fileExists(filePath) then
-		return false
+		return false, nil
 	end
 
 	-- Try to load the preset file
@@ -34,16 +34,16 @@ function presets.validatePreset(presetName)
 
 	if not success or type(loadedPreset) ~= "table" then
 		print("Invalid preset found: " .. presetName)
-		return false
+		return false, nil
 	end
 
 	-- Check essential preset properties
 	if not loadedPreset.background or not loadedPreset.foreground or not loadedPreset.rgb then
 		print("Preset missing required properties: " .. presetName)
-		return false
+		return false, nil
 	end
 
-	return true
+	return true, loadedPreset
 end
 
 -- Function to save a preset file
@@ -52,13 +52,16 @@ function presets.savePreset(presetName)
 		presetName = "preset1"
 	end
 
+	-- Sanitize preset name for filesystem
+	local sanitizedName = presetName:gsub("[%s%p]", "_")
+
 	-- Create the presets directory if it doesn't exist
 	-- Unlike most paths in `constants.lua` this path must be created regardless if theme is created
 	local presetsDir = paths.PRESETS_DIR
 	os.execute("test -d " .. presetsDir .. " || mkdir -p " .. presetsDir)
 
 	-- Prepare the file path
-	local filePath = presetsDir .. "/" .. presetName .. ".lua"
+	local filePath = presetsDir .. "/" .. sanitizedName .. ".lua"
 
 	-- Create the file
 	local file, err = io.open(filePath, "w")
@@ -70,6 +73,9 @@ function presets.savePreset(presetName)
 	-- Serialize the preset as Lua code
 	file:write("-- Aesthetic preset file\n")
 	file:write("return {\n")
+
+	-- Store the original display name
+	file:write('  displayName = "' .. presetName .. '",\n')
 
 	-- Background color
 	file:write("  background = {\n")
@@ -88,6 +94,10 @@ function presets.savePreset(presetName)
 	file:write("    brightness = " .. state.rgbBrightness .. ",\n")
 	file:write("    speed = " .. state.rgbSpeed .. ",\n")
 	file:write("  },\n")
+
+	-- Created timestamp
+	local currentTime = os.time()
+	file:write("  created = " .. currentTime .. ",\n")
 
 	-- Box art width
 	if type(state.boxArtWidth) == "string" then
@@ -123,7 +133,7 @@ function presets.loadPreset(presetName)
 		return false
 	end
 
-	-- Prepare the file path
+	-- Prepare the file path - presetName is already sanitized at this point
 	local filePath = rootDir .. "/presets/" .. presetName .. ".lua"
 
 	-- Check if the file exists
