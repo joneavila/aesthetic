@@ -106,6 +106,11 @@ if [ "$CLEAN" = true ]; then
             ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
         fi
     done
+    
+    # Force sync to ensure all changes are written to disk
+    echoHeader "Syncing filesystem on $HANDHELD_IP"
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "sync && echo 'Filesystem sync completed'"
+    
 fi
 
 # Copy application files to build directory
