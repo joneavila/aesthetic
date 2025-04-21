@@ -1,8 +1,28 @@
+# Glyph
+#
+# This file maps output paths for glyph images (relative to `src/template/glyph`) to input SVG files
+# (relative to `assets/icons/lucide/svg`) for the glyph generation done by `utils/generate_template_glyphs.py`.
+#
+# Format:
+#   output/path/filename, input_svg_name
+#
+# Where:
+#   - output/path/filename: Destination path relative to `src/template/glyph` (without .png extension)
+#   - input_svg_name: Source SVG file name relative to `assets/icons/lucide/svg` (without .svg extension)
+#
+# Comments begin with # and are ignored
+# Blank lines are also ignored
+#
+# Note: Not listed here are glyphs in footer/ and header/ subdirectories, seen throughout the system.
+
+# bar – (Press Vol. Up/Down for volume or Menu + Vol. Up/Down for brightness)
 bar/brightness, sun
 bar/volume_0, volume-x
 bar/volume_1, volume
 bar/volume_2, volume-1
 bar/volume_3, volume-2
+
+# muxapp – Applications
 muxapp/aesthetic, moon-star
 muxapp/app, play
 muxapp/archive, archive
@@ -18,13 +38,21 @@ muxapp/scrappy, image-down
 muxapp/scummvm, box
 muxapp/task, pocket-knife
 muxapp/terminal, square-terminal
+
+# muxarchive – Applications > Archive Manager
 muxarchive/archive, package
 muxarchive/installed, package-open
+
+# muxassign – (Press Select on content) > Assign Core
 muxassign/core, box
 muxassign/default, star
 muxassign/system, gamepad
+
+# muxcollect – Collections
 muxcollect/collection, library-big
 muxcollect/folder, folder
+
+# muxconfig – Configuration
 muxconfig/connect, wifi
 muxconfig/custom, user-round-cog
 muxconfig/general, settings-2
@@ -33,10 +61,14 @@ muxconfig/language, languages
 muxconfig/power, zap
 muxconfig/storage, database
 muxconfig/theme, palette
+
+# muxconnect – Configuration > Connectivity
 muxconnect/bluetooth, bluetooth
 muxconnect/network, wifi
 muxconnect/service, waypoints
 muxconnect/usbfunction, usb
+
+# muxcustom – Configuration > Customisation
 muxcustom/backgroundanimation, clapperboard
 muxcustom/bgm, music
 muxcustom/blackfade, presentation
@@ -49,8 +81,12 @@ muxcustom/launchsplash, circle-play
 muxcustom/sound, volume-2
 muxcustom/theme, palette
 muxcustom/themealternate, palette
+
+# muxgov – (Press Select on content) > System Governor
 muxgov/default, star
 muxgov/governor, circle-gauge
+
+# muxhdmi – Configuration > General Settings > HDMI Output
 muxhdmi/audio, speaker
 muxhdmi/depth, layers
 muxhdmi/enable, circle-power
@@ -59,15 +95,23 @@ muxhdmi/resolution, proportions
 muxhdmi/scan, scaling
 muxhdmi/space, axis-3d
 muxhdmi/theme_resolution, proportions
+
+# muxhistory – History
 muxhistory/collection, file-heart
 muxhistory/history, file-check-2
+
+# muxinfo – Information
 muxinfo/credit, users-round
 muxinfo/screenshot, camera
 muxinfo/space, hard-drive
 muxinfo/system, text
 muxinfo/tester, circle-arrow-down
 muxinfo/tracker, locate
+
+# muxlanguage – Configuration > Language
 muxlanguage/language, languages
+
+# muxlaunch – (Home screen)
 muxlaunch/apps, layout-grid
 muxlaunch/collection, library-big
 muxlaunch/config, settings
@@ -77,8 +121,14 @@ muxlaunch/history, history
 muxlaunch/info, info
 muxlaunch/reboot, rotate-ccw
 muxlaunch/shutdown, power
+
+# muxnetprofile – Configuration > Wi-Fi Network > (Press Y)
 muxnetprofile/profile, house-wifi
+
+# muxnetscan – Configuration > Wi-Fi Network > (Press X while disconnected)
 muxnetscan/netscan, wifi
+
+# muxnetwork – Configuration > Wi-Fi Network
 muxnetwork/address, hash
 muxnetwork/connect, unplug
 muxnetwork/dns, hash
@@ -90,23 +140,33 @@ muxnetwork/scan, venetian-mask
 muxnetwork/status, activity
 muxnetwork/subnet, hash
 muxnetwork/type, network
+
+# muxoption – (Press Select on content)
 muxoption/core, box
 muxoption/folder, folder
 muxoption/governor, circle-gauge
 muxoption/rom, file
 muxoption/search, search
+
+# muxpicker – Configuration > Customisation
 muxpicker/catalogue, book-text
 muxpicker/config, file-sliders
 muxpicker/folder, folder
 muxpicker/theme, palette
+
+# muxplore – Explore Content
 muxplore/collection, library-big
 muxplore/folder, folder
 muxplore/history, file-check-2
 muxplore/rom, file
+
+# muxpower – Configuration > General Settings > Power Settings
 muxpower/battery, battery-low
 muxpower/idle_display, monitor
 muxpower/idle_sleep, pointer
 muxpower/shutdown, moon
+
+# muxrtc – Configuration > Date and Time
 muxrtc/day, calendar
 muxrtc/hour, clock
 muxrtc/minute, clock
@@ -114,16 +174,24 @@ muxrtc/month, calendar
 muxrtc/notation, clock
 muxrtc/timezone, map-pin
 muxrtc/year, calendar
+
+# muxsearch – (Press Select on content folder)
 muxsearch/content, file
 muxsearch/folder, folder
 muxsearch/global, search
 muxsearch/local, search
 muxsearch/lookup, keyboard
+
+# muxshot - Information > Screenshots
 muxshot/screenshot, camera
+
+# muxspace – Information > Storage Space
 muxspace/rfs, hard-drive
 muxspace/sd1, save
 muxspace/sd2, save
 muxspace/usb, usb
+
+# muxstorage – Configuration > Storage
 muxstorage/bios, cuboid
 muxstorage/catalogue, tag
 muxstorage/collection, library-big
@@ -144,6 +212,8 @@ muxstorage/screenshot, camera
 muxstorage/syncthing, refresh-cw
 muxstorage/theme, palette
 muxstorage/userinit, file-code-2
+
+# muxsysinfo – Information > System Details
 muxsysinfo/capacity, battery-full
 muxsysinfo/cpu, cpu 
 muxsysinfo/device, gamepad
@@ -156,6 +226,8 @@ muxsysinfo/temp, thermometer
 muxsysinfo/uptime, timer
 muxsysinfo/version, gallery-horizontal-end
 muxsysinfo/voltage, zap
+
+# muxtask – Applications > Task Toolkit
 muxtask/backup, database-backup
 muxtask/clear, trash
 muxtask/diagnostic, stethoscope
@@ -165,8 +237,14 @@ muxtask/network, network
 muxtask/retroarch, joystick
 muxtask/sdcard, hard-drive
 muxtask/theme, palette
+
+# muxtheme – Configuration > Customisation > muOS Themes
 muxtheme/theme, palette
+
+# muxtimezone – Configuration > Date and Time > Set Timezone
 muxtimezone/timezone, map-pin
+
+# muxtweakadv – Configuration > General Settings > Advanced Settings
 muxtweakadv/accelerate, arrow-down-wide-narrow
 muxtweakadv/brightness, sun
 muxtweakadv/cardmode, wrench
@@ -186,6 +264,8 @@ muxtweakadv/userinit, file-code-2
 muxtweakadv/verbose, megaphone
 muxtweakadv/volume, volume-2
 muxtweakadv/zramfile, repeat-2
+
+# muxtweakgen – Configuration > General Settings
 muxtweakgen/advanced, circle-ellipsis
 muxtweakgen/brightness, sun
 muxtweakgen/clock, clock
@@ -193,6 +273,8 @@ muxtweakgen/colour, thermometer-sun
 muxtweakgen/hdmi, hdmi-port
 muxtweakgen/startup, circle-play
 muxtweakgen/volume, volume-2
+
+# muxvisual – Configuration > General Settings > Interface Options
 muxvisual/battery, battery
 muxvisual/clock, clock
 muxvisual/counterfile, list-ordered
@@ -208,6 +290,8 @@ muxvisual/overlayimage, blend
 muxvisual/overlaytransparency, blend
 muxvisual/thetitleformat, remove-formatting
 muxvisual/titleincluderootdrive, list-tree
+
+# muxwebserv – Configuration > Web Services
 muxwebserv/ntp, clock-arrow-down
 muxwebserv/rslsync, shuffle
 muxwebserv/sftpgo, folder
