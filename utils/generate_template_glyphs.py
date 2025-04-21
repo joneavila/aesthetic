@@ -40,7 +40,7 @@ def main():
 
     for line in lines:
         line = line.strip()
-        if not line:
+        if not line or line.startswith("#"):
             continue
 
         parts = line.split(",", 1)
@@ -80,7 +80,7 @@ def find_unused_svg_files():
     with open(MAP_FILE, "r") as f:
         for line in f:
             line = line.strip()
-            if line:
+            if line and not line.startswith("#"):
                 parts = line.split(",", 1)
                 if len(parts) == 2:
                     glyph_map_icons.append(parts[1].strip())
