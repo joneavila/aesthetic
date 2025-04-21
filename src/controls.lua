@@ -8,7 +8,10 @@ controls.HEIGHT = 42
 local PADDING = 14
 local RIGHT_PADDING = 4
 local BUTTON_TEXT_SPACING = 4
-local SEPARATOR = " - " -- Separator between button and action text
+local BUTTON_RADIUS = 4
+local BUTTON_HORIZONTAL_PADDING = 8 -- Horizontal padding inside button background
+local BUTTON_VERTICAL_PADDING = 2 -- Vertical padding inside button background
+local ACTION_TEXT_SPACING = 6 -- Space between button and action text
 
 -- Button label mapping
 local BUTTON_LABELS = {
@@ -30,35 +33,32 @@ local BUTTON_LABELS = {
 -- Supports both single buttons (control.button = "a") and lists of buttons (control.button = {"l1", "r1"})
 -- When a list of buttons is provided, they are drawn in sequence with a "/" separator between them
 function controls.draw(controls_list)
-	-- Set up graphics state
-	love.graphics.setColor(colors.ui.subtext)
-	love.graphics.setFont(state.fonts.caption)
-
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
 	for _, control in ipairs(controls_list) do
 		local textWidth = state.fonts.caption:getWidth(control.text)
-		local buttonTextWidth = 0
-		local separatorWidth = state.fonts.caption:getWidth(SEPARATOR)
+		local buttonsWidth = 0
 
 		if type(control.button) == "table" then
 			-- Multiple buttons with "/" between them
 			for i, buttonKey in ipairs(control.button) do
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
-				buttonTextWidth = buttonTextWidth + state.fonts.caption:getWidth(buttonLabel)
+				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+				buttonsWidth = buttonsWidth + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 
 				-- Add width for "/" separator if not the last button
 				if i < #control.button then
-					buttonTextWidth = buttonTextWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
+					buttonsWidth = buttonsWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
 			-- Single button
 			local buttonLabel = BUTTON_LABELS[control.button] or control.button
-			buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			buttonsWidth = buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
-		totalWidth = totalWidth + buttonTextWidth + separatorWidth + textWidth + PADDING
+		totalWidth = totalWidth + buttonsWidth + textWidth + ACTION_TEXT_SPACING + PADDING
 	end
 
 	-- Start drawing from the right side, accounting for padding
@@ -74,57 +74,71 @@ function controls.draw(controls_list)
 			for i, buttonKey in ipairs(control.button) do
 				-- Get button label
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
+				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+				local buttonHeight = state.fonts.caption:getHeight()
+
+				-- Draw button background
+				love.graphics.setColor(colors.ui.overlay)
+				love.graphics.rectangle(
+					"fill",
+					x,
+					y - BUTTON_VERTICAL_PADDING,
+					buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2),
+					buttonHeight + (BUTTON_VERTICAL_PADDING * 2),
+					BUTTON_RADIUS,
+					BUTTON_RADIUS
+				)
 
 				-- Draw button text
-				love.graphics.print(buttonLabel, x, y)
-				x = x + state.fonts.caption:getWidth(buttonLabel)
+				love.graphics.setFont(state.fonts.caption)
+				love.graphics.setColor(colors.ui.background)
+				love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
+
+				x = x + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 
 				-- Draw separator if not the last button
 				if i < #control.button then
+					love.graphics.setColor(colors.ui.overlay)
+					love.graphics.setFont(state.fonts.caption)
 					love.graphics.print("/", x + BUTTON_TEXT_SPACING, y)
 					x = x + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
-			-- Draw single button text
+			-- Draw single button background and text
 			local buttonLabel = BUTTON_LABELS[control.button] or control.button
-			love.graphics.print(buttonLabel, x, y)
-			x = x + state.fonts.caption:getWidth(buttonLabel)
+			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			local buttonHeight = state.fonts.caption:getHeight()
+
+			-- Draw button background
+			love.graphics.setColor(colors.ui.overlay)
+			love.graphics.rectangle(
+				"fill",
+				x,
+				y - BUTTON_VERTICAL_PADDING,
+				buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2),
+				buttonHeight + (BUTTON_VERTICAL_PADDING * 2),
+				BUTTON_RADIUS,
+				BUTTON_RADIUS
+			)
+
+			-- Draw button text
+			love.graphics.setFont(state.fonts.caption)
+			love.graphics.setColor(colors.ui.background)
+			love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
+
+			x = x + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
-		-- Draw separator between button and action text
-		love.graphics.print(SEPARATOR, x, y)
-		x = x + state.fonts.caption:getWidth(SEPARATOR)
-
-		-- Draw action text
+		-- Draw action text (with spacing)
+		love.graphics.setColor(colors.ui.overlay)
+		love.graphics.setFont(state.fonts.caption)
+		x = x + ACTION_TEXT_SPACING
 		love.graphics.print(control.text, x, y)
 
 		-- Move x position for next control
 		local textWidth = state.fonts.caption:getWidth(control.text)
-
-		if type(control.button) == "table" then
-			-- Calculate width for multiple buttons
-			local buttonsWidth = 0
-			for _, buttonKey in ipairs(control.button) do
-				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
-				buttonsWidth = buttonsWidth + state.fonts.caption:getWidth(buttonLabel)
-			end
-
-			-- Add width for separators
-			for _ = 1, #control.button - 1 do
-				buttonsWidth = buttonsWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
-			end
-
-			x = startX + buttonsWidth + state.fonts.caption:getWidth(SEPARATOR) + textWidth + PADDING
-		else
-			-- Calculate width for single button
-			local buttonLabel = BUTTON_LABELS[control.button] or control.button
-			x = startX
-				+ state.fonts.caption:getWidth(buttonLabel)
-				+ state.fonts.caption:getWidth(SEPARATOR)
-				+ textWidth
-				+ PADDING
-		end
+		x = x + textWidth + PADDING
 	end
 end
 
