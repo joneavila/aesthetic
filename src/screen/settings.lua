@@ -18,8 +18,8 @@ local HEADER_PADDING = 20
 
 -- Button constants
 local BUTTONS = {
-	{ text = "Save preset", selected = true },
-	{ text = "Load preset", selected = false },
+	{ text = "Save theme preset", selected = true },
+	{ text = "Load theme preset", selected = false },
 	{ text = "About", selected = false },
 }
 
@@ -292,16 +292,16 @@ function settings.update(_dt)
 	if virtualJoystick:isGamepadDown("a") then
 		for _, button in ipairs(BUTTONS) do
 			if button.selected then
-				if button.text == "Save preset" then
+				if button.text == "Save theme preset" then
 					presetName = generatePresetName()
 
 					-- Show save preset popup
 					popupMode = "save_input"
 					showPopup(
-						"Save current settings as preset?",
+						"Save current theme settings as preset?",
 						{ { text = "Cancel", selected = false }, { text = "Save", selected = true } }
 					)
-				elseif button.text == "Load preset" then
+				elseif button.text == "Load theme preset" then
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")

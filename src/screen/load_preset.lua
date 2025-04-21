@@ -79,7 +79,7 @@ function loadPreset.draw()
 
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("Load preset", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	love.graphics.print("Load theme preset", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
 
 	-- Draw message if no presets found
 	if #presetItems == 0 then
