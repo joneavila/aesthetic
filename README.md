@@ -73,7 +73,6 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 
 - [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](src/assets/fonts/cascadia_code/LICENSE)
 - [**Catppuccin Palettes**](https://github.com/catppuccin/palette) • Color palette • [MIT](https://github.com/catppuccin/palette/blob/main/LICENSE)
-- [**Input Prompts**](https://kenney.nl/assets/input-prompts) • Icons • [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)  
 - [**Inter**](https://github.com/rsms/inter) • Font • [OFL-1.1](src/assets/fonts/inter/OFL.txt)
 - [**LÖVE**](https://github.com/love2d/love) • Game framework • [ZLIB](bin/LICENSE.txt)
 - [**Lucide Icons**](https://github.com/lucide-icons/lucide) • Icons • [ISC](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
