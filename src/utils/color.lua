@@ -98,7 +98,12 @@ function color.calculateContrastingColor(r, g, b)
 
 	-- Adjust lightness in opposite direction of input color
 	local lightnessOffset = 30 -- Adjust this value to control contrast
-	local newL = l > 50 and clamp(l - lightnessOffset, 20, 80) or clamp(l + lightnessOffset, 20, 80)
+	local newL
+	if l > 50 then
+		newL = clamp(l - lightnessOffset, 20, 80)
+	else
+		newL = clamp(l + lightnessOffset, 20, 80)
+	end
 
 	-- Create new color from adjusted HSL values
 	return color.hslToRgb(h, newS, newL)
@@ -109,9 +114,9 @@ function color.hexToRgb(hexString)
 	-- Remove # if present
 	hexString = hexString:gsub("^#", "")
 
-	-- Ensure we have a valid 6-character hex string
+	-- Return white as fallback for invalid hex strings
 	if #hexString ~= 6 then
-		return 1, 1, 1 -- Return white as fallback
+		return 1, 1, 1
 	end
 
 	-- Convert hex to RGB (0-1 range)
@@ -164,25 +169,22 @@ function color.hexToLove(hexString, alpha)
 end
 
 -- Convert RGB to HSV values
--- Parameters: r, g, b (0-1)
--- Returns: h, s, v (0-1)
+-- Parameters: r, g, b (0-1 range)
+-- Returns: h, s, v (0-1 range)
 function color.rgbToHsv(r, g, b)
 	local max = math.max(r, g, b)
 	local min = math.min(r, g, b)
 	local h, s, v
 
 	v = max
-
 	local delta = max - min
 
-	if max ~= 0 then
-		s = delta / max
-	else
-		-- r = g = b = 0, s = 0, v = 0
-		s = 0
-		h = 0 -- undefined, but set to 0
-		return h, s, v
+	if max == 0 then
+		-- r = g = b = 0
+		return 0, 0, 0
 	end
+
+	s = delta / max
 
 	if delta == 0 then
 		h = 0 -- gray
