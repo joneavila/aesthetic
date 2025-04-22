@@ -53,7 +53,7 @@ local iconCache = {}
 -- Helper function to load an icon
 local function loadIcon(name)
 	if not iconCache[name] then
-		local svgPath = "assets/icons/" .. name .. ".svg"
+		local svgPath = "assets/icons/lucide/ui/" .. name .. ".svg"
 		local svg = love.filesystem.read(svgPath)
 		if svg then
 			iconCache[name] = tove.newGraphics(svg, ICON_SIZE)

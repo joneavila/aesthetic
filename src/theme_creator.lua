@@ -407,7 +407,7 @@ local function createRebootImage()
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Load reboot icon SVG, set size and color
-	local svg = love.filesystem.read("assets/icons/rotate-ccw.svg")
+	local svg = love.filesystem.read("assets/icons/lucide/ui/rotate-ccw.svg")
 	local iconSize = 100
 	local icon = tove.newGraphics(svg, iconSize)
 	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
@@ -479,7 +479,7 @@ local function createShutdownImage()
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Load shutdown icon SVG, set size and color
-	local svg = love.filesystem.read("assets/icons/power.svg")
+	local svg = love.filesystem.read("assets/icons/lucide/ui/power.svg")
 	local iconSize = 100
 	local icon = tove.newGraphics(svg, iconSize)
 	icon:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
