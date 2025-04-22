@@ -11,7 +11,6 @@
 
 local love = require("love")
 local input = require("input")
-local splash = require("splash")
 local screens = require("screens")
 local colors = require("colors")
 local state = require("state")
@@ -104,76 +103,49 @@ function love.load()
 	state.fadeDuration = 0.5
 	setupFonts()
 
-	-- Create the callback
-	local function onSplashDone()
-		state.splash = nil -- Clear splash screen
-		input.load()
+	-- Apply default RGB lighting settings when first launching application
+	input.load()
 
-		-- Load user settings if they exist
-		loadSettings()
+	-- Load user settings if they exist
+	loadSettings()
 
-		-- Apply default RGB lighting settings when first launching application
-		local rgbUtils = require("utils.rgb")
-		rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
-		rgbUtils.updateConfig() -- Apply RGB settings from state
+	local rgbUtils = require("utils.rgb")
+	rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+	rgbUtils.updateConfig() -- Apply RGB settings from state
 
-		screens.load()
-		state.fading = true -- Start the fade effect
-		state.fadeTimer = 0 -- Reset fade timer
-	end
+	-- Load all screens
+	screens.load()
 
-	-- Initialize the splash screen with the callback and font
-	local splashInstance = splash({
-		onDone = onSplashDone,
-		font = state.fonts.monoTitle,
-	})
+	-- Start with the splash screen
+	screens.switchTo("splash")
 
-	state.splash = {
-		update = function(_, dt)
-			return splashInstance:update(dt)
-		end,
-		draw = function()
-			return splashInstance:draw()
-		end,
-		onDone = onSplashDone, -- Store callback reference
-	}
+	state.fading = false -- Fade effect will be handled after splash screen completes
 end
 
 function love.update(dt)
-	if state.splash then
-		state.splash:update(dt)
-	else
-		updateInputTimer(dt)
-		input.update(dt)
-		screens.update(dt)
-		if state.fading then
-			state.fadeTimer = state.fadeTimer + dt
-			if state.fadeTimer >= state.fadeDuration then
-				state.fadeTimer = state.fadeDuration
-				state.fading = false
-			end
+	updateInputTimer(dt)
+	input.update(dt)
+	screens.update(dt)
+
+	if state.fading then
+		state.fadeTimer = state.fadeTimer + dt
+		if state.fadeTimer >= state.fadeDuration then
+			state.fadeTimer = state.fadeDuration
+			state.fading = false
 		end
 	end
 end
 
 function love.draw()
-	if state.splash then
-		state.splash:draw()
-	else
-		-- Calculate the fade progress (0 to 1)
-		local fadeProgress = state.fading and (state.fadeTimer / state.fadeDuration) or 1
+	-- Draw the current screen
+	screens.draw()
 
-		-- Set the opacity for the menu content based on fade progress
-		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], fadeProgress)
-		screens.draw()
-		love.graphics.setColor(colors.ui.foreground)
-
-		-- Apply the fade-in overlay
-		if state.fading then
-			local fadeAlpha = 1 - fadeProgress
-			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
-			love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
-		end
+	-- Apply the fade-in overlay if needed
+	if state.fading then
+		local fadeProgress = state.fadeTimer / state.fadeDuration
+		local fadeAlpha = 1 - fadeProgress
+		love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
+		love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 	end
 end
 
