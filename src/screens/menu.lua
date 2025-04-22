@@ -10,6 +10,8 @@ local buttonUI = require("ui.button")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
+local scrollView = require("ui.scroll_view")
+local textOverlay = require("ui.text_overlay")
 
 local UI_CONSTANTS = require("ui.constants")
 
@@ -151,22 +153,11 @@ end
 
 -- Function to display a full-screen "Working..." overlay
 function menu.displayWaitOverlay()
-	-- Semi-transparent background
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
-
-	-- Text
-	love.graphics.setColor(colors.ui.foreground)
-	local font = love.graphics.getFont()
-	local text = "Working..."
-	local textWidth = font:getWidth(text)
-	local textHeight = font:getHeight()
-
-	-- Center the text on screen
-	local x = (state.screenWidth - textWidth) / 2
-	local y = (state.screenHeight - textHeight) / 2
-
-	love.graphics.print(text, x, y)
+	textOverlay.draw({
+		text = "Working...",
+		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
+	})
 end
 
 function menu.draw()
@@ -174,111 +165,54 @@ function menu.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
-	-- Draw all buttons based on their type
-	local regularButtonCount = 0
-	local visibleRegularButtonCount = 0
+	-- Draw buttons using scrollView component
+	scrollView.draw({
+		contentCount = totalRegularButtonCount,
+		visibleCount = visibleButtonCount,
+		scrollPosition = scrollPosition,
+		startY = menu.BUTTON.START_Y,
+		contentHeight = menu.BUTTON.HEIGHT,
+		contentPadding = menu.BUTTON.PADDING,
+		screenWidth = state.screenWidth,
+		scrollBarWidth = scrollBarWidth,
+		contentDrawFunc = function(needsScrollBar, scrollBarWidth)
+			local regularButtonCount = 0
+			local visibleRegularButtonCount = 0
 
-	for _, button in ipairs(menu.BUTTONS) do
-		-- Skip buttons that are outside the visible range
-		if not button.isBottomButton then
-			regularButtonCount = regularButtonCount + 1
+			for _, button in ipairs(menu.BUTTONS) do
+				-- Skip buttons that are outside the visible range
+				if not button.isBottomButton then
+					regularButtonCount = regularButtonCount + 1
 
-			-- Skip if button is scrolled out of view
-			if regularButtonCount <= scrollPosition or regularButtonCount > scrollPosition + visibleButtonCount then
-				goto continue
+					-- Skip if button is scrolled out of view
+					if
+						regularButtonCount <= scrollPosition
+						or regularButtonCount > scrollPosition + visibleButtonCount
+					then
+						goto continue
+					end
+
+					visibleRegularButtonCount = visibleRegularButtonCount + 1
+				end
+
+				local y = button.isBottomButton and state.screenHeight - menu.BUTTON.BOTTOM_MARGIN
+					or menu.BUTTON.START_Y
+						+ (visibleRegularButtonCount - 1) * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING)
+
+				local x = 0
+
+				-- Special handling for "Create theme" button
+				if button.text == "Create theme" then
+					buttonUI.drawAccented(button, y, state.screenWidth)
+				else
+					-- Draw other buttons normally
+					buttonUI.draw(button, x, y, button.selected)
+				end
+
+				::continue::
 			end
-
-			visibleRegularButtonCount = visibleRegularButtonCount + 1
-		end
-
-		local y = button.isBottomButton and state.screenHeight - menu.BUTTON.BOTTOM_MARGIN
-			or menu.BUTTON.START_Y + (visibleRegularButtonCount - 1) * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING)
-
-		local x = 0
-
-		-- Special handling for "Create theme" button
-		if button.text == "Create theme" then
-			-- Calculate centered position with padding
-			local padding = 180
-			local font = love.graphics.getFont()
-			local textWidth = font:getWidth(button.text)
-			local buttonWidth = textWidth + (padding * 2)
-			local buttonX = (state.screenWidth - buttonWidth) / 2
-			local cornerRadius = 8
-
-			if button.selected then
-				-- Selected state: accent background, background text, background outline
-				love.graphics.setColor(colors.ui.accent)
-				love.graphics.rectangle("fill", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
-
-				-- Draw outline
-				love.graphics.setColor(colors.ui.background)
-				love.graphics.setLineWidth(2)
-				love.graphics.rectangle("line", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
-
-				-- Draw text
-				love.graphics.setColor(colors.ui.background)
-				love.graphics.print(button.text, buttonX + padding, y + (menu.BUTTON.HEIGHT - font:getHeight()) / 2)
-			else
-				-- Unselected state: background with surface outline
-				love.graphics.setColor(colors.ui.background)
-				love.graphics.rectangle("fill", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
-
-				-- Draw outline
-				love.graphics.setColor(colors.ui.surface)
-				love.graphics.setLineWidth(2)
-				love.graphics.rectangle("line", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
-
-				-- Draw text
-				love.graphics.setColor(colors.ui.foreground)
-				love.graphics.print(button.text, buttonX + padding, y + (menu.BUTTON.HEIGHT - font:getHeight()) / 2)
-			end
-		else
-			-- Draw other buttons normally
-			buttonUI.draw(button, x, y, button.selected)
-		end
-
-		::continue::
-	end
-
-	-- Draw scroll bar if needed
-	if totalRegularButtonCount > visibleButtonCount then
-		-- Calculate the visible area height
-		local scrollAreaHeight = visibleButtonCount * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING) - menu.BUTTON.PADDING
-
-		-- Calculate scroll bar height and position
-		local scrollBarHeight = (visibleButtonCount / totalRegularButtonCount) * scrollAreaHeight
-
-		-- Calculate maximum scroll position to keep handle in bounds
-		local maxScrollY = scrollAreaHeight - scrollBarHeight
-		local scrollPercentage = scrollPosition / (totalRegularButtonCount - visibleButtonCount)
-		local scrollBarY = menu.BUTTON.START_Y + (scrollPercentage * maxScrollY)
-
-		-- Ensure the scrollbar handle stays within the visible area
-		scrollBarY = math.min(scrollBarY, menu.BUTTON.START_Y + maxScrollY)
-
-		-- Draw scroll bar background - position it flush with right edge
-		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.3)
-		love.graphics.rectangle(
-			"fill",
-			state.screenWidth - scrollBarWidth,
-			menu.BUTTON.START_Y,
-			scrollBarWidth,
-			scrollAreaHeight,
-			4 -- Add corner radius of 4px for the scrollbar background
-		)
-
-		-- Draw scroll bar handle - position it flush with right edge
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle(
-			"fill",
-			state.screenWidth - scrollBarWidth,
-			scrollBarY,
-			scrollBarWidth,
-			scrollBarHeight,
-			4 -- Add corner radius of 4px for the scrollbar handle
-		)
-	end
+		end,
+	})
 
 	-- Draw modal if active
 	if modal.isModalVisible() then
@@ -542,22 +476,11 @@ function menu.update(dt)
 	end
 
 	if selectedButtonIndex and not navButtons[selectedButtonIndex].isBottomButton then
-		-- Adjust scroll position if the selected button is outside the visible area
-		local buttonIndex = 0
-		for _, button in ipairs(menu.BUTTONS) do
-			if not button.isBottomButton then
-				buttonIndex = buttonIndex + 1
-				if button.selected then
-					-- Ensure the selected button is visible
-					if buttonIndex <= scrollPosition then
-						scrollPosition = buttonIndex - 1
-					elseif buttonIndex > scrollPosition + visibleButtonCount then
-						scrollPosition = buttonIndex - visibleButtonCount
-					end
-					break
-				end
-			end
-		end
+		scrollPosition = scrollView.adjustScrollPosition({
+			selectedIndex = selectedButtonIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleButtonCount,
+		})
 	end
 end
 

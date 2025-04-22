@@ -174,6 +174,47 @@ function button.draw(button, x, y, isSelected)
 	end
 end
 
+-- Function to draw an accented centered button (like "Create theme")
+function button.drawAccented(buttonData, y, screenWidth)
+	local text = buttonData.text
+	local isSelected = buttonData.selected
+	local font = love.graphics.getFont()
+	local padding = 180
+	local textWidth = font:getWidth(text)
+	local buttonWidth = textWidth + (padding * 2)
+	local buttonX = (screenWidth - buttonWidth) / 2
+	local cornerRadius = UI_CONSTANTS.BUTTON.CORNER_RADIUS
+	local buttonHeight = UI_CONSTANTS.BUTTON.HEIGHT
+
+	if isSelected then
+		-- Selected state: accent background, background text, background outline
+		love.graphics.setColor(colors.ui.accent)
+		love.graphics.rectangle("fill", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
+
+		-- Draw outline
+		love.graphics.setColor(colors.ui.background)
+		love.graphics.setLineWidth(2)
+		love.graphics.rectangle("line", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
+
+		-- Draw text
+		love.graphics.setColor(colors.ui.background)
+		love.graphics.print(text, buttonX + padding, y + (buttonHeight - font:getHeight()) / 2)
+	else
+		-- Unselected state: background with surface outline
+		love.graphics.setColor(colors.ui.background)
+		love.graphics.rectangle("fill", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
+
+		-- Draw outline
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.setLineWidth(2)
+		love.graphics.rectangle("line", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
+
+		-- Draw text
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(text, buttonX + padding, y + (buttonHeight - font:getHeight()) / 2)
+	end
+end
+
 -- Set button width dynamically
 function button.setWidth(width)
 	UI_CONSTANTS.BUTTON.WIDTH = width
