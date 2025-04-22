@@ -367,7 +367,7 @@ local function createBootImage()
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Load muOS logo SVG, set size and color
-	local svg = love.filesystem.read("assets/muOS/logo.svg")
+	local svg = love.filesystem.read("assets/icons/muos/logo.svg")
 	local iconSize = 180
 	local logo = tove.newGraphics(svg, iconSize)
 	logo:setMonochrome(fgColor[1], fgColor[2], fgColor[3])
