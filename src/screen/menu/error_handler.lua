@@ -6,7 +6,9 @@ local errorHandler = {}
 local errorMessage = nil
 local ui = nil -- Will be set when initialized
 
--- Function to set UI module reference (called after UI is loaded)
+--- Sets the UI module reference to allow error handler to display popups
+--- This function is necessary to avoid circular dependencies between modules
+--- The UI module calls this function after it's fully loaded to provide its reference
 function errorHandler.setUI(uiModule)
 	ui = uiModule
 end
