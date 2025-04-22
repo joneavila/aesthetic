@@ -198,7 +198,7 @@ function hsv.draw()
 	love.graphics.rectangle("fill", pickerState.previewX, pickerState.startY, pickerState.previewWidth, PREVIEW_HEIGHT)
 
 	-- Draw current color border using Relative Luminance Border Algorithm
-	local borderR, borderG, borderB = colorUtils.calculateBorderColor(r, g, b)
+	local borderR, borderG, borderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor({ borderR, borderG, borderB })
 	love.graphics.setLineWidth(lineWidth)
 	love.graphics.rectangle(
@@ -235,7 +235,7 @@ function hsv.draw()
 	)
 
 	-- Draw new color border using Relative Luminance Border Algorithm
-	local newBorderR, newBorderG, newBorderB = colorUtils.calculateBorderColor(r, g, b)
+	local newBorderR, newBorderG, newBorderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor(newBorderR, newBorderG, newBorderB, 1)
 	love.graphics.rectangle(
 		"line",
