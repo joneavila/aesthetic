@@ -35,6 +35,7 @@ paths.THEME_VERSION_PATH = paths.THEME_DIR .. "/version.txt"
 -- Assets used by UI rather than generated theme
 paths.THEME_FONT_SOURCE_DIR = paths.ROOT_DIR .. "/assets/fonts"
 paths.THEME_IMAGE_SOURCE_DIR = paths.ROOT_DIR .. "/assets/images"
+paths.THEME_SOUND_SOURCE_DIR = paths.ROOT_DIR .. "/assets/sounds"
 
 -- `credits.txt`
 paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"
@@ -62,6 +63,9 @@ paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 -- `rgb`
 paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
 paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
+
+-- `sound`
+paths.THEME_SOUND_PATH = paths.WORKING_THEME_DIR .. "/sound"
 
 -- `<width>x<height>`
 paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight

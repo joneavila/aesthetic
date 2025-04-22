@@ -641,6 +641,30 @@ local function createRgbConfFile()
 	return rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH)
 end
 
+-- Function to copy sound files to the theme
+local function copySoundFiles()
+	-- Create sound directory if it doesn't exist
+	if not system.ensurePath(paths.THEME_SOUND_PATH) then
+		errorHandler.setError("Failed to create sound directory: " .. paths.THEME_SOUND_PATH)
+		return false
+	end
+
+	-- Get list of sound files
+	local soundFiles = { "back.wav", "confirm.wav", "error.wav", "navigate.wav", "reboot.wav", "shutdown.wav" }
+
+	-- Copy each sound file
+	for _, filename in ipairs(soundFiles) do
+		local sourcePath = paths.THEME_SOUND_SOURCE_DIR .. "/" .. filename
+		local destPath = paths.THEME_SOUND_PATH .. "/" .. filename
+
+		if not system.copyFile(sourcePath, destPath, "Failed to copy sound file: " .. filename) then
+			return false
+		end
+	end
+
+	return true
+end
+
 -- Function to apply content width settings to the `muxplore.ini` file
 -- This sets the content width based on screen width minus box art width
 local function applyContentWidth(schemeFilePath)
@@ -791,6 +815,11 @@ function themeCreator.createTheme()
 
 		-- Create theme's RGB configuration file
 		if not createRgbConfFile() then
+			return false
+		end
+
+		-- Copy sound files to the theme
+		if not copySoundFiles() then
 			return false
 		end
 
