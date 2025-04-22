@@ -127,7 +127,7 @@ rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" && echo "src/" || { echo "F
 rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
 rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
 rsync -aq src/tove/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/tove" && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
-rsync -aq src/template/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
+rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
 
 # Create .muxupd archive
 echoHeader "Creating archive"

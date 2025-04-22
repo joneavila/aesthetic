@@ -1,13 +1,13 @@
 # Glyph
 #
-# This file maps output paths for glyph images (relative to `src/template/glyph`) to input SVG files
+# This file maps output paths for glyph images (relative to `assets/icons/glyph`) to input SVG files
 # (relative to `assets/icons/lucide/glyphs`) for the glyph generation done by `utils/generate_template_glyphs.py`.
 #
 # Format:
 #   output/path/filename, input_svg_name
 #
 # Where:
-#   - output/path/filename: Destination path relative to `src/template/glyph` (without .png extension)
+#   - output/path/filename: Destination path relative to `assets/icons/glyph` (without .png extension)
 #   - input_svg_name: Source SVG file name relative to `assets/icons/lucide/glyphs` (without .svg extension)
 #
 # Comments begin with # and are ignored
