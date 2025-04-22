@@ -423,7 +423,7 @@ function menu.update(dt)
 				if button.fontSelection then
 					-- Redirect to font selection screen
 					if switchScreen then
-						switchScreen("font")
+						switchScreen("font_family")
 						state.resetInputTimer()
 						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
