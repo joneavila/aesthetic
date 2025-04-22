@@ -278,6 +278,18 @@ function colors.toHex(colorKey, colorSet)
 	return "#" .. r .. g .. b
 end
 
+-- Get a color value by key, searching all color sets
+function colors.get(key)
+	if colors.ui[key] then
+		return colors.ui[key]
+	elseif colors.palette[key] then
+		return colors.palette[key]
+	elseif colors.user[key] then
+		return colors.user[key]
+	end
+	return nil
+end
+
 -- Metatable to allow direct access to colors from either set
 setmetatable(colors, {
 	__index = function(t, key)
