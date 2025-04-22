@@ -1,4 +1,4 @@
---- Menu theme creation functionality
+--- Theme creation functionality
 local love = require("love")
 local state = require("state")
 local constants = require("screen.menu.constants")

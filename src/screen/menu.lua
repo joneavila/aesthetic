@@ -8,7 +8,7 @@ local rgbUtils = require("utils.rgb")
 local constants = require("screen.menu.constants")
 local errorHandler = require("error_handler")
 local ui = require("screen.menu.ui")
-local themeCreator = require("screen.menu.theme_creator")
+local themeCreator = require("theme_creator")
 
 -- Initialize errorHandler with UI reference
 errorHandler.setUI(ui)
