@@ -48,14 +48,14 @@ local state = {
 
 	-- Font definitions mapping
 	fontDefs = {
-		header = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 32 },
-		body = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 24 },
-		bodyBold = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-Black.ttf", size = 24 },
-		caption = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 20 },
-		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 48 },
-		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 22 },
-		nunito = { name = "Nunito", path = "assets/fonts/nunito/Nunito-Bold.ttf", size = 24 },
-		retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro-pixel-thick.ttf", size = 24 },
+		header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 32 },
+		body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 24 },
+		bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_black.ttf", size = 24 },
+		caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 20 },
+		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf", size = 48 },
+		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf", size = 22 },
+		nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
+		retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = 24 },
 	},
 
 	-- Font name to font key mapping for easy lookup
