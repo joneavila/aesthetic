@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Converts SVG icons in `assets/icons/lucide/svg` to 24px-height PNG format in `src/template/glyph` using the map
-`utils/glyph_map.txt`. Additionally, this script prints a list of SVG files in `assets/icons/lucide/svg` that are not
+Converts SVG icons in `assets_app/icons/lucide/svg` to 24px-height PNG format in `src/template/glyph` using the map
+`utils/glyph_map.txt`. Additionally, this script prints a list of SVG files in `assets_app/icons/lucide/svg` that are not
 listed in `utils/glyph_map.txt` (unused SVG files that can be removed from the repo).
 
 Note: This script will overwrite files without confirmation.
@@ -23,7 +23,7 @@ except ImportError:
 
 MAP_FILE = os.path.join(os.path.dirname(__file__), "glyph_map.txt")
 BASE_INPUT_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "assets/icons/lucide/svg"
+    os.path.dirname(os.path.dirname(__file__)), "assets_app/icons/lucide/svg"
 )
 BASE_OUTPUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "src/template/glyph"
