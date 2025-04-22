@@ -1,21 +1,17 @@
---- UI drawing functions
---- This file contains code for drawing UI elements that are shared throughout different screens, e.g., buttons
+--- Button drawing functions
+--- This file contains code for drawing buttons used in various UI screens
+
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local colorUtils = require("utils.color")
-
--- Module table to export public functions
-local ui = {}
-
--- Define the scrollbar width (must match the value in menu.lua)
-local scrollBarWidth = 10
-
--- Use constants from the shared constants file instead of menu
 local UI_CONSTANTS = require("ui.constants")
 
+-- Module table to export public functions
+local button = {}
+
 -- Function to draw a button
-function ui.drawButton(button, x, y, isSelected)
+function button.draw(button, x, y, isSelected)
 	-- Determine button width based on type
 	local buttonWidth = UI_CONSTANTS.BUTTON.WIDTH
 
@@ -43,7 +39,7 @@ function ui.drawButton(button, x, y, isSelected)
 			drawWidth = state.screenWidth - 20 -- Add 20px padding on both sides
 		else
 			-- When scrollbar is present, extend background to right edge of screen
-			drawWidth = state.screenWidth - scrollBarWidth - 20 -- Add 20px padding on right side
+			drawWidth = state.screenWidth - UI_CONSTANTS.SCROLL_BAR_WIDTH - 20 -- Add 20px padding on right side
 		end
 
 		-- Draw background with rounded corners (8px radius)
@@ -179,8 +175,8 @@ function ui.drawButton(button, x, y, isSelected)
 end
 
 -- Set button width dynamically
-function ui.setButtonWidth(width)
+function button.setWidth(width)
 	UI_CONSTANTS.BUTTON.WIDTH = width
 end
 
-return ui
+return button

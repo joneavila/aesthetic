@@ -6,7 +6,7 @@ local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 
 local errorHandler = require("error_handler")
-local ui = require("ui")
+local buttonUI = require("ui.button")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
@@ -14,7 +14,7 @@ local fontDefs = require("ui.font_defs")
 local UI_CONSTANTS = require("ui.constants")
 
 -- Initialize errorHandler with UI reference
-errorHandler.setUI(ui)
+errorHandler.setUI(buttonUI)
 
 -- Module table to export public functions
 local menu = {}
@@ -139,7 +139,7 @@ function menu.load()
 	end
 
 	-- Set the button width in the UI module as well
-	ui.setButtonWidth(menu.BUTTON.WIDTH)
+	buttonUI.setWidth(menu.BUTTON.WIDTH)
 
 	menu.BUTTON.START_Y = menu.BUTTON.PADDING
 
@@ -235,7 +235,7 @@ function menu.draw()
 			end
 		else
 			-- Draw other buttons normally
-			ui.drawButton(button, x, y, button.selected)
+			buttonUI.draw(button, x, y, button.selected)
 		end
 
 		::continue::
