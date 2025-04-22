@@ -11,7 +11,7 @@ local UI_CONSTANTS = {
 		SELECTED_OUTLINE_WIDTH = 4,
 		BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 	},
-	POPUP_BUTTONS = {
+	MODAL_BUTTONS = {
 		{
 			text = "Exit",
 			selected = true,

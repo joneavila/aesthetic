@@ -31,11 +31,11 @@ local BUTTON = {
 	START_Y = 20,
 }
 
--- Popup state
-local popupVisible = false
-local popupMessage = ""
-local popupButtons = {}
-local popupMode = "none" -- none, save_success, load_success, error
+-- Modal state
+local modalVisible = false
+local modalMessage = ""
+local modalButtons = {}
+local modalMode = "none" -- none, save_success, load_success, error
 local presetName = "preset1" -- Default preset name
 
 -- Helper function to generate a unique preset name
@@ -73,20 +73,20 @@ local function drawButton(button, x, y, selected)
 	love.graphics.print(button.text, x + leftPadding, y + (BUTTON.HEIGHT - textHeight) / 2)
 end
 
--- Show a popup with the given message and buttons
-local function showPopup(message, buttons)
-	popupVisible = true
-	popupMessage = message
-	popupButtons = buttons or { { text = "Close", selected = true } }
+-- Show a modal with the given message and buttons
+local function showModal(message, buttons)
+	modalVisible = true
+	modalMessage = message
+	modalButtons = buttons or { { text = "Close", selected = true } }
 end
 
--- Draw the popup overlay
-local function drawPopup()
+-- Draw the modal overlay
+local function drawModal()
 	-- Semi-transparent background overlay
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 
-	-- Calculate popup dimensions based on text
+	-- Calculate modal dimensions based on text
 	local padding = 40
 	local maxWidth = state.screenWidth * 0.9 -- Maximum width is 90% of screen width
 	local minWidth = math.min(state.screenWidth * 0.8, maxWidth)
@@ -99,42 +99,42 @@ local function drawPopup()
 	local availableTextWidth = minWidth - (padding * 2)
 
 	-- Get wrapped text info
-	local _, lines = state.fonts.body:getWrap(popupMessage, availableTextWidth)
+	local _, lines = state.fonts.body:getWrap(modalMessage, availableTextWidth)
 	local textHeight = #lines * state.fonts.body:getHeight()
 
-	-- Calculate final popup dimensions
-	local popupWidth = minWidth -- Always use the minimum width to ensure consistent wrapping
+	-- Calculate final modal dimensions
+	local modalWidth = minWidth -- Always use the minimum width to ensure consistent wrapping
 	local buttonHeight = 40
 
 	-- Calculate extra height needed for buttons
 	local buttonsExtraHeight = buttonHeight + padding
-	local popupHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
+	local modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
 
-	local x = (state.screenWidth - popupWidth) / 2
-	local y = (state.screenHeight - popupHeight) / 2
+	local x = (state.screenWidth - modalWidth) / 2
+	local y = (state.screenHeight - modalHeight) / 2
 
-	-- Draw popup background
+	-- Draw modal background
 	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle("fill", x, y, popupWidth, popupHeight, 10)
+	love.graphics.rectangle("fill", x, y, modalWidth, modalHeight, 10)
 
-	-- Draw popup border with surface color
+	-- Draw modal border with surface color
 	love.graphics.setColor(colors.ui.surface)
 	love.graphics.setLineWidth(2)
-	love.graphics.rectangle("line", x, y, popupWidth, popupHeight, 10)
+	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
 
 	-- Draw message with wrapping
 	love.graphics.setColor(colors.ui.foreground)
 	local textY = y + padding
-	love.graphics.printf(popupMessage, x + padding, textY, availableTextWidth, "center")
+	love.graphics.printf(modalMessage, x + padding, textY, availableTextWidth, "center")
 
 	-- Draw buttons
-	local buttonWidth = math.min(200, popupWidth * 0.4) -- Width is either 200px or 40% of popup width
-	local buttonY = y + popupHeight - buttonHeight - padding
+	local buttonWidth = math.min(200, modalWidth * 0.4) -- Width is either 200px or 40% of modal width
+	local buttonY = y + modalHeight - buttonHeight - padding
 	local spacing = 20
-	local totalButtonsWidth = (#popupButtons * buttonWidth) + ((#popupButtons - 1) * spacing)
-	local buttonX = x + (popupWidth - totalButtonsWidth) / 2 -- Position relative to popup
+	local totalButtonsWidth = (#modalButtons * buttonWidth) + ((#modalButtons - 1) * spacing)
+	local buttonX = x + (modalWidth - totalButtonsWidth) / 2 -- Position relative to modal
 
-	for _, button in ipairs(popupButtons) do
+	for _, button in ipairs(modalButtons) do
 		local isSelected = button.selected
 
 		-- Draw button background
@@ -179,9 +179,9 @@ function settings.draw()
 		drawButton(button, BUTTON.PADDING, y, button.selected)
 	end
 
-	-- Draw popup if visible
-	if popupVisible then
-		drawPopup()
+	-- Draw modal if visible
+	if modalVisible then
+		drawModal()
 	end
 
 	-- Draw controls at bottom of screen
@@ -199,11 +199,11 @@ function settings.update(_dt)
 		return
 	end
 
-	-- Handle popup if visible
-	if popupVisible then
+	-- Handle modal if visible
+	if modalVisible then
 		if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
 			-- Toggle button selection
-			for _, button in ipairs(popupButtons) do
+			for _, button in ipairs(modalButtons) do
 				button.selected = not button.selected
 			end
 			state.resetInputTimer()
@@ -211,22 +211,22 @@ function settings.update(_dt)
 
 		if virtualJoystick:isGamepadDown("a") then
 			-- Handle button selection
-			for _, button in ipairs(popupButtons) do
+			for _, button in ipairs(modalButtons) do
 				if button.selected then
-					if popupMode == "save_input" and button.text == "Save" then
+					if modalMode == "save_input" and button.text == "Save" then
 						-- Save the preset
 						local success = presets.savePreset(presetName)
 						if success then
-							popupMode = "save_success"
-							showPopup("Preset saved successfully!", { { text = "Close", selected = true } })
+							modalMode = "save_success"
+							showModal("Preset saved successfully!", { { text = "Close", selected = true } })
 						else
-							popupMode = "error"
-							showPopup("Failed to save preset.", { { text = "Close", selected = true } })
+							modalMode = "error"
+							showModal("Failed to save preset.", { { text = "Close", selected = true } })
 						end
 					else
-						-- Close the popup
-						popupVisible = false
-						popupMode = "none"
+						-- Close the modal
+						modalVisible = false
+						modalMode = "none"
 					end
 					break
 				end
@@ -235,15 +235,15 @@ function settings.update(_dt)
 			return
 		end
 
-		-- Exit popup with B button
+		-- Exit modal with B button
 		if virtualJoystick:isGamepadDown("b") then
-			popupVisible = false
-			popupMode = "none"
+			modalVisible = false
+			modalMode = "none"
 			state.resetInputTimer()
 			return
 		end
 
-		return -- Don't process other inputs while popup is visible
+		return -- Don't process other inputs while modal is visible
 	end
 
 	-- Handle D-pad navigation
@@ -280,9 +280,9 @@ function settings.update(_dt)
 				if button.text == "Save theme preset" then
 					presetName = generatePresetName()
 
-					-- Show save preset popup
-					popupMode = "save_input"
-					showPopup(
+					-- Show save preset modal
+					modalMode = "save_input"
+					showModal(
 						"Save current theme settings as preset?",
 						{ { text = "Cancel", selected = false }, { text = "Save", selected = true } }
 					)
@@ -318,9 +318,9 @@ end
 
 -- Handle cleanup when leaving this screen
 function settings.onExit()
-	-- Reset popup state
-	popupVisible = false
-	popupMode = "none"
+	-- Reset modal state
+	modalVisible = false
+	modalMode = "none"
 end
 
 return settings

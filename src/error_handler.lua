@@ -1,14 +1,14 @@
 --- Error handler
 
 local errorHandler = {}
+local modal = require("ui.modal")
 
 -- Error state
 local errorMessage = nil
-local ui = nil -- Will be set when initialized
+local ui = nil -- Keeping for backward compatibility
 
---- Sets the UI module reference to allow error handler to display popups
+--- Sets the UI module reference (keeping for backward compatibility)
 --- This function is necessary to avoid circular dependencies between modules
---- The UI module calls this function after it's fully loaded to provide its reference
 function errorHandler.setUI(uiModule)
 	ui = uiModule
 end
@@ -23,18 +23,13 @@ function errorHandler.getErrorMessage()
 	return errorMessage
 end
 
--- Function to show error popup
-function errorHandler.showErrorPopup(prefix)
-	if not ui then
-		print("Error: UI module not set in errorHandler")
-		return
-	end
-
+-- Function to show error modal
+function errorHandler.showErrorModal(prefix)
 	local message = errorMessage or "Unknown error"
 	if prefix then
 		message = prefix .. ": " .. message
 	end
-	ui.showPopup(message, { { text = "Exit", selected = true } })
+	modal.showModal(message, { { text = "Exit", selected = true } })
 end
 
 function errorHandler.update(_dt)

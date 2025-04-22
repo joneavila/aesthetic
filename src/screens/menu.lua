@@ -7,6 +7,7 @@ local rgbUtils = require("utils.rgb")
 
 local errorHandler = require("error_handler")
 local ui = require("ui")
+local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
 
@@ -90,13 +91,13 @@ menu.BUTTONS = {
 	},
 }
 
--- Popup buttons
-menu.POPUP_BUTTONS = UI_CONSTANTS.POPUP_BUTTONS
+-- Modal buttons
+menu.MODAL_BUTTONS = UI_CONSTANTS.MODAL_BUTTONS
 
 -- Screen switching
 local switchScreen = nil
 local createdThemePath = nil
-local popupState = "none" -- none, created, manual, automatic
+local modalState = "none" -- none, created, manual, automatic
 
 -- Scrolling
 local scrollPosition = 0
@@ -279,9 +280,9 @@ function menu.draw()
 		)
 	end
 
-	-- Draw popup if active
-	if ui.isPopupVisible() then
-		ui.drawPopup()
+	-- Draw modal if active
+	if modal.isModalVisible() then
+		modal.drawModal()
 	end
 
 	-- Draw wait overlay if in waiting state
@@ -309,9 +310,9 @@ function menu.update(dt)
 		waitingState = "none"
 
 		if createdThemePath then
-			-- Show success popup with options
-			popupState = "created"
-			ui.showPopup(
+			-- Show success modal with options
+			modalState = "created"
+			modal.showModal(
 				"Created theme successfully.",
 				{
 					{ text = "Apply theme later", selected = false },
@@ -320,8 +321,8 @@ function menu.update(dt)
 				true -- Use vertical buttons
 			)
 		else
-			-- Show error popup
-			errorHandler.showErrorPopup("Error creating theme")
+			-- Show error modal
+			errorHandler.showErrorModal("Error creating theme")
 		end
 		return -- Skip the rest of the update to avoid input processing
 	elseif waitingState == "install_theme" then
@@ -334,89 +335,82 @@ function menu.update(dt)
 		-- After theme is installed, apply RGB settings from theme
 		rgbUtils.installFromTheme()
 
-		ui.showPopup(
+		modal.showModal(
 			success and "Applied theme successfully." or "Failed to apply theme.",
 			{ { text = "Close", selected = true } }
 		)
 		return -- Skip the rest of the update to avoid input processing
 	end
 
-	if ui.isPopupVisible() then
-		if state.canProcessInput() then
-			local popupButtons = ui.getPopupButtons()
+	if modal.isModalVisible() then
+		-- Show controls for modals
+		controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
 
-			-- Handle popup navigation and selection based on popup state
-			if popupState == "created" then
-				-- Handle navigation for the theme creation success popup
-				if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-					for _, button in ipairs(popupButtons) do
-						button.selected = not button.selected
-					end
-					state.resetInputTimer()
+		local modalButtons = modal.getModalButtons()
+
+		-- Handle modal navigation and selection based on modal state
+		if modalState == "created" then
+			-- Handle navigation for the theme creation success modal
+			if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+				for _, button in ipairs(modalButtons) do
+					button.selected = not button.selected
 				end
+				state.resetInputTimer()
+			end
 
-				-- Handle selection for the theme creation success popup
-				if virtualJoystick:isGamepadDown("a") then
-					for i, button in ipairs(popupButtons) do
-						if button.selected then
-							if i == 1 then
-								-- Manual option selected
-								popupState = "manual"
-								ui.showPopup(
-									"Apply theme manually via Configuration > Customisation > muOS Themes.",
-									{ { text = "Close", selected = true } }
-								)
-							else
-								-- Automatic option selected
-								popupState = "automatic"
-								-- Queue theme installation for next frame
-								waitingState = "install_theme"
-								waitingThemePath = createdThemePath
-								-- Mark theme as applied so RGB settings aren't restored
-								state.themeApplied = true
-							end
-							break
+			-- Handle selection for the theme creation success modal
+			if virtualJoystick:isGamepadDown("a") then
+				for i, button in ipairs(modalButtons) do
+					if button.selected then
+						if i == 1 then -- Exit button
+							os.exit(0)
+						else -- Open theme button
+							modalState = "manual"
+							modal.showModal(
+								"Apply theme manually via Configuration > Customisation > muOS Themes.",
+								{ { text = "Close", selected = true } }
+							)
+						end
+						break
+					end
+				end
+				state.resetInputTimer()
+			end
+		elseif modalState == "manual" or modalState == "automatic" then
+			-- Handle selection for the final modal (Close button)
+			if virtualJoystick:isGamepadDown("a") then
+				modal.hideModal()
+				modalState = "none"
+				-- If installation was successful, switch to the themes screen
+				if createdThemePath then
+					switchScreen("themes", createdThemePath)
+				end
+				-- Add a small delay to avoid immediate input after closing
+				state.forceInputDelay(0.2) -- Add extra delay when closing the modal
+			end
+		else
+			-- Handle navigation for default modals
+			if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+				for _, button in ipairs(modalButtons) do
+					button.selected = not button.selected
+				end
+				state.resetInputTimer()
+			end
+
+			-- Handle selection for default modals
+			if virtualJoystick:isGamepadDown("a") then
+				for _, button in ipairs(modalButtons) do
+					if button.selected then
+						if button.text == "Exit" then
+							os.exit(0)
 						end
 					end
-					state.resetInputTimer()
 				end
-			elseif popupState == "manual" or popupState == "automatic" then
-				-- Handle selection for the final popup (Close button)
-				if virtualJoystick:isGamepadDown("a") then
-					ui.hidePopup()
-					popupState = "none"
-					createdThemePath = nil
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when closing the popup
-				end
-			else
-				-- Handle navigation for default popups
-				if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-					for _, button in ipairs(popupButtons) do
-						button.selected = not button.selected
-					end
-					state.resetInputTimer()
-				end
-
-				-- Handle selection for default popups
-				if virtualJoystick:isGamepadDown("a") then
-					for _, button in ipairs(popupButtons) do
-						if button.selected then
-							if button.text == "Exit" then
-								-- Restore original RGB configuration if no theme was applied
-								rgbUtils.restoreConfig()
-								love.event.quit()
-							else
-								ui.hidePopup()
-							end
-							break
-						end
-					end
-					state.resetInputTimer()
-				end
+				modal.hideModal()
 			end
 		end
-		return -- Don't process other input while popup is shown
+
+		return -- Don't process other input while modal is shown
 	end
 
 	if not state.canProcessInput() then
