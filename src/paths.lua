@@ -33,7 +33,7 @@ paths.MUOS_VERSION_PATH = "/opt/muos/config/version.txt"
 paths.THEME_VERSION_PATH = paths.THEME_DIR .. "/version.txt"
 
 -- Assets used by UI rather than generated theme
-paths.THEME_FONT_SOURCE_DIR = paths.TEMPLATE_DIR .. "/font"
+paths.THEME_FONT_SOURCE_DIR = paths.ROOT_DIR .. "/assets/fonts"
 
 -- `credits.txt`
 paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"

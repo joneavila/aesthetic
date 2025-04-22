@@ -615,7 +615,13 @@ local function copySelectedFont()
 	end
 
 	-- Copy the selected font file as default.bin
-	local fontSourcePath = paths.THEME_FONT_SOURCE_DIR .. "/" .. fontSizeDir .. "/" .. selectedFontFile
+	local fontSourcePath = "assets/fonts/"
+		.. selectedFontFile:gsub("%.bin$", "")
+		.. "/"
+		.. selectedFontFile:gsub("%.bin$", "")
+		.. "_"
+		.. fontSizeDir
+		.. ".bin"
 	if
 		not system.copyFile(
 			fontSourcePath,
