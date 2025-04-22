@@ -39,7 +39,7 @@ function ui.drawButton(button, x, y, isSelected)
 	end
 
 	-- For selected buttons, check if we need to draw the background to the edge
-	local drawWidth = buttonWidth
+	local drawWidth
 	if isSelected then
 		-- If there's no scrollbar needed (width is almost full screen width),
 		-- extend the background to the right edge of the screen

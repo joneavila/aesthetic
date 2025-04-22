@@ -67,8 +67,6 @@ function controls.draw(controls_list)
 
 	-- Draw each control
 	for _, control in ipairs(controls_list) do
-		local startX = x
-
 		if type(control.button) == "table" then
 			-- Draw multiple buttons with "/" between them
 			for i, buttonKey in ipairs(control.button) do
