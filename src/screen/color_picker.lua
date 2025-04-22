@@ -3,7 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local constants = require("screen.color_picker.constants")
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 
 -- Import sub-screens
 local paletteScreen = require("screen.color_picker.palette")

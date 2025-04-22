@@ -3,7 +3,7 @@
 --- presets directory
 local state = require("state")
 local system = require("utils.system")
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 
 local constants = require("screen.menu.constants")
 local paths = constants.PATHS

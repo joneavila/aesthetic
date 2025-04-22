@@ -6,7 +6,7 @@ local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 
 local constants = require("screen.menu.constants")
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 local ui = require("screen.menu.ui")
 local themeCreator = require("screen.menu.theme_creator")
 

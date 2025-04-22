@@ -6,7 +6,7 @@ local controls = require("controls")
 local colorUtils = require("utils.color")
 local constants = require("screen.color_picker.constants")
 local tove = require("tove")
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 
 local hex = {}
 

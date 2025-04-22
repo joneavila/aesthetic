@@ -1,6 +1,6 @@
 --- System utilities
 --- This module avoids using `love.filesystem` since most functions are not sandboxed
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 local commands = require("utils.commands")
 
 local system = {}

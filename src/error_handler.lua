@@ -1,4 +1,4 @@
---- Menu error handler
+--- Error handler
 
 local errorHandler = {}
 
