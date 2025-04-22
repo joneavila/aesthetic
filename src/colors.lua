@@ -295,21 +295,4 @@ setmetatable(colors, {
 	end,
 })
 
--- Custom color storage for different color types
-colors._custom_colors = {
-	background = nil,
-	foreground = nil,
-}
-
--- Function to store custom color
--- Colors are stored in the user table to display them across the UI
-colors.addCustomColor = function(self, r, g, b)
-	-- Get the current color type from state
-	local colorType = require("state").activeColorContext
-
-	local colorKey = "custom_" .. colorType
-	self.user[colorKey] = { r, g, b, 1 }
-	return colorKey
-end
-
 return colors
