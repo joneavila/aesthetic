@@ -129,42 +129,6 @@ function Color:getContrastingColor()
 	return Color.fromHSL(newH, s, newL)
 end
 
--- Convert color to hex string
-function Color:toHex()
-	local r = math.floor(self.r * 255 + 0.5)
-	local g = math.floor(self.g * 255 + 0.5)
-	local b = math.floor(self.b * 255 + 0.5)
-	return string.format("#%02X%02X%02X", r, g, b)
-end
-
--- Create a new Color from hex string
-function Color.fromHex(hex)
-	-- Remove # if present
-	hex = hex:gsub("^#", "")
-
-	-- Convert hex to RGB
-	local r = tonumber(hex:sub(1, 2), 16) / 255
-	local g = tonumber(hex:sub(3, 4), 16) / 255
-	local b = tonumber(hex:sub(5, 6), 16) / 255
-
-	return Color.new(r, g, b)
-end
-
--- Convert color to LÖVE-compatible array
-function Color:toLove()
-	return { self.r, self.g, self.b, self.a }
-end
-
-function color.rgbToHsl(r, g, b)
-	local col = Color.new(r, g, b)
-	return col:toHSL()
-end
-
-function color.hslToRgb(h, s, l)
-	local col = Color.fromHSL(h, s, l)
-	return col.r, col.g, col.b
-end
-
 function color.calculateBorderColor(r, g, b)
 	local col = Color.new(r, g, b)
 	local border = col:getBorderColor()
