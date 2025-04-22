@@ -1,9 +1,11 @@
---- Menu UI drawing functions
+--- UI drawing functions
+--- This file contains code for drawing UI elements that are shared throughout different screens, e.g., buttons
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local colorUtils = require("utils.color")
 
+-- We still need constants from the menu screen for now
 local constants = require("screens.menu.constants")
 
 -- Module table to export public functions
