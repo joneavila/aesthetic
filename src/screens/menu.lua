@@ -5,9 +5,9 @@ local state = require("state")
 local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 
-local constants = require("screen.menu.constants")
+local constants = require("screens.menu.constants")
 local errorHandler = require("error_handler")
-local ui = require("screen.menu.ui")
+local ui = require("screens.menu.ui")
 local themeCreator = require("theme_creator")
 
 -- Initialize errorHandler with UI reference

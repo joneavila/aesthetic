@@ -4,7 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
-local constants = require("screen.color_picker.constants")
+local constants = require("screens.color_picker.constants")
 local tove = require("tove")
 local errorHandler = require("error_handler")
 
@@ -401,7 +401,7 @@ function hex.update(_dt)
 					-- Return to menu and apply the color
 					if switchScreen then
 						switchScreen(state.previousScreen)
-						local menuScreen = require("screen.menu")
+						local menuScreen = require("screens.menu")
 						menuScreen.setSelectedColor(state.activeColorContext, hexCode)
 					end
 				end

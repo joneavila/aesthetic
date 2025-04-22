@@ -2,13 +2,13 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local constants = require("screen.color_picker.constants")
+local constants = require("screens.color_picker.constants")
 local errorHandler = require("error_handler")
 
 -- Import sub-screens
-local paletteScreen = require("screen.color_picker.palette")
-local hsvScreen = require("screen.color_picker.hsv")
-local hexScreen = require("screen.color_picker.hex")
+local paletteScreen = require("screens.color_picker.palette")
+local hsvScreen = require("screens.color_picker.hsv")
+local hexScreen = require("screens.color_picker.hex")
 
 -- Module table to export public functions
 local colorPicker = {}

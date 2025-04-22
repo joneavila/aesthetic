@@ -4,7 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local colorUtils = require("utils.color")
 
-local constants = require("screen.menu.constants")
+local constants = require("screens.menu.constants")
 
 -- Module table to export public functions
 local ui = {}

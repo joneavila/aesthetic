@@ -65,13 +65,13 @@ end
 
 function screens.load()
 	-- Auto-load screens from the screen directory
-	local screenFiles = love.filesystem.getDirectoryItems("screen")
+	local screenFiles = love.filesystem.getDirectoryItems("screens")
 
 	for _, file in ipairs(screenFiles) do
 		-- Remove the .lua extension to get the screen name
 		local screenName = file:match("^(.+)%.lua$")
 		if screenName then
-			local screenModule = require("screen." .. screenName)
+			local screenModule = require("screens." .. screenName)
 			screens.register(screenName, screenModule)
 		end
 	end

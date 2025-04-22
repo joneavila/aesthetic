@@ -82,7 +82,7 @@ local function loadSettings()
 		-- font state, and the 'selected' property for each font needs to be updated to reflect the loaded
 		-- state.selectedFont, while other settings (colors, RGB settings) are read directly from state when UI
 		-- screens are rendered
-		for _, font in ipairs(require("screen.menu.constants").FONTS) do
+		for _, font in ipairs(require("screens.menu.constants").FONTS) do
 			font.selected = (font.name == state.selectedFont)
 		end
 	end

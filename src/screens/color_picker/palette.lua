@@ -2,10 +2,10 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local menuScreen = require("screen.menu")
+local menuScreen = require("screens.menu")
 local tween = require("tween")
 local controls = require("controls")
-local constants = require("screen.color_picker.constants")
+local constants = require("screens.color_picker.constants")
 
 local palette = {}
 
