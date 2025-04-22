@@ -5,7 +5,6 @@ local state = require("state")
 local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 
-local constants = require("screens.menu.constants")
 local errorHandler = require("error_handler")
 local ui = require("ui")
 local themeCreator = require("theme_creator")
@@ -15,6 +14,133 @@ errorHandler.setUI(ui)
 
 -- Module table to export public functions
 local menu = {}
+
+-- Menu constants
+-- Screen identifiers
+menu.COLOR_PICKER_SCREEN = "color_picker"
+menu.ABOUT_SCREEN = "about"
+menu.FONT_SCREEN = "font"
+menu.RGB_SCREEN = "rgb"
+
+-- Screen height to font size mapping
+menu.SCREEN_HEIGHT_MAPPING = {
+	[768] = { fontSizeDir = "38", imageFontSize = 45 },
+	[720] = { fontSizeDir = "36", imageFontSize = 42 },
+	[576] = { fontSizeDir = "29", imageFontSize = 34 },
+	[480] = { fontSizeDir = "24", imageFontSize = 28 },
+}
+
+-- Helper function to get font size info based on screen height
+menu.getFontSizeInfo = function(height)
+	local sizeInfo = menu.SCREEN_HEIGHT_MAPPING[height]
+	return sizeInfo
+end
+
+-- Image font size based on screen height
+menu.getImageFontSize = function()
+	local sizeInfo = menu.getFontSizeInfo(state.screenHeight)
+	return sizeInfo and sizeInfo.imageFontSize
+end
+
+menu.IMAGE_FONT_SIZE = menu.getImageFontSize()
+
+-- Error display time
+menu.ERROR_DISPLAY_TIME_SECONDS = 5
+
+-- Button dimensions and position
+menu.BUTTON = {
+	WIDTH = nil, -- Will be calculated in load()
+	HEIGHT = 50,
+	PADDING = 20,
+	CORNER_RADIUS = 8,
+	SELECTED_OUTLINE_WIDTH = 4,
+	COLOR_DISPLAY_SIZE = 30,
+	START_Y = nil, -- Will be calculated in load()
+	HELP_BUTTON_SIZE = 40,
+	BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
+}
+
+menu.BOTTOM_PADDING = controls.HEIGHT
+
+-- Button state
+menu.BUTTONS = {
+	{
+		text = "Background color",
+		selected = true,
+		colorKey = "background",
+	},
+	{
+		text = "Foreground color",
+		selected = false,
+		colorKey = "foreground",
+	},
+	{
+		text = "RGB lighting",
+		selected = false,
+		rgbLighting = true,
+	},
+	{
+		text = "Font family",
+		selected = false,
+		fontSelection = true,
+	},
+	{
+		text = "Font size",
+		selected = false,
+		fontSizeToggle = true,
+	},
+	{
+		text = "Icons",
+		selected = false,
+		glyphsToggle = true,
+	},
+	{
+		text = "Box art width",
+		selected = false,
+		boxArt = true,
+	},
+	{
+		text = "Create theme",
+		selected = false,
+		isBottomButton = true,
+	},
+}
+
+-- Popup buttons
+menu.POPUP_BUTTONS = {
+	{
+		text = "Exit",
+		selected = true,
+	},
+	{
+		text = "Back",
+		selected = false,
+	},
+}
+
+-- Font options
+menu.FONTS = {
+	{
+		name = "Inter",
+		file = "inter.bin",
+		selected = state.selectedFont == "Inter",
+	},
+	{
+		name = "Nunito",
+		file = "nunito.bin",
+		selected = state.selectedFont == "Nunito",
+	},
+	{
+		name = "Cascadia Code",
+		file = "cascadia_code.bin",
+		selected = state.selectedFont == "Cascadia Code",
+	},
+	{
+		name = "Retro Pixel",
+		file = "retro_pixel.bin",
+		selected = state.selectedFont == "Retro Pixel",
+	},
+}
 
 -- Screen switching
 local switchScreen = nil
@@ -35,15 +161,15 @@ local waitingThemePath = nil
 function menu.load()
 	-- Count total regular buttons (non-bottom buttons)
 	totalRegularButtonCount = 0
-	for _, button in ipairs(constants.BUTTONS) do
+	for _, button in ipairs(menu.BUTTONS) do
 		if not button.isBottomButton then
 			totalRegularButtonCount = totalRegularButtonCount + 1
 		end
 	end
 
 	-- Calculate how many buttons can be displayed at once
-	local availableHeight = state.screenHeight - constants.BUTTON.BOTTOM_MARGIN - constants.BUTTON.PADDING
-	visibleButtonCount = math.floor(availableHeight / (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING))
+	local availableHeight = state.screenHeight - menu.BUTTON.BOTTOM_MARGIN - menu.BUTTON.PADDING
+	visibleButtonCount = math.floor(availableHeight / (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING))
 
 	-- Ensure at least some buttons are visible
 	visibleButtonCount = math.max(3, visibleButtonCount)
@@ -54,16 +180,16 @@ function menu.load()
 	-- Adjust button width based on whether scrollbar is needed
 	if needsScrollBar then
 		-- If scrollbar is needed, account for scrollbar width
-		constants.BUTTON.WIDTH = state.screenWidth - (constants.BUTTON.PADDING + scrollBarWidth)
+		menu.BUTTON.WIDTH = state.screenWidth - (menu.BUTTON.PADDING + scrollBarWidth)
 	else
 		-- If scrollbar is not needed, buttons can extend to edge minus padding
-		constants.BUTTON.WIDTH = state.screenWidth - constants.BUTTON.PADDING
+		menu.BUTTON.WIDTH = state.screenWidth - menu.BUTTON.PADDING
 	end
 
-	constants.BUTTON.START_Y = constants.BUTTON.PADDING
+	menu.BUTTON.START_Y = menu.BUTTON.PADDING
 
 	-- Initialize font selection based on state
-	for _, font in ipairs(constants.FONTS) do
+	for _, font in ipairs(menu.FONTS) do
 		font.selected = (font.name == state.selectedFont)
 	end
 end
@@ -97,7 +223,7 @@ function menu.draw()
 	local regularButtonCount = 0
 	local visibleRegularButtonCount = 0
 
-	for _, button in ipairs(constants.BUTTONS) do
+	for _, button in ipairs(menu.BUTTONS) do
 		-- Skip buttons that are outside the visible range
 		if not button.isBottomButton then
 			regularButtonCount = regularButtonCount + 1
@@ -110,9 +236,8 @@ function menu.draw()
 			visibleRegularButtonCount = visibleRegularButtonCount + 1
 		end
 
-		local y = button.isBottomButton and state.screenHeight - constants.BUTTON.BOTTOM_MARGIN
-			or constants.BUTTON.START_Y
-				+ (visibleRegularButtonCount - 1) * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
+		local y = button.isBottomButton and state.screenHeight - menu.BUTTON.BOTTOM_MARGIN
+			or menu.BUTTON.START_Y + (visibleRegularButtonCount - 1) * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING)
 
 		local x = 0
 
@@ -129,37 +254,29 @@ function menu.draw()
 			if button.selected then
 				-- Selected state: accent background, background text, background outline
 				love.graphics.setColor(colors.ui.accent)
-				love.graphics.rectangle("fill", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+				love.graphics.rectangle("fill", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
 
 				-- Draw outline
 				love.graphics.setColor(colors.ui.background)
 				love.graphics.setLineWidth(2)
-				love.graphics.rectangle("line", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+				love.graphics.rectangle("line", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
 
 				-- Draw text
 				love.graphics.setColor(colors.ui.background)
-				love.graphics.print(
-					button.text,
-					buttonX + padding,
-					y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
-				)
+				love.graphics.print(button.text, buttonX + padding, y + (menu.BUTTON.HEIGHT - font:getHeight()) / 2)
 			else
 				-- Unselected state: background with surface outline
 				love.graphics.setColor(colors.ui.background)
-				love.graphics.rectangle("fill", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+				love.graphics.rectangle("fill", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
 
 				-- Draw outline
 				love.graphics.setColor(colors.ui.surface)
 				love.graphics.setLineWidth(2)
-				love.graphics.rectangle("line", buttonX, y, buttonWidth, constants.BUTTON.HEIGHT, cornerRadius)
+				love.graphics.rectangle("line", buttonX, y, buttonWidth, menu.BUTTON.HEIGHT, cornerRadius)
 
 				-- Draw text
 				love.graphics.setColor(colors.ui.foreground)
-				love.graphics.print(
-					button.text,
-					buttonX + padding,
-					y + (constants.BUTTON.HEIGHT - font:getHeight()) / 2
-				)
+				love.graphics.print(button.text, buttonX + padding, y + (menu.BUTTON.HEIGHT - font:getHeight()) / 2)
 			end
 		else
 			-- Draw other buttons normally
@@ -172,8 +289,7 @@ function menu.draw()
 	-- Draw scroll bar if needed
 	if totalRegularButtonCount > visibleButtonCount then
 		-- Calculate the visible area height
-		local scrollAreaHeight = visibleButtonCount * (constants.BUTTON.HEIGHT + constants.BUTTON.PADDING)
-			- constants.BUTTON.PADDING
+		local scrollAreaHeight = visibleButtonCount * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING) - menu.BUTTON.PADDING
 
 		-- Calculate scroll bar height and position
 		local scrollBarHeight = (visibleButtonCount / totalRegularButtonCount) * scrollAreaHeight
@@ -181,17 +297,17 @@ function menu.draw()
 		-- Calculate maximum scroll position to keep handle in bounds
 		local maxScrollY = scrollAreaHeight - scrollBarHeight
 		local scrollPercentage = scrollPosition / (totalRegularButtonCount - visibleButtonCount)
-		local scrollBarY = constants.BUTTON.START_Y + (scrollPercentage * maxScrollY)
+		local scrollBarY = menu.BUTTON.START_Y + (scrollPercentage * maxScrollY)
 
 		-- Ensure the scrollbar handle stays within the visible area
-		scrollBarY = math.min(scrollBarY, constants.BUTTON.START_Y + maxScrollY)
+		scrollBarY = math.min(scrollBarY, menu.BUTTON.START_Y + maxScrollY)
 
 		-- Draw scroll bar background - position it flush with right edge
 		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.3)
 		love.graphics.rectangle(
 			"fill",
 			state.screenWidth - scrollBarWidth,
-			constants.BUTTON.START_Y,
+			menu.BUTTON.START_Y,
 			scrollBarWidth,
 			scrollAreaHeight,
 			4 -- Add corner radius of 4px for the scrollbar background
@@ -359,14 +475,14 @@ function menu.update(dt)
 	local navButtons = {}
 
 	-- Add all buttons in navigation order
-	for _, button in ipairs(constants.BUTTONS) do
+	for _, button in ipairs(menu.BUTTONS) do
 		if not button.isBottomButton then
 			table.insert(navButtons, button)
 		end
 	end
 
 	-- Add bottom buttons last
-	for _, button in ipairs(constants.BUTTONS) do
+	for _, button in ipairs(menu.BUTTONS) do
 		if button.isBottomButton then
 			table.insert(navButtons, button)
 		end
@@ -418,7 +534,7 @@ function menu.update(dt)
 	-- Handle A button (Select)
 	if virtualJoystick:isGamepadDown("a") then
 		-- Find which button is selected
-		for _, button in ipairs(constants.BUTTONS) do
+		for _, button in ipairs(menu.BUTTONS) do
 			if button.selected then
 				if button.fontSelection then
 					-- Redirect to font selection screen
@@ -480,7 +596,7 @@ function menu.update(dt)
 	if selectedButtonIndex and not navButtons[selectedButtonIndex].isBottomButton then
 		-- Adjust scroll position if the selected button is outside the visible area
 		local buttonIndex = 0
-		for _, button in ipairs(constants.BUTTONS) do
+		for _, button in ipairs(menu.BUTTONS) do
 			if not button.isBottomButton then
 				buttonIndex = buttonIndex + 1
 				if button.selected then
