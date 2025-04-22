@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Converts SVG icons in `assets_app/icons/lucide/svg` to 24px-height PNG format in `src/template/glyph` using the map
-`utils/glyph_map.txt`. Additionally, this script prints a list of SVG files in `assets_app/icons/lucide/svg` that are not
+Converts SVG icons in `assets/icons/lucide/svg` to 24px-height PNG format in `src/template/glyph` using the map
+`utils/glyph_map.txt`. Additionally, this script prints a list of SVG files in `assets/icons/lucide/svg` that are not
 listed in `utils/glyph_map.txt` (unused SVG files that can be removed from the repo).
 
 Note: This script will overwrite files without confirmation.
@@ -22,8 +22,8 @@ except ImportError:
     sys.exit(1)
 
 MAP_FILE = os.path.join(os.path.dirname(__file__), "glyph_map.txt")
-BASE_INPUT_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "assets_app/icons/lucide/svg"
+SVG_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "assets/icons/lucide/svg"
 )
 BASE_OUTPUT_PATH = os.path.join(
     os.path.dirname(os.path.dirname(__file__)), "src/template/glyph"
@@ -33,7 +33,7 @@ PNG_HEIGHT = 24
 
 def main():
     os.makedirs(BASE_OUTPUT_PATH, exist_ok=True)
-    os.makedirs(BASE_INPUT_PATH, exist_ok=True)
+    os.makedirs(SVG_DIR, exist_ok=True)
 
     with open(MAP_FILE, "r") as f:
         lines = f.readlines()
@@ -52,7 +52,7 @@ def main():
         input_filename = parts[1].strip()
 
         output_path = f"{BASE_OUTPUT_PATH}/{output_rel_path}.png"
-        input_path = f"{BASE_INPUT_PATH}/{input_filename}.svg"
+        input_path = f"{SVG_DIR}/{input_filename}.svg"
 
         if not os.path.exists(input_path):
             print(f"Input SVG file does not exist: {input_path}")
@@ -72,7 +72,7 @@ def find_unused_svg_files():
     print("\nChecking for unused SVG files...")
 
     svg_files = []
-    for filename in os.listdir(BASE_INPUT_PATH):
+    for filename in os.listdir(SVG_DIR):
         if filename.endswith(".svg"):
             svg_files.append(os.path.splitext(filename)[0])
 
