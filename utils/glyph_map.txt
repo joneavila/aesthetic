@@ -23,7 +23,7 @@ bar/volume_2, volume-1
 bar/volume_3, volume-2
 
 # muxapp – Applications
-muxapp/aesthetic, moon-star
+# Built-in applications
 muxapp/app, play
 muxapp/archive, archive
 muxapp/dingux, folder-search
@@ -34,10 +34,20 @@ muxapp/portmaster, ship
 muxapp/ppsspp, gamepad
 muxapp/retroarch, joystick
 muxapp/rgbcontroller, lightbulb
-muxapp/scrappy, image-down
 muxapp/scummvm, box
 muxapp/task, pocket-knife
 muxapp/terminal, square-terminal
+
+# muxapp - Applications
+# Community applications
+# Aesthetic – https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld/
+muxapp/aesthetic, moon-star
+# APlayer – https://community.muos.dev/t/aplayer-mp3-ogg-wav-flac/
+muxapp/aplayer, circle-play
+# App Downloader – https://community.muos.dev/t/app-downloader/
+muxapp/appdownloader, arrow-big-down-dash
+# Scrappy – (Missing muOS community forum thread)
+muxapp/scrappy, image-down
 
 # muxarchive – Applications > Archive Manager
 muxarchive/archive, package
