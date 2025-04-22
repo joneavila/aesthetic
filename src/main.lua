@@ -11,14 +11,15 @@
 
 local love = require("love")
 local input = require("input")
-local screens = require("screens")
 local colors = require("colors")
 local state = require("state")
 local settings = require("utils.settings")
+-- Remove the circular dependency by loading the screens module after state is initialized
 
 -- Input delay handling
 local lastInpuSeconds = 0
 local inputDelaySeconds = 0.2
+local screens = nil -- Will hold the screens module after initialization
 
 function state.canProcessInput()
 	return lastInpuSeconds >= inputDelaySeconds
@@ -76,16 +77,8 @@ local function loadSettings()
 	-- Try to load settings from file
 	local success = settings.loadFromFile()
 
-	if success then
-		-- Update font selection based on loaded state
-		-- This is done here rather than in settings.lua because the FONTS array is a UI-specific representation of the
-		-- font state, and the 'selected' property for each font needs to be updated to reflect the loaded
-		-- state.selectedFont, while other settings (colors, RGB settings) are read directly from state when UI
-		-- screens are rendered
-		for _, font in ipairs(require("screens.menu.constants").FONTS) do
-			font.selected = (font.name == state.selectedFont)
-		end
-	end
+	-- We'll update the font selection state later when the menu screen is loaded
+	-- This avoids circular dependencies
 
 	return success
 end
@@ -113,6 +106,9 @@ function love.load()
 	rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
 	rgbUtils.updateConfig() -- Apply RGB settings from state
 
+	-- Now that state is initialized, load the screens module
+	screens = require("screens")
+
 	-- Load all screens
 	screens.load()
 
@@ -125,7 +121,11 @@ end
 function love.update(dt)
 	updateInputTimer(dt)
 	input.update(dt)
-	screens.update(dt)
+
+	-- Use the screens module that was loaded in love.load
+	if screens then
+		screens.update(dt)
+	end
 
 	if state.fading then
 		state.fadeTimer = state.fadeTimer + dt
@@ -137,8 +137,10 @@ function love.update(dt)
 end
 
 function love.draw()
-	-- Draw the current screen
-	screens.draw()
+	-- Draw the current screen using the screens module loaded in love.load
+	if screens then
+		screens.draw()
+	end
 
 	-- Apply the fade-in overlay if needed
 	if state.fading then

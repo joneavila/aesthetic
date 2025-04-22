@@ -1,13 +1,13 @@
 --- Theme creation functionality
 local love = require("love")
 local state = require("state")
-local constants = require("screens.menu.constants")
 local system = require("utils.system")
 local errorHandler = require("error_handler")
 local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local rgb = require("utils.rgb")
 local paths = require("paths")
+local fontDefs = require("ui.font_defs")
 
 local tove = require("tove")
 
@@ -595,7 +595,7 @@ end
 local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
-	for _, font in ipairs(constants.FONTS) do
+	for _, font in ipairs(fontDefs.FONTS) do
 		if font.name == state.selectedFont then
 			selectedFontFile = font.file
 			break
@@ -606,13 +606,8 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Determine font size based on user setting
-	local fontSizeDir = "24" -- Default font size
-	if state.fontSize == "Large" then
-		fontSizeDir = "28" -- "Large" font size
-	elseif state.fontSize == "Extra Large" then
-		fontSizeDir = "32" -- "Extra Large" font size
-	end
+	-- Get font size directory based on user setting
+	local fontSizeDir = fontDefs.getFontSizeDir(state.fontSize)
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = "assets/fonts/"

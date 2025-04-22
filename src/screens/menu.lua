@@ -8,6 +8,9 @@ local rgbUtils = require("utils.rgb")
 local errorHandler = require("error_handler")
 local ui = require("ui")
 local themeCreator = require("theme_creator")
+local fontDefs = require("ui.font_defs")
+
+local UI_CONSTANTS = require("ui.constants")
 
 -- Initialize errorHandler with UI reference
 errorHandler.setUI(ui)
@@ -22,27 +25,8 @@ menu.ABOUT_SCREEN = "about"
 menu.FONT_SCREEN = "font"
 menu.RGB_SCREEN = "rgb"
 
--- Screen height to font size mapping
-menu.SCREEN_HEIGHT_MAPPING = {
-	[768] = { fontSizeDir = "38", imageFontSize = 45 },
-	[720] = { fontSizeDir = "36", imageFontSize = 42 },
-	[576] = { fontSizeDir = "29", imageFontSize = 34 },
-	[480] = { fontSizeDir = "24", imageFontSize = 28 },
-}
-
--- Helper function to get font size info based on screen height
-menu.getFontSizeInfo = function(height)
-	local sizeInfo = menu.SCREEN_HEIGHT_MAPPING[height]
-	return sizeInfo
-end
-
 -- Image font size based on screen height
-menu.getImageFontSize = function()
-	local sizeInfo = menu.getFontSizeInfo(state.screenHeight)
-	return sizeInfo and sizeInfo.imageFontSize
-end
-
-menu.IMAGE_FONT_SIZE = menu.getImageFontSize()
+menu.IMAGE_FONT_SIZE = fontDefs.getImageFontSize()
 
 -- Error display time
 menu.ERROR_DISPLAY_TIME_SECONDS = 5
@@ -50,14 +34,14 @@ menu.ERROR_DISPLAY_TIME_SECONDS = 5
 -- Button dimensions and position
 menu.BUTTON = {
 	WIDTH = nil, -- Will be calculated in load()
-	HEIGHT = 50,
-	PADDING = 20,
-	CORNER_RADIUS = 8,
-	SELECTED_OUTLINE_WIDTH = 4,
-	COLOR_DISPLAY_SIZE = 30,
+	HEIGHT = UI_CONSTANTS.BUTTON.HEIGHT,
+	PADDING = UI_CONSTANTS.BUTTON.PADDING,
+	CORNER_RADIUS = UI_CONSTANTS.BUTTON.CORNER_RADIUS,
+	SELECTED_OUTLINE_WIDTH = UI_CONSTANTS.BUTTON.SELECTED_OUTLINE_WIDTH,
+	COLOR_DISPLAY_SIZE = UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
 	START_Y = nil, -- Will be calculated in load()
 	HELP_BUTTON_SIZE = 40,
-	BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
+	BOTTOM_MARGIN = UI_CONSTANTS.BUTTON.BOTTOM_MARGIN,
 }
 
 menu.BOTTOM_PADDING = controls.HEIGHT
@@ -107,40 +91,7 @@ menu.BUTTONS = {
 }
 
 -- Popup buttons
-menu.POPUP_BUTTONS = {
-	{
-		text = "Exit",
-		selected = true,
-	},
-	{
-		text = "Back",
-		selected = false,
-	},
-}
-
--- Font options
-menu.FONTS = {
-	{
-		name = "Inter",
-		file = "inter.bin",
-		selected = state.selectedFont == "Inter",
-	},
-	{
-		name = "Nunito",
-		file = "nunito.bin",
-		selected = state.selectedFont == "Nunito",
-	},
-	{
-		name = "Cascadia Code",
-		file = "cascadia_code.bin",
-		selected = state.selectedFont == "Cascadia Code",
-	},
-	{
-		name = "Retro Pixel",
-		file = "retro_pixel.bin",
-		selected = state.selectedFont == "Retro Pixel",
-	},
-}
+menu.POPUP_BUTTONS = UI_CONSTANTS.POPUP_BUTTONS
 
 -- Screen switching
 local switchScreen = nil
@@ -151,7 +102,7 @@ local popupState = "none" -- none, created, manual, automatic
 local scrollPosition = 0
 local visibleButtonCount = 0
 local totalRegularButtonCount = 0
-local scrollBarWidth = 10
+local scrollBarWidth = UI_CONSTANTS.SCROLL_BAR_WIDTH
 
 -- IO operation states
 local waitingState = "none" -- none, create_theme, install_theme
@@ -186,10 +137,13 @@ function menu.load()
 		menu.BUTTON.WIDTH = state.screenWidth - menu.BUTTON.PADDING
 	end
 
+	-- Set the button width in the UI module as well
+	ui.setButtonWidth(menu.BUTTON.WIDTH)
+
 	menu.BUTTON.START_Y = menu.BUTTON.PADDING
 
 	-- Initialize font selection based on state
-	for _, font in ipairs(menu.FONTS) do
+	for _, font in ipairs(fontDefs.FONTS) do
 		font.selected = (font.name == state.selectedFont)
 	end
 end

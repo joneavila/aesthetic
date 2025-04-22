@@ -5,14 +5,14 @@ local colors = require("colors")
 local state = require("state")
 local colorUtils = require("utils.color")
 
--- We still need constants from the menu screen for now
-local constants = require("screens.menu.constants")
-
 -- Module table to export public functions
 local ui = {}
 
 -- Define the scrollbar width (must match the value in menu.lua)
 local scrollBarWidth = 10
+
+-- Use constants from the shared constants file instead of menu
+local UI_CONSTANTS = require("ui.constants")
 
 -- Popup state variables
 local showPopup = false
@@ -23,7 +23,7 @@ local popupVerticalButtons = false
 -- Function to draw a button
 function ui.drawButton(button, x, y, isSelected)
 	-- Determine button width based on type
-	local buttonWidth = constants.BUTTON.WIDTH
+	local buttonWidth = UI_CONSTANTS.BUTTON.WIDTH
 
 	-- Define consistent padding for text and content
 	local leftPadding = 20
@@ -31,7 +31,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 	-- If there's no scrollbar needed, reduce right padding to match left
 	-- and adjust the right edge position for content
-	local hasFullWidth = buttonWidth >= state.screenWidth - constants.BUTTON.PADDING
+	local hasFullWidth = buttonWidth >= state.screenWidth - UI_CONSTANTS.BUTTON.PADDING
 	local rightEdge = x + buttonWidth - rightPadding
 
 	-- When no scrollbar, position content from the screen edge
@@ -54,7 +54,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 		-- Draw background with rounded corners (8px radius)
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 10, y, drawWidth, constants.BUTTON.HEIGHT, 8)
+		love.graphics.rectangle("fill", 10, y, drawWidth, UI_CONSTANTS.BUTTON.HEIGHT, 8)
 	end
 
 	-- Draw button text with different color when selected
@@ -63,7 +63,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 	love.graphics.setColor(colors.ui.foreground)
 
-	love.graphics.print(button.text, x + leftPadding, y + (constants.BUTTON.HEIGHT - textHeight) / 2)
+	love.graphics.print(button.text, x + leftPadding, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2)
 
 	-- If this is a color selection button
 	if button.colorKey then
@@ -73,8 +73,8 @@ function ui.drawButton(button, x, y, isSelected)
 		-- Only draw color display if we have a valid color
 		if hexColor then
 			-- Draw color square on the right side of the button with consistent padding
-			local colorX = rightEdge - constants.BUTTON.COLOR_DISPLAY_SIZE
-			local colorY = y + (constants.BUTTON.HEIGHT - constants.BUTTON.COLOR_DISPLAY_SIZE) / 2
+			local colorX = rightEdge - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE
+			local colorY = y + (UI_CONSTANTS.BUTTON.HEIGHT - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
 			local r, g, b = colorUtils.hexToRgb(hexColor)
 
@@ -84,8 +84,8 @@ function ui.drawButton(button, x, y, isSelected)
 				"fill",
 				colorX,
 				colorY,
-				constants.BUTTON.COLOR_DISPLAY_SIZE,
-				constants.BUTTON.COLOR_DISPLAY_SIZE,
+				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
 				4
 			)
 
@@ -96,8 +96,8 @@ function ui.drawButton(button, x, y, isSelected)
 				"line",
 				colorX,
 				colorY,
-				constants.BUTTON.COLOR_DISPLAY_SIZE,
-				constants.BUTTON.COLOR_DISPLAY_SIZE,
+				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
 				4
 			)
 
@@ -114,7 +114,7 @@ function ui.drawButton(button, x, y, isSelected)
 			love.graphics.print(
 				hexCode,
 				colorX - hexWidth - 10,
-				y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
+				y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 			)
 
 			-- Reset to body font after printing hex code
@@ -132,7 +132,7 @@ function ui.drawButton(button, x, y, isSelected)
 
 		-- Position the font name with consistent padding
 		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
-		local fontNameY = y + (constants.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
+		local fontNameY = y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(selectedFontName, rightEdge - fontNameWidth, fontNameY)
 
@@ -143,7 +143,7 @@ function ui.drawButton(button, x, y, isSelected)
 		local selectedFontSize = state.fontSize
 
 		local fontSizeWidth = state.fonts.body:getWidth(selectedFontSize)
-		local fontSizeY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+		local fontSizeY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
 
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(selectedFontSize, rightEdge - fontSizeWidth, fontSizeY)
@@ -152,7 +152,7 @@ function ui.drawButton(button, x, y, isSelected)
 		local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
 
 		local statusWidth = state.fonts.body:getWidth(statusText)
-		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
 
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
@@ -164,7 +164,7 @@ function ui.drawButton(button, x, y, isSelected)
 		end
 
 		local statusWidth = state.fonts.body:getWidth(boxArtText)
-		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
 
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(boxArtText, rightEdge - statusWidth, statusY)
@@ -177,7 +177,7 @@ function ui.drawButton(button, x, y, isSelected)
 		end
 
 		local statusWidth = state.fonts.body:getWidth(statusText)
-		local statusY = y + (constants.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
 
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
@@ -301,11 +301,16 @@ function ui.drawPopup()
 	end
 end
 
+-- Set button width dynamically
+function ui.setButtonWidth(width)
+	UI_CONSTANTS.BUTTON.WIDTH = width
+end
+
 -- Show popup with message
 function ui.showPopup(message, buttons, verticalButtons)
 	showPopup = true
 	popupMessage = message
-	popupButtons = buttons or constants.POPUP_BUTTONS
+	popupButtons = buttons or UI_CONSTANTS.POPUP_BUTTONS
 	popupVerticalButtons = verticalButtons or false
 end
 

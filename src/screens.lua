@@ -82,6 +82,13 @@ function screens.load()
 			module.load()
 		end
 	end
+
+	-- Update font selection based on state
+	local fontDefs = require("ui.font_defs")
+	local state = require("state")
+	for _, font in ipairs(fontDefs.FONTS) do
+		font.selected = (font.name == state.selectedFont)
+	end
 end
 
 return screens

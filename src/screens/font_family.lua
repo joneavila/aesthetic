@@ -3,8 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
-
-local constants = require("screens.menu.constants")
+local fontDefs = require("ui.font_defs")
 
 -- Module table to export public functions
 local font = {}
@@ -29,10 +28,10 @@ local FONT_SCREEN = {
 -- Font items with their selected state
 local fontItems = {}
 
--- Initialize font items based on constants.FONTS
+-- Initialize font items based on fontDefs.FONTS
 local function initFontItems()
 	fontItems = {}
-	for _, fontItem in ipairs(constants.FONTS) do
+	for _, fontItem in ipairs(fontDefs.FONTS) do
 		table.insert(fontItems, {
 			name = fontItem.name,
 			selected = fontItem.name == state.selectedFont,
@@ -182,8 +181,8 @@ function font.update(_dt)
 				-- Update the selected font in state
 				state.selectedFont = item.name
 
-				-- Update constants.FONTS to match
-				for _, fontItem in ipairs(constants.FONTS) do
+				-- Update fontDefs.FONTS to match
+				for _, fontItem in ipairs(fontDefs.FONTS) do
 					fontItem.selected = (fontItem.name == item.name)
 				end
 
