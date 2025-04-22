@@ -7,8 +7,7 @@ local errorHandler = require("error_handler")
 local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local rgb = require("utils.rgb")
-
-local paths = constants.PATHS
+local paths = require("paths")
 
 local tove = require("tove")
 
@@ -428,7 +427,8 @@ local function createRebootImage()
 	icon:draw(iconX, iconY)
 
 	-- Create a larger version of the font
-	local fontSize = math.floor(constants.IMAGE_FONT_SIZE * 1.3)
+	local imageFontSize = paths.getImageFontSize(screenHeight)
+	local fontSize = math.floor(imageFontSize * 1.3)
 	local fontDef = state.fontDefs[state.fontNameToKey[state.selectedFont]]
 	local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 
@@ -499,7 +499,8 @@ local function createShutdownImage()
 	icon:draw(iconX, iconY)
 
 	-- Create a larger version of the font
-	local fontSize = math.floor(constants.IMAGE_FONT_SIZE * 1.3)
+	local imageFontSize = paths.getImageFontSize(screenHeight)
+	local fontSize = math.floor(imageFontSize * 1.3)
 	local fontDef = state.fontDefs[state.fontNameToKey[state.selectedFont]]
 	local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 

@@ -2,9 +2,7 @@ local state = require("state")
 local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local system = require("utils.system")
-local constants = require("screen.menu.constants")
-
-local paths = constants.PATHS
+local paths = require("paths")
 
 -- Module table to export public functions
 local rgb = {}
