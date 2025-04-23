@@ -198,4 +198,114 @@ function system.removeDir(dir)
 	return commands.executeCommand('rm -rf "' .. dir .. '"')
 end
 
+-- Create a simple text file with the given content
+function system.createTextFile(filePath, content, errorMessage)
+	local file = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError(errorMessage or ("Failed to create file: " .. filePath))
+		return false
+	end
+	file:write(content)
+	file:close()
+	return true
+end
+
+-- Modify a file using a function that processes its content
+-- modifierFunc receives the file content and should return (modifiedContent, success)
+function system.modifyFile(filePath, modifierFunc)
+	-- Read the file content
+	local file, err = io.open(filePath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local fileContent = file:read("*all")
+	file:close()
+
+	-- Modify the content using the provided function
+	local modifiedContent, success = modifierFunc(fileContent)
+	if not success then
+		return false
+	end
+
+	-- Write the updated content back to the file
+	file, err = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError("Failed to write to file (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	file:write(modifiedContent)
+	file:close()
+	return true
+end
+
+-- Read the entire content of a file
+function system.readFile(filePath)
+	local file, err = io.open(filePath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file for reading (" .. filePath .. "): " .. err)
+		return nil
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	if not content then
+		errorHandler.setError("Failed to read content from file: " .. filePath)
+		return nil
+	end
+
+	return content
+end
+
+-- Write content to a file, creating directories if needed
+function system.writeFile(filePath, content)
+	-- Ensure the directory exists
+	if not system.ensurePath(filePath) then
+		return false
+	end
+
+	local file, err = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError("Failed to open file for writing (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local success = file:write(content)
+	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write content to file: " .. filePath)
+		return false
+	end
+
+	return true
+end
+
+-- Write binary data to a file, creating directories if needed
+function system.writeBinaryFile(filePath, binaryData)
+	-- Ensure the directory exists
+	if not system.ensurePath(filePath) then
+		return false
+	end
+
+	local file, err = io.open(filePath, "wb")
+	if not file then
+		errorHandler.setError("Failed to open file for binary writing (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local success = file:write(binaryData)
+	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write binary data to file: " .. filePath)
+		return false
+	end
+
+	return true
+end
+
 return system

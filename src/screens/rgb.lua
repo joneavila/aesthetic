@@ -109,7 +109,7 @@ end
 
 function rgb.draw()
 	-- Set background
-	background.drawWithColor(colors.ui.background)
+	background.draw()
 
 	-- Draw header with title
 	header.draw("RGB lighting")

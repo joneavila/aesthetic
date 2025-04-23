@@ -92,7 +92,7 @@ end
 
 function box_art.draw()
 	-- Set background
-	background.drawWithColor(colors.ui.background)
+	background.draw()
 
 	-- Draw header with title
 	header.draw("Box art width")
