@@ -4,16 +4,14 @@ local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local fontDefs = require("ui.font_defs")
+local header = require("ui.header")
+local background = require("ui.background")
 
 -- Module table to export public functions
 local font = {}
 
 -- Screen switching
 local switchScreen = nil
-
--- Constants for styling
-local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 
 -- Constants for font screen
 local FONT_SCREEN = {
@@ -45,19 +43,13 @@ end
 
 function font.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
-	-- Draw header with title
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("Font family", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	-- Draw header with title using the UI component
+	header.draw("Font family")
 
 	-- Draw font items
-	local startY = HEADER_HEIGHT + FONT_SCREEN.PADDING
+	local startY = header.HEIGHT + FONT_SCREEN.PADDING
 
 	for i, item in ipairs(fontItems) do
 		local y = startY + (i - 1) * (FONT_SCREEN.ITEM_HEIGHT + FONT_SCREEN.PADDING)

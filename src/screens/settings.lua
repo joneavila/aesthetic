@@ -5,16 +5,14 @@ local state = require("state")
 local controls = require("controls")
 local input = require("input")
 local presets = require("utils.presets")
+local header = require("ui.header")
+local background = require("ui.background")
 
 -- Screen module
 local settings = {}
 
 -- Screen switching
 local switchScreen = nil
-
--- Constants for styling
-local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 
 -- Button constants
 local BUTTONS = {
@@ -162,20 +160,14 @@ end
 
 function settings.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	-- Draw header with title
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("Settings", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	header.draw("Settings")
 
 	-- Draw buttons
 	for i, button in ipairs(BUTTONS) do
-		local y = HEADER_HEIGHT + BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
+		local y = header.HEIGHT + BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
 		drawButton(button, BUTTON.PADDING, y, button.selected)
 	end
 

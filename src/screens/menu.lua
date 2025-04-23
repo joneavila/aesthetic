@@ -175,7 +175,7 @@ function menu.draw()
 		contentPadding = menu.BUTTON.PADDING,
 		screenWidth = state.screenWidth,
 		scrollBarWidth = scrollBarWidth,
-		contentDrawFunc = function(needsScrollBar, scrollBarWidth)
+		contentDrawFunc = function()
 			local regularButtonCount = 0
 			local visibleRegularButtonCount = 0
 

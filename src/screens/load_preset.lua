@@ -5,6 +5,8 @@ local state = require("state")
 local controls = require("controls")
 local presets = require("utils.presets")
 local rgbUtils = require("utils.rgb")
+local header = require("ui.header")
+local background = require("ui.background")
 
 -- Module table to export public functions
 local loadPreset = {}
@@ -14,7 +16,6 @@ local switchScreen = nil
 
 -- Constants for styling
 local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 
 -- Screen constants
 local SCREEN = {
@@ -106,21 +107,15 @@ end
 
 function loadPreset.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	-- Draw header with title
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("Load theme preset", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	header.draw("Load theme preset")
 
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print("No presets found", SCREEN.PADDING, HEADER_HEIGHT + SCREEN.PADDING)
+		love.graphics.print("No presets found", SCREEN.PADDING, header.HEIGHT + SCREEN.PADDING)
 
 		-- Draw controls
 		controls.draw({
@@ -137,7 +132,7 @@ function loadPreset.draw()
 	love.graphics.setFont(state.fonts.body)
 	for i = startIndex, endIndex do
 		local item = presetItems[i]
-		local y = HEADER_HEIGHT + ((i - startIndex) * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING)) + SCREEN.PADDING
+		local y = header.HEIGHT + ((i - startIndex) * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING)) + SCREEN.PADDING
 
 		-- Draw item background if selected
 		if item.selected then
@@ -183,7 +178,7 @@ function loadPreset.draw()
 		love.graphics.rectangle(
 			"fill",
 			state.screenWidth - scrollBarWidth,
-			HEADER_HEIGHT + SCREEN.PADDING,
+			header.HEIGHT + SCREEN.PADDING,
 			scrollBarWidth,
 			scrollbarBgHeight
 		)
@@ -192,7 +187,7 @@ function loadPreset.draw()
 		love.graphics.setColor(colors.ui.foreground)
 		local scrollRatio = scrollPosition / (#presetItems - visibleItemCount)
 		local handleHeight = (visibleItemCount / #presetItems) * scrollbarBgHeight
-		local handleY = HEADER_HEIGHT + SCREEN.PADDING + scrollRatio * (scrollbarBgHeight - handleHeight)
+		local handleY = header.HEIGHT + SCREEN.PADDING + scrollRatio * (scrollbarBgHeight - handleHeight)
 		love.graphics.rectangle("fill", state.screenWidth - scrollBarWidth, handleY, scrollBarWidth, handleHeight)
 	end
 

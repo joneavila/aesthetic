@@ -4,6 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local constants = require("screens.color_picker.constants")
 local errorHandler = require("error_handler")
+local header = require("ui.header")
 
 -- Import sub-screens
 local paletteScreen = require("screens.color_picker.palette")
@@ -17,8 +18,6 @@ local colorPicker = {}
 colorPicker.TAB_HEIGHT = constants.getTabHeight()
 
 -- Constants for styling
-local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 local TAB_CONTAINER_PADDING = 15
 local TAB_CONTAINER_HEIGHT = (colorPicker.TAB_HEIGHT * 1.4) - (TAB_CONTAINER_PADDING * 2)
 local TAB_CORNER_RADIUS = TAB_CONTAINER_HEIGHT / 4
@@ -128,13 +127,8 @@ function colorPicker.draw()
 	end
 
 	-- Draw header with current color context
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
 	local contextTitle = formatColorContext(state.activeColorContext)
-	love.graphics.print(contextTitle, HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	header.draw(contextTitle)
 
 	-- Draw tab container (pill-shaped background)
 	love.graphics.setColor(
@@ -146,7 +140,7 @@ function colorPicker.draw()
 	love.graphics.rectangle(
 		"fill",
 		TAB_CONTAINER_PADDING,
-		HEADER_HEIGHT,
+		header.HEIGHT,
 		state.screenWidth - (TAB_CONTAINER_PADDING * 2),
 		TAB_CONTAINER_HEIGHT,
 		TAB_CORNER_RADIUS,
@@ -155,7 +149,7 @@ function colorPicker.draw()
 
 	-- Draw tabs
 	for _, tab in ipairs(tabs) do
-		local tabY = HEADER_HEIGHT
+		local tabY = header.HEIGHT
 
 		-- Calculate tab position to ensure it fits flush with the container
 		local tabX = tab.x

@@ -4,6 +4,8 @@ local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local ui_button = require("ui.button")
+local header = require("ui.header")
+local background = require("ui.background")
 
 -- Module table to export public functions
 local box_art = {}
@@ -11,10 +13,6 @@ local box_art = {}
 -- Screen switching
 local switchScreen = nil
 local MENU_SCREEN = "menu"
-
--- Constants for styling
-local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 
 -- Triangle constants for left/right indicators
 local TRIANGLE = {
@@ -94,23 +92,17 @@ end
 
 function box_art.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
+	background.drawWithColor(colors.ui.background)
 
 	-- Draw header with title
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("Box art width", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	header.draw("Box art width")
 
 	-- Set font
 	love.graphics.setFont(state.fonts.body)
 
 	-- Draw the button
 	local button = BUTTONS[1]
-	local y = BUTTON.START_Y + HEADER_HEIGHT
+	local y = BUTTON.START_Y + header.HEIGHT
 
 	-- Get current value and format it
 	local currentValue = BOX_ART_WIDTH_OPTIONS[button.currentOption]

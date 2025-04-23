@@ -6,6 +6,8 @@ local controls = require("controls")
 local colorUtils = require("utils.color")
 local rgbUtils = require("utils.rgb")
 local ui_button = require("ui.button")
+local header = require("ui.header")
+local background = require("ui.background")
 
 -- Module table to export public functions
 local rgb = {}
@@ -17,7 +19,6 @@ local COLOR_PICKER_SCREEN = "color_picker"
 
 -- Constants for styling
 local HEADER_HEIGHT = 50
-local HEADER_PADDING = 20
 
 -- RGB mode options
 local RGB_MODES = {
@@ -108,16 +109,10 @@ end
 
 function rgb.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
+	background.drawWithColor(colors.ui.background)
 
 	-- Draw header with title
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.95)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, HEADER_HEIGHT)
-
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print("RGB lighting", HEADER_PADDING, (HEADER_HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	header.draw("RGB lighting")
 
 	-- Set font to body font to match menu.lua
 	love.graphics.setFont(state.fonts.body)
@@ -138,7 +133,7 @@ function rgb.draw()
 		if button.options then
 			local currentValue = button.options[button.currentOption]
 			ui_button.drawWithTriangles(
-			button,
+				button,
 				0,
 				y,
 				button.selected,

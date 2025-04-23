@@ -4,6 +4,7 @@ local colors = require("colors")
 local controls = require("controls")
 local input = require("input")
 local version = require("version")
+local background = require("ui.background")
 
 local about = {}
 
@@ -29,8 +30,7 @@ end
 
 function about.draw()
 	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	-- Calculate text positions
 	local headerHeight = state.fonts.header:getHeight()
