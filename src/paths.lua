@@ -84,7 +84,7 @@ paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 local SCREEN_HEIGHT_MAPPING = fontDefs.SCREEN_HEIGHT_MAPPING
 
 -- Add font size directory paths based on screen height mapping
-for height, info in pairs(SCREEN_HEIGHT_MAPPING) do
+for _, info in pairs(SCREEN_HEIGHT_MAPPING) do
 	paths["THEME_FONT_SIZE_" .. info.fontSizeDir .. "_DIR"] = paths.THEME_FONT_SOURCE_DIR .. "/" .. info.fontSizeDir
 end
 

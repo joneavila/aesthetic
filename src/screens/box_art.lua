@@ -14,13 +14,6 @@ local box_art = {}
 local switchScreen = nil
 local MENU_SCREEN = "menu"
 
--- Triangle constants for left/right indicators
-local TRIANGLE = {
-	HEIGHT = 20,
-	WIDTH = 12,
-	PADDING = 16,
-}
-
 -- Button dimensions and position
 local BUTTON = {
 	WIDTH = nil, -- Will be calculated in load()
@@ -112,7 +105,16 @@ function box_art.draw()
 	end
 
 	-- Draw the button with triangles using the UI button helper
-	ui_button.drawWithIndicators(button.text, 0, y, button.selected, buttonstate.screenWidth, state.fonts.body, valueText)
+	ui_button.drawWithIndicators(
+		button.text,
+		0,
+		y,
+		button.selected,
+		button.disabled,
+		state.screenWidth,
+		state.fonts.body,
+		valueText
+	)
 
 	-- Draw preview rectangles
 	local previewHeight = 100

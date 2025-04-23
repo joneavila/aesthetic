@@ -3,7 +3,6 @@
 
 local love = require("love")
 local colors = require("colors")
-local state = require("state")
 
 local background = {}
 

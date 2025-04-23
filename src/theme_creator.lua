@@ -1,5 +1,4 @@
 --- Theme creation functionality
-local love = require("love")
 local state = require("state")
 local system = require("utils.system")
 local errorHandler = require("error_handler")
