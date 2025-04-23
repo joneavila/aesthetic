@@ -21,33 +21,8 @@ errorHandler.setUI(buttonUI)
 -- Module table to export public functions
 local menu = {}
 
--- Menu constants
--- Screen identifiers
-menu.COLOR_PICKER_SCREEN = "color_picker"
-menu.ABOUT_SCREEN = "about"
-menu.FONT_SCREEN = "font"
-menu.RGB_SCREEN = "rgb"
-
 -- Image font size based on screen height
 menu.IMAGE_FONT_SIZE = fontDefs.getImageFontSize()
-
--- Error display time
-menu.ERROR_DISPLAY_TIME_SECONDS = 5
-
--- Button dimensions and position
-menu.BUTTON = {
-	WIDTH = nil, -- Will be calculated in load()
-	HEIGHT = UI_CONSTANTS.BUTTON.HEIGHT,
-	PADDING = UI_CONSTANTS.BUTTON.PADDING,
-	CORNER_RADIUS = UI_CONSTANTS.BUTTON.CORNER_RADIUS,
-	SELECTED_OUTLINE_WIDTH = UI_CONSTANTS.BUTTON.SELECTED_OUTLINE_WIDTH,
-	COLOR_DISPLAY_SIZE = UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-	START_Y = nil, -- Will be calculated in load()
-	HELP_BUTTON_SIZE = 40,
-	BOTTOM_MARGIN = UI_CONSTANTS.BUTTON.BOTTOM_MARGIN,
-}
-
-menu.BOTTOM_PADDING = controls.HEIGHT
 
 -- Button state
 menu.BUTTONS = {
@@ -93,6 +68,8 @@ menu.BUTTONS = {
 	},
 }
 
+menu.BOTTOM_PADDING = controls.HEIGHT
+
 -- Modal buttons
 menu.MODAL_BUTTONS = UI_CONSTANTS.MODAL_BUTTONS
 
@@ -122,8 +99,8 @@ function menu.load()
 	end
 
 	-- Calculate how many buttons can be displayed at once
-	local availableHeight = state.screenHeight - menu.BUTTON.BOTTOM_MARGIN - menu.BUTTON.PADDING
-	visibleButtonCount = math.floor(availableHeight / (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING))
+	local availableHeight = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN - UI_CONSTANTS.BUTTON.PADDING
+	visibleButtonCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING))
 
 	-- Ensure at least some buttons are visible
 	visibleButtonCount = math.max(3, visibleButtonCount)
@@ -134,16 +111,14 @@ function menu.load()
 	-- Adjust button width based on whether scrollbar is needed
 	if needsScrollBar then
 		-- If scrollbar is needed, account for scrollbar width
-		menu.BUTTON.WIDTH = state.screenWidth - (menu.BUTTON.PADDING + scrollBarWidth)
+		UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING + scrollBarWidth)
 	else
 		-- If scrollbar is not needed, buttons can extend to edge minus padding
-		menu.BUTTON.WIDTH = state.screenWidth - menu.BUTTON.PADDING
+		UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth - UI_CONSTANTS.BUTTON.PADDING
 	end
 
 	-- Set the button width in the UI module as well
-	buttonUI.setWidth(menu.BUTTON.WIDTH)
-
-	menu.BUTTON.START_Y = menu.BUTTON.PADDING
+	buttonUI.setWidth(UI_CONSTANTS.BUTTON.WIDTH)
 
 	-- Initialize font selection based on state
 	for _, font in ipairs(fontDefs.FONTS) do
@@ -161,6 +136,8 @@ function menu.displayWaitOverlay()
 end
 
 function menu.draw()
+	local startY = UI_CONSTANTS.BUTTON.PADDING
+
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
@@ -170,9 +147,9 @@ function menu.draw()
 		contentCount = totalRegularButtonCount,
 		visibleCount = visibleButtonCount,
 		scrollPosition = scrollPosition,
-		startY = menu.BUTTON.START_Y,
-		contentHeight = menu.BUTTON.HEIGHT,
-		contentPadding = menu.BUTTON.PADDING,
+		startY = startY,
+		contentHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		contentPadding = UI_CONSTANTS.BUTTON.PADDING,
 		screenWidth = state.screenWidth,
 		scrollBarWidth = scrollBarWidth,
 		contentDrawFunc = function()
@@ -195,9 +172,9 @@ function menu.draw()
 					visibleRegularButtonCount = visibleRegularButtonCount + 1
 				end
 
-				local y = button.isBottomButton and state.screenHeight - menu.BUTTON.BOTTOM_MARGIN
-					or menu.BUTTON.START_Y
-						+ (visibleRegularButtonCount - 1) * (menu.BUTTON.HEIGHT + menu.BUTTON.PADDING)
+				local y = button.isBottomButton and state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
+					or startY
+						+ (visibleRegularButtonCount - 1) * (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)
 
 				local x = 0
 
@@ -315,9 +292,7 @@ function menu.draw()
 	})
 end
 
-function menu.update(dt)
-	-- Update error timer
-	errorHandler.update(dt)
+function menu.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle IO operations that were queued in the previous frame
