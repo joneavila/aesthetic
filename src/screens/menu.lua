@@ -205,8 +205,91 @@ function menu.draw()
 				if button.text == "Create theme" then
 					buttonUI.drawAccented(button, y, state.screenWidth)
 				else
-					-- Draw other buttons normally
-					buttonUI.draw(button, x, y, button.selected)
+					-- Draw buttons based on their type
+					if button.colorKey then
+						-- Color selection buttons
+						local colorInfo = {
+							hexColor = state.getColorValue(button.colorKey),
+							monoBodyFont = state.fonts.monoBody,
+						}
+						buttonUI.drawWithColor(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							colorInfo
+						)
+					elseif button.fontSelection then
+						-- Font selection button
+						buttonUI.drawWithRightText(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							state.selectedFont
+						)
+					elseif button.fontSizeToggle then
+						-- Font size button
+						buttonUI.drawWithRightText(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							state.fontSize
+						)
+					elseif button.glyphsToggle then
+						-- Icons/glyphs button
+						local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
+						buttonUI.drawWithRightText(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							statusText
+						)
+					elseif button.boxArt then
+						-- Box art width button
+						local boxArtText = state.boxArtWidth
+						if boxArtText == "Disabled" then
+							boxArtText = "0 (Disabled)"
+						end
+						buttonUI.drawWithRightText(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							boxArtText
+						)
+					elseif button.rgbLighting then
+						-- RGB lighting button
+						local statusText = state.rgbMode
+						-- Do not display the brightness level if mode is set to "Off"
+						if state.rgbMode ~= "Off" then
+							statusText = statusText .. " (" .. state.rgbBrightness .. ")"
+						end
+						buttonUI.drawWithRightText(
+							button,
+							x,
+							y,
+							button.selected,
+							state.screenWidth,
+							state.fonts.body,
+							statusText
+						)
+					else
+						-- Regular button with no right content
+						buttonUI.draw(button, x, y, button.selected, state.screenWidth, state.fonts.body)
+					end
 				end
 
 				::continue::

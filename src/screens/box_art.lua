@@ -3,6 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
+local ui_button = require("ui.button")
 
 -- Module table to export public functions
 local box_art = {}
@@ -111,62 +112,15 @@ function box_art.draw()
 	local button = BUTTONS[1]
 	local y = BUTTON.START_Y + HEADER_HEIGHT
 
-	-- Draw button background if selected
-	if button.selected then
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 0, y, state.screenWidth, BUTTON.HEIGHT)
-	end
-
-	-- Draw button text
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(button.text, BUTTON.PADDING, y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2)
-
-	-- Draw width value with triangles
+	-- Get current value and format it
 	local currentValue = BOX_ART_WIDTH_OPTIONS[button.currentOption]
 	local valueText = tostring(currentValue)
 	if valueText == "Disabled" then
 		valueText = "0 (Disabled)"
 	end
-	local valueWidth = state.fonts.body:getWidth(valueText)
 
-	-- Calculate total width of the text and triangles
-	local totalWidth = valueWidth + (TRIANGLE.WIDTH + TRIANGLE.PADDING) * 2
-
-	-- Position at the right edge of the screen with padding
-	local rightEdge = state.screenWidth - BUTTON.PADDING
-	local valueX = rightEdge - totalWidth
-
-	-- Draw triangles (left and right arrows)
-	local triangleY = y + BUTTON.HEIGHT / 2
-
-	-- Left triangle (pointing left)
-	love.graphics.polygon(
-		"fill",
-		valueX + TRIANGLE.WIDTH,
-		triangleY - TRIANGLE.HEIGHT / 2,
-		valueX + TRIANGLE.WIDTH,
-		triangleY + TRIANGLE.HEIGHT / 2,
-		valueX,
-		triangleY
-	)
-
-	-- Draw the text after the left triangle
-	love.graphics.print(
-		valueText,
-		valueX + TRIANGLE.WIDTH + TRIANGLE.PADDING,
-		y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-	)
-
-	-- Right triangle (pointing right)
-	love.graphics.polygon(
-		"fill",
-		rightEdge - TRIANGLE.WIDTH,
-		triangleY - TRIANGLE.HEIGHT / 2,
-		rightEdge - TRIANGLE.WIDTH,
-		triangleY + TRIANGLE.HEIGHT / 2,
-		rightEdge,
-		triangleY
-	)
+	-- Draw the button with triangles using the UI button helper
+	ui_button.drawWithTriangles(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
 
 	-- Draw preview rectangles
 	local previewHeight = 100

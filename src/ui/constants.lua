@@ -21,6 +21,11 @@ local UI_CONSTANTS = {
 			selected = false,
 		},
 	},
+	TRIANGLE = {
+		HEIGHT = 20,
+		WIDTH = 12,
+		PADDING = 16,
+	},
 	SCROLL_BAR_WIDTH = 10,
 }
 

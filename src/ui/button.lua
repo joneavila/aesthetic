@@ -3,174 +3,214 @@
 
 local love = require("love")
 local colors = require("colors")
-local state = require("state")
 local colorUtils = require("utils.color")
 local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local button = {}
 
--- Function to draw a button
-function button.draw(button, x, y, isSelected)
-	-- Determine button width based on type
-	local buttonWidth = UI_CONSTANTS.BUTTON.WIDTH
+-- Internal helper functions for drawing button backgrounds and base text
+local function drawButtonBackground(x, y, drawWidth, isSelected)
+	if isSelected then
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("fill", 10, y, drawWidth, UI_CONSTANTS.BUTTON.HEIGHT, 8)
+	end
+end
 
+local function drawButtonText(text, x, y, bodyFont)
+	love.graphics.setFont(bodyFont)
+	local textHeight = bodyFont:getHeight()
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.print(text, x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2)
+end
+
+-- Function to calculate button dimensions and edges
+local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected)
 	-- Define consistent padding for text and content
 	local leftPadding = 20
 	local rightPadding = 0 -- Consistent padding for right-aligned content
 
 	-- If there's no scrollbar needed, reduce right padding to match left
 	-- and adjust the right edge position for content
-	local hasFullWidth = buttonWidth >= state.screenWidth - UI_CONSTANTS.BUTTON.PADDING
+	local hasFullWidth = buttonWidth >= screenWidth - UI_CONSTANTS.BUTTON.PADDING
 	local rightEdge = x + buttonWidth - rightPadding
 
 	-- When no scrollbar, position content from the screen edge
 	if hasFullWidth then
 		rightPadding = leftPadding
-		rightEdge = state.screenWidth - rightPadding
+		rightEdge = screenWidth - rightPadding
 	end
 
-	-- For selected buttons, check if we need to draw the background to the edge
+	-- For selected buttons, determine draw width for background
 	local drawWidth
 	if isSelected then
-		-- If there's no scrollbar needed (width is almost full screen width),
-		-- extend the background to the right edge of the screen
 		if hasFullWidth then
-			drawWidth = state.screenWidth - 20 -- Add 20px padding on both sides
+			drawWidth = screenWidth - 20 -- Add 20px padding on both sides
 		else
-			-- When scrollbar is present, extend background to right edge of screen
-			drawWidth = state.screenWidth - UI_CONSTANTS.SCROLL_BAR_WIDTH - 20 -- Add 20px padding on right side
+			drawWidth = screenWidth - UI_CONSTANTS.SCROLL_BAR_WIDTH - 20 -- Add 20px padding on right side
 		end
-
-		-- Draw background with rounded corners (8px radius)
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 10, y, drawWidth, UI_CONSTANTS.BUTTON.HEIGHT, 8)
 	end
 
-	-- Draw button text with different color when selected
-	love.graphics.setFont(state.fonts.body)
-	local textHeight = state.fonts.body:getHeight()
+	return {
+		drawWidth = drawWidth,
+		rightEdge = rightEdge,
+		hasFullWidth = hasFullWidth,
+	}
+end
+
+-- Base function to draw a button (no right side content)
+function button.draw(buttonData, x, y, isSelected, screenWidth, bodyFont)
+	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
+
+	-- Draw background
+	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+
+	-- Draw button text
+	drawButtonText(buttonData.text, x, y, bodyFont)
+end
+
+-- Function to draw a button with right-aligned text
+function button.drawWithRightText(buttonData, x, y, isSelected, screenWidth, bodyFont, rightText)
+	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
+
+	-- Draw background
+	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+
+	-- Draw button text
+	drawButtonText(buttonData.text, x, y, bodyFont)
+
+	-- Draw right text
+	love.graphics.setFont(bodyFont)
+	local textWidth = bodyFont:getWidth(rightText)
+	local textY = y + (UI_CONSTANTS.BUTTON.HEIGHT - bodyFont:getHeight()) / 2
 
 	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.print(rightText, dimensions.rightEdge - textWidth, textY)
+end
 
-	love.graphics.print(button.text, x + leftPadding, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2)
+-- Function to draw a button with triangle indicators for selecting values
+function button.drawWithTriangles(buttonData, x, y, isSelected, screenWidth, bodyFont, valueText, triangleConfig)
+	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
-	-- If this is a color selection button
-	if button.colorKey then
-		-- Get the color from state
-		local hexColor = state.getColorValue(button.colorKey)
+	-- Use default triangle configuration if not provided
+	triangleConfig = triangleConfig or UI_CONSTANTS.TRIANGLE
 
-		-- Only draw color display if we have a valid color
-		if hexColor then
-			-- Draw color square on the right side of the button with consistent padding
-			local colorX = rightEdge - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE
-			local colorY = y + (UI_CONSTANTS.BUTTON.HEIGHT - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE) / 2
+	-- Draw background
+	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
 
-			local r, g, b = colorUtils.hexToRgb(hexColor)
+	-- Draw button text
+	drawButtonText(buttonData.text, x, y, bodyFont)
 
-			-- Draw color square
-			love.graphics.setColor(r, g, b, 1)
-			love.graphics.rectangle(
-				"fill",
-				colorX,
-				colorY,
-				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-				4
-			)
+	-- Draw value with triangles on the right side
+	love.graphics.setFont(bodyFont)
+	local textWidth = bodyFont:getWidth(valueText)
 
-			-- Draw border around color square
-			love.graphics.setColor(colors.ui.foreground)
-			love.graphics.setLineWidth(1)
-			love.graphics.rectangle(
-				"line",
-				colorX,
-				colorY,
-				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-				UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-				4
-			)
+	-- Calculate total width of the text and triangles
+	local totalWidth = textWidth + (triangleConfig.WIDTH + triangleConfig.PADDING) * 2
 
-			-- Draw color hex code
-			love.graphics.setColor(colors.ui.foreground)
-			local hexCode = state.getColorValue(button.colorKey)
+	-- Position at the right edge of the screen with padding
+	local rightEdge = dimensions.rightEdge
+	local valueX = rightEdge - totalWidth
 
-			-- Use monospace font for hex codes
-			if button.colorKey == "background" or button.colorKey == "foreground" then
-				love.graphics.setFont(state.fonts.monoBody)
-			end
+	-- Draw triangles (left and right arrows)
+	local triangleY = y + UI_CONSTANTS.BUTTON.HEIGHT / 2
+	local opacity = buttonData.disabled and 0.5 or 1
 
-			local hexWidth = love.graphics.getFont():getWidth(hexCode)
-			love.graphics.print(
-				hexCode,
-				colorX - hexWidth - 10,
-				y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
-			)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 
-			-- Reset to body font after printing hex code
-			if button.colorKey == "background" or button.colorKey == "foreground" then
-				love.graphics.setFont(state.fonts.body)
-			end
+	-- Left triangle (pointing left)
+	love.graphics.polygon(
+		"fill",
+		valueX + triangleConfig.WIDTH,
+		triangleY - triangleConfig.HEIGHT / 2,
+		valueX + triangleConfig.WIDTH,
+		triangleY + triangleConfig.HEIGHT / 2,
+		valueX,
+		triangleY
+	)
+
+	-- Draw the text after the left triangle
+	love.graphics.print(
+		valueText,
+		valueX + triangleConfig.WIDTH + triangleConfig.PADDING,
+		y + (UI_CONSTANTS.BUTTON.HEIGHT - bodyFont:getHeight()) / 2
+	)
+
+	-- Right triangle (pointing right)
+	love.graphics.polygon(
+		"fill",
+		rightEdge - triangleConfig.WIDTH,
+		triangleY - triangleConfig.HEIGHT / 2,
+		rightEdge - triangleConfig.WIDTH,
+		triangleY + triangleConfig.HEIGHT / 2,
+		rightEdge,
+		triangleY
+	)
+end
+
+-- Function to draw a button with color preview
+function button.drawWithColor(buttonData, x, y, isSelected, screenWidth, bodyFont, colorInfo)
+	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
+
+	-- Draw background
+	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+
+	-- Draw button text
+	drawButtonText(buttonData.text, x, y, bodyFont)
+
+	local hexColor = colorInfo.hexColor
+	local monoBodyFont = colorInfo.monoBodyFont
+
+	-- Only draw color display if we have a valid color
+	if hexColor then
+		-- Draw color square on the right side of the button with consistent padding
+		local colorX = dimensions.rightEdge - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE
+		local colorY = y + (UI_CONSTANTS.BUTTON.HEIGHT - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE) / 2
+
+		local r, g, b = colorUtils.hexToRgb(hexColor)
+
+		-- Draw color square
+		love.graphics.setColor(r, g, b, 1)
+		love.graphics.rectangle(
+			"fill",
+			colorX,
+			colorY,
+			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+			4
+		)
+
+		-- Draw border around color square
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.setLineWidth(1)
+		love.graphics.rectangle(
+			"line",
+			colorX,
+			colorY,
+			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
+			4
+		)
+
+		-- Draw color hex code
+		love.graphics.setColor(colors.ui.foreground)
+		local hexCode = hexColor
+
+		-- Use monospace font for hex codes if provided
+		local originalFont = love.graphics.getFont()
+		if monoBodyFont then
+			love.graphics.setFont(monoBodyFont)
 		end
-	-- If this is a font selection button
-	elseif button.fontSelection then
-		-- Get the selected font name from state
-		local selectedFontName = state.selectedFont
 
-		-- Use the appropriate font for measurement and display
-		love.graphics.setFont(state.getFontByName(selectedFontName))
+		local hexWidth = love.graphics.getFont():getWidth(hexCode)
+		love.graphics.print(
+			hexCode,
+			colorX - hexWidth - 10,
+			y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
+		)
 
-		-- Position the font name with consistent padding
-		local fontNameWidth = love.graphics.getFont():getWidth(selectedFontName)
-		local fontNameY = y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(selectedFontName, rightEdge - fontNameWidth, fontNameY)
-
-		-- Reset font
-		love.graphics.setFont(state.fonts.body)
-	elseif button.fontSizeToggle then
-		-- Get the selected font size from state
-		local selectedFontSize = state.fontSize
-
-		local fontSizeWidth = state.fonts.body:getWidth(selectedFontSize)
-		local fontSizeY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(selectedFontSize, rightEdge - fontSizeWidth, fontSizeY)
-	elseif button.glyphsToggle then
-		-- Get glyphs state
-		local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
-
-		local statusWidth = state.fonts.body:getWidth(statusText)
-		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
-	elseif button.boxArt then
-		-- Draw box art width value on right
-		local boxArtText = state.boxArtWidth
-		if boxArtText == "Disabled" then
-			boxArtText = "0 (Disabled)"
-		end
-
-		local statusWidth = state.fonts.body:getWidth(boxArtText)
-		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(boxArtText, rightEdge - statusWidth, statusY)
-	elseif button.rgbLighting then
-		-- Get RGB lighting state
-		local statusText = state.rgbMode
-		-- Do not display the brightness level if mode is set to "Off"
-		if state.rgbMode ~= "Off" then
-			statusText = statusText .. " (" .. state.rgbBrightness .. ")"
-		end
-
-		local statusWidth = state.fonts.body:getWidth(statusText)
-		local statusY = y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(statusText, rightEdge - statusWidth, statusY)
+		-- Reset to original font after printing hex code
+		love.graphics.setFont(originalFont)
 	end
 end
 

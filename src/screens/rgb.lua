@@ -5,6 +5,7 @@ local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
 local rgbUtils = require("utils.rgb")
+local ui_button = require("ui.button")
 
 -- Module table to export public functions
 local rgb = {}
@@ -27,13 +28,6 @@ local RGB_MODES = {
 	"Mono Rainbow",
 	"Multi Rainbow",
 	"Off",
-}
-
--- Triangle constants for left/right indicators
-local TRIANGLE = {
-	HEIGHT = 20, -- Size matches HSV screen
-	WIDTH = 12, -- Size matches HSV screen
-	PADDING = 16, -- Slightly increased for better spacing
 }
 
 -- Button dimensions and position
@@ -136,69 +130,49 @@ function rgb.draw()
 		local disabled = (button.text == "Color" and isColorDisabled())
 			or (button.text == "Speed" and isSpeedDisabled())
 			or (button.text == "Brightness" and isBrightnessDisabled())
-		local opacity = disabled and 0.5 or 1
 
-		-- Draw button background
-		if button.selected then
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], opacity)
-			love.graphics.rectangle("fill", 0, y, state.screenWidth, BUTTON.HEIGHT)
-		end
-
-		-- Draw button text
-		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
-		love.graphics.print(button.text, BUTTON.PADDING, y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2)
+		-- Set disabled state in button data for UI components
+		button.disabled = disabled
 
 		-- Draw current option value on the right side for Mode button
 		if button.options then
 			local currentValue = button.options[button.currentOption]
-			local valueWidth = state.fonts.body:getWidth(currentValue)
-
-			-- Calculate total width of the text and triangles
-			local totalWidth = valueWidth + (TRIANGLE.WIDTH + TRIANGLE.PADDING) * 2
-
-			-- Position at the right edge of the screen with padding
-			local rightEdge = state.screenWidth - BUTTON.PADDING
-			local valueX = rightEdge - totalWidth
-
-			-- Draw triangles (left and right arrows)
-			local triangleY = y + BUTTON.HEIGHT / 2
-
-			-- Left triangle (pointing left)
-			love.graphics.polygon(
-				"fill",
-				valueX + TRIANGLE.WIDTH,
-				triangleY - TRIANGLE.HEIGHT / 2,
-				valueX + TRIANGLE.WIDTH,
-				triangleY + TRIANGLE.HEIGHT / 2,
-				valueX,
-				triangleY
+			ui_button.drawWithTriangles(
+			button,
+				0,
+				y,
+				button.selected,
+				state.screenWidth,
+				state.fonts.body,
+				currentValue
 			)
-
-			-- Draw the text after the left triangle
-			love.graphics.print(
-				currentValue,
-				valueX + TRIANGLE.WIDTH + TRIANGLE.PADDING,
-				y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-			)
-
-			-- Right triangle (pointing right)
-			love.graphics.polygon(
-				"fill",
-				rightEdge - TRIANGLE.WIDTH,
-				triangleY - TRIANGLE.HEIGHT / 2,
-				rightEdge - TRIANGLE.WIDTH,
-				triangleY + TRIANGLE.HEIGHT / 2,
-				rightEdge,
-				triangleY
-			)
-		end
 
 		-- Draw color preview for Color button
-		if button.colorKey then
+		elseif button.colorKey then
 			local colorValue = state.getColorValue(button.colorKey)
 			local previewSize = BUTTON.COLOR_DISPLAY_SIZE
 			local previewX = state.screenWidth - BUTTON.PADDING - previewSize
 			local previewY = y + (BUTTON.HEIGHT - previewSize) / 2
+
+			-- Draw button background
+			if button.selected then
+				love.graphics.setColor(
+					colors.ui.surface[1],
+					colors.ui.surface[2],
+					colors.ui.surface[3],
+					disabled and 0.5 or 1
+				)
+				love.graphics.rectangle("fill", 0, y, state.screenWidth, BUTTON.HEIGHT)
+			end
+
+			-- Draw button text
+			love.graphics.setColor(
+				colors.ui.foreground[1],
+				colors.ui.foreground[2],
+				colors.ui.foreground[3],
+				disabled and 0.5 or 1
+			)
+			love.graphics.print(button.text, BUTTON.PADDING, y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2)
 
 			-- Draw hex code
 			love.graphics.setFont(state.fonts.monoBody)
@@ -213,59 +187,24 @@ function rgb.draw()
 
 			-- Draw color preview
 			local r, g, b = colorUtils.hexToRgb(colorValue)
-			love.graphics.setColor(r, g, b, opacity)
+			love.graphics.setColor(r, g, b, disabled and 0.5 or 1)
 			love.graphics.rectangle("fill", previewX, previewY, previewSize, previewSize, 5)
 
 			-- Draw outline
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+			love.graphics.setColor(
+				colors.ui.foreground[1],
+				colors.ui.foreground[2],
+				colors.ui.foreground[3],
+				disabled and 0.5 or 1
+			)
 			love.graphics.setLineWidth(1)
 			love.graphics.rectangle("line", previewX, previewY, previewSize, previewSize, 5)
-		end
 
-		-- Draw brightness value with triangles
-		if button.min ~= nil and button.max ~= nil then
+		-- Draw brightness/speed value with triangles
+		elseif button.min ~= nil and button.max ~= nil then
 			local currentValue = button.text == "Brightness" and state.rgbBrightness or state.rgbSpeed
 			local valueText = tostring(currentValue)
-			local valueWidth = state.fonts.body:getWidth(valueText)
-
-			-- Calculate total width of the text and triangles
-			local totalWidth = valueWidth + (TRIANGLE.WIDTH + TRIANGLE.PADDING) * 2
-
-			-- Position at the right edge of the screen with padding
-			local rightEdge = state.screenWidth - BUTTON.PADDING
-			local valueX = rightEdge - totalWidth
-
-			-- Draw triangles (left and right arrows)
-			local triangleY = y + BUTTON.HEIGHT / 2
-
-			-- Left triangle (pointing left)
-			love.graphics.polygon(
-				"fill",
-				valueX + TRIANGLE.WIDTH,
-				triangleY - TRIANGLE.HEIGHT / 2,
-				valueX + TRIANGLE.WIDTH,
-				triangleY + TRIANGLE.HEIGHT / 2,
-				valueX,
-				triangleY
-			)
-
-			-- Draw the text after the left triangle
-			love.graphics.print(
-				valueText,
-				valueX + TRIANGLE.WIDTH + TRIANGLE.PADDING,
-				y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
-			)
-
-			-- Right triangle (pointing right)
-			love.graphics.polygon(
-				"fill",
-				rightEdge - TRIANGLE.WIDTH,
-				triangleY - TRIANGLE.HEIGHT / 2,
-				rightEdge - TRIANGLE.WIDTH,
-				triangleY + TRIANGLE.HEIGHT / 2,
-				rightEdge,
-				triangleY
-			)
+			ui_button.drawWithTriangles(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
 		end
 	end
 
