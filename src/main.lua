@@ -53,13 +53,12 @@ local function setupFonts()
 	local referenceWidth = 720
 	local referenceHeight = 720
 
-	-- Calculate scaling factors
 	local widthRatio = state.screenWidth / referenceWidth
 	local heightRatio = state.screenHeight / referenceHeight
 
 	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
 	-- Add a minimum scale factor to prevent fonts from becoming too small
-	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 0.8)
+	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
 	-- Initialize the font name mapping
 	state.initFontNameMapping()

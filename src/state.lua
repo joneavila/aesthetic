@@ -49,8 +49,8 @@ local state = {
 	-- Font definitions mapping
 	fontDefs = {
 		header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 32 },
-		body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 24 },
-		bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_black.ttf", size = 24 },
+		body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 26 },
+		bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_black.ttf", size = 26 },
 		caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 20 },
 		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf", size = 48 },
 		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf", size = 22 },
