@@ -9,6 +9,12 @@ local UI_CONSTANTS = require("ui.constants")
 -- Module table to export public functions
 local button = {}
 
+local TRIANGLE = {
+	HEIGHT = 20,
+	WIDTH = 12,
+	PADDING = 16,
+}
+
 -- Internal helper functions for drawing button backgrounds and base text
 local function drawButtonBackground(y, width, isSelected)
 	if isSelected then
@@ -68,10 +74,7 @@ end
 function button.drawWithTextPreview(text, x, y, isSelected, screenWidth, previewText)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
-	-- Draw background
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
-
-	-- Draw button text
 	drawButtonText(text, x, y)
 
 	-- Draw right text
@@ -83,11 +86,8 @@ function button.drawWithTextPreview(text, x, y, isSelected, screenWidth, preview
 end
 
 -- Function to draw a button with triangle indicators for selecting values
-function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWidth, valueText, triangleConfig)
+function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWidth, valueText)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
-
-	-- Use default triangle configuration if not provided
-	triangleConfig = triangleConfig or UI_CONSTANTS.TRIANGLE
 
 	-- Draw background
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
@@ -99,7 +99,7 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 	local textWidth = love.graphics.getFont():getWidth(valueText)
 
 	-- Calculate total width of the text and triangles
-	local totalWidth = textWidth + (triangleConfig.WIDTH + triangleConfig.PADDING) * 2
+	local totalWidth = textWidth + (TRIANGLE.WIDTH + TRIANGLE.PADDING) * 2
 
 	-- Position at the right edge of the screen with padding
 	local rightEdge = dimensions.rightEdge
@@ -114,10 +114,10 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 	-- Left triangle (pointing left)
 	love.graphics.polygon(
 		"fill",
-		valueX + triangleConfig.WIDTH,
-		triangleY - triangleConfig.HEIGHT / 2,
-		valueX + triangleConfig.WIDTH,
-		triangleY + triangleConfig.HEIGHT / 2,
+		valueX + TRIANGLE.WIDTH,
+		triangleY - TRIANGLE.HEIGHT / 2,
+		valueX + TRIANGLE.WIDTH,
+		triangleY + TRIANGLE.HEIGHT / 2,
 		valueX,
 		triangleY
 	)
@@ -125,17 +125,17 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 	-- Draw the text after the left triangle
 	love.graphics.print(
 		valueText,
-		valueX + triangleConfig.WIDTH + triangleConfig.PADDING,
+		valueX + TRIANGLE.WIDTH + TRIANGLE.PADDING,
 		y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 	)
 
 	-- Right triangle (pointing right)
 	love.graphics.polygon(
 		"fill",
-		rightEdge - triangleConfig.WIDTH,
-		triangleY - triangleConfig.HEIGHT / 2,
-		rightEdge - triangleConfig.WIDTH,
-		triangleY + triangleConfig.HEIGHT / 2,
+		rightEdge - TRIANGLE.WIDTH,
+		triangleY - TRIANGLE.HEIGHT / 2,
+		rightEdge - TRIANGLE.WIDTH,
+		triangleY + TRIANGLE.HEIGHT / 2,
 		rightEdge,
 		triangleY
 	)

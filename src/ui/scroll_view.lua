@@ -24,7 +24,7 @@ function scrollView.draw(params)
 	local needsScrollBar = contentCount > visibleCount
 
 	-- Draw the content
-	contentDrawFunc(needsScrollBar, scrollBarWidth)
+	contentDrawFunc()
 
 	-- Draw scroll bar if needed
 	if needsScrollBar then

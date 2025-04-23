@@ -11,11 +11,6 @@ local UI_CONSTANTS = {
 		SELECTED_OUTLINE_WIDTH = 4,
 		BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 	},
-	TRIANGLE = {
-		HEIGHT = 20,
-		WIDTH = 12,
-		PADDING = 16,
-	},
 	SCROLL_BAR_WIDTH = 10,
 }
 

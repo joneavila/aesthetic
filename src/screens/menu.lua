@@ -81,11 +81,11 @@ local function drawButton(btn, x, y)
 	if btn.text == "Create theme" then
 		button.drawAccented(btn.text, btn.selected, y, state.screenWidth)
 	elseif btn.colorKey then
-		button.drawWithColorPreview(btn.text, btn.selected, x, y, state.screenWidth, state.fonts.body, state.getColorValue(btn.colorKey))
+		button.drawWithColorPreview(btn.text, btn.selected, x, y, state.screenWidth, state.getColorValue(btn.colorKey))
 	elseif btn.fontSelection or btn.fontSizeToggle or btn.glyphsToggle or btn.boxArt or btn.rgbLighting then
-		button.drawWithTextPreview(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, getButtonValue(btn))
+		button.drawWithTextPreview(btn.text, x, y, btn.selected, state.screenWidth, getButtonValue(btn))
 	else
-		button.draw(btn, x, y, btn.selected, state.screenWidth, state.fonts.body)
+		button.draw(btn, x, y, btn.selected, state.screenWidth)
 	end
 end
 
