@@ -7,9 +7,6 @@ local state = require("state")
 -- Module table to export public functions
 local modal = {}
 
--- Use constants from the shared constants file
-local UI_CONSTANTS = require("ui.constants")
-
 -- Modal state variables
 local showModal = false
 local modalMessage = ""
@@ -137,7 +134,7 @@ end
 function modal.showModal(message, buttons, verticalButtons)
 	showModal = true
 	modalMessage = message
-	modalButtons = buttons or UI_CONSTANTS.MODAL_BUTTONS
+	modalButtons = buttons
 	modalVerticalButtons = verticalButtons or false
 end
 

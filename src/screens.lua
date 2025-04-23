@@ -47,6 +47,11 @@ function screens.switchTo(screenName, tabName)
 	if newModule and newModule.onEnter then
 		newModule.onEnter(tabName)
 	end
+
+	-- Add consistent input delay when switching screens
+	local state = require("state")
+	state.resetInputTimer()
+	state.forceInputDelay(0.2)
 end
 
 function screens.draw()

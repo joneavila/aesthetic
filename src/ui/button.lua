@@ -1,6 +1,6 @@
 --- Button drawing functions
 --- This file contains code for drawing buttons used in various UI screens
-
+local state = require("state")
 local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
@@ -10,16 +10,15 @@ local UI_CONSTANTS = require("ui.constants")
 local button = {}
 
 -- Internal helper functions for drawing button backgrounds and base text
-local function drawButtonBackground(x, y, drawWidth, isSelected)
+local function drawButtonBackground(y, width, isSelected)
 	if isSelected then
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 10, y, drawWidth, UI_CONSTANTS.BUTTON.HEIGHT, 8)
+		love.graphics.rectangle("fill", 10, y, width, UI_CONSTANTS.BUTTON.HEIGHT, 8)
 	end
 end
 
-local function drawButtonText(text, x, y, bodyFont)
-	love.graphics.setFont(bodyFont)
-	local textHeight = bodyFont:getHeight()
+local function drawButtonText(text, x, y)
+	local textHeight = love.graphics.getFont():getHeight()
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.print(text, x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2)
 end
@@ -59,51 +58,45 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 end
 
 -- Base function to draw a button (no right side content)
-function button.draw(buttonData, x, y, isSelected, screenWidth, bodyFont)
+function button.draw(text, x, y, isSelected, screenWidth)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
-
-	-- Draw background
-	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
-
-	-- Draw button text
-	drawButtonText(buttonData.text, x, y, bodyFont)
+	drawButtonBackground(y, dimensions.drawWidth, isSelected)
+	drawButtonText(text, x, y)
 end
 
 -- Function to draw a button with right-aligned text
-function button.drawWithRightText(buttonData, x, y, isSelected, screenWidth, bodyFont, rightText)
+function button.drawWithTextPreview(text, x, y, isSelected, screenWidth, previewText)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	-- Draw background
-	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 
 	-- Draw button text
-	drawButtonText(buttonData.text, x, y, bodyFont)
+	drawButtonText(text, x, y)
 
 	-- Draw right text
-	love.graphics.setFont(bodyFont)
-	local textWidth = bodyFont:getWidth(rightText)
-	local textY = y + (UI_CONSTANTS.BUTTON.HEIGHT - bodyFont:getHeight()) / 2
+	local textWidth = love.graphics.getFont():getWidth(previewText)
+	local textY = y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(rightText, dimensions.rightEdge - textWidth, textY)
+	love.graphics.print(previewText, dimensions.rightEdge - textWidth, textY)
 end
 
 -- Function to draw a button with triangle indicators for selecting values
-function button.drawWithTriangles(buttonData, x, y, isSelected, screenWidth, bodyFont, valueText, triangleConfig)
+function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWidth, valueText, triangleConfig)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	-- Use default triangle configuration if not provided
 	triangleConfig = triangleConfig or UI_CONSTANTS.TRIANGLE
 
 	-- Draw background
-	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 
 	-- Draw button text
-	drawButtonText(buttonData.text, x, y, bodyFont)
+	drawButtonText(text, x, y)
 
 	-- Draw value with triangles on the right side
-	love.graphics.setFont(bodyFont)
-	local textWidth = bodyFont:getWidth(valueText)
+	local textWidth = love.graphics.getFont():getWidth(valueText)
 
 	-- Calculate total width of the text and triangles
 	local totalWidth = textWidth + (triangleConfig.WIDTH + triangleConfig.PADDING) * 2
@@ -114,7 +107,7 @@ function button.drawWithTriangles(buttonData, x, y, isSelected, screenWidth, bod
 
 	-- Draw triangles (left and right arrows)
 	local triangleY = y + UI_CONSTANTS.BUTTON.HEIGHT / 2
-	local opacity = buttonData.disabled and 0.5 or 1
+	local opacity = isDisabled and 0.5 or 1
 
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 
@@ -133,7 +126,7 @@ function button.drawWithTriangles(buttonData, x, y, isSelected, screenWidth, bod
 	love.graphics.print(
 		valueText,
 		valueX + triangleConfig.WIDTH + triangleConfig.PADDING,
-		y + (UI_CONSTANTS.BUTTON.HEIGHT - bodyFont:getHeight()) / 2
+		y + (UI_CONSTANTS.BUTTON.HEIGHT - love.graphics.getFont():getHeight()) / 2
 	)
 
 	-- Right triangle (pointing right)
@@ -149,17 +142,14 @@ function button.drawWithTriangles(buttonData, x, y, isSelected, screenWidth, bod
 end
 
 -- Function to draw a button with color preview
-function button.drawWithColor(buttonData, x, y, isSelected, screenWidth, bodyFont, colorInfo)
+function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	-- Draw background
-	drawButtonBackground(x, y, dimensions.drawWidth, isSelected)
+	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 
 	-- Draw button text
-	drawButtonText(buttonData.text, x, y, bodyFont)
-
-	local hexColor = colorInfo.hexColor
-	local monoBodyFont = colorInfo.monoBodyFont
+	drawButtonText(text, x, y)
 
 	-- Only draw color display if we have a valid color
 	if hexColor then
@@ -198,9 +188,8 @@ function button.drawWithColor(buttonData, x, y, isSelected, screenWidth, bodyFon
 
 		-- Use monospace font for hex codes if provided
 		local originalFont = love.graphics.getFont()
-		if monoBodyFont then
-			love.graphics.setFont(monoBodyFont)
-		end
+
+		love.graphics.setFont(state.fonts.monoBody)
 
 		local hexWidth = love.graphics.getFont():getWidth(hexCode)
 		love.graphics.print(
@@ -215,9 +204,7 @@ function button.drawWithColor(buttonData, x, y, isSelected, screenWidth, bodyFon
 end
 
 -- Function to draw an accented centered button (like "Create theme")
-function button.drawAccented(buttonData, y, screenWidth)
-	local text = buttonData.text
-	local isSelected = buttonData.selected
+function button.drawAccented(text, isSelected, y, screenWidth)
 	local font = love.graphics.getFont()
 	local padding = 180
 	local textWidth = font:getWidth(text)
@@ -227,14 +214,9 @@ function button.drawAccented(buttonData, y, screenWidth)
 	local buttonHeight = UI_CONSTANTS.BUTTON.HEIGHT
 
 	if isSelected then
-		-- Selected state: accent background, background text, background outline
+		-- Selected state: accent background, background text
 		love.graphics.setColor(colors.ui.accent)
 		love.graphics.rectangle("fill", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
-
-		-- Draw outline
-		love.graphics.setColor(colors.ui.background)
-		love.graphics.setLineWidth(2)
-		love.graphics.rectangle("line", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
 
 		-- Draw text
 		love.graphics.setColor(colors.ui.background)

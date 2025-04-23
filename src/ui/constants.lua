@@ -11,16 +11,6 @@ local UI_CONSTANTS = {
 		SELECTED_OUTLINE_WIDTH = 4,
 		BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 	},
-	MODAL_BUTTONS = {
-		{
-			text = "Exit",
-			selected = true,
-		},
-		{
-			text = "Back",
-			selected = false,
-		},
-	},
 	TRIANGLE = {
 		HEIGHT = 20,
 		WIDTH = 12,

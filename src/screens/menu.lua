@@ -16,9 +16,6 @@ local textOverlay = require("ui.text_overlay")
 
 local UI_CONSTANTS = require("ui.constants")
 
--- Initialize errorHandler with UI reference
-errorHandler.setUI(button)
-
 -- Module table to export public functions
 local menu = {}
 
@@ -39,9 +36,6 @@ menu.BUTTONS = {
 
 menu.BOTTOM_PADDING = controls.HEIGHT
 
--- Modal buttons
-menu.MODAL_BUTTONS = UI_CONSTANTS.MODAL_BUTTONS
-
 -- Screen switching
 local switchScreen = nil
 local createdThemePath = nil
@@ -50,7 +44,7 @@ local modalState = "none" -- none, created, manual, automatic
 -- Scrolling
 local scrollPosition = 0
 local visibleButtonCount = 0
-local totalRegularButtonCount = 0
+local buttonCount = 0
 local scrollBarWidth = UI_CONSTANTS.SCROLL_BAR_WIDTH
 
 -- IO operation states
@@ -85,14 +79,11 @@ end
 -- Helper function to draw a button based on its type
 local function drawButton(btn, x, y)
 	if btn.text == "Create theme" then
-		button.drawAccented(btn, y, state.screenWidth)
+		button.drawAccented(btn.text, btn.selected, y, state.screenWidth)
 	elseif btn.colorKey then
-		button.drawWithColor(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, {
-			hexColor = state.getColorValue(btn.colorKey),
-			monoBodyFont = state.fonts.monoBody,
-		})
+		button.drawWithColorPreview(btn.text, btn.selected, x, y, state.screenWidth, state.fonts.body, state.getColorValue(btn.colorKey))
 	elseif btn.fontSelection or btn.fontSizeToggle or btn.glyphsToggle or btn.boxArt or btn.rgbLighting then
-		button.drawWithRightText(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, getButtonValue(btn))
+		button.drawWithTextPreview(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, getButtonValue(btn))
 	else
 		button.draw(btn, x, y, btn.selected, state.screenWidth, state.fonts.body)
 	end
@@ -100,10 +91,10 @@ end
 
 function menu.load()
 	-- Count regular buttons and calculate visible buttons
-	totalRegularButtonCount = 0
+	buttonCount = 0
 	for _, btn in ipairs(menu.BUTTONS) do
 		if not btn.isBottomButton then
-			totalRegularButtonCount = totalRegularButtonCount + 1
+			buttonCount = buttonCount + 1
 		end
 	end
 
@@ -112,7 +103,7 @@ function menu.load()
 		math.max(3, math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)))
 
 	-- Set button width based on whether scrollbar is needed
-	local needsScrollBar = totalRegularButtonCount > visibleButtonCount
+	local needsScrollBar = buttonCount > visibleButtonCount
 	UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth
 		- UI_CONSTANTS.BUTTON.PADDING
 		- (needsScrollBar and scrollBarWidth or 0)
@@ -131,7 +122,7 @@ function menu.draw()
 
 	-- Draw buttons using scrollView component
 	scrollView.draw({
-		contentCount = totalRegularButtonCount,
+		contentCount = buttonCount,
 		visibleCount = visibleButtonCount,
 		scrollPosition = scrollPosition,
 		startY = startY,
@@ -192,13 +183,6 @@ function menu.draw()
 	})
 end
 
--- Helper function for screen switching with consistent delay
-local function switchScreenWithDelay(screen, param)
-	switchScreen(screen, param)
-	state.resetInputTimer()
-	state.forceInputDelay(0.2) -- Add extra delay when switching screens
-end
-
 -- Handle theme creation process
 local function handleThemeCreation()
 	createdThemePath = themeCreator.createTheme()
@@ -241,7 +225,7 @@ local function handleSelectedButton(btn)
 	if btn.fontSelection then
 		-- Redirect to font selection screen
 		if switchScreen then
-			switchScreenWithDelay("font_family")
+			switchScreen("font_family")
 		end
 	elseif btn.fontSizeToggle then
 		-- Toggle font size between "Default", "Large", and "Extra Large"
@@ -259,15 +243,15 @@ local function handleSelectedButton(btn)
 		state.resetInputTimer()
 	elseif btn.rgbLighting and switchScreen then
 		-- RGB lighting screen
-		switchScreenWithDelay("rgb")
+		switchScreen("rgb")
 	elseif btn.boxArt and switchScreen then
 		-- Box art settings screen
-		switchScreenWithDelay("box_art")
+		switchScreen("box_art")
 	elseif btn.colorKey and switchScreen then
 		-- Any color selection button
 		state.activeColorContext = btn.colorKey
 		state.previousScreen = "menu" -- Set previous screen to return to
-		switchScreenWithDelay("color_picker")
+		switchScreen("color_picker")
 	elseif btn.text == "Create theme" then
 		-- Queue theme creation for next frame
 		waitingState = "create_theme"
@@ -395,7 +379,7 @@ function menu.update(_dt)
 
 	-- Handle Start button (Settings)
 	if virtualJoystick:isGamepadDown("start") and switchScreen then
-		switchScreenWithDelay("settings")
+		switchScreen("settings")
 		return
 	end
 

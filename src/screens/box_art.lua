@@ -112,7 +112,7 @@ function box_art.draw()
 	end
 
 	-- Draw the button with triangles using the UI button helper
-	ui_button.drawWithTriangles(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
+	ui_button.drawWithIndicators(button.text, 0, y, button.selected, buttonstate.screenWidth, state.fonts.body, valueText)
 
 	-- Draw preview rectangles
 	local previewHeight = 100

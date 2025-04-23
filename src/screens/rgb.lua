@@ -132,7 +132,7 @@ function rgb.draw()
 		-- Draw current option value on the right side for Mode button
 		if button.options then
 			local currentValue = button.options[button.currentOption]
-			ui_button.drawWithTriangles(
+			ui_button.drawWithIndicators(
 				button,
 				0,
 				y,
@@ -199,7 +199,7 @@ function rgb.draw()
 		elseif button.min ~= nil and button.max ~= nil then
 			local currentValue = button.text == "Brightness" and state.rgbBrightness or state.rgbSpeed
 			local valueText = tostring(currentValue)
-			ui_button.drawWithTriangles(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
+			ui_button.drawWithIndicators(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
 		end
 	end
 
