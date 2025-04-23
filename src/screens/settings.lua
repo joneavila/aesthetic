@@ -34,7 +34,7 @@ local modalVisible = false
 local modalMessage = ""
 local modalButtons = {}
 local modalMode = "none" -- none, save_success, load_success, error
-local presetName = "preset1" -- Default preset name
+local presetName = nil
 
 -- Helper function to generate a unique preset name
 local function generatePresetName()
