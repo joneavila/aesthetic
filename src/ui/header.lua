@@ -13,15 +13,7 @@ header.PADDING = 20
 
 -- Draw a standard header with title
 -- @param title The title text to display in the header
--- @param alpha Optional alpha transparency value (0.0-1.0), defaults to 0.95
-function header.draw(title, alpha)
-	-- Default alpha value if not provided
-	alpha = alpha or 1.0
-
-	-- Draw header background
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], alpha)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, header.HEIGHT)
-
+function header.draw(title)
 	-- Draw header title
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(state.fonts.bodyBold)
