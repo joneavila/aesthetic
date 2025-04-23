@@ -6,7 +6,8 @@ local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 
 local errorHandler = require("error_handler")
-local buttonUI = require("ui.button")
+local button = require("ui.button")
+local background = require("ui.background")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
@@ -16,7 +17,7 @@ local textOverlay = require("ui.text_overlay")
 local UI_CONSTANTS = require("ui.constants")
 
 -- Initialize errorHandler with UI reference
-errorHandler.setUI(buttonUI)
+errorHandler.setUI(button)
 
 -- Module table to export public functions
 local menu = {}
@@ -26,46 +27,14 @@ menu.IMAGE_FONT_SIZE = fontDefs.getImageFontSize()
 
 -- Button state
 menu.BUTTONS = {
-	{
-		text = "Background color",
-		selected = true,
-		colorKey = "background",
-	},
-	{
-		text = "Foreground color",
-		selected = false,
-		colorKey = "foreground",
-	},
-	{
-		text = "RGB lighting",
-		selected = false,
-		rgbLighting = true,
-	},
-	{
-		text = "Font family",
-		selected = false,
-		fontSelection = true,
-	},
-	{
-		text = "Font size",
-		selected = false,
-		fontSizeToggle = true,
-	},
-	{
-		text = "Icons",
-		selected = false,
-		glyphsToggle = true,
-	},
-	{
-		text = "Box art width",
-		selected = false,
-		boxArt = true,
-	},
-	{
-		text = "Create theme",
-		selected = false,
-		isBottomButton = true,
-	},
+	{ text = "Background color", selected = true, colorKey = "background" },
+	{ text = "Foreground color", selected = false, colorKey = "foreground" },
+	{ text = "RGB lighting", selected = false, rgbLighting = true },
+	{ text = "Font family", selected = false, fontSelection = true },
+	{ text = "Font size", selected = false, fontSizeToggle = true },
+	{ text = "Icons", selected = false, glyphsToggle = true },
+	{ text = "Box art width", selected = false, boxArt = true },
+	{ text = "Create theme", selected = false, isBottomButton = true },
 }
 
 menu.BOTTOM_PADDING = controls.HEIGHT
@@ -89,36 +58,65 @@ local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 -- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
 
+-- Helper function to get button display value based on type
+local function getButtonValue(btn)
+	if btn.fontSelection then
+		return state.selectedFont
+	elseif btn.fontSizeToggle then
+		return state.fontSize
+	elseif btn.glyphsToggle then
+		return state.glyphs_enabled and "Enabled" or "Disabled"
+	elseif btn.boxArt then
+		local boxArtText = state.boxArtWidth
+		if boxArtText == "Disabled" then
+			boxArtText = "0 (Disabled)"
+		end
+		return boxArtText
+	elseif btn.rgbLighting then
+		local statusText = state.rgbMode
+		if state.rgbMode ~= "Off" then
+			statusText = statusText .. " (" .. state.rgbBrightness .. ")"
+		end
+		return statusText
+	end
+	return nil
+end
+
+-- Helper function to draw a button based on its type
+local function drawButton(btn, x, y)
+	if btn.text == "Create theme" then
+		button.drawAccented(btn, y, state.screenWidth)
+	elseif btn.colorKey then
+		button.drawWithColor(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, {
+			hexColor = state.getColorValue(btn.colorKey),
+			monoBodyFont = state.fonts.monoBody,
+		})
+	elseif btn.fontSelection or btn.fontSizeToggle or btn.glyphsToggle or btn.boxArt or btn.rgbLighting then
+		button.drawWithRightText(btn, x, y, btn.selected, state.screenWidth, state.fonts.body, getButtonValue(btn))
+	else
+		button.draw(btn, x, y, btn.selected, state.screenWidth, state.fonts.body)
+	end
+end
+
 function menu.load()
-	-- Count total regular buttons (non-bottom buttons)
+	-- Count regular buttons and calculate visible buttons
 	totalRegularButtonCount = 0
-	for _, button in ipairs(menu.BUTTONS) do
-		if not button.isBottomButton then
+	for _, btn in ipairs(menu.BUTTONS) do
+		if not btn.isBottomButton then
 			totalRegularButtonCount = totalRegularButtonCount + 1
 		end
 	end
 
-	-- Calculate how many buttons can be displayed at once
 	local availableHeight = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN - UI_CONSTANTS.BUTTON.PADDING
-	visibleButtonCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING))
+	visibleButtonCount =
+		math.max(3, math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)))
 
-	-- Ensure at least some buttons are visible
-	visibleButtonCount = math.max(3, visibleButtonCount)
-
-	-- Determine if scroll bar is needed
+	-- Set button width based on whether scrollbar is needed
 	local needsScrollBar = totalRegularButtonCount > visibleButtonCount
-
-	-- Adjust button width based on whether scrollbar is needed
-	if needsScrollBar then
-		-- If scrollbar is needed, account for scrollbar width
-		UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING + scrollBarWidth)
-	else
-		-- If scrollbar is not needed, buttons can extend to edge minus padding
-		UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth - UI_CONSTANTS.BUTTON.PADDING
-	end
-
-	-- Set the button width in the UI module as well
-	buttonUI.setWidth(UI_CONSTANTS.BUTTON.WIDTH)
+	UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth
+		- UI_CONSTANTS.BUTTON.PADDING
+		- (needsScrollBar and scrollBarWidth or 0)
+	button.setWidth(UI_CONSTANTS.BUTTON.WIDTH)
 
 	-- Initialize font selection based on state
 	for _, font in ipairs(fontDefs.FONTS) do
@@ -126,21 +124,10 @@ function menu.load()
 	end
 end
 
--- Function to display a full-screen "Working..." overlay
-function menu.displayWaitOverlay()
-	textOverlay.draw({
-		text = "Working...",
-		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
-	})
-end
-
 function menu.draw()
 	local startY = UI_CONSTANTS.BUTTON.PADDING
 
-	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	-- Draw buttons using scrollView component
 	scrollView.draw({
@@ -156,9 +143,9 @@ function menu.draw()
 			local regularButtonCount = 0
 			local visibleRegularButtonCount = 0
 
-			for _, button in ipairs(menu.BUTTONS) do
+			for _, btn in ipairs(menu.BUTTONS) do
 				-- Skip buttons that are outside the visible range
-				if not button.isBottomButton then
+				if not btn.isBottomButton then
 					regularButtonCount = regularButtonCount + 1
 
 					-- Skip if button is scrolled out of view
@@ -172,102 +159,11 @@ function menu.draw()
 					visibleRegularButtonCount = visibleRegularButtonCount + 1
 				end
 
-				local y = button.isBottomButton and state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
+				local y = btn.isBottomButton and state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
 					or startY
 						+ (visibleRegularButtonCount - 1) * (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)
 
-				local x = 0
-
-				-- Special handling for "Create theme" button
-				if button.text == "Create theme" then
-					buttonUI.drawAccented(button, y, state.screenWidth)
-				else
-					-- Draw buttons based on their type
-					if button.colorKey then
-						-- Color selection buttons
-						local colorInfo = {
-							hexColor = state.getColorValue(button.colorKey),
-							monoBodyFont = state.fonts.monoBody,
-						}
-						buttonUI.drawWithColor(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							colorInfo
-						)
-					elseif button.fontSelection then
-						-- Font selection button
-						buttonUI.drawWithRightText(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							state.selectedFont
-						)
-					elseif button.fontSizeToggle then
-						-- Font size button
-						buttonUI.drawWithRightText(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							state.fontSize
-						)
-					elseif button.glyphsToggle then
-						-- Icons/glyphs button
-						local statusText = state.glyphs_enabled and "Enabled" or "Disabled"
-						buttonUI.drawWithRightText(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							statusText
-						)
-					elseif button.boxArt then
-						-- Box art width button
-						local boxArtText = state.boxArtWidth
-						if boxArtText == "Disabled" then
-							boxArtText = "0 (Disabled)"
-						end
-						buttonUI.drawWithRightText(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							boxArtText
-						)
-					elseif button.rgbLighting then
-						-- RGB lighting button
-						local statusText = state.rgbMode
-						-- Do not display the brightness level if mode is set to "Off"
-						if state.rgbMode ~= "Off" then
-							statusText = statusText .. " (" .. state.rgbBrightness .. ")"
-						end
-						buttonUI.drawWithRightText(
-							button,
-							x,
-							y,
-							button.selected,
-							state.screenWidth,
-							state.fonts.body,
-							statusText
-						)
-					else
-						-- Regular button with no right content
-						buttonUI.draw(button, x, y, button.selected, state.screenWidth, state.fonts.body)
-					end
-				end
+				drawButton(btn, 0, y)
 
 				::continue::
 			end
@@ -281,7 +177,11 @@ function menu.draw()
 
 	-- Draw wait overlay if in waiting state
 	if waitingState ~= "none" then
-		menu.displayWaitOverlay()
+		textOverlay.draw({
+			text = "Working...",
+			screenWidth = state.screenWidth,
+			screenHeight = state.screenHeight,
+		})
 	end
 
 	controls.draw({
@@ -292,116 +192,159 @@ function menu.draw()
 	})
 end
 
+-- Helper function for screen switching with consistent delay
+local function switchScreenWithDelay(screen, param)
+	switchScreen(screen, param)
+	state.resetInputTimer()
+	state.forceInputDelay(0.2) -- Add extra delay when switching screens
+end
+
+-- Handle theme creation process
+local function handleThemeCreation()
+	createdThemePath = themeCreator.createTheme()
+	waitingState = "none"
+
+	if createdThemePath then
+		modalState = "created"
+		modal.showModal(
+			"Created theme successfully.",
+			{
+				{ text = "Apply theme later", selected = false },
+				{ text = "Apply theme now", selected = true },
+			},
+			true -- Use vertical buttons
+		)
+	else
+		errorHandler.showErrorModal("Error creating theme")
+	end
+	return true -- Skip the rest of the update
+end
+
+-- Handle theme installation process
+local function handleThemeInstallation()
+	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
+	local success = themeCreator.installTheme(waitingThemeName)
+	waitingState = "none"
+	waitingThemePath = nil
+
+	rgbUtils.installFromTheme()
+
+	modal.showModal(
+		success and "Applied theme successfully." or "Failed to apply theme.",
+		{ { text = "Close", selected = true } }
+	)
+	return true -- Skip the rest of the update
+end
+
+-- Handle selection of a button
+local function handleSelectedButton(btn)
+	if btn.fontSelection then
+		-- Redirect to font selection screen
+		if switchScreen then
+			switchScreenWithDelay("font_family")
+		end
+	elseif btn.fontSizeToggle then
+		-- Toggle font size between "Default", "Large", and "Extra Large"
+		if state.fontSize == "Default" then
+			state.fontSize = "Large"
+		elseif state.fontSize == "Large" then
+			state.fontSize = "Extra Large"
+		else
+			state.fontSize = "Default"
+		end
+		state.resetInputTimer()
+	elseif btn.glyphsToggle then
+		-- Toggle glyphs enabled state
+		state.glyphs_enabled = not state.glyphs_enabled
+		state.resetInputTimer()
+	elseif btn.rgbLighting and switchScreen then
+		-- RGB lighting screen
+		switchScreenWithDelay("rgb")
+	elseif btn.boxArt and switchScreen then
+		-- Box art settings screen
+		switchScreenWithDelay("box_art")
+	elseif btn.colorKey and switchScreen then
+		-- Any color selection button
+		state.activeColorContext = btn.colorKey
+		state.previousScreen = "menu" -- Set previous screen to return to
+		switchScreenWithDelay("color_picker")
+	elseif btn.text == "Create theme" then
+		-- Queue theme creation for next frame
+		waitingState = "create_theme"
+		-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
+	end
+end
+
+-- Toggle the selection state of modal buttons
+local function toggleModalButtonSelection(modalButtons)
+	for _, btn in ipairs(modalButtons) do
+		btn.selected = not btn.selected
+	end
+	state.resetInputTimer()
+end
+
+-- Handle modal navigation and selection
+local function handleModalNavigation(virtualJoystick)
+	local modalButtons = modal.getModalButtons()
+
+	-- Handle left/right navigation for modal buttons
+	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+		toggleModalButtonSelection(modalButtons)
+	end
+
+	-- Handle selection in modals
+	if virtualJoystick:isGamepadDown("a") then
+		if modalState == "created" then
+			for i, btn in ipairs(modalButtons) do
+				if btn.selected then
+					if i == 1 then -- Exit button
+						os.exit(0)
+					else -- Open theme button
+						modalState = "manual"
+						modal.showModal(
+							"Apply theme manually via Configuration > Customisation > muOS Themes.",
+							{ { text = "Close", selected = true } }
+						)
+					end
+					break
+				end
+			end
+			state.resetInputTimer()
+		elseif modalState == "manual" or modalState == "automatic" then
+			modal.hideModal()
+			modalState = "none"
+			-- If installation was successful, switch to the themes screen
+			if createdThemePath then
+				switchScreen("themes", createdThemePath)
+			end
+			-- Add a small delay to avoid immediate input after closing
+			state.forceInputDelay(0.2) -- Add extra delay when closing the modal
+		else
+			-- Handle default modals
+			for _, btn in ipairs(modalButtons) do
+				if btn.selected and btn.text == "Exit" then
+					os.exit(0)
+				end
+			end
+			modal.hideModal()
+		end
+	end
+end
+
 function menu.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle IO operations that were queued in the previous frame
 	if waitingState == "create_theme" then
-		-- Execute theme creation
-		createdThemePath = themeCreator.createTheme()
-		waitingState = "none"
-
-		if createdThemePath then
-			-- Show success modal with options
-			modalState = "created"
-			modal.showModal(
-				"Created theme successfully.",
-				{
-					{ text = "Apply theme later", selected = false },
-					{ text = "Apply theme now", selected = true },
-				},
-				true -- Use vertical buttons
-			)
-		else
-			-- Show error modal
-			errorHandler.showErrorModal("Error creating theme")
-		end
-		return -- Skip the rest of the update to avoid input processing
+		return handleThemeCreation()
 	elseif waitingState == "install_theme" then
-		-- Execute theme installation
-		local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
-		local success = themeCreator.installTheme(waitingThemeName)
-		waitingState = "none"
-		waitingThemePath = nil
-
-		-- After theme is installed, apply RGB settings from theme
-		rgbUtils.installFromTheme()
-
-		modal.showModal(
-			success and "Applied theme successfully." or "Failed to apply theme.",
-			{ { text = "Close", selected = true } }
-		)
-		return -- Skip the rest of the update to avoid input processing
+		return handleThemeInstallation()
 	end
 
 	if modal.isModalVisible() then
 		-- Show controls for modals
 		controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
-
-		local modalButtons = modal.getModalButtons()
-
-		-- Handle modal navigation and selection based on modal state
-		if modalState == "created" then
-			-- Handle navigation for the theme creation success modal
-			if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-				for _, button in ipairs(modalButtons) do
-					button.selected = not button.selected
-				end
-				state.resetInputTimer()
-			end
-
-			-- Handle selection for the theme creation success modal
-			if virtualJoystick:isGamepadDown("a") then
-				for i, button in ipairs(modalButtons) do
-					if button.selected then
-						if i == 1 then -- Exit button
-							os.exit(0)
-						else -- Open theme button
-							modalState = "manual"
-							modal.showModal(
-								"Apply theme manually via Configuration > Customisation > muOS Themes.",
-								{ { text = "Close", selected = true } }
-							)
-						end
-						break
-					end
-				end
-				state.resetInputTimer()
-			end
-		elseif modalState == "manual" or modalState == "automatic" then
-			-- Handle selection for the final modal (Close button)
-			if virtualJoystick:isGamepadDown("a") then
-				modal.hideModal()
-				modalState = "none"
-				-- If installation was successful, switch to the themes screen
-				if createdThemePath then
-					switchScreen("themes", createdThemePath)
-				end
-				-- Add a small delay to avoid immediate input after closing
-				state.forceInputDelay(0.2) -- Add extra delay when closing the modal
-			end
-		else
-			-- Handle navigation for default modals
-			if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-				for _, button in ipairs(modalButtons) do
-					button.selected = not button.selected
-				end
-				state.resetInputTimer()
-			end
-
-			-- Handle selection for default modals
-			if virtualJoystick:isGamepadDown("a") then
-				for _, button in ipairs(modalButtons) do
-					if button.selected then
-						if button.text == "Exit" then
-							os.exit(0)
-						end
-					end
-				end
-				modal.hideModal()
-			end
-		end
-
+		handleModalNavigation(virtualJoystick)
 		return -- Don't process other input while modal is shown
 	end
 
@@ -414,17 +357,15 @@ function menu.update(_dt)
 	-- Get ordered list of buttons for navigation
 	local navButtons = {}
 
-	-- Add all buttons in navigation order
-	for _, button in ipairs(menu.BUTTONS) do
-		if not button.isBottomButton then
-			table.insert(navButtons, button)
+	-- Add buttons in navigation order (non-bottom buttons first, then bottom buttons)
+	for _, btn in ipairs(menu.BUTTONS) do
+		if not btn.isBottomButton then
+			table.insert(navButtons, btn)
 		end
 	end
-
-	-- Add bottom buttons last
-	for _, button in ipairs(menu.BUTTONS) do
-		if button.isBottomButton then
-			table.insert(navButtons, button)
+	for _, btn in ipairs(menu.BUTTONS) do
+		if btn.isBottomButton then
+			table.insert(navButtons, btn)
 		end
 	end
 
@@ -432,17 +373,11 @@ function menu.update(_dt)
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
 
-		for i, button in ipairs(navButtons) do
-			if button.selected then
-				button.selected = false
-				local nextIndex
-
-				if direction == -1 then -- up
-					nextIndex = i > 1 and i - 1 or #navButtons
-				else -- down
-					nextIndex = i < #navButtons and i + 1 or 1
-				end
-
+		for i, btn in ipairs(navButtons) do
+			if btn.selected then
+				btn.selected = false
+				local nextIndex = direction == -1 and (i > 1 and i - 1 or #navButtons)
+					or (i < #navButtons and i + 1 or 1)
 				navButtons[nextIndex].selected = true
 				moved = true
 				break
@@ -460,9 +395,7 @@ function menu.update(_dt)
 
 	-- Handle Start button (Settings)
 	if virtualJoystick:isGamepadDown("start") and switchScreen then
-		switchScreen("settings")
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
+		switchScreenWithDelay("settings")
 		return
 	end
 
@@ -474,51 +407,9 @@ function menu.update(_dt)
 	-- Handle A button (Select)
 	if virtualJoystick:isGamepadDown("a") then
 		-- Find which button is selected
-		for _, button in ipairs(menu.BUTTONS) do
-			if button.selected then
-				if button.fontSelection then
-					-- Redirect to font selection screen
-					if switchScreen then
-						switchScreen("font_family")
-						state.resetInputTimer()
-						state.forceInputDelay(0.2) -- Add extra delay when switching screens
-					end
-				elseif button.fontSizeToggle then
-					-- Toggle font size between "Default", "Large", and "Extra Large"
-					if state.fontSize == "Default" then
-						state.fontSize = "Large"
-					elseif state.fontSize == "Large" then
-						state.fontSize = "Extra Large"
-					else
-						state.fontSize = "Default"
-					end
-					state.resetInputTimer()
-				elseif button.glyphsToggle then
-					-- Toggle glyphs enabled state
-					state.glyphs_enabled = not state.glyphs_enabled
-					state.resetInputTimer()
-				elseif button.rgbLighting and switchScreen then
-					-- RGB lighting screen
-					switchScreen("rgb")
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
-				elseif button.boxArt and switchScreen then
-					-- Box art settings screen
-					switchScreen("box_art")
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
-				elseif button.colorKey and switchScreen then
-					-- Any color selection button
-					state.activeColorContext = button.colorKey
-					state.previousScreen = "menu" -- Set previous screen to return to
-					switchScreen("color_picker")
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
-				elseif button.text == "Create theme" then
-					-- Queue theme creation for next frame
-					waitingState = "create_theme"
-					-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
-				end
+		for _, btn in ipairs(menu.BUTTONS) do
+			if btn.selected then
+				handleSelectedButton(btn)
 				break
 			end
 		end
@@ -526,8 +417,8 @@ function menu.update(_dt)
 
 	-- Update scroll position based on selected button
 	local selectedButtonIndex = nil
-	for i, button in ipairs(navButtons) do
-		if button.selected and not button.isBottomButton then
+	for i, btn in ipairs(navButtons) do
+		if btn.selected and not btn.isBottomButton then
 			selectedButtonIndex = i
 			break
 		end
@@ -547,19 +438,11 @@ function menu.setScreenSwitcher(switchFunc)
 end
 
 function menu.setSelectedColor(buttonType, colorKey)
-	-- Assume colorKey is already a hex code (Case 1: From HSV or hex color picker)
-	local colorValue = colorKey
-
-	if colorKey:sub(1, 1) ~= "#" then
-		-- Case 2:From palette picker, needs conversion to hex
-		colorValue = colors.toHex(colorKey)
-	end
-
+	-- Convert color value to hex if needed
+	local colorValue = colorKey:sub(1, 1) ~= "#" and colors.toHex(colorKey) or colorKey
 	if not colorValue then
 		errorHandler.setError("Failed to set color value: " .. colorKey)
 	end
-
-	-- Store in the centralized context using the setter
 	state.setColorValue(buttonType, colorValue)
 end
 
