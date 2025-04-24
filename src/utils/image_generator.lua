@@ -36,6 +36,7 @@ end
 
 -- Create an image with centered svg icon and optional text
 function imageGenerator.createIconImage(options)
+	print("[DEBUG:imageGenerator:createIconImage] In createIconImage")
 	local width = options.width or state.screenWidth
 	local height = options.height or state.screenHeight
 	local bgColor = options.bgColor or colorUtils.hexToLove(state.getColorValue("background"))
@@ -46,11 +47,19 @@ function imageGenerator.createIconImage(options)
 	local outputPath = options.outputPath
 	local saveAsBmp = options.saveAsBmp or false
 
+	-- Ensure output path parent directory exists
+	-- TODO: This might not be needed if it called in the functions that write to the file
+	if not system.ensurePath(outputPath) then
+		print("[DEBUG:imageGenerator:createIconImage] Failed to ensure output path exists: " .. outputPath)
+		return false
+	end
+
 	-- Load icon SVG
 	local svg
 	if iconPath then
-		svg = love.filesystem.read(iconPath)
+		svg = system.readFile(iconPath)
 		if not svg then
+			print("[DEBUG:imageGenerator:createIconImage] Failed to read SVG file: " .. iconPath)
 			errorHandler.setError("Failed to read SVG file: " .. iconPath)
 			return false
 		end
@@ -61,12 +70,10 @@ function imageGenerator.createIconImage(options)
 
 	love.graphics.push()
 
-	-- Draw icon if provided
-	if svg then
-		local iconX = width / 2
-		local iconY = height / 2 - (text and 50 or 0)
-		imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, fgColor)
-	end
+	-- Draw icon
+	local iconX = width / 2
+	local iconY = height / 2 - (text and 50 or 0)
+	imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, fgColor)
 
 	-- Draw text if provided
 	if text then
@@ -104,11 +111,14 @@ function imageGenerator.createIconImage(options)
 		else
 			local pngData = imageData:encode("png")
 			if not pngData then
+				print("[DEBUG:imageGenerator:createIconImage] Failed to encode PNG")
 				errorHandler.setError("Failed to encode PNG")
 				return false
 			end
 
 			if not system.writeBinaryFile(outputPath, pngData:getString()) then
+				print("[DEBUG:imageGenerator:createIconImage] Failed to write PNG")
+				errorHandler.setError("Failed to write PNG")
 				return false
 			end
 		end

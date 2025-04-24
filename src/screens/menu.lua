@@ -198,6 +198,9 @@ local function handleThemeCreation()
 			},
 			true -- Use vertical buttons
 		)
+		-- Add input delay to prevent immediately processing inputs after modal appears
+		state.resetInputTimer()
+		state.forceInputDelay(0.5) -- Add a significant delay after showing the creation modal
 	else
 		errorHandler.showErrorModal("Error creating theme")
 	end
@@ -206,12 +209,22 @@ end
 
 -- Handle theme installation process
 local function handleThemeInstallation()
+	print("[DEBUG:menu:handleThemeInstallation] Starting theme installation")
 	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
+	print("[DEBUG:menu:handleThemeInstallation] Extracted theme name: " .. tostring(waitingThemeName))
+
 	local success = themeCreator.installTheme(waitingThemeName)
+	print("[DEBUG:menu:handleThemeInstallation] Installation success: " .. tostring(success))
+
 	waitingState = "none"
 	waitingThemePath = nil
 
+	print("[DEBUG:menu:handleThemeInstallation] Installing RGB from theme")
 	rgbUtils.installFromTheme()
+
+	-- Set flag to indicate theme was applied
+	state.themeApplied = true
+	print("[DEBUG:menu:handleThemeInstallation] State.themeApplied set to: " .. tostring(state.themeApplied))
 
 	modal.showModal(
 		success and "Applied theme successfully." or "Failed to apply theme.",
@@ -253,6 +266,7 @@ local function handleSelectedButton(btn)
 		state.previousScreen = "menu" -- Set previous screen to return to
 		switchScreen("color_picker")
 	elseif btn.text == "Create theme" then
+		print("[DEBUG:menu:handleSelectedButton] Handling theme creation")
 		-- Queue theme creation for next frame
 		waitingState = "create_theme"
 		-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
@@ -267,28 +281,72 @@ local function toggleModalButtonSelection(modalButtons)
 	state.resetInputTimer()
 end
 
+-- Modal input state tracking for handling press-and-hold
+local modalInputState = {
+	lastInputTime = 0,
+	inputDelay = 0.25, -- Minimum delay between inputs when holding a button
+	isFirstInput = true,
+}
+
+-- Reset modal input state
+local function resetModalInputState()
+	modalInputState.lastInputTime = 0
+	modalInputState.isFirstInput = true
+end
+
 -- Handle modal navigation and selection
-local function handleModalNavigation(virtualJoystick)
+local function handleModalNavigation(virtualJoystick, dt)
 	local modalButtons = modal.getModalButtons()
 
-	-- Handle left/right navigation for modal buttons
+	-- Update last input time
+	modalInputState.lastInputTime = modalInputState.lastInputTime + dt
+
+	-- Handle left/right navigation for modal buttons with input throttling
 	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-		toggleModalButtonSelection(modalButtons)
+		-- Allow immediate input for first press, then enforce delay for subsequent inputs
+		if modalInputState.isFirstInput or modalInputState.lastInputTime >= modalInputState.inputDelay then
+			toggleModalButtonSelection(modalButtons)
+			modalInputState.lastInputTime = 0
+			modalInputState.isFirstInput = false
+		end
+	else
+		-- Reset first input flag when buttons are released
+		if not (virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright")) then
+			modalInputState.isFirstInput = true
+		end
 	end
 
-	-- Handle selection in modals
+	-- Handle selection in modals (A button)
 	if virtualJoystick:isGamepadDown("a") then
+		print("[DEBUG:menu:handleModalNavigation] 'A' button pressed in modal, modalState: " .. modalState)
 		if modalState == "created" then
 			for i, btn in ipairs(modalButtons) do
 				if btn.selected then
-					if i == 1 then -- Exit button
+					print(
+						"[DEBUG:menu:handleModalNavigation] Selected button in 'created' modal: "
+							.. btn.text
+							.. " (index: "
+							.. i
+							.. ")"
+					)
+					if i == 1 then -- Apply theme later button
 						os.exit(0)
-					else -- Open theme button
-						modalState = "manual"
-						modal.showModal(
-							"Apply theme manually via Configuration > Customisation > muOS Themes.",
-							{ { text = "Close", selected = true } }
+					else -- Apply theme now button
+						print(
+							"[DEBUG:menu:handleModalNavigation] Setting waitingThemePath: "
+								.. tostring(createdThemePath)
 						)
+						-- Set the theme path before changing the modal state
+						waitingThemePath = createdThemePath
+						waitingState = "install_theme"
+						print("[DEBUG:menu:handleModalNavigation] waitingState set to: " .. waitingState)
+
+						-- Hide the current modal so we can show the working overlay
+						modal.hideModal()
+						modalState = "none"
+						resetModalInputState()
+						state.resetInputTimer()
+						return
 					end
 					break
 				end
@@ -297,12 +355,9 @@ local function handleModalNavigation(virtualJoystick)
 		elseif modalState == "manual" or modalState == "automatic" then
 			modal.hideModal()
 			modalState = "none"
-			-- If installation was successful, switch to the themes screen
-			if createdThemePath then
-				switchScreen("themes", createdThemePath)
-			end
+			resetModalInputState()
 			-- Add a small delay to avoid immediate input after closing
-			state.forceInputDelay(0.2) -- Add extra delay when closing the modal
+			state.forceInputDelay(0.3) -- Add extra delay when closing the modal
 		else
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
@@ -311,24 +366,29 @@ local function handleModalNavigation(virtualJoystick)
 				end
 			end
 			modal.hideModal()
+			resetModalInputState()
+			state.forceInputDelay(0.2) -- Add delay after handling default modals
 		end
 	end
 end
 
-function menu.update(_dt)
+function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle IO operations that were queued in the previous frame
 	if waitingState == "create_theme" then
+		print("[DEBUG:menu:update] Handling theme creation, waitingState: " .. waitingState)
 		return handleThemeCreation()
 	elseif waitingState == "install_theme" then
+		print("[DEBUG:menu:update] Handling theme installation, waitingState: " .. waitingState)
+		print("[DEBUG:menu:update] waitingThemePath: " .. tostring(waitingThemePath))
 		return handleThemeInstallation()
 	end
 
 	if modal.isModalVisible() then
 		-- Show controls for modals
 		controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
-		handleModalNavigation(virtualJoystick)
+		handleModalNavigation(virtualJoystick, dt)
 		return -- Don't process other input while modal is shown
 	end
 

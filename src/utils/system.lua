@@ -98,9 +98,11 @@ end
 
 -- Helper function to create archive
 function system.createArchive(sourceDir, outputPath)
+	print("[DEBUG:system:createArchive] Creating archive from " .. sourceDir .. " to " .. outputPath)
 	-- Get next available filename
 	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
+		print("[DEBUG:system:createArchive] Failed to get available filename")
 		errorHandler.setError("Failed to get available filename")
 		return false
 	end
@@ -109,6 +111,7 @@ function system.createArchive(sourceDir, outputPath)
 	local cmd = string.format('cd "%s" && zip -r "%s" *', sourceDir, finalPath)
 	local handle = io.popen(cmd .. " 2>&1")
 	if not handle then
+		print("[DEBUG:system:createArchive] Failed to execute zip command")
 		errorHandler.setError("Failed to execute zip command")
 		return false
 	end
@@ -116,29 +119,107 @@ function system.createArchive(sourceDir, outputPath)
 	local result = handle:read("*a")
 	if not result then
 		handle:close()
+		print("[DEBUG:system:createArchive] Failed to read command output")
 		errorHandler.setError("Failed to read command output")
 		return false
 	end
 
 	local success = handle:close()
 	if not success then
+		print("[DEBUG:system:createArchive] Failed to close zip command")
 		errorHandler.setError("zip command failed: " .. result)
 		return false
 	end
 
+	print("[DEBUG:system:createArchive] Successfully created archive: " .. finalPath)
 	return finalPath
 end
 
 -- Helper function to copy directory contents
 function system.copyDir(src, dest)
 	-- Create destination directory
-	os.execute('mkdir -p "' .. dest .. '"')
+	if not system.ensurePath(dest) then
+		errorHandler.setError("Failed to create destination directory: " .. dest)
+		return false
+	end
 
-	-- Copy all contents from source to destination
-	local cmd = string.format('cp -r "%s/"* "%s/"', src, dest)
-	local success = os.execute(cmd)
+	-- First, create the directory structure
+	print("Creating directory structure from " .. src .. " to " .. dest)
 
-	return success == 0 or success == true
+	-- Use find to list all directories in source
+	local findCmd = string.format('find "%s" -type d', src)
+	local handle = io.popen(findCmd)
+	if not handle then
+		errorHandler.setError("Failed to list directories in source path")
+		return false
+	end
+
+	-- Create each directory in the destination
+	local success = true
+	for dir in handle:lines() do
+		-- Get the relative path by removing the source prefix
+		local relPath = dir:sub(#src + 1)
+		if relPath ~= "" then
+			-- Create the corresponding directory in destination
+			local destDir = dest .. relPath
+			print("Creating directory: " .. destDir)
+			local mkdirCmd = string.format('mkdir -p "%s"', destDir)
+			local mkdirSuccess = os.execute(mkdirCmd)
+			if mkdirSuccess ~= 0 and mkdirSuccess ~= true then
+				success = false
+				errorHandler.setError("Failed to create directory: " .. destDir)
+				break
+			end
+		end
+	end
+	handle:close()
+
+	if not success then
+		return false
+	end
+
+	print("Successfully created directory structure in destination path")
+
+	-- Now find and copy each file individually
+	print("Copying files from " .. src .. " to " .. dest)
+	local findFilesCmd = string.format('find "%s" -type f', src)
+	handle = io.popen(findFilesCmd)
+	if not handle then
+		errorHandler.setError("Failed to list files in source path")
+		return false
+	end
+
+	-- Copy each file to its destination
+	success = true
+	for file in handle:lines() do
+		-- Get the relative path
+		local relPath = file:sub(#src + 1)
+		local destFile = dest .. relPath
+
+		-- Ensure parent directory exists (extra safety)
+		local destDir = destFile:match("(.+)/[^/]*$")
+		if destDir then
+			os.execute(string.format('mkdir -p "%s"', destDir))
+		end
+
+		-- Copy the file
+		print("Copying file: " .. file .. " to " .. destFile)
+		local cpCmd = string.format('cp "%s" "%s"', file, destFile)
+		local cpSuccess = os.execute(cpCmd)
+		if cpSuccess ~= 0 and cpSuccess ~= true then
+			success = false
+			errorHandler.setError("Failed to copy file: " .. file .. " to " .. destFile)
+			break
+		end
+	end
+	handle:close()
+
+	if not success then
+		return false
+	end
+
+	print("Successfully copied all files")
+	return true
 end
 
 --- Ensures a directory exists, creating it if necessary
@@ -169,13 +250,22 @@ end
 
 -- Copy a file and create destination directory if needed
 function system.copyFile(sourcePath, destinationPath, errorMessage)
-	-- Extract directory from destination path
-	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
-	if destinationDir then
-		if not system.ensurePath(destinationDir) then
-			return false
-		end
+	-- Check if source file exists
+	if not system.fileExists(sourcePath) then
+		print("[DEBUG:system:copyFile] Source file does not exist: " .. sourcePath)
+		errorHandler.setError("Source file does not exist: " .. sourcePath)
+		return false
 	end
+
+	-- Ensure destination directory exists
+	if not system.ensurePath(destinationPath) then
+		print("[DEBUG:system:copyFile] Failed to create destination directory: " .. destinationPath)
+		errorHandler.setError("Failed to create destination directory: " .. destinationPath)
+		return false
+	end
+
+	-- Copy the file
+	print("[DEBUG:system:copyFile] Copying file from " .. sourcePath .. " to " .. destinationPath)
 	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
 end
 

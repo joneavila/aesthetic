@@ -133,12 +133,12 @@ function rgb.draw()
 		if button.options then
 			local currentValue = button.options[button.currentOption]
 			ui_button.drawWithIndicators(
-				button,
+				button.text,
 				0,
 				y,
 				button.selected,
+				button.disabled,
 				state.screenWidth,
-				state.fonts.body,
 				currentValue
 			)
 
@@ -199,7 +199,15 @@ function rgb.draw()
 		elseif button.min ~= nil and button.max ~= nil then
 			local currentValue = button.text == "Brightness" and state.rgbBrightness or state.rgbSpeed
 			local valueText = tostring(currentValue)
-			ui_button.drawWithIndicators(button, 0, y, button.selected, state.screenWidth, state.fonts.body, valueText)
+			ui_button.drawWithIndicators(
+				button.text,
+				0,
+				y,
+				button.selected,
+				button.disabled,
+				state.screenWidth,
+				valueText
+			)
 		end
 	end
 

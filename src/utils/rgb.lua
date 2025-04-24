@@ -273,20 +273,28 @@ end
 
 -- Function to install RGB config from theme to active config
 function rgb.installFromTheme()
+	print("[DEBUG:rgb:installFromTheme] Starting RGB installation from theme")
+
 	-- Get the active RGB directory and configuration path
 	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
 	local rgbConfPath = rgbDir .. "/rgbconf.sh"
+
+	print("[DEBUG:rgb:installFromTheme] RGB dir: " .. rgbDir)
+	print("[DEBUG:rgb:installFromTheme] RGB conf path: " .. rgbConfPath)
 
 	system.ensurePath(rgbDir)
 
 	-- Build command string based on current RGB settings
 	local command = rgb.buildCommand()
+	print("[DEBUG:rgb:installFromTheme] Built RGB command: " .. command)
 
 	-- Write command to config file for persistence
-	rgb.writeCommandToFile(command, rgbConfPath)
+	local writeSuccess = rgb.writeCommandToFile(command, rgbConfPath)
+	print("[DEBUG:rgb:installFromTheme] Command file write success: " .. tostring(writeSuccess))
 
 	-- Execute the command directly
-	commands.executeCommand(command)
+	local execResult = commands.executeCommand(command)
+	print("[DEBUG:rgb:installFromTheme] Command execution result: " .. tostring(execResult))
 
 	return true
 end

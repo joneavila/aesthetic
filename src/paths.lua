@@ -13,7 +13,7 @@ paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
 paths.THEME_DIR = "/run/muos/storage/theme"
 
 -- Working theme directory where files are written before archiving into a theme
-paths.WORKING_THEME_DIR = paths.TEMPLATE_DIR .. "_working"
+paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
 -- Active theme directory where files of the currently active theme are stored
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
@@ -73,6 +73,7 @@ paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth
 paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"
 -- `<width>x<height>/image`
 paths.THEME_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
+paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/bootlogo.bmp"
 paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
 paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
