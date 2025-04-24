@@ -6,7 +6,8 @@ local constants = {}
 -- Calculate tab height as a percentage of the screen height
 local TAB_HEIGHT_PERCENT = 0.08
 local TAB_HEIGHT = math.floor(state.screenHeight * TAB_HEIGHT_PERCENT)
-local TAB_CONTAINER_HEIGHT = TAB_HEIGHT * 1.4 -- Match the increased container height in color_picker.lua
+local TAB_TEXT_PADDING = 8 -- Add padding for tab text (8px)
+local TAB_CONTAINER_HEIGHT = TAB_HEIGHT * 1.4 + (TAB_TEXT_PADDING * 2) -- Increased container height with text padding
 local HEADER_HEIGHT = 50 -- Header height for the color context display
 local TAB_CONTENT_OVERLAP = -25 -- Negative value to eliminate any gap between tabs and content
 

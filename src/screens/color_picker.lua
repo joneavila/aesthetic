@@ -19,7 +19,8 @@ colorPicker.TAB_HEIGHT = constants.getTabHeight()
 
 -- Constants for styling
 local TAB_CONTAINER_PADDING = 15
-local TAB_CONTAINER_HEIGHT = (colorPicker.TAB_HEIGHT * 1.4) - (TAB_CONTAINER_PADDING * 2)
+local TAB_TEXT_PADDING = 8 -- Add padding for tab text (8px)
+local TAB_CONTAINER_HEIGHT = (colorPicker.TAB_HEIGHT * 1.4) - (TAB_CONTAINER_PADDING * 2) + (TAB_TEXT_PADDING * 2)
 local TAB_CORNER_RADIUS = TAB_CONTAINER_HEIGHT / 4
 
 -- Tab definitions
@@ -184,7 +185,7 @@ function colorPicker.draw()
 		love.graphics.printf(
 			tab.name,
 			tabX,
-			tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2,
+			tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2 - 1, -- Adjust vertical position so its visually centered
 			tabWidth,
 			"center"
 		)
