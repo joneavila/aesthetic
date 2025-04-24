@@ -120,6 +120,9 @@ function menu.draw()
 
 	background.draw()
 
+	-- Set the default body font for consistent sizing
+	love.graphics.setFont(state.fonts.body)
+
 	-- Draw buttons using scrollView component
 	scrollView.draw({
 		contentCount = buttonCount,

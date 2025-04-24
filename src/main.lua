@@ -69,6 +69,9 @@ local function setupFonts()
 		local fontSize = def.size * scaleFactor
 		state.fonts[key] = love.graphics.newFont(def.path, fontSize)
 	end
+
+	-- Set the default font
+	state.setDefaultFont()
 end
 
 -- Function to load settings from file
