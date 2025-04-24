@@ -179,9 +179,8 @@ function menu.draw()
 	end
 
 	controls.draw({
-		{ button = "d_pad", text = "Navigate" },
-		{ button = "a", text = "Select" },
 		{ button = "start", text = "Settings" },
+		{ button = "a", text = "Select" },
 		{ button = "b", text = "Exit" },
 	})
 end
