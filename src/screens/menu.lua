@@ -103,18 +103,20 @@ function menu.draw()
 		scrollBarWidth = scrollBarWidth,
 	})
 
-	-- Draw bottom buttons separately with list component
-	-- Position at bottom of screen
-	local bottomY = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
-	list.draw({
-		items = bottomButtons,
-		startY = bottomY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = 0, -- No padding needed for single bottom button
-		scrollPosition = 0,
-		visibleCount = 1,
-		screenWidth = state.screenWidth,
-	})
+	-- Draw the "Create theme" button separately with accented style
+	-- Find the "Create theme" button
+	local createThemeButton = nil
+	for _, btn in ipairs(bottomButtons) do
+		if btn.text == "Create theme" then
+			createThemeButton = btn
+			break
+		end
+	end
+
+	if createThemeButton then
+		local bottomY = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
+		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth)
+	end
 
 	-- Draw modal if active
 	if modal.isModalVisible() then
