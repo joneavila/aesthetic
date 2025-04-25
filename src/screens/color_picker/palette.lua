@@ -257,10 +257,6 @@ function palette.draw()
 			text = "Switch Tabs",
 		},
 		{
-			button = "d_pad",
-			text = "Navigate",
-		},
-		{
 			button = "a",
 			text = "Confirm",
 		},

@@ -359,10 +359,6 @@ function hsv.draw()
 			text = "Switch Tabs",
 		},
 		{
-			button = { "d_pad", "stick_l" },
-			text = "Cursor",
-		},
-		{
 			button = "y",
 			text = "HS/V",
 		},

@@ -302,7 +302,6 @@ function hex.draw()
 	-- Draw controls
 	controls.draw({
 		{ button = { "l1", "r1" }, text = "Switch Tabs" },
-		{ button = "d_pad", text = "Navigate" },
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	})
