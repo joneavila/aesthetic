@@ -1,9 +1,7 @@
 --- RGB lighting settings screen
 local love = require("love")
-local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
-local colorUtils = require("utils.color")
 local rgbUtils = require("utils.rgb")
 local ui_button = require("ui.button")
 local header = require("ui.header")
@@ -145,9 +143,6 @@ function rgb.draw()
 		-- Draw color preview for Color button
 		elseif button.colorKey then
 			local colorValue = state.getColorValue(button.colorKey)
-			local previewSize = BUTTON.COLOR_DISPLAY_SIZE
-			local previewX = state.screenWidth - BUTTON.PADDING - previewSize
-			local previewY = y + (BUTTON.HEIGHT - previewSize) / 2
 
 			ui_button.drawWithColorPreview(
 				button.text,

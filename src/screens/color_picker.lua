@@ -67,7 +67,7 @@ end
 
 -- Helper function to update the tab animations
 local function updateTabAnimations()
-	local activeTab, activeIndex = getActiveTab()
+	local activeTab, _ = getActiveTab()
 
 	-- Create target position based on active tab
 	local targetX = activeTab.x
@@ -269,7 +269,7 @@ function colorPicker.update(dt)
 	end
 
 	-- Update text color animations
-	for i, textColorAnim in ipairs(tabTextColors) do
+	for _, textColorAnim in ipairs(tabTextColors) do
 		if textColorAnim.animation then
 			textColorAnim.animation:update(dt)
 		end
