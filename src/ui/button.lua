@@ -23,9 +23,10 @@ local function drawButtonBackground(y, width, isSelected)
 	end
 end
 
-local function drawButtonText(text, x, y)
+local function drawButtonText(text, x, y, isDisabled)
 	local textHeight = love.graphics.getFont():getHeight()
-	love.graphics.setColor(colors.ui.foreground)
+	local opacity = isDisabled and 0.3 or 1
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 	love.graphics.print(text, x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2)
 end
 
@@ -67,7 +68,7 @@ end
 function button.draw(text, x, y, isSelected, screenWidth)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
-	drawButtonText(text, x, y)
+	drawButtonText(text, x, y, false)
 end
 
 -- Function to draw a button with right-aligned text
@@ -75,7 +76,7 @@ function button.drawWithTextPreview(text, x, y, isSelected, screenWidth, preview
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
-	drawButtonText(text, x, y)
+	drawButtonText(text, x, y, false)
 
 	-- Draw right text
 	local textWidth = love.graphics.getFont():getWidth(previewText)
@@ -93,7 +94,7 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 
 	-- Draw button text
-	drawButtonText(text, x, y)
+	drawButtonText(text, x, y, isDisabled)
 
 	-- Draw value with triangles on the right side
 	local textWidth = love.graphics.getFont():getWidth(valueText)
@@ -107,7 +108,7 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 
 	-- Draw triangles (left and right arrows)
 	local triangleY = y + UI_CONSTANTS.BUTTON.HEIGHT / 2
-	local opacity = isDisabled and 0.5 or 1
+	local opacity = isDisabled and 0.3 or 1
 
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 
@@ -142,14 +143,14 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 end
 
 -- Function to draw a button with color preview
-function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor)
+function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor, isDisabled)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	-- Draw background
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 
 	-- Draw button text
-	drawButtonText(text, x, y)
+	drawButtonText(text, x, y, isDisabled)
 
 	-- Only draw color display if we have a valid color
 	if hexColor then
@@ -158,9 +159,10 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 		local colorY = y + (UI_CONSTANTS.BUTTON.HEIGHT - UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE) / 2
 
 		local r, g, b = colorUtils.hexToRgb(hexColor)
+		local opacity = isDisabled and 0.5 or 1
 
 		-- Draw color square
-		love.graphics.setColor(r, g, b, 1)
+		love.graphics.setColor(r, g, b, opacity)
 		love.graphics.rectangle(
 			"fill",
 			colorX,
@@ -171,7 +173,7 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 		)
 
 		-- Draw border around color square
-		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 		love.graphics.setLineWidth(1)
 		love.graphics.rectangle(
 			"line",
@@ -183,7 +185,7 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 		)
 
 		-- Draw color hex code
-		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
 		local hexCode = hexColor
 
 		-- Use monospace font for hex codes if provided

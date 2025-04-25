@@ -149,51 +149,15 @@ function rgb.draw()
 			local previewX = state.screenWidth - BUTTON.PADDING - previewSize
 			local previewY = y + (BUTTON.HEIGHT - previewSize) / 2
 
-			-- Draw button background
-			if button.selected then
-				love.graphics.setColor(
-					colors.ui.surface[1],
-					colors.ui.surface[2],
-					colors.ui.surface[3],
-					disabled and 0.5 or 1
-				)
-				love.graphics.rectangle("fill", 0, y, state.screenWidth, BUTTON.HEIGHT)
-			end
-
-			-- Draw button text
-			love.graphics.setColor(
-				colors.ui.foreground[1],
-				colors.ui.foreground[2],
-				colors.ui.foreground[3],
-				disabled and 0.5 or 1
+			ui_button.drawWithColorPreview(
+				button.text,
+				button.selected,
+				0,
+				y,
+				state.screenWidth,
+				colorValue,
+				button.disabled
 			)
-			love.graphics.print(button.text, BUTTON.PADDING, y + (BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2)
-
-			-- Draw hex code
-			love.graphics.setFont(state.fonts.monoBody)
-			local hexCode = colorValue
-			local hexWidth = state.fonts.monoBody:getWidth(hexCode)
-			love.graphics.print(
-				hexCode,
-				previewX - hexWidth - 10,
-				y + (BUTTON.HEIGHT - state.fonts.monoBody:getHeight()) / 2
-			)
-			love.graphics.setFont(state.fonts.body)
-
-			-- Draw color preview
-			local r, g, b = colorUtils.hexToRgb(colorValue)
-			love.graphics.setColor(r, g, b, disabled and 0.5 or 1)
-			love.graphics.rectangle("fill", previewX, previewY, previewSize, previewSize, 5)
-
-			-- Draw outline
-			love.graphics.setColor(
-				colors.ui.foreground[1],
-				colors.ui.foreground[2],
-				colors.ui.foreground[3],
-				disabled and 0.5 or 1
-			)
-			love.graphics.setLineWidth(1)
-			love.graphics.rectangle("line", previewX, previewY, previewSize, previewSize, 5)
 
 		-- Draw brightness/speed value with triangles
 		elseif button.min ~= nil and button.max ~= nil then
