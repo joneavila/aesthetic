@@ -8,6 +8,7 @@ local paths = require("paths")
 local fontDefs = require("ui.font_defs")
 local imageGenerator = require("utils.image_generator")
 local themeSettings = require("utils.theme_settings")
+local logger = require("utils.logger")
 
 -- Module table to export public functions
 local themeCreator = {}
@@ -24,12 +25,8 @@ end
 
 -- Function to create boot logo image shown during boot
 local function createBootImage()
-	print("[DEBUG:themeCreator:createBootImage] In createBootImage")
-	print("[DEBUG:themeCreator:createBootImage] Icon path: " .. paths.THEME_BOOTLOGO_SOURCE_PATH)
-
 	-- If the file does not exist, return false
 	if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE_PATH) then
-		print("[DEBUG:themeCreator:createBootImage] File does not exist")
 		errorHandler.setError("Boot logo image file does not exist: " .. paths.THEME_BOOTLOGO_SOURCE_PATH)
 		return false
 	end
@@ -44,7 +41,6 @@ local function createBootImage()
 		saveAsBmp = true,
 	}
 
-	print("[DEBUG:themeCreator:createBootImage] Calling createIconImage")
 	local result = imageGenerator.createIconImage(options)
 	if result == false then
 		return false
@@ -148,7 +144,6 @@ local function copySelectedFont()
 		end
 	end
 	if not selectedFontFile then
-		print("[DEBUG:themeCreator:copySelectedFont] Selected font not found: " .. tostring(state.selectedFont))
 		errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
 		return false
 	end
@@ -171,27 +166,9 @@ local function copySelectedFont()
 			"Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")"
 		)
 	then
-		print(
-			"[DEBUG:themeCreator:copySelectedFont] Failed to copy font file: "
-				.. selectedFontFile
-				.. " (size "
-				.. fontSizeDir
-				.. ")"
-		)
+		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false
 	end
-
-	print(
-		"[DEBUG:themeCreator:copySelectedFont] Copied font file: "
-			.. selectedFontFile
-			.. " (size "
-			.. fontSizeDir
-			.. ")"
-			.. "\nSource: "
-			.. fontSourcePath
-			.. "\nDestination: "
-			.. paths.THEME_DEFAULT_FONT_PATH
-	)
 	return true
 end
 
@@ -222,57 +199,57 @@ local function copySoundFiles()
 		end
 	end
 
-	print("[DEBUG:themeCreator:copySoundFiles] Copied sound files to: " .. paths.THEME_SOUND_PATH)
 	return true
 end
 
 -- Main function to create theme
 function themeCreator.createTheme()
-	print("[DEBUG:themeCreator:createTheme] Starting theme creation")
+	logger.info("Starting theme creation")
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
-		print("[DEBUG:themeCreator:createTheme] Removing working directory")
 		system.removeDir(paths.WORKING_THEME_DIR)
-		print("[DEBUG:themeCreator:createTheme] Creating working directory")
 		system.ensurePath(paths.WORKING_THEME_DIR)
 
 		-- Copy glyph directory and contents
-		print("[DEBUG:themeCreator:createTheme] Copying glyph directory and contents")
+		logger.debug("Copying glyph directory and contents")
 		if not system.copyDir(paths.THEME_GLYPH_SOURCE_PATH, paths.THEME_GLYPH_PATH) then
 			errorHandler.setError("Failed to copy glyph directory and contents")
 			return false
 		end
 
 		-- Copy scheme directory and contents
-		print("[DEBUG:themeCreator:createTheme] Copying scheme directory and contents")
-		print("[DEBUG:themeCreator:createTheme] Source directory: " .. paths.THEME_SCHEME_SOURCE_DIR)
-		print("[DEBUG:themeCreator:createTheme] Destination directory: " .. paths.THEME_SCHEME_DIR)
+		logger.debug(
+		"Copying scheme directory and contents, source: "
+				.. paths.THEME_SCHEME_SOURCE_DIR
+				.. ", destination: "
+				.. paths.THEME_SCHEME_DIR
+		)
 		if not system.copyDir(paths.THEME_SCHEME_SOURCE_DIR, paths.THEME_SCHEME_DIR) then
-			print("[DEBUG:themeCreator:createTheme] Failed to copy scheme directory and contents")
+			logger.error("Failed to copy scheme directory and contents")
 			return false
 		end
 
 		-- Create theme's boot image
-		print("[DEBUG:themeCreator:createTheme] Creating boot image")
+		logger.debug("Creating boot image")
 		if not createBootImage() then
-			print("[DEBUG:themeCreator:createTheme] Failed to create boot image")
+			logger.error("Failed to create boot image")
 			return false
 		end
 
 		-- Create theme's reboot image
-		print("[DEBUG:themeCreator:createTheme] Creating reboot image")
+		logger.debug("Creating reboot image")
 		if not createRebootImage() then
 			return false
 		end
 
 		-- Create theme's shutdown image
-		print("[DEBUG:themeCreator:createTheme] Creating shutdown image")
+		logger.debug("Creating shutdown image")
 		if not createShutdownImage() then
 			return false
 		end
 
 		-- Create theme's preview image
-		print("[DEBUG:themeCreator:createTheme] Creating preview image")
+		logger.debug("Creating preview image")
 		if not createPreviewImage() then
 			return false
 		end
@@ -284,89 +261,86 @@ function themeCreator.createTheme()
 		}
 
 		-- Replace colors and apply glyph settings to theme files
-		print("[DEBUG:themeCreator:createTheme] Replacing colors and applying glyph settings to theme files")
+		logger.debug("Replacing colors and applying glyph settings to theme files")
 		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, colorReplacementts) then
 			return false
 		end
 
 		-- Set theme's glyph settings
-		print("[DEBUG:themeCreator:createTheme] Setting theme's glyph settings")
+		logger.debug("Setting theme's glyph settings")
 		if not themeSettings.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's screen width settings
-		print("[DEBUG:themeCreator:createTheme] Setting theme's screen width settings")
+		logger.debug("Setting theme's screen width settings")
 		if not themeSettings.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
 			return false
 		end
 
 		-- Set theme's content height settings
-		print("[DEBUG:themeCreator:createTheme] Setting theme's content height settings")
+		logger.debug("Setting theme's content height settings")
 		if not themeSettings.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
 			return false
 		end
 
 		-- Set theme's content width settings for `muxplore.ini`
-		print("[DEBUG:themeCreator:createTheme] Setting theme's content width settings for `muxplore.ini`")
+		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not themeSettings.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
 			return false
 		end
 
 		-- Copy the selected font file
-		print("[DEBUG:themeCreator:createTheme] Copying selected font file")
+		logger.debug("Copying selected font file")
 		if not copySelectedFont() then
 			return false
 		end
 
 		-- Create theme's `credits.txt` file
-		print("[DEBUG:themeCreator:createTheme] Creating theme's `credits.txt` file")
+		logger.debug("Creating theme's `credits.txt` file")
 		if not createCreditsFile() then
 			return false
 		end
 
 		-- Create theme's `version.txt` file
-		print("[DEBUG:themeCreator:createTheme] Creating theme's `version.txt` file")
+		logger.debug("Creating theme's `version.txt` file")
 		if not createVersionFile() then
 			return false
 		end
 
 		-- Create theme's `name.txt` file
-		print("[DEBUG:themeCreator:createTheme] Creating theme's `name.txt` file")
+		logger.debug("Creating theme's `name.txt` file")
 		if not createNameFile() then
 			return false
 		end
 
 		-- Create theme's RGB configuration file
-		print("[DEBUG:themeCreator:createTheme] Creating theme's RGB configuration file")
+		logger.debug("Creating theme's RGB configuration file")
 		if not createRgbConfFile() then
 			return false
 		end
 
 		-- Copy sound files to the theme
-		print("[DEBUG:themeCreator:createTheme] Copying sound files to the theme")
+		logger.debug("Copying sound files to the theme")
 		if not copySoundFiles() then
 			return false
 		end
 
-		-- Debug: Print the
-
 		-- Create the ZIP archive
-		print("[DEBUG:themeCreator:createTheme] Creating the ZIP archive")
+		logger.debug("Creating archive")
 		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
 		if not outputThemePath then
 			return false
 		end
 
 		-- Call sync to make the theme available
-		print("[DEBUG:themeCreator:createTheme] Calling sync to make the theme available")
 		commands.executeCommand("sync")
 
 		return outputThemePath
 	end, debug.traceback)
 
 	if not status then
-		print("[DEBUG:themeCreator:createTheme] Error: " .. tostring(err))
+		logger.error("Error: " .. tostring(err))
 		errorHandler.setError(tostring(err))
 		return false
 	end
@@ -377,21 +351,21 @@ end
 
 -- Function to install the theme to muOS active theme directory
 function themeCreator.installTheme(themeName)
-	print("[DEBUG:themeCreator:installTheme] Starting theme installation with theme name: " .. tostring(themeName))
+	logger.info("Starting theme installation with theme name: " .. tostring(themeName))
 
 	local status, err = xpcall(function()
 		local cmd = string.format('/opt/muos/script/package/theme.sh install "%s"', themeName)
-		print("[DEBUG:themeCreator:installTheme] Executing command: " .. cmd)
+		logger.debug("Executing command: " .. cmd)
 		local result = commands.executeCommand(cmd)
-		print("[DEBUG:themeCreator:installTheme] Command execution result: " .. tostring(result))
+		logger.debug("Command execution result: " .. tostring(result))
 		return result == 0
 	end, debug.traceback)
 
 	if not status then
-		print("[DEBUG:themeCreator:installTheme] Error during installation: " .. tostring(err))
+		logger.error("Error during installation: " .. tostring(err))
 	end
 
-	print("[DEBUG:themeCreator:installTheme] Installation completed with status: " .. tostring(status))
+	logger.info("Installation completed with status: " .. tostring(status))
 	return status
 end
 

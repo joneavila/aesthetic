@@ -5,6 +5,7 @@ local errorHandler = require("error_handler")
 
 local commands = {}
 function commands.executeCommand(command, errorMessage)
+	logger.debug("Executing command: " .. command)
 	local result = os.execute(command)
 	if not result and errorMessage then
 		errorHandler.setError(errorMessage)

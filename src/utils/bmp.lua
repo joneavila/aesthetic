@@ -1,7 +1,7 @@
 --- BMP image encoding utilities
 local errorHandler = require("error_handler")
 local system = require("utils.system")
-
+local logger = require("utils.logger")
 local bmp = {}
 
 -- Maximum image dimensions to prevent memory issues
@@ -15,7 +15,7 @@ local MAX_PIXELS = 50000000 -- 50 million pixels
 function bmp.encode(imageData)
 	-- Safety check for imageData
 	if not imageData then
-		print("[ERROR:bmp:encode] No image data provided")
+		logger.error("No image data provided")
 		return nil
 	end
 
@@ -28,20 +28,20 @@ function bmp.encode(imageData)
 	end)
 
 	if not status then
-		print("[ERROR:bmp:encode] Failed to get image dimensions: " .. tostring(err))
+		logger.error("Failed to get image dimensions: " .. tostring(err))
 		return nil
 	end
 
 	-- Validate dimensions
 	if width <= 0 or height <= 0 then
-		print("[ERROR:bmp:encode] Invalid image dimensions: " .. width .. "x" .. height)
+		logger.error("Invalid image dimensions: " .. width .. "x" .. height)
 		return nil
 	end
 
 	-- Check for excessively large images that could cause memory issues
 	if width > MAX_WIDTH or height > MAX_HEIGHT then
-		print(
-			"[ERROR:bmp:encode] Image dimensions too large: "
+		logger.error(
+			"Image dimensions too large: "
 				.. width
 				.. "x"
 				.. height
@@ -54,7 +54,7 @@ function bmp.encode(imageData)
 	end
 
 	if width * height > MAX_PIXELS then
-		print("[ERROR:bmp:encode] Too many pixels: " .. (width * height) .. ", maximum allowed: " .. MAX_PIXELS)
+		logger.error("Too many pixels: " .. (width * height) .. ", maximum allowed: " .. MAX_PIXELS)
 		return nil
 	end
 
@@ -70,7 +70,7 @@ function bmp.encode(imageData)
 
 	-- Safety check for reasonable file size to prevent memory issues
 	if fileSize > 100 * 1024 * 1024 then -- 100MB limit
-		print("[ERROR:bmp:encode] Resulting file would be too large: " .. math.floor(fileSize / 1024 / 1024) .. "MB")
+		logger.error("Resulting file would be too large: " .. math.floor(fileSize / 1024 / 1024) .. "MB")
 		return nil
 	end
 
@@ -87,7 +87,7 @@ function bmp.encode(imageData)
 	-- Helper function to write little-endian integers
 	local function intToBytes(value, bytes)
 		if type(value) ~= "number" then
-			print("[ERROR:bmp:encode] Invalid value for intToBytes: " .. tostring(value))
+			logger.error("Invalid value for intToBytes: " .. tostring(value))
 			return string.rep("\0", bytes)
 		end
 
@@ -147,7 +147,7 @@ function bmp.encode(imageData)
 						b = type(pixelResult[3]) == "number" and pixelResult[3] or 0
 					else
 						-- If pixel access failed, use black
-						print("[WARN:bmp:encode] Failed to get pixel at " .. x .. "," .. y .. ", using black instead")
+						logger.warn("Failed to get pixel at " .. x .. "," .. y .. ", using black instead")
 					end
 
 					-- Clamp values to valid range
@@ -185,7 +185,7 @@ function bmp.encode(imageData)
 		end)
 
 		if not chunkStatus then
-			print("[ERROR:bmp:encode] Failed to process chunk of pixel data: " .. tostring(chunkErr))
+			logger.error("Failed to process chunk of pixel data: " .. tostring(chunkErr))
 			return nil
 		end
 
@@ -196,7 +196,7 @@ function bmp.encode(imageData)
 
 		-- Check if we're running out of memory
 		if collectgarbage("count") > 1000000 then -- If using more than ~1GB
-			print("[WARN:bmp:encode] Memory usage high, attempting garbage collection")
+			logger.warn("Memory usage high, attempting garbage collection")
 			collectgarbage("collect")
 		end
 	end
@@ -207,7 +207,7 @@ function bmp.encode(imageData)
 	end)
 
 	if not finalStatus then
-		print("[ERROR:bmp:encode] Failed to concatenate BMP data: " .. tostring(finalResult))
+		logger.error("Failed to concatenate BMP data: " .. tostring(finalResult))
 		return nil
 	end
 
@@ -218,14 +218,14 @@ end
 function bmp.saveToFile(imageData, outputPath)
 	-- Ensure output path parent directory exists
 	if not system.ensurePath(outputPath) then
-		print("[DEBUG:bmp:saveToFile] Failed to ensure output path exists: " .. outputPath)
+		logger.error("Failed to ensure output path exists: " .. outputPath)
 		return false
 	end
 
 	local bmpData = bmp.encode(imageData)
 
 	if not bmpData then
-		print("[DEBUG:bmp:saveToFile] Failed to encode BMP data")
+		logger.error("Failed to encode BMP data")
 		errorHandler.setError("Failed to encode BMP data")
 		return false
 	end
@@ -236,7 +236,7 @@ function bmp.saveToFile(imageData, outputPath)
 	end)
 
 	if not writeStatus then
-		print("[ERROR:bmp:saveToFile] Failed to write file: " .. tostring(writeResult))
+		logger.error("Failed to write file: " .. tostring(writeResult))
 		errorHandler.setError("Failed to write BMP file: " .. tostring(writeResult))
 		return false
 	end

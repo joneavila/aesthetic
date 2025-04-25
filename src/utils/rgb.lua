@@ -3,6 +3,7 @@ local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local system = require("utils.system")
 local paths = require("paths")
+local errorHandler = require("error_handler")
 
 -- Module table to export public functions
 local rgb = {}
@@ -273,28 +274,24 @@ end
 
 -- Function to install RGB config from theme to active config
 function rgb.installFromTheme()
-	print("[DEBUG:rgb:installFromTheme] Starting RGB installation from theme")
-
 	-- Get the active RGB directory and configuration path
 	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
 	local rgbConfPath = rgbDir .. "/rgbconf.sh"
-
-	print("[DEBUG:rgb:installFromTheme] RGB dir: " .. rgbDir)
-	print("[DEBUG:rgb:installFromTheme] RGB conf path: " .. rgbConfPath)
 
 	system.ensurePath(rgbDir)
 
 	-- Build command string based on current RGB settings
 	local command = rgb.buildCommand()
-	print("[DEBUG:rgb:installFromTheme] Built RGB command: " .. command)
 
 	-- Write command to config file for persistence
 	local writeSuccess = rgb.writeCommandToFile(command, rgbConfPath)
-	print("[DEBUG:rgb:installFromTheme] Command file write success: " .. tostring(writeSuccess))
+	if not writeSuccess then
+		errorHandler.setError("Failed to write RGB command to config file")
+		return false
+	end
 
 	-- Execute the command directly
 	local execResult = commands.executeCommand(command)
-	print("[DEBUG:rgb:installFromTheme] Command execution result: " .. tostring(execResult))
 
 	return true
 end

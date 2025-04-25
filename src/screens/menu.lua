@@ -207,23 +207,16 @@ end
 
 -- Handle theme installation process
 local function handleThemeInstallation()
-	print("[DEBUG:menu:handleThemeInstallation] Starting theme installation")
 	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
-	print("[DEBUG:menu:handleThemeInstallation] Extracted theme name: " .. tostring(waitingThemeName))
-
 	local success = themeCreator.installTheme(waitingThemeName)
-	print("[DEBUG:menu:handleThemeInstallation] Installation success: " .. tostring(success))
 
 	waitingState = "none"
 	waitingThemePath = nil
 
-	print("[DEBUG:menu:handleThemeInstallation] Installing RGB from theme")
 	rgbUtils.installFromTheme()
 
 	-- Set flag to indicate theme was applied
 	state.themeApplied = true
-	print("[DEBUG:menu:handleThemeInstallation] State.themeApplied set to: " .. tostring(state.themeApplied))
-
 	modal.showModal(
 		success and "Applied theme successfully." or "Failed to apply theme.",
 		{ { text = "Close", selected = true } }
@@ -264,7 +257,6 @@ local function handleSelectedButton(btn)
 		state.previousScreen = "menu" -- Set previous screen to return to
 		switchScreen("color_picker")
 	elseif btn.text == "Create theme" then
-		print("[DEBUG:menu:handleSelectedButton] Handling theme creation")
 		-- Queue theme creation for next frame
 		waitingState = "create_theme"
 		-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
@@ -316,28 +308,15 @@ local function handleModalNavigation(virtualJoystick, dt)
 
 	-- Handle selection in modals (A button)
 	if virtualJoystick:isGamepadDown("a") then
-		print("[DEBUG:menu:handleModalNavigation] 'A' button pressed in modal, modalState: " .. modalState)
 		if modalState == "created" then
 			for i, btn in ipairs(modalButtons) do
 				if btn.selected then
-					print(
-						"[DEBUG:menu:handleModalNavigation] Selected button in 'created' modal: "
-							.. btn.text
-							.. " (index: "
-							.. i
-							.. ")"
-					)
 					if i == 1 then -- Apply theme later button
 						os.exit(0)
 					else -- Apply theme now button
-						print(
-							"[DEBUG:menu:handleModalNavigation] Setting waitingThemePath: "
-								.. tostring(createdThemePath)
-						)
 						-- Set the theme path before changing the modal state
 						waitingThemePath = createdThemePath
 						waitingState = "install_theme"
-						print("[DEBUG:menu:handleModalNavigation] waitingState set to: " .. waitingState)
 
 						-- Hide the current modal so we can show the working overlay
 						modal.hideModal()
@@ -375,11 +354,8 @@ function menu.update(dt)
 
 	-- Handle IO operations that were queued in the previous frame
 	if waitingState == "create_theme" then
-		print("[DEBUG:menu:update] Handling theme creation, waitingState: " .. waitingState)
 		return handleThemeCreation()
 	elseif waitingState == "install_theme" then
-		print("[DEBUG:menu:update] Handling theme installation, waitingState: " .. waitingState)
-		print("[DEBUG:menu:update] waitingThemePath: " .. tostring(waitingThemePath))
 		return handleThemeInstallation()
 	end
 

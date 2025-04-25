@@ -2,7 +2,7 @@
 --- This module avoids using `love.filesystem` since most functions are not sandboxed
 local errorHandler = require("error_handler")
 local commands = require("utils.commands")
-
+local logger = require("utils.logger")
 local system = {}
 
 -- Helper function to escape pattern special characters
@@ -98,11 +98,9 @@ end
 
 -- Helper function to create archive
 function system.createArchive(sourceDir, outputPath)
-	print("[DEBUG:system:createArchive] Creating archive from " .. sourceDir .. " to " .. outputPath)
 	-- Get next available filename
 	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
-		print("[DEBUG:system:createArchive] Failed to get available filename")
 		errorHandler.setError("Failed to get available filename")
 		return false
 	end
@@ -111,7 +109,6 @@ function system.createArchive(sourceDir, outputPath)
 	local cmd = string.format('cd "%s" && zip -r "%s" *', sourceDir, finalPath)
 	local handle = io.popen(cmd .. " 2>&1")
 	if not handle then
-		print("[DEBUG:system:createArchive] Failed to execute zip command")
 		errorHandler.setError("Failed to execute zip command")
 		return false
 	end
@@ -119,19 +116,15 @@ function system.createArchive(sourceDir, outputPath)
 	local result = handle:read("*a")
 	if not result then
 		handle:close()
-		print("[DEBUG:system:createArchive] Failed to read command output")
 		errorHandler.setError("Failed to read command output")
 		return false
 	end
 
 	local success = handle:close()
 	if not success then
-		print("[DEBUG:system:createArchive] Failed to close zip command")
 		errorHandler.setError("zip command failed: " .. result)
 		return false
 	end
-
-	print("[DEBUG:system:createArchive] Successfully created archive: " .. finalPath)
 	return finalPath
 end
 
@@ -142,9 +135,6 @@ function system.copyDir(src, dest)
 		errorHandler.setError("Failed to create destination directory: " .. dest)
 		return false
 	end
-
-	-- First, create the directory structure
-	print("Creating directory structure from " .. src .. " to " .. dest)
 
 	-- Use find to list all directories in source
 	local findCmd = string.format('find "%s" -type d', src)
@@ -162,7 +152,6 @@ function system.copyDir(src, dest)
 		if relPath ~= "" then
 			-- Create the corresponding directory in destination
 			local destDir = dest .. relPath
-			print("Creating directory: " .. destDir)
 			local mkdirCmd = string.format('mkdir -p "%s"', destDir)
 			local mkdirSuccess = os.execute(mkdirCmd)
 			if mkdirSuccess ~= 0 and mkdirSuccess ~= true then
@@ -178,10 +167,7 @@ function system.copyDir(src, dest)
 		return false
 	end
 
-	print("Successfully created directory structure in destination path")
-
 	-- Now find and copy each file individually
-	print("Copying files from " .. src .. " to " .. dest)
 	local findFilesCmd = string.format('find "%s" -type f', src)
 	handle = io.popen(findFilesCmd)
 	if not handle then
@@ -203,7 +189,6 @@ function system.copyDir(src, dest)
 		end
 
 		-- Copy the file
-		print("Copying file: " .. file .. " to " .. destFile)
 		local cpCmd = string.format('cp "%s" "%s"', file, destFile)
 		local cpSuccess = os.execute(cpCmd)
 		if cpSuccess ~= 0 and cpSuccess ~= true then
@@ -217,8 +202,6 @@ function system.copyDir(src, dest)
 	if not success then
 		return false
 	end
-
-	print("Successfully copied all files")
 	return true
 end
 
@@ -252,20 +235,17 @@ end
 function system.copyFile(sourcePath, destinationPath, errorMessage)
 	-- Check if source file exists
 	if not system.fileExists(sourcePath) then
-		print("[DEBUG:system:copyFile] Source file does not exist: " .. sourcePath)
 		errorHandler.setError("Source file does not exist: " .. sourcePath)
 		return false
 	end
 
 	-- Ensure destination directory exists
 	if not system.ensurePath(destinationPath) then
-		print("[DEBUG:system:copyFile] Failed to create destination directory: " .. destinationPath)
 		errorHandler.setError("Failed to create destination directory: " .. destinationPath)
 		return false
 	end
 
 	-- Copy the file
-	print("[DEBUG:system:copyFile] Copying file from " .. sourcePath .. " to " .. destinationPath)
 	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
 end
 
@@ -273,6 +253,7 @@ end
 function system.getEnvironmentVariable(name)
 	local value = os.getenv(name)
 	if value == nil then
+		logger.error("Environment variable not found: " .. name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end

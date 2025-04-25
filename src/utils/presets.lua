@@ -32,13 +32,13 @@ function presets.validatePreset(presetName)
 	end)
 
 	if not success or type(loadedPreset) ~= "table" then
-		print("Invalid preset found: " .. presetName)
+		errorHandler.setError("Invalid preset found: " .. presetName)
 		return false, nil
 	end
 
 	-- Check essential preset properties
 	if not loadedPreset.background or not loadedPreset.foreground or not loadedPreset.rgb then
-		print("Preset missing required properties: " .. presetName)
+		errorHandler.setError("Preset missing required properties: " .. presetName)
 		return false, nil
 	end
 
