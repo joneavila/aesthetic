@@ -18,6 +18,7 @@ function system.fileExists(path)
 		file:close()
 		return true
 	end
+	errorHandler.setError("File does not exist: " .. path)
 	return false
 end
 
@@ -232,7 +233,7 @@ function system.ensurePath(path)
 end
 
 -- Copy a file and create destination directory if needed
-function system.copyFile(sourcePath, destinationPath, errorMessage)
+function system.copyFile(sourcePath, destinationPath)
 	-- Check if source file exists
 	if not system.fileExists(sourcePath) then
 		errorHandler.setError("Source file does not exist: " .. sourcePath)
@@ -246,7 +247,7 @@ function system.copyFile(sourcePath, destinationPath, errorMessage)
 	end
 
 	-- Copy the file
-	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
+	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath))
 end
 
 -- Get environment variable, setting error if not found
@@ -270,10 +271,10 @@ function system.removeDir(dir)
 end
 
 -- Create a simple text file with the given content
-function system.createTextFile(filePath, content, errorMessage)
+function system.createTextFile(filePath, content)
 	local file = io.open(filePath, "w")
 	if not file then
-		errorHandler.setError(errorMessage or ("Failed to create file: " .. filePath))
+		errorHandler.setError("Failed to create file: " .. filePath)
 		return false
 	end
 	file:write(content)

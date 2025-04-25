@@ -15,23 +15,16 @@ local themeCreator = {}
 
 -- Function to create `name.txt` containing the theme's name
 local function createNameFile()
-	local content = state.applicationName -- Use application name as theme name
-	return system.createTextFile(
-		paths.THEME_NAME_PATH,
-		content,
-		"Failed to create `name.txt` file: " .. paths.THEME_NAME_PATH
-	)
+	-- Use application name as theme name
+	return system.createTextFile(paths.THEME_NAME_PATH, state.applicationName)
 end
 
 -- Function to create boot logo image shown during boot
 local function createBootImage()
-	-- If the file does not exist, return false
 	if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE_PATH) then
-		errorHandler.setError("Boot logo image file does not exist: " .. paths.THEME_BOOTLOGO_SOURCE_PATH)
 		return false
 	end
 
-	-- Create boot logo with muOS logo
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
@@ -43,6 +36,7 @@ local function createBootImage()
 
 	local result = imageGenerator.createIconImage(options)
 	if result == false then
+		errorHandler.setError("Failed to create boot logo image")
 		return false
 	end
 
@@ -51,7 +45,6 @@ end
 
 -- Function to create reboot image shown during reboot
 local function createRebootImage()
-	-- Create reboot image with icon and text
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
@@ -73,7 +66,6 @@ end
 
 -- Function to create shutdown image shown during shutdown
 local function createShutdownImage()
-	-- Create shutdown image with icon and text
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
@@ -100,12 +92,8 @@ end
 
 -- Function to create `credits.txt` file containing the theme's credits
 local function createCreditsFile()
-	local creditsText = "Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic"
-	return system.createTextFile(
-		paths.THEME_CREDITS_PATH,
-		creditsText,
-		"Failed to create `credits.txt` file: " .. paths.THEME_CREDITS_PATH
-	)
+	local content = "Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic"
+	return system.createTextFile(paths.THEME_CREDITS_PATH, content)
 end
 
 -- Function to create `version.txt` file containing the compatible muOS version
@@ -113,7 +101,7 @@ local function createVersionFile()
 	-- Read the content from the source file
 	local content = system.readFile(paths.MUOS_VERSION_PATH)
 	if not content then
-		return false -- Error already set by system.readFile
+		return false
 	end
 
 	-- Extract just the version number using pattern matching
@@ -125,12 +113,7 @@ local function createVersionFile()
 		return false
 	end
 
-	-- Write to the theme version file
-	return system.createTextFile(
-		paths.THEME_VERSION_PATH,
-		versionNumber,
-		"Failed to create `version.txt` file: " .. paths.THEME_VERSION_PATH
-	)
+	return system.createTextFile(paths.THEME_VERSION_PATH, versionNumber)
 end
 
 -- Function to find and copy the selected font file to theme directory based on screen height
@@ -149,6 +132,7 @@ local function copySelectedFont()
 	end
 
 	-- Get font size directory based on user setting
+	-- Font files are stored in the `assets/fonts` directory named after the font size, e.g. assets/fonts/24/nunito.bin
 	local fontSizeDir = fontDefs.getFontSizeDir(state.fontSize)
 
 	-- Copy the selected font file as default.bin
@@ -159,13 +143,7 @@ local function copySelectedFont()
 		.. "_"
 		.. fontSizeDir
 		.. ".bin"
-	if
-		not system.copyFile(
-			fontSourcePath,
-			paths.THEME_DEFAULT_FONT_PATH,
-			"Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")"
-		)
-	then
+	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT_PATH) then
 		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false
 	end
@@ -174,18 +152,11 @@ end
 
 -- Function to create `rgb/rgbconf.sh` file containing the RGB lighting configuration
 local function createRgbConfFile()
-	-- Create RGB configuration file in the working theme directory
 	return rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH)
 end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	-- Create sound directory if it doesn't exist
-	if not system.ensurePath(paths.THEME_SOUND_PATH) then
-		errorHandler.setError("Failed to create sound directory: " .. paths.THEME_SOUND_PATH)
-		return false
-	end
-
 	-- Get list of sound files
 	local soundFiles = { "back.wav", "confirm.wav", "error.wav", "navigate.wav", "reboot.wav", "shutdown.wav" }
 
@@ -194,7 +165,7 @@ local function copySoundFiles()
 		local sourcePath = paths.THEME_SOUND_SOURCE_DIR .. "/" .. filename
 		local destPath = paths.THEME_SOUND_PATH .. "/" .. filename
 
-		if not system.copyFile(sourcePath, destPath, "Failed to copy sound file: " .. filename) then
+		if not system.copyFile(sourcePath, destPath) then
 			return false
 		end
 	end
@@ -204,7 +175,6 @@ end
 
 -- Main function to create theme
 function themeCreator.createTheme()
-	logger.info("Starting theme creation")
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
 		system.removeDir(paths.WORKING_THEME_DIR)
@@ -213,19 +183,17 @@ function themeCreator.createTheme()
 		-- Copy glyph directory and contents
 		logger.debug("Copying glyph directory and contents")
 		if not system.copyDir(paths.THEME_GLYPH_SOURCE_PATH, paths.THEME_GLYPH_PATH) then
-			errorHandler.setError("Failed to copy glyph directory and contents")
 			return false
 		end
 
 		-- Copy scheme directory and contents
 		logger.debug(
-		"Copying scheme directory and contents, source: "
+			"Copying scheme directory and contents, source: "
 				.. paths.THEME_SCHEME_SOURCE_DIR
 				.. ", destination: "
 				.. paths.THEME_SCHEME_DIR
 		)
 		if not system.copyDir(paths.THEME_SCHEME_SOURCE_DIR, paths.THEME_SCHEME_DIR) then
-			logger.error("Failed to copy scheme directory and contents")
 			return false
 		end
 
@@ -255,14 +223,14 @@ function themeCreator.createTheme()
 		end
 
 		-- Get hex colors from state (remove # prefix)
-		local colorReplacementts = {
+		local colorReplacements = {
 			background = state.getColorValue("background"):gsub("^#", ""),
 			foreground = state.getColorValue("foreground"):gsub("^#", ""),
 		}
 
 		-- Replace colors and apply glyph settings to theme files
 		logger.debug("Replacing colors and applying glyph settings to theme files")
-		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, colorReplacementts) then
+		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, colorReplacements) then
 			return false
 		end
 
@@ -351,21 +319,17 @@ end
 
 -- Function to install the theme to muOS active theme directory
 function themeCreator.installTheme(themeName)
-	logger.info("Starting theme installation with theme name: " .. tostring(themeName))
-
 	local status, err = xpcall(function()
 		local cmd = string.format('/opt/muos/script/package/theme.sh install "%s"', themeName)
-		logger.debug("Executing command: " .. cmd)
 		local result = commands.executeCommand(cmd)
-		logger.debug("Command execution result: " .. tostring(result))
 		return result == 0
 	end, debug.traceback)
 
 	if not status then
-		logger.error("Error during installation: " .. tostring(err))
+		errorHandler.setError("Error during installation: " .. tostring(err))
+		return false
 	end
 
-	logger.info("Installation completed with status: " .. tostring(status))
 	return status
 end
 
