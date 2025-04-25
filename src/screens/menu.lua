@@ -11,8 +11,8 @@ local background = require("ui.background")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
-local scrollView = require("ui.scroll_view")
 local textOverlay = require("ui.text_overlay")
+local list = require("ui.list")
 
 local UI_CONSTANTS = require("ui.constants")
 
@@ -52,39 +52,6 @@ local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 -- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
 
--- Helper function to get button display value based on type
-local function getButtonValue(btn)
-	if btn.fontSelection then
-		return state.selectedFont
-	elseif btn.fontSizeToggle then
-		return state.fontSize
-	elseif btn.glyphsToggle then
-		return state.glyphs_enabled and "Enabled" or "Disabled"
-	elseif btn.boxArt then
-		local boxArtText = state.boxArtWidth
-		if boxArtText == "Disabled" then
-			boxArtText = "0 (Disabled)"
-		end
-		return boxArtText
-	elseif btn.rgbLighting then
-		return state.rgbMode
-	end
-	return nil
-end
-
--- Helper function to draw a button based on its type
-local function drawButton(btn, x, y)
-	if btn.text == "Create theme" then
-		button.drawAccented(btn.text, btn.selected, y, state.screenWidth)
-	elseif btn.colorKey then
-		button.drawWithColorPreview(btn.text, btn.selected, x, y, state.screenWidth, state.getColorValue(btn.colorKey))
-	elseif btn.fontSelection or btn.fontSizeToggle or btn.glyphsToggle or btn.boxArt or btn.rgbLighting then
-		button.drawWithTextPreview(btn.text, x, y, btn.selected, state.screenWidth, getButtonValue(btn))
-	else
-		button.draw(btn, x, y, btn.selected, state.screenWidth)
-	end
-end
-
 function menu.load()
 	-- Count regular buttons and calculate visible buttons
 	buttonCount = 0
@@ -97,13 +64,6 @@ function menu.load()
 	local availableHeight = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN - UI_CONSTANTS.BUTTON.PADDING
 	visibleButtonCount =
 		math.max(3, math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)))
-
-	-- Set button width based on whether scrollbar is needed
-	local needsScrollBar = buttonCount > visibleButtonCount
-	UI_CONSTANTS.BUTTON.WIDTH = state.screenWidth
-		- UI_CONSTANTS.BUTTON.PADDING
-		- (needsScrollBar and scrollBarWidth or 0)
-	button.setWidth(UI_CONSTANTS.BUTTON.WIDTH)
 
 	-- Initialize font selection based on state
 	for _, font in ipairs(fontDefs.FONTS) do
@@ -119,45 +79,41 @@ function menu.draw()
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
 
-	-- Draw buttons using scrollView component
-	scrollView.draw({
-		contentCount = buttonCount,
-		visibleCount = visibleButtonCount,
-		scrollPosition = scrollPosition,
+	-- Separate regular buttons from bottom buttons
+	local regularButtons = {}
+	local bottomButtons = {}
+
+	for _, btn in ipairs(menu.BUTTONS) do
+		if btn.isBottomButton then
+			table.insert(bottomButtons, btn)
+		else
+			table.insert(regularButtons, btn)
+		end
+	end
+
+	-- Draw regular buttons with list component
+	list.draw({
+		items = regularButtons,
 		startY = startY,
-		contentHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		contentPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		scrollPosition = scrollPosition,
+		visibleCount = visibleButtonCount,
 		screenWidth = state.screenWidth,
 		scrollBarWidth = scrollBarWidth,
-		contentDrawFunc = function()
-			local regularButtonCount = 0
-			local visibleRegularButtonCount = 0
+	})
 
-			for _, btn in ipairs(menu.BUTTONS) do
-				-- Skip buttons that are outside the visible range
-				if not btn.isBottomButton then
-					regularButtonCount = regularButtonCount + 1
-
-					-- Skip if button is scrolled out of view
-					if
-						regularButtonCount <= scrollPosition
-						or regularButtonCount > scrollPosition + visibleButtonCount
-					then
-						goto continue
-					end
-
-					visibleRegularButtonCount = visibleRegularButtonCount + 1
-				end
-
-				local y = btn.isBottomButton and state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
-					or startY
-						+ (visibleRegularButtonCount - 1) * (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)
-
-				drawButton(btn, 0, y)
-
-				::continue::
-			end
-		end,
+	-- Draw bottom buttons separately with list component
+	-- Position at bottom of screen
+	local bottomY = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
+	list.draw({
+		items = bottomButtons,
+		startY = bottomY,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = 0, -- No padding needed for single bottom button
+		scrollPosition = 0,
+		visibleCount = 1,
+		screenWidth = state.screenWidth,
 	})
 
 	-- Draw modal if active
@@ -370,37 +326,35 @@ function menu.update(dt)
 		return
 	end
 
-	local moved = false
+	-- Split buttons into navigation groups
+	local regularButtons = {}
+	local bottomButtons = {}
+	local navButtons = {} -- Combined navigation order
 
-	-- Get ordered list of buttons for navigation
-	local navButtons = {}
-
-	-- Add buttons in navigation order (non-bottom buttons first, then bottom buttons)
-	for _, btn in ipairs(menu.BUTTONS) do
-		if not btn.isBottomButton then
-			table.insert(navButtons, btn)
-		end
-	end
+	-- Collect regular and bottom buttons separately
 	for _, btn in ipairs(menu.BUTTONS) do
 		if btn.isBottomButton then
-			table.insert(navButtons, btn)
+			table.insert(bottomButtons, btn)
+		else
+			table.insert(regularButtons, btn)
 		end
 	end
 
-	-- Handle D-pad
+	-- Build the navigation order (regular buttons first, then bottom buttons)
+	for _, btn in ipairs(regularButtons) do
+		table.insert(navButtons, btn)
+	end
+	for _, btn in ipairs(bottomButtons) do
+		table.insert(navButtons, btn)
+	end
+
+	-- Handle D-pad navigation
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
 
-		for i, btn in ipairs(navButtons) do
-			if btn.selected then
-				btn.selected = false
-				local nextIndex = direction == -1 and (i > 1 and i - 1 or #navButtons)
-					or (i < #navButtons and i + 1 or 1)
-				navButtons[nextIndex].selected = true
-				moved = true
-				break
-			end
-		end
+		-- Use list navigation helper
+		list.navigate(navButtons, direction)
+		state.resetInputTimer()
 	end
 
 	-- Handle B button (Exit)
@@ -417,11 +371,6 @@ function menu.update(dt)
 		return
 	end
 
-	-- Reset input timer if moved
-	if moved then
-		state.resetInputTimer()
-	end
-
 	-- Handle A button (Select)
 	if virtualJoystick:isGamepadDown("a") then
 		-- Find which button is selected
@@ -434,17 +383,10 @@ function menu.update(dt)
 	end
 
 	-- Update scroll position based on selected button
-	local selectedButtonIndex = nil
-	for i, btn in ipairs(navButtons) do
-		if btn.selected and not btn.isBottomButton then
-			selectedButtonIndex = i
-			break
-		end
-	end
-
-	if selectedButtonIndex and not navButtons[selectedButtonIndex].isBottomButton then
-		scrollPosition = scrollView.adjustScrollPosition({
-			selectedIndex = selectedButtonIndex,
+	local selectedIndex = list.findSelectedIndex(regularButtons)
+	if selectedIndex > 0 then -- Only adjust if a regular button is selected
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
 			scrollPosition = scrollPosition,
 			visibleCount = visibleButtonCount,
 		})

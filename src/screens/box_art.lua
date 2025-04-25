@@ -3,9 +3,10 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
-local ui_button = require("ui.button")
 local header = require("ui.header")
 local background = require("ui.background")
+local list = require("ui.list")
+local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local box_art = {}
@@ -14,23 +15,18 @@ local box_art = {}
 local switchScreen = nil
 local MENU_SCREEN = "menu"
 
--- Button dimensions and position
-local BUTTON = {
-	WIDTH = nil, -- Will be calculated in load()
-	HEIGHT = 50,
-	PADDING = 20,
-	START_Y = nil, -- Will be calculated in load()
-}
-
 -- Box art width options will be generated dynamically in load()
 local BOX_ART_WIDTH_OPTIONS = { "Disabled" }
+
+-- List handling variables
+local scrollPosition = 0
+local visibleCount = 0
 
 -- Buttons in this screen
 local BUTTONS = {
 	{
 		text = "Box art width",
 		selected = true,
-		value = "Disabled", -- Default value, will be updated in load() based on state
 		options = BOX_ART_WIDTH_OPTIONS,
 		currentOption = 1, -- Will be updated in load() based on state
 	},
@@ -59,9 +55,6 @@ local function generateWidthOptions()
 end
 
 function box_art.load()
-	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
-	BUTTON.START_Y = BUTTON.PADDING
-
 	-- Generate width options
 	generateWidthOptions()
 
@@ -93,33 +86,37 @@ function box_art.draw()
 	-- Set font
 	love.graphics.setFont(state.fonts.body)
 
-	-- Draw the button
-	local button = BUTTONS[1]
-	local y = BUTTON.START_Y + header.HEIGHT
+	-- Calculate starting Y position for the list (after header)
+	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
 
-	-- Get current value and format it
-	local currentValue = BOX_ART_WIDTH_OPTIONS[button.currentOption]
-	local valueText = tostring(currentValue)
-	if valueText == "Disabled" then
-		valueText = "0 (Disabled)"
-	end
+	-- Draw the button list
+	local result = list.draw({
+		items = BUTTONS,
+		startY = startY,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		scrollPosition = scrollPosition,
+		screenWidth = state.screenWidth,
+	})
 
-	-- Draw the button with triangles using the UI button helper
-	ui_button.drawWithIndicators(button.text, 0, y, button.selected, button.disabled, state.screenWidth, valueText)
+	visibleCount = result.visibleCount
+
+	-- Get current value for preview
+	local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
 
 	-- Draw preview rectangles
 	local previewHeight = 100
 	local previewYOffset = 40
-	local previewY = y + BUTTON.HEIGHT + previewYOffset
+	local previewY = startY + UI_CONSTANTS.BUTTON.HEIGHT + previewYOffset
 
 	-- Draw labels for the preview
 	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.setFont(state.fonts.body)
 	love.graphics.printf(
 		"Preview",
-		BUTTON.PADDING,
-		y + BUTTON.HEIGHT + 10,
-		state.screenWidth - BUTTON.PADDING * 2,
+		UI_CONSTANTS.BUTTON.PADDING,
+		startY + UI_CONSTANTS.BUTTON.HEIGHT + 10,
+		state.screenWidth - UI_CONSTANTS.BUTTON.PADDING * 2,
 		"left"
 	)
 

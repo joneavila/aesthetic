@@ -6,6 +6,8 @@ local controls = require("controls")
 local fontDefs = require("ui.font_defs")
 local header = require("ui.header")
 local background = require("ui.background")
+local list = require("ui.list")
+local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local font = {}
@@ -13,11 +15,8 @@ local font = {}
 -- Screen switching
 local switchScreen = nil
 
--- Constants for font screen
-local FONT_SCREEN = {
-	PADDING = 20,
-	ITEM_HEIGHT = 50,
-	PREVIEW_PADDING = 20,
+-- Constants specific to the font preview
+local FONT_PREVIEW = {
 	PREVIEW_TEXT = "The quick brown fox jumps over the lazy dog. 0123456789 !@#$%^&*()_+-=[]{};:'\",.\\<>/?`~",
 	PREVIEW_BG_CORNER_RADIUS = 10,
 	PREVIEW_BOTTOM_MARGIN = 15, -- Margin between preview box and controls
@@ -25,20 +24,59 @@ local FONT_SCREEN = {
 
 -- Font items with their selected state
 local fontItems = {}
+local scrollPosition = 0
+local visibleCount = 0
 
 -- Initialize font items based on fontDefs.FONTS
 local function initFontItems()
 	fontItems = {}
+	local foundSelected = false
+
 	for _, fontItem in ipairs(fontDefs.FONTS) do
+		local isSelected = fontItem.name == state.selectedFont
+
+		if isSelected then
+			foundSelected = true
+		end
+
 		table.insert(fontItems, {
-			name = fontItem.name,
-			selected = fontItem.name == state.selectedFont,
+			text = fontItem.name,
+			selected = isSelected,
+			value = fontItem.name,
 		})
+	end
+
+	-- If no font was selected, select the first one by default
+	if not foundSelected and #fontItems > 0 then
+		fontItems[1].selected = true
 	end
 end
 
 function font.load()
 	initFontItems()
+end
+
+-- Custom draw function for font items to use their own font
+local function drawFontItem(item, index, x, y)
+	-- The button background and standard text is already drawn by the list component
+	-- Here we just need to override the text with the custom font
+
+	-- First, clear the area where the standard text was drawn
+	-- Match the area with the exact standard text dimensions
+	local textHeight = state.fonts.body:getHeight()
+	local textWidth = state.fonts.body:getWidth(item.text)
+	love.graphics.setColor(item.selected and colors.ui.surface or colors.ui.background)
+	love.graphics.rectangle("fill", x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2, textWidth, textHeight)
+
+	-- Now draw the text with the custom font
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(state.getFontByName(item.text))
+
+	-- Get the text height for vertical centering with the new font
+	local customTextHeight = love.graphics.getFont():getHeight()
+
+	-- Draw the text with proper padding (the same as standard buttons)
+	love.graphics.print(item.text, x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - customTextHeight) / 2)
 end
 
 function font.draw()
@@ -48,33 +86,17 @@ function font.draw()
 	-- Draw header with title using the UI component
 	header.draw("Font family")
 
-	-- Draw font items
-	local startY = header.HEIGHT + FONT_SCREEN.PADDING
+	-- Calculate available space for list
+	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
 
-	for i, item in ipairs(fontItems) do
-		local y = startY + (i - 1) * (FONT_SCREEN.ITEM_HEIGHT + FONT_SCREEN.PADDING)
-
-		-- Draw item background if selected
-		if item.selected then
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle("fill", 0, y, state.screenWidth, FONT_SCREEN.ITEM_HEIGHT, 0)
-		end
-
-		-- Draw item text in its own font
-		love.graphics.setColor(colors.ui.foreground)
-
-		-- Use getFontByName to get the appropriate font instead of if-else statements
-		love.graphics.setFont(state.getFontByName(item.name))
-
-		local textHeight = love.graphics.getFont():getHeight()
-		love.graphics.print(item.name, FONT_SCREEN.PADDING, y + (FONT_SCREEN.ITEM_HEIGHT - textHeight) / 2)
-	end
+	-- Calculate preview position at bottom of screen, above controls
+	local previewHeight = 0
 
 	-- Find the currently hovered font
-	local hoveredFontName = state.selectedFont -- Default to selected font
+	local hoveredFontName = state.selectedFont
 	for _, item in ipairs(fontItems) do
 		if item.selected then
-			hoveredFontName = item.name
+			hoveredFontName = item.text
 			break
 		end
 	end
@@ -82,35 +104,49 @@ function font.draw()
 	-- Set the font for preview text using getFontByName
 	love.graphics.setFont(state.getFontByName(hoveredFontName))
 
-	-- Calculate preview text area dimensions
-	local previewWidth = state.screenWidth - (FONT_SCREEN.PADDING * 2)
-
 	-- Calculate preview text height for background
-	local _, textLines =
-		love.graphics.getFont():getWrap(FONT_SCREEN.PREVIEW_TEXT, previewWidth - (FONT_SCREEN.PADDING * 2))
-	local textHeight = #textLines * love.graphics.getFont():getHeight() + FONT_SCREEN.PADDING * 2
+	local _, textLines = love.graphics
+		.getFont()
+		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 2))
+	previewHeight = #textLines * love.graphics.getFont():getHeight() + UI_CONSTANTS.BUTTON.PADDING * 2
 
-	-- Calculate preview position at bottom of screen, above controls
-	local previewY = state.screenHeight - controls.HEIGHT - textHeight - FONT_SCREEN.PREVIEW_BOTTOM_MARGIN
+	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
+
+	-- Calculate available space for the list
+	local availableHeight = previewY - startY
+
+	-- Draw the font list
+	local result = list.draw({
+		items = fontItems,
+		startY = startY,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		scrollPosition = scrollPosition,
+		screenWidth = state.screenWidth,
+		customDrawFunc = drawFontItem,
+		visibleCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)),
+	})
+
+	visibleCount = result.visibleCount
 
 	-- Draw rounded background for preview text
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle(
 		"fill",
-		FONT_SCREEN.PADDING,
+		UI_CONSTANTS.BUTTON.PADDING,
 		previewY,
-		previewWidth,
-		textHeight,
-		FONT_SCREEN.PREVIEW_BG_CORNER_RADIUS
+		state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 2),
+		previewHeight,
+		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
 
 	-- Draw preview text
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf(
-		FONT_SCREEN.PREVIEW_TEXT,
-		FONT_SCREEN.PADDING * 2,
-		previewY + FONT_SCREEN.PADDING,
-		previewWidth - (FONT_SCREEN.PADDING * 2),
+		FONT_PREVIEW.PREVIEW_TEXT,
+		UI_CONSTANTS.BUTTON.PADDING * 2,
+		previewY + UI_CONSTANTS.BUTTON.PADDING,
+		state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 4),
 		"left"
 	)
 
@@ -128,33 +164,22 @@ function font.update(_dt)
 	end
 
 	local virtualJoystick = require("input").virtualJoystick
-	local moved = false
 
 	-- Handle D-pad up/down navigation
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
 
-		-- Find currently selected item
-		local currentIndex = 1
-		for i, item in ipairs(fontItems) do
-			if item.selected then
-				currentIndex = i
-				item.selected = false
-				break
-			end
-		end
+		-- Use the list navigation helper
+		local selectedIndex = list.navigate(fontItems, direction)
 
-		-- Calculate new index with wrapping
-		local newIndex = currentIndex + direction
-		if newIndex < 1 then
-			newIndex = #fontItems
-		elseif newIndex > #fontItems then
-			newIndex = 1
-		end
+		-- Update scroll position
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
 
-		-- Select new item
-		fontItems[newIndex].selected = true
-		moved = true
+		state.resetInputTimer()
 	end
 
 	-- Handle B button (Back to menu)
@@ -171,11 +196,11 @@ function font.update(_dt)
 		for _, item in ipairs(fontItems) do
 			if item.selected then
 				-- Update the selected font in state
-				state.selectedFont = item.name
+				state.selectedFont = item.text
 
 				-- Update fontDefs.FONTS to match
 				for _, fontItem in ipairs(fontDefs.FONTS) do
-					fontItem.selected = (fontItem.name == item.name)
+					fontItem.selected = (fontItem.name == item.text)
 				end
 
 				-- Return to menu
@@ -188,11 +213,6 @@ function font.update(_dt)
 			end
 		end
 	end
-
-	-- Reset input timer if moved
-	if moved then
-		state.resetInputTimer()
-	end
 end
 
 function font.setScreenSwitcher(switchFunc)
@@ -203,6 +223,7 @@ end
 function font.onEnter()
 	-- Reinitialize font items to ensure they match the current state
 	initFontItems()
+	scrollPosition = 0
 end
 
 return font

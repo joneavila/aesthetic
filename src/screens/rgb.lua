@@ -3,9 +3,10 @@ local love = require("love")
 local state = require("state")
 local controls = require("controls")
 local rgbUtils = require("utils.rgb")
-local ui_button = require("ui.button")
 local header = require("ui.header")
 local background = require("ui.background")
+local list = require("ui.list")
+local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local rgb = {}
@@ -14,9 +15,6 @@ local rgb = {}
 local switchScreen = nil
 local MENU_SCREEN = "menu"
 local COLOR_PICKER_SCREEN = "color_picker"
-
--- Constants for styling
-local HEADER_HEIGHT = 50
 
 -- RGB mode options
 local RGB_MODES = {
@@ -29,21 +27,15 @@ local RGB_MODES = {
 	"Off",
 }
 
--- Button dimensions and position
-local BUTTON = {
-	WIDTH = nil, -- Will be calculated in load()
-	HEIGHT = 50,
-	PADDING = 20,
-	START_Y = nil, -- Will be calculated in load()
-	COLOR_DISPLAY_SIZE = 30,
-}
+-- List handling variables
+local scrollPosition = 0
+local visibleCount = 0
 
 -- Buttons in this screen
 local BUTTONS = {
 	{
 		text = "Mode",
 		selected = true,
-		value = state.rgbMode,
 		options = RGB_MODES,
 		currentOption = 1, -- Will be updated in load() based on state.rgbMode
 	},
@@ -55,18 +47,18 @@ local BUTTONS = {
 	{
 		text = "Brightness",
 		selected = false,
-		value = state.rgbBrightness,
 		min = 1,
 		max = 10,
 		step = 1,
+		value = 5, -- Will be updated in load() based on state.rgbBrightness
 	},
 	{
 		text = "Speed",
 		selected = false,
-		value = state.rgbSpeed,
 		min = 1,
 		max = 10,
 		step = 1,
+		value = 5, -- Will be updated in load() based on state.rgbSpeed
 	},
 }
 
@@ -92,10 +84,8 @@ local function isBrightnessDisabled()
 	return currentMode == "Off"
 end
 
-function rgb.load()
-	BUTTON.WIDTH = state.screenWidth - (BUTTON.PADDING * 2)
-	BUTTON.START_Y = BUTTON.PADDING
-
+-- Update UI state based on current state values
+local function updateButtonStates()
 	-- Set the correct current option index based on state.rgbMode
 	for i, option in ipairs(RGB_MODES) do
 		if option == state.rgbMode then
@@ -103,6 +93,19 @@ function rgb.load()
 			break
 		end
 	end
+
+	-- Update brightness and speed values
+	BUTTONS[3].value = state.rgbBrightness
+	BUTTONS[4].value = state.rgbSpeed
+
+	-- Update disabled states
+	BUTTONS[2].disabled = isColorDisabled()
+	BUTTONS[3].disabled = isBrightnessDisabled()
+	BUTTONS[4].disabled = isSpeedDisabled()
+end
+
+function rgb.load()
+	updateButtonStates()
 end
 
 function rgb.draw()
@@ -115,60 +118,20 @@ function rgb.draw()
 	-- Set font to body font to match menu.lua
 	love.graphics.setFont(state.fonts.body)
 
-	-- Draw each button
-	for i, button in ipairs(BUTTONS) do
-		local y = HEADER_HEIGHT + BUTTON.START_Y + (i - 1) * (BUTTON.HEIGHT + BUTTON.PADDING)
+	-- Calculate start Y position for the list
+	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
 
-		-- Check if button should be disabled
-		local disabled = (button.text == "Color" and isColorDisabled())
-			or (button.text == "Speed" and isSpeedDisabled())
-			or (button.text == "Brightness" and isBrightnessDisabled())
+	-- Draw the list using our list component
+	local result = list.draw({
+		items = BUTTONS,
+		startY = startY,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		scrollPosition = scrollPosition,
+		screenWidth = state.screenWidth,
+	})
 
-		-- Set disabled state in button data for UI components
-		button.disabled = disabled
-
-		-- Draw current option value on the right side for Mode button
-		if button.options then
-			local currentValue = button.options[button.currentOption]
-			ui_button.drawWithIndicators(
-				button.text,
-				0,
-				y,
-				button.selected,
-				button.disabled,
-				state.screenWidth,
-				currentValue
-			)
-
-		-- Draw color preview for Color button
-		elseif button.colorKey then
-			local colorValue = state.getColorValue(button.colorKey)
-
-			ui_button.drawWithColorPreview(
-				button.text,
-				button.selected,
-				0,
-				y,
-				state.screenWidth,
-				colorValue,
-				button.disabled
-			)
-
-		-- Draw brightness/speed value with triangles
-		elseif button.min ~= nil and button.max ~= nil then
-			local currentValue = button.text == "Brightness" and state.rgbBrightness or state.rgbSpeed
-			local valueText = tostring(currentValue)
-			ui_button.drawWithIndicators(
-				button.text,
-				0,
-				y,
-				button.selected,
-				button.disabled,
-				state.screenWidth,
-				valueText
-			)
-		end
-	end
+	visibleCount = result.visibleCount
 
 	-- Draw controls
 	controls.draw({
@@ -189,26 +152,16 @@ function rgb.update(_dt)
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
 
-		-- Find currently selected button
-		local currentIndex = 1
-		for i, button in ipairs(BUTTONS) do
-			if button.selected then
-				currentIndex = i
-				button.selected = false
-				break
-			end
-		end
+		-- Use list navigation helper
+		local selectedIndex = list.navigate(BUTTONS, direction)
 
-		-- Calculate new index with wrapping
-		local newIndex = currentIndex + direction
-		if newIndex < 1 then
-			newIndex = #BUTTONS
-		elseif newIndex > #BUTTONS then
-			newIndex = 1
-		end
+		-- Update scroll position
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
 
-		-- Select new button
-		BUTTONS[newIndex].selected = true
 		state.resetInputTimer()
 	end
 
@@ -218,7 +171,7 @@ function rgb.update(_dt)
 
 		for _, button in ipairs(BUTTONS) do
 			if button.selected then
-				if button.options then
+				if button.options and not button.disabled then
 					-- Calculate new option index
 					local newIndex = button.currentOption + direction
 
@@ -235,23 +188,20 @@ function rgb.update(_dt)
 					-- Update state with selected option
 					state.rgbMode = button.options[button.currentOption]
 
+					-- Update disabled states based on new mode
+					updateButtonStates()
+
 					-- Apply RGB settings immediately
 					rgbUtils.updateConfig()
 
 					state.resetInputTimer()
 					break
-				elseif button.min ~= nil and button.max ~= nil then
+				elseif button.min ~= nil and button.max ~= nil and not button.disabled then
 					-- Handle brightness or speed adjustment
 					local isSpeed = button.text == "Speed"
 					local isBrightness = button.text == "Brightness"
 
-					-- Skip if speed is disabled
-					if (isSpeed and isSpeedDisabled()) or (isBrightness and isBrightnessDisabled()) then
-						break
-					end
-
-					local currentValue = isSpeed and state.rgbSpeed or state.rgbBrightness
-					local newValue = currentValue + (direction * button.step)
+					local newValue = button.value + (direction * button.step)
 
 					-- Clamp to min/max
 					if newValue < button.min then
@@ -259,6 +209,9 @@ function rgb.update(_dt)
 					elseif newValue > button.max then
 						newValue = button.max
 					end
+
+					-- Update button value
+					button.value = newValue
 
 					-- Update state
 					if isSpeed then
@@ -287,8 +240,8 @@ function rgb.update(_dt)
 	-- Handle A button to go to color picker for RGB color
 	if virtualJoystick:isGamepadDown("a") then
 		for _, button in ipairs(BUTTONS) do
-			if button.selected and button.colorKey and switchScreen and not isColorDisabled() then
-				-- Open color picker for this color, but only if not disabled
+			if button.selected and button.colorKey and switchScreen and not button.disabled then
+				-- Open color picker for this color
 				state.activeColorContext = button.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
 				switchScreen(COLOR_PICKER_SCREEN)
@@ -304,13 +257,8 @@ function rgb.setScreenSwitcher(switchFunc)
 end
 
 function rgb.onEnter()
-	-- Set the correct current option index based on state.rgbMode
-	for i, option in ipairs(RGB_MODES) do
-		if option == state.rgbMode then
-			BUTTONS[1].currentOption = i
-			break
-		end
-	end
+	-- Update button states based on current settings
+	updateButtonStates()
 
 	-- Apply RGB settings in case they were changed in the color picker
 	rgbUtils.updateConfig()
