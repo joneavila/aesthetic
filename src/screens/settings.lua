@@ -80,7 +80,6 @@ function settings.draw()
 
 	-- Draw controls at bottom of screen
 	controls.draw({
-		{ button = "d_pad", text = "Navigate" },
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	})

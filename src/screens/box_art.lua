@@ -172,7 +172,7 @@ function box_art.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ button = "d_pad", text = "Navigate / Change value" },
+		{ button = "d_pad", text = "Change value" },
 		{ button = "b", text = "Back" },
 	})
 end
