@@ -67,11 +67,7 @@ local function getButtonValue(btn)
 		end
 		return boxArtText
 	elseif btn.rgbLighting then
-		local statusText = state.rgbMode
-		if state.rgbMode ~= "Off" then
-			statusText = statusText .. " (" .. state.rgbBrightness .. ")"
-		end
-		return statusText
+		return state.rgbMode
 	end
 	return nil
 end
