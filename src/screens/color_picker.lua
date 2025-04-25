@@ -5,6 +5,7 @@ local state = require("state")
 local constants = require("screens.color_picker.constants")
 local errorHandler = require("error_handler")
 local header = require("ui.header")
+local tween = require("tween") -- Import the tween library
 
 -- Import sub-screens
 local paletteScreen = require("screens.color_picker.palette")
@@ -22,6 +23,7 @@ local TAB_CONTAINER_PADDING = 15
 local TAB_TEXT_PADDING = 8 -- Add padding for tab text (8px)
 local TAB_CONTAINER_HEIGHT = (colorPicker.TAB_HEIGHT * 1.4) - (TAB_CONTAINER_PADDING * 2) + (TAB_TEXT_PADDING * 2)
 local TAB_CORNER_RADIUS = TAB_CONTAINER_HEIGHT / 4
+local TAB_ANIMATION_DURATION = 0.2 -- Animation duration in seconds
 
 -- Tab definitions
 local tabs = {
@@ -29,6 +31,16 @@ local tabs = {
 	{ name = "HSV", screen = hsvScreen, active = false },
 	{ name = "Hex", screen = hexScreen, active = false },
 }
+
+-- Animation for the sliding indicator
+local tabIndicator = {
+	x = 0,
+	width = 0,
+	animation = nil,
+}
+
+-- Animation for text colors
+local tabTextColors = {}
 
 -- Screen switching
 local switchScreen = nil
@@ -43,6 +55,45 @@ local function getActiveTab()
 	return tabs[1], 1 -- Default to first tab if none active
 end
 
+-- Helper function to initialize text color animations
+local function initializeTextColors()
+	for i = 1, #tabs do
+		tabTextColors[i] = {
+			color = { 0, 0, 0, 1 }, -- Will be initialized properly
+			animation = nil,
+		}
+	end
+end
+
+-- Helper function to update the tab animations
+local function updateTabAnimations()
+	local activeTab, activeIndex = getActiveTab()
+
+	-- Create target position based on active tab
+	local targetX = activeTab.x
+	local targetWidth = activeTab.width
+
+	-- Create or update the tween for sliding motion
+	tabIndicator.animation =
+		tween.new(TAB_ANIMATION_DURATION, tabIndicator, { x = targetX, width = targetWidth }, "inOutQuad")
+
+	-- Update text color animations
+	for i, tab in ipairs(tabs) do
+		local targetColor
+		if tab.active then
+			-- Active tab text color (bright)
+			targetColor = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }
+		else
+			-- Inactive tab text color (dim)
+			targetColor = { colors.ui.subtext[1], colors.ui.subtext[2], colors.ui.subtext[3], 1 }
+		end
+
+		-- Create or update the tween for text color
+		tabTextColors[i].animation =
+			tween.new(TAB_ANIMATION_DURATION, tabTextColors[i], { color = targetColor }, "inOutQuad")
+	end
+end
+
 -- Helper function to switch to a specific tab by name
 local function switchToTab(tabName)
 	for _, tab in ipairs(tabs) do
@@ -53,6 +104,10 @@ local function switchToTab(tabName)
 			end
 			-- Activate the requested tab
 			tab.active = true
+
+			-- Update all animations
+			updateTabAnimations()
+
 			-- Call onEnter for the newly activated tab if it exists
 			if tab.screen.onEnter then
 				tab.screen.onEnter()
@@ -86,6 +141,26 @@ function colorPicker.load()
 		tab.x = TAB_CONTAINER_PADDING + (i - 1) * tabWidth
 		tab.width = tabWidth
 	end
+
+	-- Initialize the tab indicator
+	local activeTab = getActiveTab()
+	tabIndicator.x = activeTab.x
+	tabIndicator.width = activeTab.width
+
+	-- Initialize text colors
+	initializeTextColors()
+
+	-- Set initial text colors
+	for i, tab in ipairs(tabs) do
+		if tab.active then
+			tabTextColors[i].color = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }
+		else
+			tabTextColors[i].color = { colors.ui.subtext[1], colors.ui.subtext[2], colors.ui.subtext[3], 1 }
+		end
+	end
+
+	-- Set up initial animation state
+	updateTabAnimations()
 
 	-- Load all sub-screens
 	for _, tab in ipairs(tabs) do
@@ -148,39 +223,28 @@ function colorPicker.draw()
 		TAB_CORNER_RADIUS
 	)
 
-	-- Draw tabs
-	for _, tab in ipairs(tabs) do
+	-- Draw the sliding tab indicator
+	love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.9)
+	love.graphics.rectangle(
+		"fill",
+		tabIndicator.x,
+		header.HEIGHT,
+		tabIndicator.width,
+		TAB_CONTAINER_HEIGHT,
+		TAB_CORNER_RADIUS,
+		TAB_CORNER_RADIUS
+	)
+
+	-- Draw tabs (text only, since the background indicator is drawn separately)
+	for i, tab in ipairs(tabs) do
 		local tabY = header.HEIGHT
 
 		-- Calculate tab position to ensure it fits flush with the container
 		local tabX = tab.x
 		local tabWidth = tab.width
 
-		-- All tabs have the same corner radius as the container
-		local cornerRadius = TAB_CORNER_RADIUS
-
-		if tab.active then
-			-- Active tab with accent color background
-			love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.9)
-		else
-			-- Inactive tab background (transparent)
-			love.graphics.setColor(
-				colors.ui.background[1] * 1.3,
-				colors.ui.background[2] * 1.3,
-				colors.ui.background[3] * 1.3,
-				0.7
-			)
-		end
-
-		-- Draw tab background
-		love.graphics.rectangle("fill", tabX, tabY, tabWidth, TAB_CONTAINER_HEIGHT, cornerRadius, cornerRadius)
-
-		-- Tab text
-		if tab.active then
-			love.graphics.setColor(colors.ui.background)
-		else
-			love.graphics.setColor(colors.ui.subtext)
-		end
+		-- Use animated text color
+		love.graphics.setColor(tabTextColors[i].color)
 		love.graphics.setFont(state.fonts.body)
 		love.graphics.printf(
 			tab.name,
@@ -197,6 +261,18 @@ function colorPicker.update(dt)
 	local activeTab, activeIndex = getActiveTab()
 	if activeTab.screen.update then
 		activeTab.screen.update(dt)
+	end
+
+	-- Update tab indicator animation
+	if tabIndicator.animation then
+		tabIndicator.animation:update(dt)
+	end
+
+	-- Update text color animations
+	for i, textColorAnim in ipairs(tabTextColors) do
+		if textColorAnim.animation then
+			textColorAnim.animation:update(dt)
+		end
 	end
 
 	if state.canProcessInput() then
@@ -223,6 +299,9 @@ function colorPicker.update(dt)
 				tab.active = (i == newIndex)
 			end
 
+			-- Update tab animations
+			updateTabAnimations()
+
 			-- Call onEnter for the newly activated tab if it exists
 			if tabs[newIndex].screen.onEnter then
 				tabs[newIndex].screen.onEnter()
@@ -239,6 +318,9 @@ function colorPicker.update(dt)
 			for i, tab in ipairs(tabs) do
 				tab.active = (i == newIndex)
 			end
+
+			-- Update tab animations
+			updateTabAnimations()
 
 			-- Call onEnter for the newly activated tab if it exists
 			if tabs[newIndex].screen.onEnter then
@@ -264,6 +346,9 @@ function colorPicker.onEnter(tabName)
 		for i, tab in ipairs(tabs) do
 			tab.active = (i == 1)
 		end
+
+		-- Update tab animations
+		updateTabAnimations()
 
 		-- Call onEnter for palette screen if it exists
 		if tabs[1].screen.onEnter then
