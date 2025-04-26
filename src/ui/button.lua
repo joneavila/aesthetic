@@ -225,7 +225,9 @@ function button.drawAccented(text, isSelected, y, screenWidth, buttonWidth)
 
 		-- Draw text
 		love.graphics.setColor(colors.ui.background)
-		love.graphics.print(text, buttonX + (buttonWidth - textWidth) / 2, y + (buttonHeight - font:getHeight()) / 2)
+		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
+		local textY = math.floor(y + (buttonHeight - font:getHeight()) / 2)
+		love.graphics.print(text, textX, textY)
 	else
 		-- Unselected state: background with surface outline
 		love.graphics.setColor(colors.ui.background)
@@ -238,7 +240,9 @@ function button.drawAccented(text, isSelected, y, screenWidth, buttonWidth)
 
 		-- Draw text
 		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(text, buttonX + (buttonWidth - textWidth) / 2, y + (buttonHeight - font:getHeight()) / 2)
+		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
+		local textY = math.floor(y + (buttonHeight - font:getHeight()) / 2)
+		love.graphics.print(text, textX, textY)
 	end
 end
 
