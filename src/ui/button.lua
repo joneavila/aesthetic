@@ -19,7 +19,7 @@ local TRIANGLE = {
 local function drawButtonBackground(y, width, isSelected)
 	if isSelected then
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", 10, y, width, UI_CONSTANTS.BUTTON.HEIGHT, 8)
+		love.graphics.rectangle("fill", 10, y, width, UI_CONSTANTS.BUTTON.HEIGHT, UI_CONSTANTS.BUTTON.CORNER_RADIUS)
 	end
 end
 
@@ -169,7 +169,7 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 			colorY,
 			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
 			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-			4
+			UI_CONSTANTS.BUTTON.CORNER_RADIUS / 2 -- Using half the button corner radius for the color square
 		)
 
 		-- Draw border around color square
@@ -181,7 +181,7 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 			colorY,
 			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
 			UI_CONSTANTS.BUTTON.COLOR_DISPLAY_SIZE,
-			4
+			UI_CONSTANTS.BUTTON.CORNER_RADIUS / 2 -- Using half the button corner radius for the color square
 		)
 
 		-- Draw color hex code
@@ -206,11 +206,14 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 end
 
 -- Function to draw an accented centered button (like "Create theme")
-function button.drawAccented(text, isSelected, y, screenWidth)
+function button.drawAccented(text, isSelected, y, screenWidth, buttonWidth)
 	local font = love.graphics.getFont()
-	local padding = 180
+	local padding = 20
 	local textWidth = font:getWidth(text)
-	local buttonWidth = textWidth + (padding * 2)
+
+	-- Use provided buttonWidth or calculate default
+	buttonWidth = buttonWidth or (textWidth + (180 * 2))
+
 	local buttonX = (screenWidth - buttonWidth) / 2
 	local cornerRadius = UI_CONSTANTS.BUTTON.CORNER_RADIUS
 	local buttonHeight = UI_CONSTANTS.BUTTON.HEIGHT
@@ -222,7 +225,7 @@ function button.drawAccented(text, isSelected, y, screenWidth)
 
 		-- Draw text
 		love.graphics.setColor(colors.ui.background)
-		love.graphics.print(text, buttonX + padding, y + (buttonHeight - font:getHeight()) / 2)
+		love.graphics.print(text, buttonX + (buttonWidth - textWidth) / 2, y + (buttonHeight - font:getHeight()) / 2)
 	else
 		-- Unselected state: background with surface outline
 		love.graphics.setColor(colors.ui.background)
@@ -235,7 +238,7 @@ function button.drawAccented(text, isSelected, y, screenWidth)
 
 		-- Draw text
 		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(text, buttonX + padding, y + (buttonHeight - font:getHeight()) / 2)
+		love.graphics.print(text, buttonX + (buttonWidth - textWidth) / 2, y + (buttonHeight - font:getHeight()) / 2)
 	end
 end
 

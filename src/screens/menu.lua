@@ -115,7 +115,8 @@ function menu.draw()
 
 	if createThemeButton then
 		local bottomY = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
-		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth)
+		local buttonWidth = state.screenWidth - 24
+		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth, buttonWidth)
 	end
 
 	-- Draw modal if active

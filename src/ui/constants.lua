@@ -7,7 +7,7 @@ local UI_CONSTANTS = {
 		HEIGHT = 50,
 		PADDING = 20,
 		COLOR_DISPLAY_SIZE = 30,
-		CORNER_RADIUS = 8,
+		CORNER_RADIUS = 8, -- Corner radius for all buttons
 		SELECTED_OUTLINE_WIDTH = 4,
 		BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 	},
