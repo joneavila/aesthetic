@@ -164,22 +164,22 @@ function hex.draw()
 
 	-- Draw # symbol
 	love.graphics.setColor(textColor)
-	love.graphics.setFont(state.fonts.header)
-	local hashWidth = state.fonts.header:getWidth("#")
+	love.graphics.setFont(state.fonts.monoHeader)
+	local hashWidth = state.fonts.monoHeader:getWidth("#")
 	love.graphics.print(
 		"#",
 		inputStartX - hashWidth - 10,
-		inputY + (INPUT_RECT_HEIGHT - state.fonts.header:getHeight()) / 2
+		inputY + (INPUT_RECT_HEIGHT - state.fonts.monoHeader:getHeight()) / 2
 	)
 
 	-- Draw input characters or underscores for empty positions
 	for i = 1, 6 do
 		local rectX = inputStartX + (i - 1) * (INPUT_RECT_WIDTH + INPUT_RECT_SPACING)
-		local charY = inputY + (INPUT_RECT_HEIGHT - state.fonts.header:getHeight()) / 2
+		local charY = inputY + (INPUT_RECT_HEIGHT - state.fonts.monoHeader:getHeight()) / 2
 
 		-- Draw character if entered, otherwise draw underscore
 		local char = (i <= #currentState.input) and currentState.input:sub(i, i):upper() or "_"
-		local charWidth = state.fonts.header:getWidth(char)
+		local charWidth = state.fonts.monoHeader:getWidth(char)
 		local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
 
 		love.graphics.setColor(textColor)
@@ -271,6 +271,15 @@ function hex.draw()
 							icon:setMonochrome(dimmedColor[1], dimmedColor[2], dimmedColor[3])
 							-- Also set the LÖVE draw color to the same dimmed foreground
 							love.graphics.setColor(dimmedColor)
+						elseif isSelected and isValidHex(currentState.input) then
+							-- If selected and valid, use background color for icon (for contrast with accent background)
+							icon:setMonochrome(
+								colors.ui.background[1],
+								colors.ui.background[2],
+								colors.ui.background[3]
+							)
+							-- Also set the LÖVE draw color to background
+							love.graphics.setColor(colors.ui.background)
 						else
 							-- Otherwise use full foreground color
 							icon:setMonochrome(
