@@ -1,4 +1,18 @@
 --- Image generation utilities
+--
+-- This module handles image generation using LÖVE and TOVE for SVG rendering
+--
+-- Note on Canvas alpha blending:
+-- When drawing content to a Canvas using regular alpha blending in LÖVE,
+-- the alpha values get multiplied with RGB values, resulting in premultiplied alpha.
+-- See: https://www.love2d.org/wiki/Canvas
+--
+-- To ensure proper color rendering:
+-- 1. Use "alpha" blend mode when drawing TO the canvas
+-- 2. Use "alpha", "premultiplied" when displaying the canvas elsewhere
+-- 3. Restore original blend mode when finished
+--
+-- This approach fixes issues where SVG icons appear darker than text when rendered.
 local love = require("love")
 local state = require("state")
 local colorUtils = require("utils.color")
@@ -15,6 +29,7 @@ function imageGenerator.createCanvas(width, height, bgColor)
 	local canvas = love.graphics.newCanvas(width, height)
 	local previousCanvas = love.graphics.getCanvas()
 
+	-- Switch to our new canvas for drawing
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(bgColor)
 
@@ -23,14 +38,34 @@ end
 
 -- Finish drawing on canvas and restore previous canvas
 function imageGenerator.finishCanvas(previousCanvas)
+	-- Restore the previous canvas (important for proper rendering pipeline)
 	love.graphics.setCanvas(previousCanvas)
 end
 
 -- Draw centered SVG icon on canvas
-function imageGenerator.drawSvgIcon(svg, size, x, y, color)
+function imageGenerator.drawSvgIcon(svg, size, x, y, color, forcePremultiplied)
+	-- Set proper blend mode for drawing to canvas
+	-- See: https://www.love2d.org/wiki/Canvas
+	-- When drawing to a Canvas, alpha values get premultiplied with RGB values
+	-- Using "alpha" blend mode for drawing to canvas, then "premultiplied" when displaying
+	love.graphics.setBlendMode("alpha")
+
 	local icon = tove.newGraphics(svg, size)
 	icon:setMonochrome(color[1], color[2], color[3])
+
+	-- Ensure full opacity when drawing SVG
+	local r, g, b, a = love.graphics.getColor()
+	love.graphics.setColor(r, g, b, 1.0)
+
 	icon:draw(x, y)
+
+	-- Restore default blend mode for canvas rendering
+	-- This ensures proper color rendering when the canvas is displayed
+	-- For boot images (BMP), we'll keep the alpha blend mode
+	if not forcePremultiplied then
+		love.graphics.setBlendMode("alpha", "premultiplied")
+	end
+
 	return icon
 end
 
@@ -65,15 +100,40 @@ function imageGenerator.createIconImage(options)
 	-- Create canvas
 	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, bgColor)
 
+	-- Save current blend mode to restore later
+	-- This is crucial for proper alpha blending when drawing to canvas
+	-- See: https://www.love2d.org/wiki/Canvas#Notes
+	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
+
 	love.graphics.push()
 
+	-- Special handling for boot image (BMP format)
+	if saveAsBmp then
+		-- For BMP images, use "alpha" blend mode but ensure full opacity
+		love.graphics.setBlendMode("alpha")
+		love.graphics.setColor(1, 1, 1, 1)
+	end
+
 	-- Draw icon
+	-- SVG icons need careful blend mode handling to render with correct colors
 	local iconX = width / 2
 	local iconY = height / 2 - (text and 50 or 0)
-	imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, fgColor)
+
+	-- Set color for SVG with maximum opacity for BMP format
+	if saveAsBmp then
+		-- For BMP format, we need to ensure full opacity
+		local r, g, b = fgColor[1], fgColor[2], fgColor[3]
+		imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, { r, g, b }, true)
+	else
+		imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, fgColor, false)
+	end
 
 	-- Draw text if provided
 	if text then
+		-- Set proper blend mode for text drawing
+		-- Text needs "alpha" blend mode when drawing to canvas
+		love.graphics.setBlendMode("alpha")
+
 		-- Create a larger version of the font
 		local imageFontSize = paths.getImageFontSize(height)
 		local fontSize = math.floor(imageFontSize * 1.3)
@@ -82,7 +142,13 @@ function imageGenerator.createIconImage(options)
 
 		-- Set the font and color
 		love.graphics.setFont(largerFont)
-		love.graphics.setColor(fgColor)
+
+		-- For BMP images, ensure full opacity
+		if saveAsBmp then
+			love.graphics.setColor(fgColor[1], fgColor[2], fgColor[3], 1.0)
+		else
+			love.graphics.setColor(fgColor)
+		end
 
 		-- Draw the text centered
 		local textWidth = largerFont:getWidth(text)
@@ -92,6 +158,10 @@ function imageGenerator.createIconImage(options)
 	end
 
 	love.graphics.pop()
+
+	-- Restore original blend mode
+	-- This ensures that any subsequent rendering uses the correct blend mode
+	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
 
 	-- Finish canvas operations
 	imageGenerator.finishCanvas(previousCanvas)
@@ -153,6 +223,15 @@ function imageGenerator.createPreviewImage(outputPath)
 	-- Create canvas
 	local canvas, previousCanvas = imageGenerator.createCanvas(previewImageWidth, previewImageHeight, bgColor)
 
+	-- Save current blend mode
+	-- Important for proper alpha blending with LÖVE canvas rendering
+	-- See: https://www.love2d.org/wiki/Canvas
+	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
+
+	-- Set proper blend mode for text drawing
+	-- Using "alpha" blend mode when drawing TO the canvas
+	love.graphics.setBlendMode("alpha")
+
 	-- Set font and draw text
 	love.graphics.setColor(fgColor)
 	local selectedFontName = state.selectedFont
@@ -170,6 +249,10 @@ function imageGenerator.createPreviewImage(outputPath)
 	local textX = (previewImageWidth - textWidth) / 2
 	local textY = (previewImageHeight - textHeight) / 2
 	love.graphics.print(previewImageText, textX, textY)
+
+	-- Restore original blend mode
+	-- This ensures consistent rendering state after this operation
+	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
 
 	-- Finish canvas operations
 	imageGenerator.finishCanvas(previousCanvas)

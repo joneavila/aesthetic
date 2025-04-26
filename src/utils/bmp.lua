@@ -140,11 +140,12 @@ function bmp.encode(imageData)
 						return { imageData:getPixel(x, y) }
 					end)
 
-					local r, g, b = 0, 0, 0
+					local r, g, b, a = 0, 0, 0, 1
 					if pixelStatus and type(pixelResult) == "table" then
 						r = type(pixelResult[1]) == "number" and pixelResult[1] or 0
 						g = type(pixelResult[2]) == "number" and pixelResult[2] or 0
 						b = type(pixelResult[3]) == "number" and pixelResult[3] or 0
+						a = type(pixelResult[4]) == "number" and pixelResult[4] or 1
 					else
 						-- If pixel access failed, use black
 						logger.warn("Failed to get pixel at " .. x .. "," .. y .. ", using black instead")
@@ -154,6 +155,23 @@ function bmp.encode(imageData)
 					r = math.max(0, math.min(1, r))
 					g = math.max(0, math.min(1, g))
 					b = math.max(0, math.min(1, b))
+					a = math.max(0, math.min(1, a))
+
+					-- Un-premultiply alpha if a < 1, this is crucial for proper color brightness
+					if a > 0 and a < 1 then
+						r = r / a
+						g = g / a
+						b = b / a
+					end
+
+					-- Handle alpha blending with background color (white in this case)
+					-- For boot images we want to ensure colors aren't too dark
+					if a < 1 then
+						local bgr, bgg, bgb = 1, 1, 1 -- White background
+						r = r * a + bgr * (1 - a)
+						g = g * a + bgg * (1 - a)
+						b = b * a + bgb * (1 - a)
+					end
 
 					-- Convert from 0-1 to 0-255 range and store BGR in row data
 					local br = math.floor(b * 255)

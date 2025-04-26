@@ -9,9 +9,20 @@ local fontDefs = require("ui.font_defs")
 local imageGenerator = require("utils.image_generator")
 local themeSettings = require("utils.theme_settings")
 local logger = require("utils.logger")
+local love = require("love")
 
 -- Module table to export public functions
 local themeCreator = {}
+
+-- Helper function to reset graphics state between image generation calls
+local function resetGraphicsState()
+	-- Reset blend mode to default
+	love.graphics.setBlendMode("alpha")
+	-- Clear any active canvas
+	love.graphics.setCanvas()
+	-- Reset color to default
+	love.graphics.setColor(1, 1, 1, 1)
+end
 
 -- Function to create `name.txt` containing the theme's name
 local function createNameFile()
@@ -35,6 +46,7 @@ local function createBootImage()
 	}
 
 	local result = imageGenerator.createIconImage(options)
+	resetGraphicsState()
 	if result == false then
 		errorHandler.setError("Failed to create boot logo image")
 		return false
@@ -56,6 +68,7 @@ local function createRebootImage()
 	}
 
 	local result = imageGenerator.createIconImage(options)
+	resetGraphicsState()
 	if result == false then
 		errorHandler.setError("Failed to create reboot image")
 		return false
@@ -77,6 +90,7 @@ local function createShutdownImage()
 	}
 
 	local result = imageGenerator.createIconImage(options)
+	resetGraphicsState()
 	if result == false then
 		errorHandler.setError("Failed to create shutdown image")
 		return false
@@ -87,7 +101,9 @@ end
 
 -- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage()
-	return imageGenerator.createPreviewImage(paths.THEME_PREVIEW_IMAGE_PATH)
+	local result = imageGenerator.createPreviewImage(paths.THEME_PREVIEW_IMAGE_PATH)
+	resetGraphicsState()
+	return result
 end
 
 -- Function to create `credits.txt` file containing the theme's credits
@@ -204,17 +220,23 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Create theme's shutdown image
+		logger.debug("Creating shutdown image")
+		if not createShutdownImage() then
+			return false
+		end
+
+		-- Reset graphics state before creating reboot image
+		resetGraphicsState()
+
 		-- Create theme's reboot image
 		logger.debug("Creating reboot image")
 		if not createRebootImage() then
 			return false
 		end
 
-		-- Create theme's shutdown image
-		logger.debug("Creating shutdown image")
-		if not createShutdownImage() then
-			return false
-		end
+		-- Reset graphics state after all image generation
+		resetGraphicsState()
 
 		-- Create theme's preview image
 		logger.debug("Creating preview image")
@@ -304,10 +326,15 @@ function themeCreator.createTheme()
 		-- Call sync to make the theme available
 		commands.executeCommand("sync")
 
+		-- Final cleanup of graphics state
+		resetGraphicsState()
+
 		return outputThemePath
 	end, debug.traceback)
 
 	if not status then
+		-- Always reset graphics state, even on error
+		resetGraphicsState()
 		logger.error("Error: " .. tostring(err))
 		errorHandler.setError(tostring(err))
 		return false
@@ -336,6 +363,7 @@ end
 -- Clean up working directory
 function themeCreator.cleanup()
 	system.removeDir(paths.WORKING_THEME_DIR)
+	resetGraphicsState()
 end
 
 return themeCreator
