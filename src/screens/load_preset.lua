@@ -7,6 +7,8 @@ local presets = require("utils.presets")
 local rgbUtils = require("utils.rgb")
 local header = require("ui.header")
 local background = require("ui.background")
+local list = require("ui.list")
+local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local loadPreset = {}
@@ -17,13 +19,6 @@ local switchScreen = nil
 -- Constants for styling
 local HEADER_HEIGHT = 50
 
--- Screen constants
-local SCREEN = {
-	PADDING = 20,
-	ITEM_HEIGHT = 50,
-	ITEM_SPACING = 10,
-}
-
 -- Preset items list
 local presetItems = {}
 local selectedIndex = 1
@@ -31,8 +26,18 @@ local selectedIndex = 1
 -- Scrolling
 local scrollPosition = 0
 local visibleItemCount = 0
-local scrollBarWidth = 10
-local scrollBarGap = 5
+
+-- Calculate the visible item count based on available screen space
+local function calculateVisibleItemCount()
+	-- Calculate available height between header and controls
+	local availableHeight = state.screenHeight - header.HEIGHT - controls.HEIGHT
+
+	-- Account for padding at the top but not bottom since we want to use all available space
+	availableHeight = availableHeight - UI_CONSTANTS.BUTTON.PADDING
+
+	-- Calculate how many items can fit
+	visibleItemCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING))
+end
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
@@ -83,7 +88,8 @@ local function loadPresetsList()
 	for _, detail in ipairs(presetDetails) do
 		table.insert(presetItems, {
 			name = detail.name, -- Keep the original name for loading
-			displayName = detail.displayName, -- Use the display name for showing
+			text = detail.displayName, -- Use the display name for showing (match list.lua's expected structure)
+			displayName = detail.displayName, -- Keep the original property for reference
 			selected = false,
 			isValid = detail.isValid,
 			source = detail.source, -- Track source (user or built-in)
@@ -96,9 +102,8 @@ local function loadPresetsList()
 		selectedIndex = 1
 	end
 
-	-- Calculate how many items can be displayed
-	local availableHeight = state.screenHeight - HEADER_HEIGHT - controls.HEIGHT - (SCREEN.PADDING * 2)
-	visibleItemCount = math.floor(availableHeight / (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING))
+	-- Calculate how many items can be displayed in the available space
+	calculateVisibleItemCount()
 end
 
 function loadPreset.load()
@@ -112,10 +117,17 @@ function loadPreset.draw()
 	-- Draw header with title
 	header.draw("Load theme preset")
 
+	-- Reset font to the regular body font after header drawing
+	love.graphics.setFont(state.fonts.body)
+
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print("No presets found", SCREEN.PADDING, header.HEIGHT + SCREEN.PADDING)
+		love.graphics.print(
+			"No presets found",
+			UI_CONSTANTS.BUTTON.PADDING,
+			header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+		)
 
 		-- Draw controls
 		controls.draw({
@@ -124,72 +136,39 @@ function loadPreset.draw()
 		return
 	end
 
-	-- Calculate visible range
-	local startIndex = math.floor(scrollPosition) + 1
-	local endIndex = math.min(startIndex + visibleItemCount - 1, #presetItems)
+	-- Calculate visible items count based on current screen dimensions
+	calculateVisibleItemCount()
 
-	-- Draw preset items
-	love.graphics.setFont(state.fonts.body)
-	for i = startIndex, endIndex do
-		local item = presetItems[i]
-		local y = header.HEIGHT + ((i - startIndex) * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING)) + SCREEN.PADDING
+	-- Draw the list of presets using the list component
+	local listResult = list.draw({
+		items = presetItems,
+		startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
+		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		scrollPosition = scrollPosition,
+		screenWidth = state.screenWidth,
+		visibleCount = visibleItemCount,
+		customDrawFunc = function(item, index, x, y)
+			-- Display built-in indicator if applicable
+			if item.source == "built-in" then
+				local indicatorText = "[Built-in]"
+				local textWidth = state.fonts.body:getWidth(indicatorText)
 
-		-- Draw item background if selected
-		if item.selected then
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle("fill", 0, y, state.screenWidth - scrollBarWidth - scrollBarGap, SCREEN.ITEM_HEIGHT)
-		end
+				-- Use a slightly different color for the built-in indicator
+				love.graphics.setColor(0.5, 0.7, 1.0, 1.0)
+				love.graphics.print(
+					indicatorText,
+					state.screenWidth - UI_CONSTANTS.SCROLL_BAR_WIDTH - textWidth - UI_CONSTANTS.BUTTON.PADDING * 2,
+					y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+				)
+			end
 
-		-- Draw item text
-		if item.isValid then
-			love.graphics.setColor(colors.ui.foreground)
-		else
-			-- Use red color for invalid presets
-			love.graphics.setColor(0.8, 0.2, 0.2, 1)
-		end
-
-		-- Display the preset name
-		love.graphics.print(
-			item.displayName,
-			SCREEN.PADDING,
-			y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2
-		)
-
-		-- Show built-in indicator if applicable
-		if item.source == "built-in" then
-			local indicatorText = "[Built-in]"
-			local textWidth = state.fonts.body:getWidth(indicatorText)
-
-			-- Use a slightly different color for the built-in indicator
-			love.graphics.setColor(0.5, 0.7, 1.0, 1.0)
-			love.graphics.print(
-				indicatorText,
-				state.screenWidth - scrollBarWidth - scrollBarGap - textWidth - SCREEN.PADDING,
-				y + (SCREEN.ITEM_HEIGHT - state.fonts.body:getHeight()) / 2
-			)
-		end
-	end
-
-	-- Draw scrollbar if needed
-	if #presetItems > visibleItemCount then
-		-- Draw scrollbar background
-		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
-		local scrollbarBgHeight = visibleItemCount * (SCREEN.ITEM_HEIGHT + SCREEN.ITEM_SPACING)
-		love.graphics.rectangle(
-			"fill",
-			state.screenWidth - scrollBarWidth,
-			header.HEIGHT + SCREEN.PADDING,
-			scrollBarWidth,
-			scrollbarBgHeight
-		)
-
-		-- Draw scrollbar handle
-		love.graphics.setColor(colors.ui.foreground)
-		local scrollRatio = scrollPosition / (#presetItems - visibleItemCount)
-		local handleHeight = (visibleItemCount / #presetItems) * scrollbarBgHeight
-		local handleY = header.HEIGHT + SCREEN.PADDING + scrollRatio * (scrollbarBgHeight - handleHeight)
-		love.graphics.rectangle("fill", state.screenWidth - scrollBarWidth, handleY, scrollBarWidth, handleHeight)
-	end
+			-- Add red text for invalid presets
+			if not item.isValid then
+				love.graphics.setColor(0.8, 0.2, 0.2, 1)
+			end
+		end,
+	})
 
 	-- Draw controls
 	controls.draw({
@@ -211,26 +190,16 @@ function loadPreset.update(_dt)
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
 
-		-- Update selected index
-		presetItems[selectedIndex].selected = false
-		selectedIndex = selectedIndex + direction
-
-		-- Wrap around
-		if selectedIndex < 1 then
-			selectedIndex = #presetItems
-		elseif selectedIndex > #presetItems then
-			selectedIndex = 1
-		end
-
-		presetItems[selectedIndex].selected = true
+		-- Update selected index using list's navigation helper
+		selectedIndex = list.navigate(presetItems, direction)
 		moved = true
 
-		-- Update scroll position if necessary
-		if selectedIndex <= scrollPosition then
-			scrollPosition = math.max(0, selectedIndex - 1)
-		elseif selectedIndex > scrollPosition + visibleItemCount then
-			scrollPosition = math.min(#presetItems - visibleItemCount, selectedIndex - visibleItemCount)
-		end
+		-- Adjust scroll position to ensure selected item is visible
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleItemCount,
+		})
 	end
 
 	-- Handle A button (Select)
@@ -277,6 +246,9 @@ end
 function loadPreset.onEnter()
 	-- Refresh the presets list
 	loadPresetsList()
+
+	-- Recalculate visible items based on current screen dimensions
+	calculateVisibleItemCount()
 end
 
 return loadPreset
