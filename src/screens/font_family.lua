@@ -20,7 +20,41 @@ local FONT_PREVIEW = {
 	PREVIEW_TEXT = "The quick brown fox jumps over the lazy dog. 0123456789 !@#$%^&*()_+-=[]{};:'\",.\\<>/?`~",
 	PREVIEW_BG_CORNER_RADIUS = 10,
 	PREVIEW_BOTTOM_MARGIN = 15, -- Margin between preview box and controls
+	FONT_SIZE = 24, -- Use a consistent font size for all preview fonts
 }
+
+-- Font cache for previewing (to avoid recreating fonts every frame)
+local previewFontCache = {}
+
+-- Helper function to get a consistent preview font
+local function getPreviewFont(fontName)
+	-- Check if we already have this font in our cache
+	if previewFontCache[fontName] then
+		return previewFontCache[fontName]
+	end
+
+	local previewFont
+	if fontName == "Inter" then
+		-- For Inter, create a font directly from the file to avoid UI font scaling issues
+		previewFont = love.graphics.newFont("assets/fonts/inter/inter_24pt_semibold.ttf", FONT_PREVIEW.FONT_SIZE)
+	elseif fontName == "Nunito" then
+		previewFont = love.graphics.newFont("assets/fonts/nunito/nunito_bold.ttf", FONT_PREVIEW.FONT_SIZE)
+	elseif fontName == "JetBrains Mono" then
+		previewFont =
+			love.graphics.newFont("assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", FONT_PREVIEW.FONT_SIZE)
+	elseif fontName == "Retro Pixel" then
+		previewFont = love.graphics.newFont("assets/fonts/retro_pixel/retro_pixel_thick.ttf", FONT_PREVIEW.FONT_SIZE)
+	elseif fontName == "Cascadia Code" then
+		previewFont = love.graphics.newFont("assets/fonts/cascadia_code/cascadia_code_bold.ttf", FONT_PREVIEW.FONT_SIZE)
+	else
+		-- Fallback to the state's font loading for unknown fonts
+		previewFont = state.getFontByName(fontName)
+	end
+
+	-- Cache the font for future use
+	previewFontCache[fontName] = previewFont
+	return previewFont
+end
 
 -- Font items with their selected state
 local fontItems = {}
@@ -42,7 +76,6 @@ local function initFontItems()
 		table.insert(fontItems, {
 			text = fontItem.name,
 			selected = isSelected,
-			value = fontItem.name,
 		})
 	end
 
@@ -56,35 +89,15 @@ function font.load()
 	initFontItems()
 end
 
--- Custom draw function for font items to use their own font
-local function drawFontItem(item, index, x, y)
-	-- The button background and standard text is already drawn by the list component
-	-- Here we just need to override the text with the custom font
-
-	-- First, clear the area where the standard text was drawn
-	-- Match the area with the exact standard text dimensions
-	local textHeight = state.fonts.body:getHeight()
-	local textWidth = state.fonts.body:getWidth(item.text)
-	love.graphics.setColor(item.selected and colors.ui.surface or colors.ui.background)
-	love.graphics.rectangle("fill", x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - textHeight) / 2, textWidth, textHeight)
-
-	-- Now draw the text with the custom font
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.getFontByName(item.text))
-
-	-- Get the text height for vertical centering with the new font
-	local customTextHeight = love.graphics.getFont():getHeight()
-
-	-- Draw the text with proper padding (the same as standard buttons)
-	love.graphics.print(item.text, x + 20, y + (UI_CONSTANTS.BUTTON.HEIGHT - customTextHeight) / 2)
-end
-
 function font.draw()
 	-- Set background
 	background.draw()
 
 	-- Draw header with title using the UI component
 	header.draw("Font family")
+
+	-- Make sure we restore the default UI font for the button list
+	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate available space for list
 	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
@@ -101,8 +114,11 @@ function font.draw()
 		end
 	end
 
-	-- Set the font for preview text using getFontByName
-	love.graphics.setFont(state.getFontByName(hoveredFontName))
+	-- Get the font for preview - with special handling to ensure consistent sizing
+	local previewFont = getPreviewFont(hoveredFontName)
+
+	-- Set the font for preview text
+	love.graphics.setFont(previewFont)
 
 	-- Calculate preview text height for background
 	local _, textLines = love.graphics
@@ -115,6 +131,9 @@ function font.draw()
 	-- Calculate available space for the list
 	local availableHeight = previewY - startY
 
+	-- Reset to UI font before drawing the list
+	love.graphics.setFont(state.fonts.body)
+
 	-- Draw the font list
 	local result = list.draw({
 		items = fontItems,
@@ -123,7 +142,6 @@ function font.draw()
 		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
-		customDrawFunc = drawFontItem,
 		visibleCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)),
 	})
 
@@ -140,6 +158,9 @@ function font.draw()
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
 
+	-- Set preview font for drawing the preview text
+	love.graphics.setFont(getPreviewFont(hoveredFontName))
+
 	-- Draw preview text
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf(
@@ -149,6 +170,9 @@ function font.draw()
 		state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 4),
 		"left"
 	)
+
+	-- Restore UI font
+	love.graphics.setFont(state.fonts.body)
 
 	-- Draw controls
 	controls.draw({
@@ -223,6 +247,12 @@ function font.onEnter()
 	-- Reinitialize font items to ensure they match the current state
 	initFontItems()
 	scrollPosition = 0
+end
+
+-- Function called when exiting this screen
+function font.onExit()
+	-- Clear the font cache to free memory
+	previewFontCache = {}
 end
 
 return font

@@ -18,6 +18,11 @@ fontDefs.FONTS = {
 		selected = state.selectedFont == "Nunito",
 	},
 	{
+		name = "JetBrains Mono",
+		file = "jetbrains_mono.bin",
+		selected = state.selectedFont == "JetBrains Mono",
+	},
+	{
 		name = "Cascadia Code",
 		file = "cascadia_code.bin",
 		selected = state.selectedFont == "Cascadia Code",
