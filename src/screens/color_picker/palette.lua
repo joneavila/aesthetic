@@ -26,8 +26,6 @@ local SCROLLBAR = {
 
 -- Border constants
 local BORDER = {
-	NORMAL_WIDTH = 1,
-	SELECTED_WIDTH = 3,
 	CORNER_RADIUS = 10,
 }
 
@@ -231,9 +229,9 @@ function palette.draw()
 				-- Draw border
 				love.graphics.setColor(colors.ui.foreground)
 				if row == currentState.selectedRow and col == currentState.selectedCol then
-					love.graphics.setLineWidth(BORDER.SELECTED_WIDTH)
+					love.graphics.setLineWidth(constants.OUTLINE.SELECTED_WIDTH)
 				else
-					love.graphics.setLineWidth(BORDER.NORMAL_WIDTH)
+					love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
 				end
 				love.graphics.rectangle(
 					"line",

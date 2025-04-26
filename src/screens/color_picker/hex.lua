@@ -15,12 +15,11 @@ local switchScreen = nil
 
 -- Constants
 local EDGE_PADDING = 20
-local TOP_PADDING = 20
+local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
 local GRID_PADDING = 10
 local LAST_COLUMN_EXTRA_PADDING = 20 -- Extra padding before the last column
 local BUTTON_CORNER_RADIUS = 8
-local BUTTON_OUTLINE_WIDTH = 2
 local BUTTON_HOVER_OUTLINE_WIDTH = 4
 local INPUT_RECT_WIDTH = 30
 local INPUT_RECT_HEIGHT = 40
@@ -160,7 +159,7 @@ function hex.draw()
 	end
 
 	-- Draw preview rectangle outline
-	love.graphics.setLineWidth(2)
+	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Draw # symbol
@@ -208,7 +207,7 @@ function hex.draw()
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
 				-- Draw button outline
-				love.graphics.setLineWidth(isSelected and BUTTON_HOVER_OUTLINE_WIDTH or BUTTON_OUTLINE_WIDTH)
+				love.graphics.setLineWidth(isSelected and BUTTON_HOVER_OUTLINE_WIDTH or constants.OUTLINE.NORMAL_WIDTH)
 				if isConfirmButton and isSelected and isValidHex(currentState.input) then
 					-- Valid confirm button that is selected - use accent color for outline too
 					love.graphics.setColor(colors.ui.accent)

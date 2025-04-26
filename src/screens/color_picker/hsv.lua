@@ -187,9 +187,6 @@ function hsv.draw()
 	-- Get current color type state
 	local currentState = getCurrentHsvState()
 
-	local lineWidth = 4
-	local halfLine = lineWidth / 2
-
 	-- Draw current color preview
 	local hexColor = state.getColorValue(state.activeColorContext)
 	local r, g, b = colorUtils.hexToRgb(hexColor)
@@ -200,13 +197,14 @@ function hsv.draw()
 	-- Draw current color border using Relative Luminance Border Algorithm
 	local borderR, borderG, borderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor({ borderR, borderG, borderB })
-	love.graphics.setLineWidth(lineWidth)
+	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
+	local halfLine = constants.OUTLINE.NORMAL_WIDTH / 2
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX - halfLine,
 		pickerState.startY - halfLine,
-		pickerState.previewWidth + lineWidth,
-		PREVIEW_HEIGHT + lineWidth,
+		pickerState.previewWidth + constants.OUTLINE.NORMAL_WIDTH,
+		PREVIEW_HEIGHT + constants.OUTLINE.NORMAL_WIDTH,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -237,12 +235,14 @@ function hsv.draw()
 	-- Draw new color border using Relative Luminance Border Algorithm
 	local newBorderR, newBorderG, newBorderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor(newBorderR, newBorderG, newBorderB, 1)
+	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
+	halfLine = constants.OUTLINE.NORMAL_WIDTH / 2
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX - halfLine,
 		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding - halfLine,
-		pickerState.previewWidth + lineWidth,
-		PREVIEW_HEIGHT + lineWidth,
+		pickerState.previewWidth + constants.OUTLINE.NORMAL_WIDTH,
+		PREVIEW_HEIGHT + constants.OUTLINE.NORMAL_WIDTH,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -276,13 +276,18 @@ function hsv.draw()
 
 	-- Draw Hue slider outline
 	love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], currentState.focusSquare and 0.2 or 1)
-	love.graphics.setLineWidth(lineWidth)
+	love.graphics.setLineWidth(
+		currentState.focusSquare and constants.OUTLINE.NORMAL_WIDTH or constants.OUTLINE.SELECTED_WIDTH
+	)
+	local hueOutlineWidth = currentState.focusSquare and constants.OUTLINE.NORMAL_WIDTH
+		or constants.OUTLINE.SELECTED_WIDTH
+	halfLine = hueOutlineWidth / 2
 	love.graphics.rectangle(
 		"line",
 		hueX - halfLine,
 		pickerState.startY - halfLine,
-		HUE_SLIDER_WIDTH + lineWidth,
-		pickerState.squareSize + lineWidth,
+		HUE_SLIDER_WIDTH + hueOutlineWidth,
+		pickerState.squareSize + hueOutlineWidth,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -296,22 +301,22 @@ function hsv.draw()
 	-- Left triangle
 	love.graphics.polygon(
 		"fill",
-		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - lineWidth,
+		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - halfLine,
 		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - lineWidth,
+		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - halfLine,
 		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX - CURSOR.TRIANGLE_SPACING - lineWidth,
+		hueX - CURSOR.TRIANGLE_SPACING - halfLine,
 		currentState.cursor.hueY
 	)
 
 	-- Right triangle
 	love.graphics.polygon(
 		"fill",
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + lineWidth,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + halfLine,
 		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + lineWidth,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + halfLine,
 		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_SPACING + lineWidth,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_SPACING + halfLine,
 		currentState.cursor.hueY
 	)
 
@@ -333,13 +338,18 @@ function hsv.draw()
 
 	-- Draw SV square outline
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or 0.2)
-	love.graphics.setLineWidth(lineWidth)
+	love.graphics.setLineWidth(
+		currentState.focusSquare and constants.OUTLINE.SELECTED_WIDTH or constants.OUTLINE.NORMAL_WIDTH
+	)
+	local svOutlineWidth = currentState.focusSquare and constants.OUTLINE.SELECTED_WIDTH
+		or constants.OUTLINE.NORMAL_WIDTH
+	halfLine = svOutlineWidth / 2
 	love.graphics.rectangle(
 		"line",
 		svX - halfLine,
 		pickerState.startY - halfLine,
-		pickerState.squareSize + lineWidth,
-		pickerState.squareSize + lineWidth,
+		pickerState.squareSize + svOutlineWidth,
+		pickerState.squareSize + svOutlineWidth,
 		CURSOR.CORNER_RADIUS
 	)
 

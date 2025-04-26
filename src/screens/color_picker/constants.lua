@@ -11,6 +11,12 @@ local TAB_CONTAINER_HEIGHT = TAB_HEIGHT * 1.4 + (TAB_TEXT_PADDING * 2) -- Increa
 local HEADER_HEIGHT = 50 -- Header height for the color context display
 local TAB_CONTENT_OVERLAP = -25 -- Negative value to eliminate any gap between tabs and content
 
+-- Outline constants
+constants.OUTLINE = {
+	NORMAL_WIDTH = 1,
+	SELECTED_WIDTH = 3,
+}
+
 -- Function to provide tab height to main color picker screen
 constants.getTabHeight = function()
 	return TAB_HEIGHT
