@@ -47,6 +47,7 @@ local state = {
 
 	fonts = {},
 
+	-- Note: Antialiasing should be set to 0 for pixelated fonts
 	-- Font definitions mapping
 	fontDefs = {
 		header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 32 },

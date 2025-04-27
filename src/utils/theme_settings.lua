@@ -154,4 +154,22 @@ function themeSettings.applyContentWidth(schemeFilePath)
 	end)
 end
 
+-- Apply antialiasing settings to a scheme file
+function themeSettings.applyAntialiasingSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Set antialiasing to 0 for pixelated fonts, 1 for other fonts
+		local antialiasingValue = (state.selectedFont == "Retro Pixel") and 0 or 1
+
+		-- Replace antialiasing placeholder
+		local antialiasingCount
+		content, antialiasingCount = content:gsub("%%{%s*antialiasing%s*}", tostring(antialiasingValue))
+		if antialiasingCount == 0 then
+			errorHandler.setError("Failed to replace antialiasing setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings
