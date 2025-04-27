@@ -147,14 +147,10 @@ local function handleThemeCreation()
 
 	if createdThemePath then
 		modalState = "created"
-		modal.showModal(
-			"Created theme successfully.",
-			{
-				{ text = "Apply theme later", selected = false },
-				{ text = "Apply theme now", selected = true },
-			},
-			true -- Use vertical buttons
-		)
+		modal.showModal("Created theme successfully.", {
+			{ text = "Apply theme later", selected = false },
+			{ text = "Apply theme now", selected = true },
+		})
 		-- Add input delay to prevent immediately processing inputs after modal appears
 		state.resetInputTimer()
 		state.forceInputDelay(0.5) -- Add a significant delay after showing the creation modal
@@ -250,8 +246,8 @@ local function handleModalNavigation(virtualJoystick, dt)
 	-- Update last input time
 	modalInputState.lastInputTime = modalInputState.lastInputTime + dt
 
-	-- Handle left/right navigation for modal buttons with input throttling
-	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+	-- Handle navigation for modal buttons with input throttling
+	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 		-- Allow immediate input for first press, then enforce delay for subsequent inputs
 		if modalInputState.isFirstInput or modalInputState.lastInputTime >= modalInputState.inputDelay then
 			toggleModalButtonSelection(modalButtons)
@@ -260,7 +256,7 @@ local function handleModalNavigation(virtualJoystick, dt)
 		end
 	else
 		-- Reset first input flag when buttons are released
-		if not (virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright")) then
+		if not (virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown")) then
 			modalInputState.isFirstInput = true
 		end
 	end

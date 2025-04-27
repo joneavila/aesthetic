@@ -37,10 +37,10 @@ function splash.load()
 	splash.cursorWidth = splash.font:getWidth(splash.cursorChar)
 	splash.textHeight = splash.font:getHeight()
 
-	-- Calculate the fixed center position
+	-- Calculate the fixed center position (ensure pixel-perfect alignment)
 	local screenWidth, screenHeight = love.graphics.getDimensions()
-	splash.centerX = screenWidth / 2 - splash.textWidth / 2
-	splash.centerY = screenHeight / 2 - splash.textHeight / 2
+	splash.centerX = math.floor(screenWidth / 2 - splash.textWidth / 2)
+	splash.centerY = math.floor(screenHeight / 2 - splash.textHeight / 2)
 
 	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	splash.state = "waiting"
@@ -88,6 +88,8 @@ function splash.draw()
 		if splash.currentIndex > 0 then
 			cursorX = cursorX + splash.font:getWidth(string.sub(splash.title, 1, splash.currentIndex))
 		end
+		-- Ensure pixel-perfect alignment for cursor position
+		cursorX = math.floor(cursorX)
 		love.graphics.print(splash.cursorChar, cursorX, splash.centerY)
 	end
 

@@ -94,7 +94,7 @@ function settings.update(_dt)
 
 	-- Handle modal if visible
 	if modal.isModalVisible() then
-		if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+		if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 			-- Toggle button selection
 			local modalButtons = modal.getModalButtons()
 			for _, button in ipairs(modalButtons) do

@@ -11,7 +11,6 @@ local modal = {}
 local showModal = false
 local modalMessage = ""
 local modalButtons = {}
-local modalVerticalButtons = false
 
 -- Modal drawing function
 function modal.drawModal()
@@ -41,11 +40,8 @@ function modal.drawModal()
 	local buttonHeight = 40
 	local buttonSpacing = 20
 
-	-- Calculate extra height needed for buttons based on layout
-	local buttonsExtraHeight = buttonHeight + padding
-	if modalVerticalButtons then
-		buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
-	end
+	-- Calculate extra height needed for buttons (always vertical)
+	local buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
 	local modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
 
 	local x = (state.screenWidth - modalWidth) / 2
@@ -65,77 +61,41 @@ function modal.drawModal()
 	local textY = y + padding
 	love.graphics.printf(modalMessage, x + padding, textY, availableTextWidth, "center")
 
-	-- Draw buttons
+	-- Draw buttons (always vertically stacked)
 	local buttonWidth = 300
+	local buttonX = (state.screenWidth - buttonWidth) / 2
+	local startButtonY = y + padding + textHeight + padding
 
-	if modalVerticalButtons then
-		-- Draw buttons vertically stacked
-		local buttonX = (state.screenWidth - buttonWidth) / 2
-		local startButtonY = y + padding + textHeight + padding
+	for i, button in ipairs(modalButtons) do
+		local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
+		local isSelected = button.selected
 
-		for i, button in ipairs(modalButtons) do
-			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
-			local isSelected = button.selected
+		-- Draw button background
+		love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
+		love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
-			-- Draw button background
-			love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+		-- Draw button outline
+		love.graphics.setLineWidth(isSelected and 4 or 2)
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
 
-			-- Draw button outline
-			love.graphics.setLineWidth(isSelected and 4 or 2)
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-
-			-- Draw button text
-			love.graphics.setColor(colors.ui.foreground)
-			love.graphics.printf(
-				button.text,
-				buttonX,
-				buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
-				buttonWidth,
-				"center"
-			)
-		end
-	else
-		-- Draw buttons horizontally
-		local buttonY = y + modalHeight - buttonHeight - padding
-		local spacing = 20
-		local totalButtonsWidth = (#modalButtons * buttonWidth) + ((#modalButtons - 1) * spacing)
-		local buttonX = (state.screenWidth - totalButtonsWidth) / 2
-
-		for _, button in ipairs(modalButtons) do
-			local isSelected = button.selected
-
-			-- Draw button background
-			love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-
-			-- Draw button outline
-			love.graphics.setLineWidth(isSelected and 4 or 2)
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-
-			-- Draw button text
-			love.graphics.setColor(colors.ui.foreground)
-			love.graphics.printf(
-				button.text,
-				buttonX,
-				buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
-				buttonWidth,
-				"center"
-			)
-
-			buttonX = buttonX + buttonWidth + spacing
-		end
+		-- Draw button text
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.printf(
+			button.text,
+			buttonX,
+			buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
+			buttonWidth,
+			"center"
+		)
 	end
 end
 
 -- Show modal with message
-function modal.showModal(message, buttons, verticalButtons)
+function modal.showModal(message, buttons)
 	showModal = true
 	modalMessage = message
 	modalButtons = buttons
-	modalVerticalButtons = verticalButtons or false
 end
 
 -- Hide modal
