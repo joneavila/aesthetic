@@ -15,14 +15,13 @@ local modalOpacity = 0 -- For fade animation
 local targetOpacity = 1 -- Target opacity for animation
 local isFadingOut = false -- Track if modal is currently fading out
 local nextModalInfo = nil -- Store next modal info for transitions
-local backgroundOpacity = 0 -- Separate opacity for background dimming
+local backgroundOpacity = 0 -- Separate opacity for background dimming (elements behind the modal)
 local isProcessModal = false -- Flag for process modals that should be dismissed manually
 
 -- Modal drawing function
 function modal.drawModal()
 	-- Apply current opacity to the background with separate opacity control
 	-- This ensures background stays dimmed during modal transitions
-	local targetBgOpacity = showModal and 0.9 or 0
 	backgroundOpacity = showModal and 0.9 or backgroundOpacity
 
 	-- If we have a next modal queued, don't fade out background

@@ -11,6 +11,7 @@ local UI_CONSTANTS = require("ui.constants")
 local list = {}
 
 -- Draw a scrollable list of items
+-- Returns a table with needsScrollBar (boolean) and visibleCount (number) properties
 function list.draw(params)
 	local items = params.items or {}
 	local startY = params.startY or 0
@@ -22,10 +23,9 @@ function list.draw(params)
 	local itemCount = #items
 	local visibleCount = params.visibleCount or math.floor((state.screenHeight - startY) / (itemHeight + itemPadding))
 	local customDrawFunc = params.customDrawFunc -- Optional custom draw function for each item
-	local needsScrollBar = false
 
 	-- Calculate if scrollbar is needed
-	needsScrollBar = itemCount > visibleCount
+	local needsScrollBar = itemCount > visibleCount
 
 	-- Set button width based on whether scrollbar is needed
 	local buttonWidth = screenWidth - itemPadding - (needsScrollBar and scrollBarWidth or 0)

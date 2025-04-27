@@ -102,9 +102,6 @@ function font.draw()
 	-- Calculate available space for list
 	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
 
-	-- Calculate preview position at bottom of screen, above controls
-	local previewHeight = 0
-
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont
 	for _, item in ipairs(fontItems) do
@@ -124,7 +121,7 @@ function font.draw()
 	local _, textLines = love.graphics
 		.getFont()
 		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 2))
-	previewHeight = #textLines * love.graphics.getFont():getHeight() + UI_CONSTANTS.BUTTON.PADDING * 2
+	local previewHeight = #textLines * love.graphics.getFont():getHeight() + UI_CONSTANTS.BUTTON.PADDING * 2
 
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 

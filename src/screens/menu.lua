@@ -47,17 +47,9 @@ local visibleButtonCount = 0
 local buttonCount = 0
 local scrollBarWidth = UI_CONSTANTS.SCROLL_BAR_WIDTH
 
--- IO operation states
+-- IO operation states (operation states)
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
--- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
-
--- Simplified operation states - removed intermediate animation states
-local operationStates = {
-	IDLE = "idle",
-	CREATING_THEME = "creating_theme",
-	APPLYING_THEME = "applying_theme",
-}
 
 -- Modal input state tracking for handling press-and-hold
 local modalInputState = {
@@ -153,15 +145,6 @@ function menu.draw()
 		modal.drawModal()
 	end
 
-	-- Determine if currently selected button has indicators
-	local hasIndicators = false
-	for _, btn in ipairs(menu.BUTTONS) do
-		if btn.selected and (btn.fontSizeToggle or btn.glyphsToggle or btn.navAlignToggle) then
-			hasIndicators = true
-			break
-		end
-	end
-
 	controls.draw({
 		{ button = "start", text = "Settings" },
 		{ button = "a", text = "Select" },
@@ -187,7 +170,6 @@ local function handleThemeCreation()
 		state.forceInputDelay(0.5)
 	else
 		errorHandler.showErrorModal("Error creating theme")
-		currentOperationState = operationStates.IDLE
 	end
 
 	return true -- Skip the rest of the update
@@ -211,7 +193,6 @@ local function handleThemeInstallation()
 		{ { text = "Close", selected = true } }
 	)
 
-	currentOperationState = operationStates.IDLE
 	return true -- Skip the rest of the update
 end
 
@@ -359,14 +340,12 @@ function menu.update(dt)
 	if waitingState == "create_theme" then
 		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
 			waitingState = "none"
-			currentOperationState = operationStates.CREATING_THEME
 			handleThemeCreation()
 		end
 		return
 	elseif waitingState == "install_theme" then
 		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
 			waitingState = "none"
-			currentOperationState = operationStates.APPLYING_THEME
 			handleThemeInstallation()
 		end
 		return

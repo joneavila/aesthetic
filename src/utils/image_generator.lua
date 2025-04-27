@@ -54,7 +54,7 @@ function imageGenerator.drawSvgIcon(svg, size, x, y, color, forcePremultiplied)
 	icon:setMonochrome(color[1], color[2], color[3])
 
 	-- Ensure full opacity when drawing SVG
-	local r, g, b, a = love.graphics.getColor()
+	local r, g, b, _ = love.graphics.getColor()
 	love.graphics.setColor(r, g, b, 1.0)
 
 	icon:draw(x, y)

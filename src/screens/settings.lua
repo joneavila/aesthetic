@@ -1,6 +1,5 @@
 --- Settings screen
 local love = require("love")
-local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local input = require("input")

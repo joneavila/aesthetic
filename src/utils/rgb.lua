@@ -291,7 +291,7 @@ function rgb.installFromTheme()
 	end
 
 	-- Execute the command directly
-	local execResult = commands.executeCommand(command)
+	commands.executeCommand(command)
 
 	return true
 end

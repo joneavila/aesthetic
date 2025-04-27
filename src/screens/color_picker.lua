@@ -243,16 +243,13 @@ function colorPicker.draw()
 		local tabX = tab.x
 		local tabWidth = tab.width
 
+		-- Adjust vertical position so its visually centered
+		tabY = tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2 - 1
+
 		-- Use animated text color
 		love.graphics.setColor(tabTextColors[i].color)
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.printf(
-			tab.name,
-			tabX,
-			tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2 - 1, -- Adjust vertical position so its visually centered
-			tabWidth,
-			"center"
-		)
+		love.graphics.printf(tab.name, tabX, tabY, tabWidth, "center")
 	end
 end
 

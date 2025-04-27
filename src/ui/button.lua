@@ -208,7 +208,6 @@ end
 -- Function to draw an accented centered button (like "Create theme")
 function button.drawAccented(text, isSelected, y, screenWidth, buttonWidth)
 	local font = love.graphics.getFont()
-	local padding = 20
 	local textWidth = font:getWidth(text)
 
 	-- Use provided buttonWidth or calculate default

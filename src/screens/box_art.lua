@@ -20,7 +20,6 @@ local BOX_ART_WIDTH_OPTIONS = { "Disabled" }
 
 -- List handling variables
 local scrollPosition = 0
-local visibleCount = 0
 
 -- Buttons in this screen
 local BUTTONS = {
@@ -90,7 +89,7 @@ function box_art.draw()
 	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
 
 	-- Draw the button list
-	local result = list.draw({
+	list.draw({
 		items = BUTTONS,
 		startY = startY,
 		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
@@ -98,8 +97,6 @@ function box_art.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 	})
-
-	visibleCount = result.visibleCount
 
 	-- Get current value for preview
 	local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]

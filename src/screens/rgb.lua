@@ -199,7 +199,6 @@ function rgb.update(_dt)
 				elseif button.min ~= nil and button.max ~= nil and not button.disabled then
 					-- Handle brightness or speed adjustment
 					local isSpeed = button.text == "Speed"
-					local isBrightness = button.text == "Brightness"
 
 					local newValue = button.value + (direction * button.step)
 

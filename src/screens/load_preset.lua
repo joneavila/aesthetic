@@ -1,6 +1,5 @@
 --- Load preset screen
 local love = require("love")
-local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local presets = require("utils.presets")
@@ -15,9 +14,6 @@ local loadPreset = {}
 
 -- Screen switching
 local switchScreen = nil
-
--- Constants for styling
-local HEADER_HEIGHT = 50
 
 -- Preset items list
 local presetItems = {}
@@ -140,7 +136,7 @@ function loadPreset.draw()
 	calculateVisibleItemCount()
 
 	-- Draw the list of presets using the list component
-	local listResult = list.draw({
+	list.draw({
 		items = presetItems,
 		startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING,
 		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
@@ -148,7 +144,7 @@ function loadPreset.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		visibleCount = visibleItemCount,
-		customDrawFunc = function(item, index, x, y)
+		customDrawFunc = function(item, _index, _x, y)
 			-- Display built-in indicator if applicable
 			if item.source == "built-in" then
 				local indicatorText = "[Built-in]"
