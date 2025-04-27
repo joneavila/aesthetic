@@ -11,7 +11,6 @@ local background = require("ui.background")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fontDefs = require("ui.font_defs")
-local textOverlay = require("ui.text_overlay")
 local list = require("ui.list")
 
 local UI_CONSTANTS = require("ui.constants")
@@ -51,6 +50,20 @@ local scrollBarWidth = UI_CONSTANTS.SCROLL_BAR_WIDTH
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 -- Using a state system ensures IO operations happen in the next update loop, preventing UI freezes during operations
+
+-- Simplified operation states - removed intermediate animation states
+local operationStates = {
+	IDLE = "idle",
+	CREATING_THEME = "creating_theme",
+	APPLYING_THEME = "applying_theme",
+}
+
+-- Modal input state tracking for handling press-and-hold
+local modalInputState = {
+	lastInputTime = 0,
+	inputDelay = 0.25, -- Minimum delay between inputs when holding a button
+	isFirstInput = true,
+}
 
 function menu.load()
 	-- Count regular buttons and calculate visible buttons
@@ -124,15 +137,6 @@ function menu.draw()
 		modal.drawModal()
 	end
 
-	-- Draw wait overlay if in waiting state
-	if waitingState ~= "none" then
-		textOverlay.draw({
-			text = "Working...",
-			screenWidth = state.screenWidth,
-			screenHeight = state.screenHeight,
-		})
-	end
-
 	controls.draw({
 		{ button = "start", text = "Settings" },
 		{ button = "a", text = "Select" },
@@ -142,21 +146,25 @@ end
 
 -- Handle theme creation process
 local function handleThemeCreation()
+	-- Create the theme after showing the modal
 	createdThemePath = themeCreator.createTheme()
-	waitingState = "none"
 
+	-- Show success/error modal after theme is created
 	if createdThemePath then
 		modalState = "created"
-		modal.showModal("Created theme successfully.", {
+		-- Replace the process modal with success modal for smooth transition
+		modal.replaceModal("Created theme successfully.", {
 			{ text = "Apply theme later", selected = false },
 			{ text = "Apply theme now", selected = true },
 		})
 		-- Add input delay to prevent immediately processing inputs after modal appears
 		state.resetInputTimer()
-		state.forceInputDelay(0.5) -- Add a significant delay after showing the creation modal
+		state.forceInputDelay(0.5)
 	else
 		errorHandler.showErrorModal("Error creating theme")
+		currentOperationState = operationStates.IDLE
 	end
+
 	return true -- Skip the rest of the update
 end
 
@@ -165,18 +173,105 @@ local function handleThemeInstallation()
 	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
 	local success = themeCreator.installTheme(waitingThemeName)
 
-	waitingState = "none"
 	waitingThemePath = nil
 
 	rgbUtils.installFromTheme()
 
 	-- Set flag to indicate theme was applied
 	state.themeApplied = true
-	modal.showModal(
+
+	-- Replace the process modal with success/failure modal for smooth transition
+	modal.replaceModal(
 		success and "Applied theme successfully." or "Failed to apply theme.",
 		{ { text = "Close", selected = true } }
 	)
+
+	currentOperationState = operationStates.IDLE
 	return true -- Skip the rest of the update
+end
+
+-- Toggle the selection state of modal buttons
+local function toggleModalButtonSelection(modalButtons)
+	for _, btn in ipairs(modalButtons) do
+		btn.selected = not btn.selected
+	end
+	state.resetInputTimer()
+end
+
+-- Reset modal input state
+local function resetModalInputState()
+	modalInputState.lastInputTime = 0
+	modalInputState.isFirstInput = true
+end
+
+-- Handle modal navigation and selection
+local function handleModalNavigation(virtualJoystick, dt)
+	local modalButtons = modal.getModalButtons()
+	if #modalButtons == 0 then
+		return -- Skip navigation for buttonless modals
+	end
+
+	-- Update last input time
+	modalInputState.lastInputTime = modalInputState.lastInputTime + dt
+
+	-- Handle navigation for modal buttons with input throttling
+	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
+		-- Allow immediate input for first press, then enforce delay for subsequent inputs
+		if modalInputState.isFirstInput or modalInputState.lastInputTime >= modalInputState.inputDelay then
+			toggleModalButtonSelection(modalButtons)
+			modalInputState.lastInputTime = 0
+			modalInputState.isFirstInput = false
+		end
+	else
+		-- Reset first input flag when buttons are released
+		if not (virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown")) then
+			modalInputState.isFirstInput = true
+		end
+	end
+
+	-- Handle selection in modals (A button)
+	if virtualJoystick:isGamepadDown("a") then
+		if modalState == "created" then
+			for i, btn in ipairs(modalButtons) do
+				if btn.selected then
+					if i == 1 then -- Apply theme later button
+						os.exit(0)
+					else -- Apply theme now button
+						-- Set the theme path for installation
+						waitingThemePath = createdThemePath
+
+						-- Replace current modal with "Applying theme..." modal for smooth transition
+						modal.replaceWithProcessModal("Applying theme...")
+
+						modalState = "none"
+						resetModalInputState()
+						state.resetInputTimer()
+
+						-- Set waiting state to install theme after modal transitions
+						waitingState = "install_theme"
+						return
+					end
+					break
+				end
+			end
+			state.resetInputTimer()
+		elseif modalState == "manual" or modalState == "automatic" then
+			modal.hideModal()
+			modalState = "none"
+			resetModalInputState()
+			state.forceInputDelay(0.3) -- Add extra delay when closing the modal
+		else
+			-- Handle default modals
+			for _, btn in ipairs(modalButtons) do
+				if btn.selected and btn.text == "Exit" then
+					os.exit(0)
+				end
+			end
+			modal.hideModal()
+			resetModalInputState()
+			state.forceInputDelay(0.2) -- Add delay after handling default modals
+		end
+	end
 end
 
 -- Handle selection of a button
@@ -212,111 +307,41 @@ local function handleSelectedButton(btn)
 		state.previousScreen = "menu" -- Set previous screen to return to
 		switchScreen("color_picker")
 	elseif btn.text == "Create theme" then
-		-- Queue theme creation for next frame
+		-- Show the process modal first
+		modal.showProcessModal("Creating theme...")
+		-- Set waiting state to create theme after modal fades in
 		waitingState = "create_theme"
-		-- Deferring theme creation to the next frame allows the wait overlay to be displayed first
-	end
-end
-
--- Toggle the selection state of modal buttons
-local function toggleModalButtonSelection(modalButtons)
-	for _, btn in ipairs(modalButtons) do
-		btn.selected = not btn.selected
-	end
-	state.resetInputTimer()
-end
-
--- Modal input state tracking for handling press-and-hold
-local modalInputState = {
-	lastInputTime = 0,
-	inputDelay = 0.25, -- Minimum delay between inputs when holding a button
-	isFirstInput = true,
-}
-
--- Reset modal input state
-local function resetModalInputState()
-	modalInputState.lastInputTime = 0
-	modalInputState.isFirstInput = true
-end
-
--- Handle modal navigation and selection
-local function handleModalNavigation(virtualJoystick, dt)
-	local modalButtons = modal.getModalButtons()
-
-	-- Update last input time
-	modalInputState.lastInputTime = modalInputState.lastInputTime + dt
-
-	-- Handle navigation for modal buttons with input throttling
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		-- Allow immediate input for first press, then enforce delay for subsequent inputs
-		if modalInputState.isFirstInput or modalInputState.lastInputTime >= modalInputState.inputDelay then
-			toggleModalButtonSelection(modalButtons)
-			modalInputState.lastInputTime = 0
-			modalInputState.isFirstInput = false
-		end
-	else
-		-- Reset first input flag when buttons are released
-		if not (virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown")) then
-			modalInputState.isFirstInput = true
-		end
-	end
-
-	-- Handle selection in modals (A button)
-	if virtualJoystick:isGamepadDown("a") then
-		if modalState == "created" then
-			for i, btn in ipairs(modalButtons) do
-				if btn.selected then
-					if i == 1 then -- Apply theme later button
-						os.exit(0)
-					else -- Apply theme now button
-						-- Set the theme path before changing the modal state
-						waitingThemePath = createdThemePath
-						waitingState = "install_theme"
-
-						-- Hide the current modal so we can show the working overlay
-						modal.hideModal()
-						modalState = "none"
-						resetModalInputState()
-						state.resetInputTimer()
-						return
-					end
-					break
-				end
-			end
-			state.resetInputTimer()
-		elseif modalState == "manual" or modalState == "automatic" then
-			modal.hideModal()
-			modalState = "none"
-			resetModalInputState()
-			-- Add a small delay to avoid immediate input after closing
-			state.forceInputDelay(0.3) -- Add extra delay when closing the modal
-		else
-			-- Handle default modals
-			for _, btn in ipairs(modalButtons) do
-				if btn.selected and btn.text == "Exit" then
-					os.exit(0)
-				end
-			end
-			modal.hideModal()
-			resetModalInputState()
-			state.forceInputDelay(0.2) -- Add delay after handling default modals
-		end
 	end
 end
 
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	-- Handle IO operations that were queued in the previous frame
+	-- Update modal animations
+	modal.update(dt)
+
+	-- Handle IO operations only when modal has fully faded in
 	if waitingState == "create_theme" then
-		return handleThemeCreation()
+		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
+			waitingState = "none"
+			currentOperationState = operationStates.CREATING_THEME
+			handleThemeCreation()
+		end
+		return
 	elseif waitingState == "install_theme" then
-		return handleThemeInstallation()
+		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
+			waitingState = "none"
+			currentOperationState = operationStates.APPLYING_THEME
+			handleThemeInstallation()
+		end
+		return
 	end
 
 	if modal.isModalVisible() then
-		-- Show controls for modals
-		controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
+		-- Show controls for modals with buttons
+		if #modal.getModalButtons() > 0 then
+			controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
+		end
 		handleModalNavigation(virtualJoystick, dt)
 		return -- Don't process other input while modal is shown
 	end
