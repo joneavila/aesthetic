@@ -73,6 +73,9 @@ local state = {
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
+	-- Set the alignment of the theme's bottom navigation icons and text
+	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
+
 	-- Box art settings
 	boxArtWidth = "Disabled", -- Default box art width
 

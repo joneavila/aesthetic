@@ -30,6 +30,7 @@ menu.BUTTONS = {
 	{ text = "Font size", selected = false, fontSizeToggle = true },
 	{ text = "Icons", selected = false, glyphsToggle = true },
 	{ text = "Box art width", selected = false, boxArt = true },
+	{ text = "Navigation alignment", selected = false, navAlignToggle = true },
 	{ text = "Create theme", selected = false, isBottomButton = true },
 }
 
@@ -104,6 +105,21 @@ function menu.draw()
 		end
 	end
 
+	-- Process buttons before drawing to add display values
+	for _, btn in ipairs(regularButtons) do
+		-- Add display values for buttons that need them
+		if btn.fontSizeToggle then
+			btn.valueText = state.fontSize
+		elseif btn.glyphsToggle then
+			btn.valueText = state.glyphs_enabled and "Enabled" or "Disabled"
+		elseif btn.boxArt then
+			-- Box art width should be displayed without indicators
+			btn.value = state.boxArtWidth == "Disabled" and "Disabled" or tostring(state.boxArtWidth)
+		elseif btn.navAlignToggle then
+			btn.valueText = state.navigationAlignment
+		end
+	end
+
 	-- Draw regular buttons with list component
 	list.draw({
 		items = regularButtons,
@@ -135,6 +151,15 @@ function menu.draw()
 	-- Draw modal if active
 	if modal.isModalVisible() then
 		modal.drawModal()
+	end
+
+	-- Determine if currently selected button has indicators
+	local hasIndicators = false
+	for _, btn in ipairs(menu.BUTTONS) do
+		if btn.selected and (btn.fontSizeToggle or btn.glyphsToggle or btn.navAlignToggle) then
+			hasIndicators = true
+			break
+		end
 	end
 
 	controls.draw({
@@ -295,6 +320,16 @@ local function handleSelectedButton(btn)
 		-- Toggle glyphs enabled state
 		state.glyphs_enabled = not state.glyphs_enabled
 		state.resetInputTimer()
+	elseif btn.navAlignToggle then
+		-- Toggle navigation alignment between "Left", "Center", and "Right"
+		if state.navigationAlignment == "Left" then
+			state.navigationAlignment = "Center"
+		elseif state.navigationAlignment == "Center" then
+			state.navigationAlignment = "Right"
+		else
+			state.navigationAlignment = "Left"
+		end
+		state.resetInputTimer()
 	elseif btn.rgbLighting and switchScreen then
 		-- RGB lighting screen
 		switchScreen("rgb")
@@ -379,6 +414,67 @@ function menu.update(dt)
 		-- Use list navigation helper
 		list.navigate(navButtons, direction)
 		state.resetInputTimer()
+	end
+
+	-- Handle D-pad left/right for cycling through options
+	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
+		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
+
+		-- Find the selected button
+		for _, btn in ipairs(menu.BUTTONS) do
+			if btn.selected then
+				if btn.fontSizeToggle then
+					-- Toggle font size
+					if direction > 0 then
+						-- Go forward
+						if state.fontSize == "Default" then
+							state.fontSize = "Large"
+						elseif state.fontSize == "Large" then
+							state.fontSize = "Extra Large"
+						else
+							state.fontSize = "Default"
+						end
+					else
+						-- Go backward
+						if state.fontSize == "Default" then
+							state.fontSize = "Extra Large"
+						elseif state.fontSize == "Extra Large" then
+							state.fontSize = "Large"
+						else
+							state.fontSize = "Default"
+						end
+					end
+					state.resetInputTimer()
+				elseif btn.glyphsToggle then
+					-- Toggle glyphs enabled
+					state.glyphs_enabled = not state.glyphs_enabled
+					state.resetInputTimer()
+				elseif btn.navAlignToggle then
+					-- Toggle navigation alignment
+					if direction > 0 then
+						-- Go forward
+						if state.navigationAlignment == "Left" then
+							state.navigationAlignment = "Center"
+						elseif state.navigationAlignment == "Center" then
+							state.navigationAlignment = "Right"
+						else
+							state.navigationAlignment = "Left"
+						end
+					else
+						-- Go backward
+						if state.navigationAlignment == "Left" then
+							state.navigationAlignment = "Right"
+						elseif state.navigationAlignment == "Right" then
+							state.navigationAlignment = "Center"
+						else
+							state.navigationAlignment = "Left"
+						end
+					end
+					state.resetInputTimer()
+				end
+				break
+			end
+		end
 	end
 
 	-- Handle B button (Exit)

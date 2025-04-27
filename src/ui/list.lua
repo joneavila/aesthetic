@@ -100,6 +100,17 @@ function list.draw(params)
 						screenWidth,
 						tostring(currentValue)
 					)
+				elseif item.valueText then
+					-- For items with valueText property (used for navigation alignment, etc.)
+					button.drawWithIndicators(
+						item.text,
+						0,
+						y,
+						item.selected,
+						item.disabled,
+						screenWidth,
+						item.valueText
+					)
 				elseif item.value then
 					-- For items with a simple value display
 					button.drawWithTextPreview(item.text, 0, y, item.selected, screenWidth, tostring(item.value))

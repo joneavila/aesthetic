@@ -172,4 +172,28 @@ function themeSettings.applyAntialiasingSettings(schemeFilePath)
 	end)
 end
 
+-- Apply navigation alignment settings to a scheme file
+function themeSettings.applyNavigationAlignmentSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Map navigation alignment values to numeric settings
+		local alignmentValue = 0 -- Default to left (0)
+
+		if state.navigationAlignment == "Center" then
+			alignmentValue = 1
+		elseif state.navigationAlignment == "Right" then
+			alignmentValue = 2
+		end -- "Left" remains 0
+
+		-- Replace navigation alignment placeholder
+		local navigationAlignmentCount
+		content, navigationAlignmentCount = content:gsub("%%{%s*navigation%-alignment%s*}", tostring(alignmentValue))
+		if navigationAlignmentCount == 0 then
+			errorHandler.setError("Failed to replace navigation alignment setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings

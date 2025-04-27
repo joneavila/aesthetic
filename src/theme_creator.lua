@@ -286,6 +286,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's navigation alignment settings
+		logger.debug("Setting theme's navigation alignment settings")
+		if not themeSettings.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+			return false
+		end
+
 		-- Copy the selected font file
 		logger.debug("Copying selected font file")
 		if not copySelectedFont() then
