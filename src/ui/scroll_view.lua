@@ -3,7 +3,9 @@
 
 local love = require("love")
 local colors = require("colors")
-local UI_CONSTANTS = require("ui.constants")
+
+-- Define scroll bar width constant
+local SCROLL_BAR_WIDTH = 10
 
 -- Module table to export public functions
 local scrollView = {}
@@ -18,7 +20,7 @@ function scrollView.draw(params)
 	local contentPadding = params.contentPadding or 0
 	local screenWidth = params.screenWidth or love.graphics.getWidth()
 	local contentDrawFunc = params.contentDrawFunc or function() end
-	local scrollBarWidth = params.scrollBarWidth or UI_CONSTANTS.SCROLL_BAR_WIDTH
+	local scrollBarWidth = params.scrollBarWidth or SCROLL_BAR_WIDTH
 
 	-- Calculate visible area and scroll bar dimensions
 	local needsScrollBar = contentCount > visibleCount
@@ -83,5 +85,8 @@ function scrollView.adjustScrollPosition(params)
 
 	return scrollPosition
 end
+
+-- Export scroll bar width constant
+scrollView.SCROLL_BAR_WIDTH = SCROLL_BAR_WIDTH
 
 return scrollView

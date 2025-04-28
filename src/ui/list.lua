@@ -5,7 +5,6 @@ local love = require("love")
 local state = require("state")
 local button = require("ui.button")
 local scrollView = require("ui.scroll_view")
-local UI_CONSTANTS = require("ui.constants")
 
 -- Module table to export public functions
 local list = {}
@@ -15,11 +14,11 @@ local list = {}
 function list.draw(params)
 	local items = params.items or {}
 	local startY = params.startY or 0
-	local itemHeight = params.itemHeight or UI_CONSTANTS.BUTTON.HEIGHT
-	local itemPadding = params.itemPadding or UI_CONSTANTS.BUTTON.PADDING
+	local itemHeight = params.itemHeight or button.BUTTON.HEIGHT
+	local itemPadding = params.itemPadding or button.BUTTON.PADDING
 	local scrollPosition = params.scrollPosition or 0
 	local screenWidth = params.screenWidth or love.graphics.getWidth()
-	local scrollBarWidth = params.scrollBarWidth or UI_CONSTANTS.SCROLL_BAR_WIDTH
+	local scrollBarWidth = params.scrollBarWidth or scrollView.SCROLL_BAR_WIDTH
 	local itemCount = #items
 	local visibleCount = params.visibleCount or math.floor((state.screenHeight - startY) / (itemHeight + itemPadding))
 	local customDrawFunc = params.customDrawFunc -- Optional custom draw function for each item

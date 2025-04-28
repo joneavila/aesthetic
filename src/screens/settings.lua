@@ -8,7 +8,7 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local modal = require("ui.modal")
-local UI_CONSTANTS = require("ui.constants")
+local button = require("ui.button")
 
 -- Screen module
 local settings = {}
@@ -54,7 +54,7 @@ function settings.draw()
 	header.draw("Settings")
 
 	-- Calculate starting Y position for the list
-	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+	local startY = header.HEIGHT + button.BUTTON.PADDING
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
@@ -63,8 +63,8 @@ function settings.draw()
 	local result = list.draw({
 		items = BUTTONS,
 		startY = startY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 	})

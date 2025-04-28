@@ -6,7 +6,7 @@ local rgbUtils = require("utils.rgb")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
-local UI_CONSTANTS = require("ui.constants")
+local button = require("ui.button")
 
 -- Module table to export public functions
 local rgb = {}
@@ -119,14 +119,14 @@ function rgb.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list
-	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+	local startY = header.HEIGHT + button.BUTTON.PADDING
 
 	-- Draw the list using our list component
 	local result = list.draw({
 		items = BUTTONS,
 		startY = startY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 	})

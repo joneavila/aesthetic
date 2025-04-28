@@ -7,7 +7,8 @@ local rgbUtils = require("utils.rgb")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
-local UI_CONSTANTS = require("ui.constants")
+local button = require("ui.button")
+local scrollView = require("ui.scroll_view")
 
 -- Module table to export public functions
 local loadPreset = {}
@@ -29,10 +30,10 @@ local function calculateVisibleItemCount()
 	local availableHeight = state.screenHeight - header.HEIGHT - controls.HEIGHT
 
 	-- Account for padding at the top but not bottom since we want to use all available space
-	availableHeight = availableHeight - UI_CONSTANTS.BUTTON.PADDING
+	availableHeight = availableHeight - button.BUTTON.PADDING
 
 	-- Calculate how many items can fit
-	visibleItemCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING))
+	visibleItemCount = math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING))
 end
 
 -- Helper function to load presets and verify they are valid
@@ -121,8 +122,8 @@ function loadPreset.draw()
 		love.graphics.setFont(state.fonts.body)
 		love.graphics.print(
 			"No presets found",
-			UI_CONSTANTS.BUTTON.PADDING,
-			header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+			button.BUTTON.PADDING,
+			header.HEIGHT + button.BUTTON.PADDING
 		)
 
 		-- Draw controls
@@ -138,9 +139,9 @@ function loadPreset.draw()
 	-- Draw the list of presets using the list component
 	list.draw({
 		items = presetItems,
-		startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		startY = header.HEIGHT + button.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		visibleCount = visibleItemCount,
@@ -154,8 +155,8 @@ function loadPreset.draw()
 				love.graphics.setColor(0.5, 0.7, 1.0, 1.0)
 				love.graphics.print(
 					indicatorText,
-					state.screenWidth - UI_CONSTANTS.SCROLL_BAR_WIDTH - textWidth - UI_CONSTANTS.BUTTON.PADDING * 2,
-					y + (UI_CONSTANTS.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+					state.screenWidth - scrollView.SCROLL_BAR_WIDTH - textWidth - button.BUTTON.PADDING * 2,
+					y + (button.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
 				)
 			end
 

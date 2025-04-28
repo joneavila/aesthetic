@@ -7,7 +7,7 @@ local fonts = require("ui.fonts")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
-local UI_CONSTANTS = require("ui.constants")
+local button = require("ui.button")
 
 -- Module table to export public functions
 local font = {}
@@ -100,7 +100,7 @@ function font.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate available space for list
-	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+	local startY = header.HEIGHT + button.BUTTON.PADDING
 
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont
@@ -120,8 +120,8 @@ function font.draw()
 	-- Calculate preview text height for background
 	local _, textLines = love.graphics
 		.getFont()
-		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 2))
-	local previewHeight = #textLines * love.graphics.getFont():getHeight() + UI_CONSTANTS.BUTTON.PADDING * 2
+		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.PADDING * 2))
+	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.PADDING * 2
 
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
@@ -135,11 +135,11 @@ function font.draw()
 	local result = list.draw({
 		items = fontItems,
 		startY = startY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
-		visibleCount = math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)),
+		visibleCount = math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)),
 	})
 
 	visibleCount = result.visibleCount
@@ -148,9 +148,9 @@ function font.draw()
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle(
 		"fill",
-		UI_CONSTANTS.BUTTON.PADDING,
+		button.BUTTON.PADDING,
 		previewY,
-		state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 2),
+		state.screenWidth - (button.BUTTON.PADDING * 2),
 		previewHeight,
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
@@ -162,9 +162,9 @@ function font.draw()
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf(
 		FONT_PREVIEW.PREVIEW_TEXT,
-		UI_CONSTANTS.BUTTON.PADDING * 2,
-		previewY + UI_CONSTANTS.BUTTON.PADDING,
-		state.screenWidth - (UI_CONSTANTS.BUTTON.PADDING * 4),
+		button.BUTTON.PADDING * 2,
+		previewY + button.BUTTON.PADDING,
+		state.screenWidth - (button.BUTTON.PADDING * 4),
 		"left"
 	)
 

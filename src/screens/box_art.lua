@@ -6,7 +6,7 @@ local controls = require("controls")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
-local UI_CONSTANTS = require("ui.constants")
+local button = require("ui.button")
 
 -- Module table to export public functions
 local box_art = {}
@@ -86,14 +86,14 @@ function box_art.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate starting Y position for the list (after header)
-	local startY = header.HEIGHT + UI_CONSTANTS.BUTTON.PADDING
+	local startY = header.HEIGHT + button.BUTTON.PADDING
 
 	-- Draw the button list
 	list.draw({
 		items = BUTTONS,
 		startY = startY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 	})
@@ -104,16 +104,16 @@ function box_art.draw()
 	-- Draw preview rectangles
 	local previewHeight = 100
 	local previewYOffset = 40
-	local previewY = startY + UI_CONSTANTS.BUTTON.HEIGHT + previewYOffset
+	local previewY = startY + button.BUTTON.HEIGHT + previewYOffset
 
 	-- Draw labels for the preview
 	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.setFont(state.fonts.body)
 	love.graphics.printf(
 		"Preview",
-		UI_CONSTANTS.BUTTON.PADDING,
-		startY + UI_CONSTANTS.BUTTON.HEIGHT + 10,
-		state.screenWidth - UI_CONSTANTS.BUTTON.PADDING * 2,
+		button.BUTTON.PADDING,
+		startY + button.BUTTON.HEIGHT + 10,
+		state.screenWidth - button.BUTTON.PADDING * 2,
 		"left"
 	)
 

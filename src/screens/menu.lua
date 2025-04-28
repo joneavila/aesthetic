@@ -12,8 +12,7 @@ local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fonts = require("ui.fonts")
 local list = require("ui.list")
-
-local UI_CONSTANTS = require("ui.constants")
+local scrollView = require("ui.scroll_view")
 
 -- Module table to export public functions
 local menu = {}
@@ -45,7 +44,7 @@ local modalState = "none" -- none, created, manual, automatic
 local scrollPosition = 0
 local visibleButtonCount = 0
 local buttonCount = 0
-local scrollBarWidth = UI_CONSTANTS.SCROLL_BAR_WIDTH
+local scrollBarWidth = scrollView.SCROLL_BAR_WIDTH
 
 -- IO operation states (operation states)
 local waitingState = "none" -- none, create_theme, install_theme
@@ -67,13 +66,12 @@ function menu.load()
 		end
 	end
 
-	local availableHeight = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN - UI_CONSTANTS.BUTTON.PADDING
-	visibleButtonCount =
-		math.max(3, math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)))
+	local availableHeight = state.screenHeight - button.BUTTON.BOTTOM_MARGIN - button.BUTTON.PADDING
+	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)))
 end
 
 function menu.draw()
-	local startY = UI_CONSTANTS.BUTTON.PADDING
+	local startY = button.BUTTON.PADDING
 
 	background.draw()
 
@@ -111,8 +109,8 @@ function menu.draw()
 	list.draw({
 		items = regularButtons,
 		startY = startY,
-		itemHeight = UI_CONSTANTS.BUTTON.HEIGHT,
-		itemPadding = UI_CONSTANTS.BUTTON.PADDING,
+		itemHeight = button.BUTTON.HEIGHT,
+		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		visibleCount = visibleButtonCount,
 		screenWidth = state.screenWidth,
@@ -130,7 +128,7 @@ function menu.draw()
 	end
 
 	if createThemeButton then
-		local bottomY = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN
+		local bottomY = state.screenHeight - button.BUTTON.BOTTOM_MARGIN
 		local buttonWidth = state.screenWidth - 24
 		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth, buttonWidth)
 	end
