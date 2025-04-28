@@ -116,7 +116,6 @@ function rgb.draw()
 	-- Draw header with title
 	header.draw("RGB lighting")
 
-	-- Set font to body font to match menu.lua
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list

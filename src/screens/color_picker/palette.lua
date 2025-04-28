@@ -2,7 +2,7 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local menuScreen = require("screens.menu")
+local mainMenuScreen = require("screens.main_menu")
 local tween = require("tween")
 local controls = require("controls")
 local constants = require("screens.color_picker.constants")
@@ -363,7 +363,7 @@ function palette.update(dt)
 					context.currentColor = hexCode
 
 					-- Pass to menu
-					menuScreen.setSelectedColor(state.activeColorContext, hexCode)
+					mainMenuScreen.setSelectedColor(state.activeColorContext, hexCode)
 					if switchScreen then
 						switchScreen(state.previousScreen)
 						state.resetInputTimer()
