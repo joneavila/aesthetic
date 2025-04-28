@@ -7,6 +7,7 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
+local fonts = require("ui.fonts")
 
 -- Module table to export public functions
 local rgb = {}

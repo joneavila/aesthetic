@@ -187,7 +187,7 @@ function menu.draw()
 
 	-- Draw modal if active
 	if modal.isModalVisible() then
-		modal.drawModal()
+		modal.drawModal(state.screenWidth, state.screenHeight, state.fonts.body)
 	end
 
 	controls.draw({

@@ -79,7 +79,7 @@ function settings.draw()
 
 	-- Draw modal if visible (now handled by modal component)
 	if modal.isModalVisible() then
-		modal.drawModal()
+		modal.drawModal(state.screenWidth, state.screenHeight, state.fonts.body)
 	end
 
 	-- Draw controls at bottom of screen

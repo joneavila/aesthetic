@@ -2,7 +2,6 @@
 --- This file contains code for drawing modal dialogs throughout the application
 local love = require("love")
 local colors = require("colors")
-local state = require("state")
 
 -- Module table to export public functions
 local modal = {}
@@ -19,7 +18,7 @@ local backgroundOpacity = 0 -- Separate opacity for background dimming (elements
 local isProcessModal = false -- Flag for process modals that should be dismissed manually
 
 -- Modal drawing function
-function modal.drawModal()
+function modal.drawModal(screenWidth, screenHeight, font)
 	-- Apply current opacity to the background with separate opacity control
 	-- This ensures background stays dimmed during modal transitions
 	backgroundOpacity = showModal and 0.9 or backgroundOpacity
@@ -30,38 +29,38 @@ function modal.drawModal()
 	end
 
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], backgroundOpacity)
-	love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
+	love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
 
 	-- Calculate modal dimensions based on text
 	local padding = 40
-	local maxWidth = state.screenWidth * 0.9 -- Maximum width is 90% of screen width
+	local maxWidth = screenWidth * 0.9 -- Maximum width is 90% of screen width
 
 	-- Set font for text measurement
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(font)
 
 	-- For process modals without buttons, use a smaller layout
 	local minWidth, minHeight
 	if isProcessModal or (#modalButtons == 0) then
 		-- Calculate text dimensions more precisely for modals without buttons
 		local availTextWidth = maxWidth - (padding * 2)
-		local _, lines = state.fonts.body:getWrap(modalMessage, availTextWidth)
-		local textHeight = #lines * state.fonts.body:getHeight()
+		local _, lines = font:getWrap(modalMessage, availTextWidth)
+		local textHeight = #lines * font:getHeight()
 
 		-- Use fixed padding but adapt to text size
-		minWidth = math.min(state.fonts.body:getWidth(modalMessage) + (padding * 2), maxWidth)
+		minWidth = math.min(font:getWidth(modalMessage) + (padding * 2), maxWidth)
 		minHeight = textHeight + (padding * 2)
 	else
 		-- Standard modal with buttons
-		minWidth = math.min(state.screenWidth * 0.8, maxWidth)
-		minHeight = state.screenHeight * 0.3
+		minWidth = math.min(screenWidth * 0.8, maxWidth)
+		minHeight = screenHeight * 0.3
 	end
 
 	-- Calculate available width for text
 	local availableTextWidth = minWidth - (padding * 2)
 
 	-- Get wrapped text info for correct line calculation
-	local _, lines = state.fonts.body:getWrap(modalMessage, availableTextWidth)
-	local textHeight = #lines * state.fonts.body:getHeight()
+	local _, lines = font:getWrap(modalMessage, availableTextWidth)
+	local textHeight = #lines * font:getHeight()
 
 	-- Calculate final modal dimensions
 	local modalWidth = minWidth
@@ -76,8 +75,8 @@ function modal.drawModal()
 
 	local modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
 
-	local x = (state.screenWidth - modalWidth) / 2
-	local y = (state.screenHeight - modalHeight) / 2
+	local x = (screenWidth - modalWidth) / 2
+	local y = (screenHeight - modalHeight) / 2
 
 	-- Draw modal background with current opacity
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], modalOpacity)
@@ -97,7 +96,7 @@ function modal.drawModal()
 	if #modalButtons > 0 then
 		-- Draw buttons (always vertically stacked)
 		local buttonWidth = 300
-		local buttonX = (state.screenWidth - buttonWidth) / 2
+		local buttonX = (screenWidth - buttonWidth) / 2
 		local startButtonY = y + padding + textHeight + padding
 
 		for i, button in ipairs(modalButtons) do
@@ -132,7 +131,7 @@ function modal.drawModal()
 			love.graphics.printf(
 				button.text,
 				buttonX,
-				buttonY + (buttonHeight - state.fonts.body:getHeight()) / 2,
+				buttonY + (buttonHeight - font:getHeight()) / 2,
 				buttonWidth,
 				"center"
 			)
