@@ -1,5 +1,5 @@
 --- Logger module
---- Provides logging functions that write to the LOG_DIR specified in the launch script
+--- Provides logging functions that write to the LOG_DIR specified in the environment
 
 -- Module table
 local logger = {}
@@ -15,14 +15,15 @@ local LOG_LEVELS = {
 -- Get calling module name from stack traceback
 local function getCallerModule()
 	local info = debug.getinfo(3, "S")
+	local unknownModuleName = "unknown-module"
 	if info and info.source then
 		-- Remove leading '@' if present
 		local source = info.source:gsub("^@", "")
 		-- Extract module name from path
-		local moduleName = source:match("([^/\\]+)%.lua$") or "unknown"
+		local moduleName = source:match("([^/\\]+)%.lua$") or unknownModuleName
 		return moduleName
 	end
-	return "unknown"
+	return unknownModuleName
 end
 
 -- Get current timestamp in format YYYY-MM-DD HH:MM:SS
@@ -32,10 +33,7 @@ end
 
 -- Internal function to write log message
 local function writeLog(level, message)
-	-- Get the calling module name
 	local moduleName = getCallerModule()
-
-	-- Format the log line
 	local logLine = string.format("[%s] [%s] [%s] %s", getTimestamp(), level, moduleName, message)
 
 	-- Get log directory from environment variable
@@ -59,26 +57,14 @@ local function writeLog(level, message)
 		print("ERROR: Could not open log file: " .. logFile)
 		print(logLine)
 	end
-
-	-- Also print to console for debug purposes
-	print(logLine)
 end
 
--- Public logging functions
-function logger.debug(message)
-	writeLog(LOG_LEVELS.DEBUG, message)
-end
-
-function logger.info(message)
-	writeLog(LOG_LEVELS.INFO, message)
-end
-
-function logger.warning(message)
-	writeLog(LOG_LEVELS.WARNING, message)
-end
-
-function logger.error(message)
-	writeLog(LOG_LEVELS.ERROR, message)
+-- Public logging function
+-- Each level in the LOG_LEVELS table is a public function in the logger module, e.g. logger.debug
+for level, levelStr in pairs(LOG_LEVELS) do
+	logger[level:lower()] = function(message)
+		writeLog(levelStr, message)
+	end
 end
 
 return logger
