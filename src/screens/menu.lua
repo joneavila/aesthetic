@@ -114,7 +114,59 @@ function menu.draw()
 		scrollPosition = scrollPosition,
 		visibleCount = visibleButtonCount,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
 		scrollBarWidth = scrollBarWidth,
+		drawItemFunc = function(item, _index, y)
+			-- Draw the button based on its type
+			if item.colorKey then
+				local colorValue = state.getColorValue(item.colorKey)
+				button.drawWithColorPreview(
+					item.text,
+					item.selected,
+					0,
+					y,
+					state.screenWidth,
+					colorValue,
+					item.disabled,
+					fonts.loaded.monoBody
+				)
+			elseif item.fontSelection then
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.selectedFont)
+			elseif item.fontSizeToggle then
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					state.fontSize
+				)
+			elseif item.glyphsToggle then
+				local displayText = state.glyphs_enabled and "Enabled" or "Disabled"
+				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
+			elseif item.boxArt then
+				local boxArtText = state.boxArtWidth
+				if boxArtText == "Disabled" then
+					boxArtText = "0 (Disabled)"
+				end
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, boxArtText)
+			elseif item.rgbLighting then
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.rgbMode)
+			elseif item.navAlignToggle then
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					state.navigationAlignment
+				)
+			else
+				button.draw(item.text, 0, y, item.selected, state.screenWidth)
+			end
+		end,
 	})
 
 	-- Draw the "Create theme" button separately with accented style

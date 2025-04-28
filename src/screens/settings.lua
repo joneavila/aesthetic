@@ -67,6 +67,11 @@ function settings.draw()
 		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
+		drawItemFunc = function(item, _index, y)
+			-- Settings has simple buttons, so just use the standard drawing
+			button.draw(item.text, 0, y, item.selected, state.screenWidth)
+		end,
 	})
 
 	-- Store the visible count for navigation

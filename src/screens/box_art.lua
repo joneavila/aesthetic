@@ -96,6 +96,24 @@ function box_art.draw()
 		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
+		drawItemFunc = function(item, _index, y)
+			if item.options then
+				-- For items with multiple options
+				local currentValue = item.options[item.currentOption]
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					currentValue
+				)
+			else
+				button.draw(item.text, 0, y, item.selected, state.screenWidth)
+			end
+		end,
 	})
 
 	-- Get current value for preview

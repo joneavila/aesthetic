@@ -129,6 +129,50 @@ function rgb.draw()
 		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
+		drawItemFunc = function(item, _index, y)
+			if item.colorKey then
+				local colorValue = state.getColorValue(item.colorKey)
+				button.drawWithColorPreview(
+					item.text,
+					item.selected,
+					0,
+					y,
+					state.screenWidth,
+					colorValue,
+					item.disabled,
+					fonts.loaded.monoBody
+				)
+			elseif item.options then
+				-- For items with multiple options
+				local currentValue = item.options[item.currentOption]
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					currentValue
+				)
+			elseif item.min ~= nil and item.max ~= nil then
+				-- For numeric ranges
+				local currentValue = item.value or item.min
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					tostring(currentValue)
+				)
+			elseif item.rgbLighting then
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.rgbMode)
+			else
+				button.draw(item.text, 0, y, item.selected, state.screenWidth)
+			end
+		end,
 	})
 
 	visibleCount = result.visibleCount

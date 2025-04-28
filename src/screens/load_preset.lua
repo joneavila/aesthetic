@@ -120,11 +120,7 @@ function loadPreset.draw()
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print(
-			"No presets found",
-			button.BUTTON.PADDING,
-			header.HEIGHT + button.BUTTON.PADDING
-		)
+		love.graphics.print("No presets found", button.BUTTON.PADDING, header.HEIGHT + button.BUTTON.PADDING)
 
 		-- Draw controls
 		controls.draw({
@@ -144,8 +140,12 @@ function loadPreset.draw()
 		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
 		visibleCount = visibleItemCount,
-		customDrawFunc = function(item, _index, _x, y)
+		drawItemFunc = function(item, _index, y)
+			-- Draw the basic button first
+			button.draw(item.text, 0, y, item.selected, state.screenWidth)
+
 			-- Display built-in indicator if applicable
 			if item.source == "built-in" then
 				local indicatorText = "[Built-in]"

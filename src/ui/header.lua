@@ -3,7 +3,7 @@
 
 local love = require("love")
 local colors = require("colors")
-local state = require("state")
+local fonts = require("ui.fonts")
 
 local header = {}
 
@@ -16,8 +16,8 @@ header.PADDING = 20
 function header.draw(title)
 	-- Draw header title
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.bodyBold)
-	love.graphics.print(title, header.PADDING, (header.HEIGHT - state.fonts.bodyBold:getHeight()) / 2)
+	love.graphics.setFont(fonts.loaded.bodyBold)
+	love.graphics.print(title, header.PADDING, (header.HEIGHT - fonts.loaded.bodyBold:getHeight()) / 2)
 end
 
 return header

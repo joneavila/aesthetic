@@ -118,9 +118,8 @@ function font.draw()
 	love.graphics.setFont(previewFont)
 
 	-- Calculate preview text height for background
-	local _, textLines = love.graphics
-		.getFont()
-		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.PADDING * 2))
+	local _, textLines =
+		love.graphics.getFont():getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.PADDING * 2))
 	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.PADDING * 2
 
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
@@ -139,7 +138,12 @@ function font.draw()
 		itemPadding = button.BUTTON.PADDING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
+		screenHeight = state.screenHeight,
 		visibleCount = math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)),
+		drawItemFunc = function(item, _index, y)
+			-- Font family items are just simple buttons
+			button.draw(item.text, 0, y, item.selected, state.screenWidth)
+		end,
 	})
 
 	visibleCount = result.visibleCount
