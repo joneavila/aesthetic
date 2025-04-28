@@ -5,7 +5,7 @@ local errorHandler = require("error_handler")
 local commands = require("utils.commands")
 local rgb = require("utils.rgb")
 local paths = require("paths")
-local fontDefs = require("ui.font_defs")
+local fonts = require("ui.fonts")
 local imageGenerator = require("utils.image_generator")
 local themeSettings = require("utils.theme_settings")
 local logger = require("utils.logger")
@@ -101,7 +101,7 @@ end
 
 -- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage()
-	local result = imageGenerator.createPreviewImage(paths.THEME_PREVIEW_IMAGE_PATH)
+	local result = imageGenerator.createPreviewImage(paths.THEME_PREVIEW_IMAGE_PATH, state.fonts)
 	resetGraphicsState()
 	return result
 end
@@ -136,8 +136,8 @@ end
 local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
-	for _, font in ipairs(fontDefs.FONTS) do
-		if font.name == state.selectedFont then
+	for _, font in ipairs(fonts.choices) do
+		if fonts.isSelected(font.name, state.selectedFont) then
 			selectedFontFile = font.file
 			break
 		end
@@ -147,9 +147,8 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Get font size directory based on user setting
-	-- Font files are stored in the `assets/fonts` directory named after the font size, e.g. assets/fonts/24/nunito.bin
-	local fontSizeDir = fontDefs.getFontSizeDir(state.fontSize)
+	-- Default font size directory is 24pt
+	local fontSizeDir = fonts.getFontSizeDir(state.fontSize)
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = "assets/fonts/"
@@ -163,6 +162,7 @@ local function copySelectedFont()
 		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false
 	end
+
 	return true
 end
 

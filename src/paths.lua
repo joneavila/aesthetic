@@ -1,7 +1,7 @@
 --- Path constants
 local system = require("utils.system")
 local state = require("state")
-local fontDefs = require("ui.font_defs")
+local fonts = require("ui.fonts")
 
 local paths = {}
 
@@ -82,7 +82,7 @@ paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 
 -- Screen height to font size mapping
-local SCREEN_HEIGHT_MAPPING = fontDefs.SCREEN_HEIGHT_MAPPING
+local SCREEN_HEIGHT_MAPPING = fonts.screenHeightMapping
 
 -- Add font size directory paths based on screen height mapping
 for _, info in pairs(SCREEN_HEIGHT_MAPPING) do
@@ -91,12 +91,12 @@ end
 
 -- Function to get font size info based on screen height
 paths.getFontSizeInfo = function(height)
-	return fontDefs.getFontSizeInfo(height)
+	return fonts.getFontSizeInfo(height)
 end
 
 -- Function to get image font size based on screen height
 paths.getImageFontSize = function(height)
-	return fontDefs.getFontSizeInfo(height) and fontDefs.getFontSizeInfo(height).imageFontSize
+	return fonts.getFontSizeInfo(height) and fonts.getFontSizeInfo(height).imageFontSize
 end
 
 return paths

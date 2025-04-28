@@ -3,7 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
-local fontDefs = require("ui.font_defs")
+local fonts = require("ui.fonts")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
@@ -61,12 +61,12 @@ local fontItems = {}
 local scrollPosition = 0
 local visibleCount = 0
 
--- Initialize font items based on fontDefs.FONTS
+-- Initialize font items based on fonts.choices
 local function initFontItems()
 	fontItems = {}
 	local foundSelected = false
 
-	for _, fontItem in ipairs(fontDefs.FONTS) do
+	for _, fontItem in ipairs(fonts.choices) do
 		local isSelected = fontItem.name == state.selectedFont
 
 		if isSelected then
@@ -217,11 +217,6 @@ function font.update(_dt)
 			if item.selected then
 				-- Update the selected font in state
 				state.selectedFont = item.text
-
-				-- Update fontDefs.FONTS to match
-				for _, fontItem in ipairs(fontDefs.FONTS) do
-					fontItem.selected = (fontItem.name == item.text)
-				end
 
 				-- Return to menu
 				if switchScreen then

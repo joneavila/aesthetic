@@ -21,6 +21,7 @@ local bmp = require("utils.bmp")
 local system = require("utils.system")
 local paths = require("paths")
 local tove = require("tove")
+local fonts = require("ui.fonts")
 
 local imageGenerator = {}
 
@@ -137,7 +138,7 @@ function imageGenerator.createIconImage(options)
 		-- Create a larger version of the font
 		local imageFontSize = paths.getImageFontSize(height)
 		local fontSize = math.floor(imageFontSize * 1.3)
-		local fontDef = state.fontDefs[state.fontNameToKey[state.selectedFont]]
+		local fontDef = fonts.definitions[fonts.nameToKey[state.selectedFont]]
 		local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 
 		-- Set the font and color
@@ -193,7 +194,7 @@ function imageGenerator.createIconImage(options)
 end
 
 -- Create a preview image for muOS theme selection
-function imageGenerator.createPreviewImage(outputPath)
+function imageGenerator.createPreviewImage(outputPath, fonts)
 	-- Set the preview image dimensions based on the screen resolution
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
 
@@ -236,11 +237,11 @@ function imageGenerator.createPreviewImage(outputPath)
 	love.graphics.setColor(fgColor)
 	local selectedFontName = state.selectedFont
 	local fontMap = {
-		["Inter"] = state.fonts.body,
-		["Cascadia Code"] = state.fonts.monoBody,
-		["Retro Pixel"] = state.fonts.retroPixel,
+		["Inter"] = fonts and fonts.body or state.fonts.body,
+		["Cascadia Code"] = fonts and fonts.monoBody or state.fonts.monoBody,
+		["Retro Pixel"] = fonts and fonts.retroPixel or state.fonts.retroPixel,
 	}
-	local font = fontMap[selectedFontName] or state.fonts.nunito
+	local font = fontMap[selectedFontName] or (fonts and fonts.nunito or state.fonts.nunito)
 	love.graphics.setFont(font)
 
 	-- Center text

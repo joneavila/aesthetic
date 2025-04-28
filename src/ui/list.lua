@@ -23,6 +23,7 @@ function list.draw(params)
 	local itemCount = #items
 	local visibleCount = params.visibleCount or math.floor((state.screenHeight - startY) / (itemHeight + itemPadding))
 	local customDrawFunc = params.customDrawFunc -- Optional custom draw function for each item
+	local monoFont = params.monoFont
 
 	-- Calculate if scrollbar is needed
 	local needsScrollBar = itemCount > visibleCount
@@ -82,7 +83,8 @@ function list.draw(params)
 						y,
 						screenWidth,
 						state.getColorValue(item.colorKey),
-						item.disabled
+						item.disabled,
+						monoFont
 					)
 				elseif item.options then
 					-- For items with multiple options

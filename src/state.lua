@@ -11,6 +11,8 @@
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
 local love = require("love")
+local fonts = require("ui.fonts")
+
 local function createColorContext(defaultColor)
 	return {
 		-- Palette state
@@ -45,31 +47,11 @@ local state = {
 	screenWidth = 0,
 	screenHeight = 0,
 
-	fonts = {},
+	-- Font settings (moved to ui.fonts but kept references here for compatibility)
+	fonts = fonts.loaded,
+	selectedFont = fonts.defaultFont,
+	fontSize = fonts.defaultFontSize,
 
-	-- Note: Antialiasing should be set to 0 for pixelated fonts
-	-- Font definitions mapping
-	fontDefs = {
-		header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 32 },
-		body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 24 },
-		bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = 24 },
-		caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 20 },
-		monoTitle = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 48 },
-		monoHeader = {
-			name = "JetBrains Mono",
-			path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
-			size = 32,
-		},
-		monoBody = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 24 },
-		nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
-		retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = 24 },
-	},
-
-	-- Font name to font key mapping for easy lookup
-	fontNameToKey = {},
-
-	selectedFont = "Inter", -- Default selected font
-	fontSize = "Default", -- Default font size
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
@@ -129,28 +111,19 @@ function state.setColorValue(contextKey, colorValue)
 	return colorValue
 end
 
---- Helper function to get a font by name
+--- Helper function to get a font by name (delegated to fonts)
 function state.getFontByName(fontName)
-	local fontKey = state.fontNameToKey[fontName]
-	if fontKey then
-		return state.fonts[fontKey]
-	end
-	return state.fonts.body -- Return default font if not found
+	return fonts.getByName(fontName)
 end
 
---- Helper function to initialize font name to key mapping
+--- Helper function to initialize font name to key mapping (delegated to fonts)
 function state.initFontNameMapping()
-	state.fontNameToKey = {}
-	for key, def in pairs(state.fontDefs) do
-		state.fontNameToKey[def.name] = key
-	end
+	fonts.initNameMapping()
 end
 
---- Helper function to set the default font
+--- Helper function to set the default font (delegated to fonts)
 function state.setDefaultFont()
-	if love and state.fonts.body then
-		love.graphics.setFont(state.fonts.body)
-	end
+	fonts.setDefault()
 end
 
 return state

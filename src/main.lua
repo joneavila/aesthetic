@@ -13,6 +13,7 @@ local love = require("love")
 local input = require("input")
 local colors = require("colors")
 local state = require("state")
+local fonts = require("ui.fonts")
 local settings = require("utils.settings")
 -- Remove the circular dependency by loading the screens module after state is initialized
 
@@ -60,18 +61,16 @@ local function setupFonts()
 	-- Add a minimum scale factor to prevent fonts from becoming too small
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
-	-- Initialize the font name mapping
-	state.initFontNameMapping()
-
-	-- Create all fonts using the font definitions and scaling
-	state.fonts = {}
-	for key, def in pairs(state.fontDefs) do
-		local fontSize = def.size * scaleFactor
-		state.fonts[key] = love.graphics.newFont(def.path, fontSize)
+	-- Update font sizes based on scale factor
+	for key, def in pairs(fonts.definitions) do
+		def.size = def.size * scaleFactor
 	end
 
+	-- Load all fonts
+	fonts.loadFonts()
+
 	-- Set the default font
-	state.setDefaultFont()
+	fonts.setDefault()
 end
 
 -- Function to load settings from file

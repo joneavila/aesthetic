@@ -10,7 +10,7 @@ local button = require("ui.button")
 local background = require("ui.background")
 local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
-local fontDefs = require("ui.font_defs")
+local fonts = require("ui.fonts")
 local list = require("ui.list")
 
 local UI_CONSTANTS = require("ui.constants")
@@ -19,7 +19,7 @@ local UI_CONSTANTS = require("ui.constants")
 local menu = {}
 
 -- Image font size based on screen height
-menu.IMAGE_FONT_SIZE = fontDefs.getImageFontSize()
+menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
 
 -- Button state
 menu.BUTTONS = {
@@ -70,11 +70,6 @@ function menu.load()
 	local availableHeight = state.screenHeight - UI_CONSTANTS.BUTTON.BOTTOM_MARGIN - UI_CONSTANTS.BUTTON.PADDING
 	visibleButtonCount =
 		math.max(3, math.floor(availableHeight / (UI_CONSTANTS.BUTTON.HEIGHT + UI_CONSTANTS.BUTTON.PADDING)))
-
-	-- Initialize font selection based on state
-	for _, font in ipairs(fontDefs.FONTS) do
-		font.selected = (font.name == state.selectedFont)
-	end
 end
 
 function menu.draw()
@@ -508,6 +503,18 @@ end
 function menu.onExit()
 	-- Clean up working directory when leaving menu screen
 	themeCreator.cleanup()
+end
+
+function menu.updateFontName()
+	-- Display the selected font name
+	local fontFamily = ""
+	for _, font in ipairs(fonts.choices) do
+		if fonts.isSelected(font.name, state.selectedFont) then
+			fontFamily = font.name
+			break
+		end
+	end
+	return fontFamily
 end
 
 return menu

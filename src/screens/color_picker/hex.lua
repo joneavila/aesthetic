@@ -112,6 +112,15 @@ local function getButtonPosition(row, col)
 	return x, y, buttonWidth, buttonHeight
 end
 
+-- Helper function to get necessary fonts (either from state or passed as parameter)
+local function getFonts()
+	local fonts = {
+		monoHeader = state.fonts and state.fonts.monoHeader,
+		body = state.fonts and state.fonts.body,
+	}
+	return fonts
+end
+
 function hex.load()
 	-- Default context values are set in `state.lua`, nothing to do here
 
@@ -162,28 +171,33 @@ function hex.draw()
 	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
+	-- Get fonts
+	local fonts = getFonts()
+
 	-- Draw # symbol
 	love.graphics.setColor(textColor)
-	love.graphics.setFont(state.fonts.monoHeader)
-	local hashWidth = state.fonts.monoHeader:getWidth("#")
-	love.graphics.print(
-		"#",
-		inputStartX - hashWidth - 10,
-		inputY + (INPUT_RECT_HEIGHT - state.fonts.monoHeader:getHeight()) / 2
-	)
+	if fonts.monoHeader then
+		love.graphics.setFont(fonts.monoHeader)
+		local hashWidth = fonts.monoHeader:getWidth("#")
+		love.graphics.print(
+			"#",
+			inputStartX - hashWidth - 10,
+			inputY + (INPUT_RECT_HEIGHT - fonts.monoHeader:getHeight()) / 2
+		)
 
-	-- Draw input characters or underscores for empty positions
-	for i = 1, 6 do
-		local rectX = inputStartX + (i - 1) * (INPUT_RECT_WIDTH + INPUT_RECT_SPACING)
-		local charY = inputY + (INPUT_RECT_HEIGHT - state.fonts.monoHeader:getHeight()) / 2
+		-- Draw input characters or underscores for empty positions
+		for i = 1, 6 do
+			local rectX = inputStartX + (i - 1) * (INPUT_RECT_WIDTH + INPUT_RECT_SPACING)
+			local charY = inputY + (INPUT_RECT_HEIGHT - fonts.monoHeader:getHeight()) / 2
 
-		-- Draw character if entered, otherwise draw underscore
-		local char = (i <= #currentState.input) and currentState.input:sub(i, i):upper() or "_"
-		local charWidth = state.fonts.monoHeader:getWidth(char)
-		local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
+			-- Draw character if entered, otherwise draw underscore
+			local char = (i <= #currentState.input) and currentState.input:sub(i, i):upper() or "_"
+			local charWidth = fonts.monoHeader:getWidth(char)
+			local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
 
-		love.graphics.setColor(textColor)
-		love.graphics.print(char, charX, charY)
+			love.graphics.setColor(textColor)
+			love.graphics.print(char, charX, charY)
+		end
 	end
 
 	-- Draw button grid
@@ -298,10 +312,12 @@ function hex.draw()
 				else
 					-- Regular text button - set color for text
 					love.graphics.setColor(colors.ui.foreground)
-					love.graphics.setFont(state.fonts.body)
-					local textWidth = state.fonts.body:getWidth(buttonText)
-					local textHeight = state.fonts.body:getHeight()
-					love.graphics.print(buttonText, x + (width - textWidth) / 2, y + (height - textHeight) / 2)
+					if fonts.body then
+						love.graphics.setFont(fonts.body)
+						local textWidth = fonts.body:getWidth(buttonText)
+						local textHeight = fonts.body:getHeight()
+						love.graphics.print(buttonText, x + (width - textWidth) / 2, y + (height - textHeight) / 2)
+					end
 				end
 			end
 		end

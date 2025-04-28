@@ -1,6 +1,5 @@
 --- Button drawing functions
 --- This file contains code for drawing buttons used in various UI screens
-local state = require("state")
 local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
@@ -143,7 +142,7 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 end
 
 -- Function to draw a button with color preview
-function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor, isDisabled)
+function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor, isDisabled, monoFont)
 	local dimensions = calculateButtonDimensions(x, UI_CONSTANTS.BUTTON.WIDTH, screenWidth, isSelected)
 
 	-- Draw background
@@ -191,7 +190,10 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 		-- Use monospace font for hex codes if provided
 		local originalFont = love.graphics.getFont()
 
-		love.graphics.setFont(state.fonts.monoBody)
+		-- TODO: Move font definitions to a separate module, similar to how colors are handled.
+		if monoFont then
+			love.graphics.setFont(monoFont)
+		end
 
 		local hexWidth = love.graphics.getFont():getWidth(hexCode)
 		love.graphics.print(
