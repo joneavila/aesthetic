@@ -153,11 +153,6 @@ local function drawScrollbar()
 	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
 end
 
-local function drawControlsBackground()
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.rectangle("fill", 0, state.screenHeight - controls.HEIGHT, state.screenWidth, controls.HEIGHT)
-end
-
 function palette.draw()
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
@@ -211,7 +206,6 @@ function palette.draw()
 		end
 	end
 	drawScrollbar()
-	drawControlsBackground()
 	controls.draw({
 		{
 			button = { "l1", "r1" },
