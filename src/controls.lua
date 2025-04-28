@@ -7,132 +7,136 @@ local controls = {}
 controls.HEIGHT = 42
 local PADDING = 14
 local RIGHT_PADDING = 4
-local ICON_SIZE = 24
-local ICON_TEXT_SPACING = 4
+local BUTTON_TEXT_SPACING = 4
+local BUTTON_RADIUS = 4
+local BUTTON_HORIZONTAL_PADDING = 8 -- Horizontal padding inside button background
+local BUTTON_VERTICAL_PADDING = 2 -- Vertical padding inside button background
+local ACTION_TEXT_SPACING = 6 -- Space between button and action text
 
--- Cache for loaded icons with size limit
-local iconCache = {
-	items = {},
-	maxSize = 8,
-	-- Get current number of items in cache
-	count = function(self)
-		local count = 0
-		for _ in pairs(self.items) do
-			count = count + 1
-		end
-		return count
-	end,
+-- Button label mapping
+local BUTTON_LABELS = {
+	["a"] = "A",
+	["b"] = "B",
+	["x"] = "X",
+	["y"] = "Y",
+	["start"] = "Start",
+	["d_pad"] = "D-pad",
+	["leftshoulder"] = "L1",
+	["l1"] = "L1",
+	["rightshoulder"] = "R1",
+	["r1"] = "R1",
+	["menu"] = "Menu",
+	["stick_l"] = "LS",
 }
 
--- Load an icon from the assets directory, using cache if available
-local function loadIcon(path)
-	if not path then
-		error("Icon path cannot be nil")
-	end
-
-	-- Check cache first
-	if not iconCache.items[path] then
-		-- If cache is full, remove oldest entry
-		if iconCache:count() >= iconCache.maxSize then
-			local oldest = next(iconCache.items)
-			if oldest then
-				iconCache.items[oldest] = nil
-			end
-		end
-
-		-- Load new icon
-		local fullPath = "assets/input_prompts/" .. path
-		local success, result = pcall(love.graphics.newImage, fullPath)
-		if not success then
-			error("Failed to load icon: " .. fullPath)
-		end
-		iconCache.items[path] = result
-	end
-
-	return iconCache.items[path]
-end
-
 -- Draw the controls area at the bottom of the screen
--- Supports both single icons (control.icon = "icon.png") and lists of icons (control.icon = {"icon1.png", "icon2.png"})
--- When a list of icons is provided, they are drawn in sequence with a "/" separator between them
+-- Supports both single buttons (control.button = "a") and lists of buttons (control.button = {"l1", "r1"})
+-- When a list of buttons is provided, they are drawn in sequence with a "/" separator between them
 function controls.draw(controls_list)
-	-- Set up graphics state
-	love.graphics.setColor(colors.ui.subtext)
-	love.graphics.setFont(state.fonts.caption)
-
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
 	for _, control in ipairs(controls_list) do
 		local textWidth = state.fonts.caption:getWidth(control.text)
-		local iconsWidth = 0
+		local buttonsWidth = 0
 
-		if type(control.icon) == "table" then
-			-- Multiple icons with "/" between them
-			for i = 1, #control.icon do
-				iconsWidth = iconsWidth + ICON_SIZE
-				-- Add width for "/" separator if not the last icon
-				if i < #control.icon then
-					iconsWidth = iconsWidth + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
+		if type(control.button) == "table" then
+			-- Multiple buttons with "/" between them
+			for i, buttonKey in ipairs(control.button) do
+				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
+				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+				buttonsWidth = buttonsWidth + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
+
+				-- Add width for "/" separator if not the last button
+				if i < #control.button then
+					buttonsWidth = buttonsWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
-			-- Single icon
-			iconsWidth = ICON_SIZE
+			-- Single button
+			local buttonLabel = BUTTON_LABELS[control.button] or control.button
+			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			buttonsWidth = buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
-		totalWidth = totalWidth + iconsWidth + ICON_TEXT_SPACING + textWidth + PADDING
+		totalWidth = totalWidth + buttonsWidth + textWidth + ACTION_TEXT_SPACING + PADDING
 	end
 
 	-- Start drawing from the right side, accounting for padding
 	local x = state.screenWidth - totalWidth - RIGHT_PADDING
-	local y = state.screenHeight - controls.HEIGHT + (controls.HEIGHT - ICON_SIZE) / 2
+	local y = state.screenHeight - controls.HEIGHT + (controls.HEIGHT - state.fonts.caption:getHeight()) / 2
 
 	-- Draw each control
 	for _, control in ipairs(controls_list) do
-		local startX = x
+		if type(control.button) == "table" then
+			-- Draw multiple buttons with "/" between them
+			for i, buttonKey in ipairs(control.button) do
+				-- Get button label
+				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
+				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+				local buttonHeight = state.fonts.caption:getHeight()
 
-		if type(control.icon) == "table" then
-			-- Draw multiple icons with "/" between them
-			for i, iconPath in ipairs(control.icon) do
-				-- Load and draw icon
-				local icon = loadIcon(iconPath)
-				love.graphics.draw(icon, x, y, 0, ICON_SIZE / icon:getWidth(), ICON_SIZE / icon:getHeight())
-				x = x + ICON_SIZE
+				-- Draw button background
+				love.graphics.setColor(colors.ui.overlay)
+				love.graphics.rectangle(
+					"fill",
+					x,
+					y - BUTTON_VERTICAL_PADDING,
+					buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2),
+					buttonHeight + (BUTTON_VERTICAL_PADDING * 2),
+					BUTTON_RADIUS,
+					BUTTON_RADIUS
+				)
 
-				-- Draw separator if not the last icon
-				if i < #control.icon then
-					love.graphics.print(
-						"/",
-						x + ICON_TEXT_SPACING,
-						y + (ICON_SIZE - state.fonts.caption:getHeight()) / 2
-					)
-					x = x + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
+				-- Draw button text
+				love.graphics.setFont(state.fonts.caption)
+				love.graphics.setColor(colors.ui.background)
+				love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
+
+				x = x + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
+
+				-- Draw separator if not the last button
+				if i < #control.button then
+					love.graphics.setColor(colors.ui.overlay)
+					love.graphics.setFont(state.fonts.caption)
+					love.graphics.print("/", x + BUTTON_TEXT_SPACING, y)
+					x = x + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
-			-- Load and draw single icon
-			local icon = loadIcon(control.icon)
-			love.graphics.draw(icon, x, y, 0, ICON_SIZE / icon:getWidth(), ICON_SIZE / icon:getHeight())
-			x = x + ICON_SIZE
+			-- Draw single button background and text
+			local buttonLabel = BUTTON_LABELS[control.button] or control.button
+			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			local buttonHeight = state.fonts.caption:getHeight()
+
+			-- Draw button background
+			love.graphics.setColor(colors.ui.overlay)
+			love.graphics.rectangle(
+				"fill",
+				x,
+				y - BUTTON_VERTICAL_PADDING,
+				buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2),
+				buttonHeight + (BUTTON_VERTICAL_PADDING * 2),
+				BUTTON_RADIUS,
+				BUTTON_RADIUS
+			)
+
+			-- Draw button text
+			love.graphics.setFont(state.fonts.caption)
+			love.graphics.setColor(colors.ui.background)
+			love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
+
+			x = x + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
-		-- Draw text
-		love.graphics.print(control.text, x + ICON_TEXT_SPACING, y + (ICON_SIZE - state.fonts.caption:getHeight()) / 2)
+		-- Draw action text (with spacing)
+		love.graphics.setColor(colors.ui.overlay)
+		love.graphics.setFont(state.fonts.caption)
+		x = x + ACTION_TEXT_SPACING
+		love.graphics.print(control.text, x, y)
 
 		-- Move x position for next control
 		local textWidth = state.fonts.caption:getWidth(control.text)
-
-		if type(control.icon) == "table" then
-			-- Calculate width for multiple icons
-			local iconsWidth = ICON_SIZE * #control.icon
-			for _ = 1, #control.icon - 1 do
-				iconsWidth = iconsWidth + state.fonts.caption:getWidth("/") + ICON_TEXT_SPACING * 2
-			end
-			x = startX + iconsWidth + ICON_TEXT_SPACING + textWidth + PADDING
-		else
-			-- Calculate width for single icon
-			x = startX + ICON_SIZE + ICON_TEXT_SPACING + textWidth + PADDING
-		end
+		x = x + textWidth + PADDING
 	end
 end
 

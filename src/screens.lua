@@ -47,6 +47,14 @@ function screens.switchTo(screenName, tabName)
 	if newModule and newModule.onEnter then
 		newModule.onEnter(tabName)
 	end
+
+	-- Set default font to ensure consistent rendering across screens
+	local state = require("state")
+	state.setDefaultFont()
+
+	-- Add consistent input delay when switching screens
+	state.resetInputTimer()
+	state.forceInputDelay(0.2)
 end
 
 function screens.draw()
@@ -65,13 +73,13 @@ end
 
 function screens.load()
 	-- Auto-load screens from the screen directory
-	local screenFiles = love.filesystem.getDirectoryItems("screen")
+	local screenFiles = love.filesystem.getDirectoryItems("screens")
 
 	for _, file in ipairs(screenFiles) do
 		-- Remove the .lua extension to get the screen name
 		local screenName = file:match("^(.+)%.lua$")
 		if screenName then
-			local screenModule = require("screen." .. screenName)
+			local screenModule = require("screens." .. screenName)
 			screens.register(screenName, screenModule)
 		end
 	end

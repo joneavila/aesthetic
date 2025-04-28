@@ -52,15 +52,22 @@ if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
     checkConnection
 fi
 
+# Local directories
+DIST_DIR=".dist"
+BUILD_DIR=".build"
+
+# Handheld directories
 APP_DIR="mnt/mmc/MUOS/application/Aesthetic"
 APP_GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
+
 ARCHIVE_BASE_NAME=Aesthetic
 
-# Create build directories
-mkdir -p .dist
-mkdir -p .build/"${APP_DIR}"
-mkdir -p .build/"${APP_DIR}/.aesthetic"
-mkdir -p .build/"${APP_GLYPH_DIR}"
+echoHeader "Setting up clean build environment"
+rm -rf "${DIST_DIR}" "${BUILD_DIR}"
+mkdir -p "${DIST_DIR}"
+mkdir -p "${BUILD_DIR}/${APP_DIR}"
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic"
+mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}"
 
 # Extract version information from Lua source
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -106,25 +113,32 @@ if [ "$CLEAN" = true ]; then
             ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
         fi
     done
+    
+    # Force sync to ensure all changes are written to disk
+    echoHeader "Syncing filesystem on $HANDHELD_IP"
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "sync && echo 'Filesystem sync completed'"
+    
 fi
 
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
-rsync -aq mux_launch.sh .build/"${APP_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
-rsync -aq src/ .build/"${APP_DIR}"/.aesthetic/ && echo "src/" || { echo "Failed to copy src/"; exit 1; }
-rsync -aq bin/ .build/"${APP_DIR}"/.aesthetic/bin && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
-rsync -aq lib/ .build/"${APP_DIR}"/.aesthetic/lib && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
-rsync -aq src/tove/ .build/"${APP_DIR}"/.aesthetic/tove && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
-rsync -aq src/template/glyph/muxapp/aesthetic.png .build/"${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
+rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
+rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" && echo "src/" || { echo "Failed to copy src/"; exit 1; }
+rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
+rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
+rsync -aq src/tove/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/tove" && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
+# TODO: Copying the entire assets directory is unnecessary
+rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" && echo "assets/" || { echo "Failed to copy assets/"; exit 1; }
+rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
 
 # Create .muxupd archive
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving
-(cd .build && zip -9qr "../.dist/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" || { echo "Failed to create archive"; exit 1; }
+(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" || { echo "Failed to create archive"; exit 1; }
 
 # Clean up temporary files
 echoHeader "Cleaning up"
-rm -rf .build && echo "Removed build directory" || echo "Failed to remove build directory"
+rm -rf "${BUILD_DIR}" && echo "Removed build directory" || echo "Failed to remove build directory"
 
 echoHeader "Uploading to $HANDHELD_IP"
 if [ -z "$PRIVATE_KEY_PATH" ]; then
@@ -134,7 +148,7 @@ elif [ -z "$HANDHELD_IP" ]; then
     echo "No HANDHELD_IP provided"
     exit 0
 else
-    scp -i "${PRIVATE_KEY_PATH}" .dist/"${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
+    scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
     echoHeader "Extracting on $HANDHELD_IP"
     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi

@@ -2,9 +2,8 @@ local state = require("state")
 local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local system = require("utils.system")
-local constants = require("screen.menu.constants")
-
-local paths = constants.PATHS
+local paths = require("paths")
+local errorHandler = require("error_handler")
 
 -- Module table to export public functions
 local rgb = {}
@@ -285,7 +284,11 @@ function rgb.installFromTheme()
 	local command = rgb.buildCommand()
 
 	-- Write command to config file for persistence
-	rgb.writeCommandToFile(command, rgbConfPath)
+	local writeSuccess = rgb.writeCommandToFile(command, rgbConfPath)
+	if not writeSuccess then
+		errorHandler.setError("Failed to write RGB command to config file")
+		return false
+	end
 
 	-- Execute the command directly
 	commands.executeCommand(command)

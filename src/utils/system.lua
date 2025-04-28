@@ -1,8 +1,8 @@
 --- System utilities
 --- This module avoids using `love.filesystem` since most functions are not sandboxed
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 local commands = require("utils.commands")
-
+local logger = require("utils.logger")
 local system = {}
 
 -- Helper function to escape pattern special characters
@@ -18,6 +18,7 @@ function system.fileExists(path)
 		file:close()
 		return true
 	end
+	errorHandler.setError("File does not exist: " .. path)
 	return false
 end
 
@@ -125,20 +126,84 @@ function system.createArchive(sourceDir, outputPath)
 		errorHandler.setError("zip command failed: " .. result)
 		return false
 	end
-
 	return finalPath
 end
 
 -- Helper function to copy directory contents
 function system.copyDir(src, dest)
 	-- Create destination directory
-	os.execute('mkdir -p "' .. dest .. '"')
+	if not system.ensurePath(dest) then
+		errorHandler.setError("Failed to create destination directory: " .. dest)
+		return false
+	end
 
-	-- Copy all contents from source to destination
-	local cmd = string.format('cp -r "%s/"* "%s/"', src, dest)
-	local success = os.execute(cmd)
+	-- Use find to list all directories in source
+	local findCmd = string.format('find "%s" -type d', src)
+	local handle = io.popen(findCmd)
+	if not handle then
+		errorHandler.setError("Failed to list directories in source path")
+		return false
+	end
 
-	return success == 0 or success == true
+	-- Create each directory in the destination
+	local success = true
+	for dir in handle:lines() do
+		-- Get the relative path by removing the source prefix
+		local relPath = dir:sub(#src + 1)
+		if relPath ~= "" then
+			-- Create the corresponding directory in destination
+			local destDir = dest .. relPath
+			local mkdirCmd = string.format('mkdir -p "%s"', destDir)
+			local mkdirSuccess = os.execute(mkdirCmd)
+			if mkdirSuccess ~= 0 and mkdirSuccess ~= true then
+				success = false
+				errorHandler.setError("Failed to create directory: " .. destDir)
+				break
+			end
+		end
+	end
+	handle:close()
+
+	if not success then
+		return false
+	end
+
+	-- Now find and copy each file individually
+	local findFilesCmd = string.format('find "%s" -type f', src)
+	handle = io.popen(findFilesCmd)
+	if not handle then
+		errorHandler.setError("Failed to list files in source path")
+		return false
+	end
+
+	-- Copy each file to its destination
+	success = true
+	for file in handle:lines() do
+		-- Get the relative path
+		local relPath = file:sub(#src + 1)
+		local destFile = dest .. relPath
+
+		-- Ensure parent directory exists (extra safety)
+		local destDir = destFile:match("(.+)/[^/]*$")
+		if destDir then
+			os.execute(string.format('mkdir -p "%s"', destDir))
+		end
+
+		-- Copy the file
+		local cpCmd = string.format('cp "%s" "%s"', file, destFile)
+		local cpSuccess = os.execute(cpCmd)
+		if cpSuccess ~= 0 and cpSuccess ~= true then
+			success = false
+			errorHandler.setError("Failed to copy file: " .. file .. " to " .. destFile)
+			break
+		end
+	end
+	handle:close()
+
+	if not success then
+		return false
+	end
+	return true
 end
 
 --- Ensures a directory exists, creating it if necessary
@@ -168,21 +233,28 @@ function system.ensurePath(path)
 end
 
 -- Copy a file and create destination directory if needed
-function system.copyFile(sourcePath, destinationPath, errorMessage)
-	-- Extract directory from destination path
-	local destinationDir = string.match(destinationPath, "(.*)/[^/]*$")
-	if destinationDir then
-		if not system.ensurePath(destinationDir) then
-			return false
-		end
+function system.copyFile(sourcePath, destinationPath)
+	-- Check if source file exists
+	if not system.fileExists(sourcePath) then
+		errorHandler.setError("Source file does not exist: " .. sourcePath)
+		return false
 	end
-	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath), errorMessage)
+
+	-- Ensure destination directory exists
+	if not system.ensurePath(destinationPath) then
+		errorHandler.setError("Failed to create destination directory: " .. destinationPath)
+		return false
+	end
+
+	-- Copy the file
+	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath))
 end
 
 -- Get environment variable, setting error if not found
 function system.getEnvironmentVariable(name)
 	local value = os.getenv(name)
 	if value == nil then
+		logger.error("Environment variable not found: " .. name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end
@@ -196,6 +268,116 @@ function system.removeDir(dir)
 		return false
 	end
 	return commands.executeCommand('rm -rf "' .. dir .. '"')
+end
+
+-- Create a simple text file with the given content
+function system.createTextFile(filePath, content)
+	local file = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError("Failed to create file: " .. filePath)
+		return false
+	end
+	file:write(content)
+	file:close()
+	return true
+end
+
+-- Modify a file using a function that processes its content
+-- modifierFunc receives the file content and should return (modifiedContent, success)
+function system.modifyFile(filePath, modifierFunc)
+	-- Read the file content
+	local file, err = io.open(filePath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local fileContent = file:read("*all")
+	file:close()
+
+	-- Modify the content using the provided function
+	local modifiedContent, success = modifierFunc(fileContent)
+	if not success then
+		return false
+	end
+
+	-- Write the updated content back to the file
+	file, err = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError("Failed to write to file (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	file:write(modifiedContent)
+	file:close()
+	return true
+end
+
+-- Read the entire content of a file
+function system.readFile(filePath)
+	local file, err = io.open(filePath, "r")
+	if not file then
+		errorHandler.setError("Failed to open file for reading (" .. filePath .. "): " .. err)
+		return nil
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	if not content then
+		errorHandler.setError("Failed to read content from file: " .. filePath)
+		return nil
+	end
+
+	return content
+end
+
+-- Write content to a file, creating directories if needed
+function system.writeFile(filePath, content)
+	-- Ensure the directory exists
+	if not system.ensurePath(filePath) then
+		return false
+	end
+
+	local file, err = io.open(filePath, "w")
+	if not file then
+		errorHandler.setError("Failed to open file for writing (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local success = file:write(content)
+	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write content to file: " .. filePath)
+		return false
+	end
+
+	return true
+end
+
+-- Write binary data to a file, creating directories if needed
+function system.writeBinaryFile(filePath, binaryData)
+	-- Ensure the directory exists
+	if not system.ensurePath(filePath) then
+		return false
+	end
+
+	local file, err = io.open(filePath, "wb")
+	if not file then
+		errorHandler.setError("Failed to open file for binary writing (" .. filePath .. "): " .. err)
+		return false
+	end
+
+	local success = file:write(binaryData)
+	file:close()
+
+	if not success then
+		errorHandler.setError("Failed to write binary data to file: " .. filePath)
+		return false
+	end
+
+	return true
 end
 
 return system

@@ -11,15 +11,16 @@
 
 local love = require("love")
 local input = require("input")
-local splash = require("splash")
-local screens = require("screens")
 local colors = require("colors")
 local state = require("state")
+local fonts = require("ui.fonts")
 local settings = require("utils.settings")
+-- Remove the circular dependency by loading the screens module after state is initialized
 
 -- Input delay handling
 local lastInpuSeconds = 0
 local inputDelaySeconds = 0.2
+local screens = nil -- Will hold the screens module after initialization
 
 function state.canProcessInput()
 	return lastInpuSeconds >= inputDelaySeconds
@@ -53,23 +54,23 @@ local function setupFonts()
 	local referenceWidth = 720
 	local referenceHeight = 720
 
-	-- Calculate scaling factors
 	local widthRatio = state.screenWidth / referenceWidth
 	local heightRatio = state.screenHeight / referenceHeight
 
 	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
 	-- Add a minimum scale factor to prevent fonts from becoming too small
-	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 0.8)
+	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
-	-- Initialize the font name mapping
-	state.initFontNameMapping()
-
-	-- Create all fonts using the font definitions and scaling
-	state.fonts = {}
-	for key, def in pairs(state.fontDefs) do
-		local fontSize = def.size * scaleFactor
-		state.fonts[key] = love.graphics.newFont(def.path, fontSize)
+	-- Update font sizes based on scale factor
+	for _, def in pairs(fonts.definitions) do
+		def.size = def.size * scaleFactor
 	end
+
+	-- Load all fonts
+	fonts.loadFonts()
+
+	-- Set the default font
+	fonts.setDefault()
 end
 
 -- Function to load settings from file
@@ -77,16 +78,8 @@ local function loadSettings()
 	-- Try to load settings from file
 	local success = settings.loadFromFile()
 
-	if success then
-		-- Update font selection based on loaded state
-		-- This is done here rather than in settings.lua because the FONTS array is a UI-specific representation of the
-		-- font state, and the 'selected' property for each font needs to be updated to reflect the loaded
-		-- state.selectedFont, while other settings (colors, RGB settings) are read directly from state when UI
-		-- screens are rendered
-		for _, font in ipairs(require("screen.menu.constants").FONTS) do
-			font.selected = (font.name == state.selectedFont)
-		end
-	end
+	-- We'll update the font selection state later when the menu screen is loaded
+	-- This avoids circular dependencies
 
 	return success
 end
@@ -104,76 +97,58 @@ function love.load()
 	state.fadeDuration = 0.5
 	setupFonts()
 
-	-- Create the callback
-	local function onSplashDone()
-		state.splash = nil -- Clear splash screen
-		input.load()
+	-- Apply default RGB lighting settings when first launching application
+	input.load()
 
-		-- Load user settings if they exist
-		loadSettings()
+	-- Load user settings if they exist
+	loadSettings()
 
-		-- Apply default RGB lighting settings when first launching application
-		local rgbUtils = require("utils.rgb")
-		rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
-		rgbUtils.updateConfig() -- Apply RGB settings from state
+	local rgbUtils = require("utils.rgb")
+	rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+	rgbUtils.updateConfig() -- Apply RGB settings from state
 
-		screens.load()
-		state.fading = true -- Start the fade effect
-		state.fadeTimer = 0 -- Reset fade timer
-	end
+	-- Now that state is initialized, load the screens module
+	screens = require("screens")
 
-	-- Initialize the splash screen with the callback and font
-	local splashInstance = splash({
-		onDone = onSplashDone,
-		font = state.fonts.monoTitle,
-	})
+	-- Load all screens
+	screens.load()
 
-	state.splash = {
-		update = function(_, dt)
-			return splashInstance:update(dt)
-		end,
-		draw = function()
-			return splashInstance:draw()
-		end,
-		onDone = onSplashDone, -- Store callback reference
-	}
+	-- Start with the splash screen
+	screens.switchTo("splash")
+
+	state.fading = false -- Fade effect will be handled after splash screen completes
 end
 
 function love.update(dt)
-	if state.splash then
-		state.splash:update(dt)
-	else
-		updateInputTimer(dt)
-		input.update(dt)
+	updateInputTimer(dt)
+	input.update(dt)
+
+	-- Use the screens module that was loaded in love.load
+	if screens then
 		screens.update(dt)
-		if state.fading then
-			state.fadeTimer = state.fadeTimer + dt
-			if state.fadeTimer >= state.fadeDuration then
-				state.fadeTimer = state.fadeDuration
-				state.fading = false
-			end
+	end
+
+	if state.fading then
+		state.fadeTimer = state.fadeTimer + dt
+		if state.fadeTimer >= state.fadeDuration then
+			state.fadeTimer = state.fadeDuration
+			state.fading = false
 		end
 	end
 end
 
 function love.draw()
-	if state.splash then
-		state.splash:draw()
-	else
-		-- Calculate the fade progress (0 to 1)
-		local fadeProgress = state.fading and (state.fadeTimer / state.fadeDuration) or 1
-
-		-- Set the opacity for the menu content based on fade progress
-		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], fadeProgress)
+	-- Draw the current screen using the screens module loaded in love.load
+	if screens then
 		screens.draw()
-		love.graphics.setColor(colors.ui.foreground)
+	end
 
-		-- Apply the fade-in overlay
-		if state.fading then
-			local fadeAlpha = 1 - fadeProgress
-			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
-			love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
-		end
+	-- Apply the fade-in overlay if needed
+	if state.fading then
+		local fadeProgress = state.fadeTimer / state.fadeDuration
+		local fadeAlpha = 1 - fadeProgress
+		love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
+		love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
 	end
 end
 

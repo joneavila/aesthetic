@@ -23,6 +23,7 @@ uiDefinitions:insert("foreground", color(0.804, 0.839, 0.957, 1)) -- Text
 uiDefinitions:insert("background", color(0.118, 0.118, 0.18, 1)) -- Base
 uiDefinitions:insert("surface", color(0.271, 0.278, 0.353, 1)) -- Surface 1
 uiDefinitions:insert("subtext", color(0.651, 0.678, 0.784, 1)) -- Subtext 0
+uiDefinitions:insert("overlay", color(0.424, 0.439, 0.525, 1)) -- Overlay 0
 uiDefinitions:insert("accent", color(0.537, 0.706, 0.98, 1)) --  Blue
 uiDefinitions:insert("background_dim", color(0.094, 0.094, 0.145, 1)) --  Mantle
 uiDefinitions:insert("green", color(0.651, 0.89, 0.631, 1)) --  Green
@@ -277,12 +278,14 @@ function colors.toHex(colorKey, colorSet)
 	return "#" .. r .. g .. b
 end
 
--- Function to get a color by key from either set
+-- Get a color value by key, searching all color sets
 function colors.get(key)
-	if colors.palette[key] then
-		return colors.palette[key]
-	elseif colors.ui[key] then
+	if colors.ui[key] then
 		return colors.ui[key]
+	elseif colors.palette[key] then
+		return colors.palette[key]
+	elseif colors.user[key] then
+		return colors.user[key]
 	end
 	return nil
 end
@@ -293,22 +296,5 @@ setmetatable(colors, {
 		return t.get(key)
 	end,
 })
-
--- Custom color storage for different color types
-colors._custom_colors = {
-	background = nil,
-	foreground = nil,
-}
-
--- Function to store custom color
--- Colors are stored in the user table to display them across the UI
-colors.addCustomColor = function(self, r, g, b)
-	-- Get the current color type from state
-	local colorType = require("state").activeColorContext
-
-	local colorKey = "custom_" .. colorType
-	self.user[colorKey] = { r, g, b, 1 }
-	return colorKey
-end
 
 return colors

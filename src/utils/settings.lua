@@ -1,13 +1,18 @@
 --- Settings management module
---- Handles saving and loading application (or configured theme) settings
+--- Manages persistent application-wide settings that are automatically saved and loaded between sessions in a single
+--- configuration file
 local state = require("state")
 local system = require("utils.system")
-local errorHandler = require("screen.menu.error_handler")
+local errorHandler = require("error_handler")
 
 local settings = {}
 
 -- The filename to use for storing settings
 settings.FILENAME = "settings.lua"
+
+-- Preset source type (built-in vs user-created)
+settings.SOURCE_BUILTIN = "built-in"
+settings.SOURCE_USER = "user"
 
 -- Function to save the current settings to a file
 function settings.saveToFile()
@@ -66,6 +71,9 @@ function settings.saveToFile()
 
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
+
+	-- Source (user-created by default when saving)
+	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
 
 	file:write("}\n")
 
@@ -152,6 +160,13 @@ function settings.loadFromFile()
 	-- Glyphs
 	if loadedSettings.glyphs_enabled ~= nil then
 		state.glyphs_enabled = loadedSettings.glyphs_enabled
+	end
+
+	-- Source
+	if loadedSettings.source then
+		state.source = loadedSettings.source
+	else
+		state.source = settings.SOURCE_USER -- Default to user-created if not specified
 	end
 
 	return true

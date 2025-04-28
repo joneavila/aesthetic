@@ -6,20 +6,12 @@ local function clamp(value, min, max)
 	return math.min(math.max(value, min), max)
 end
 
-local Color = {}
-Color.__index = Color
-
--- Create a new Color instance
--- Parameters are the RGBA components (0-1)
-function Color.new(r, g, b, a)
-	return setmetatable({ r = r, g = g, b = b, a = a or 1 }, Color)
-end
-
--- Convert color to HSL
--- Returns Hue (0-360), Saturation (0-100), and Lightness (0-100)
-function Color:toHSL()
-	local max = math.max(self.r, self.g, self.b)
-	local min = math.min(self.r, self.g, self.b)
+-- Convert RGB to HSL
+-- Parameters: r, g, b (0-1 range)
+-- Returns: h (0-360), s (0-100), l (0-100)
+function color.rgbToHsl(r, g, b)
+	local max = math.max(r, g, b)
+	local min = math.min(r, g, b)
 	local h, s, l
 
 	-- Calculate lightness
@@ -36,12 +28,12 @@ function Color:toHSL()
 		s = l > 0.5 and d / (2 - max - min) or d / (max + min)
 
 		-- Calculate hue
-		if max == self.r then
-			h = (self.g - self.b) / d + (self.g < self.b and 6 or 0)
-		elseif max == self.g then
-			h = (self.b - self.r) / d + 2
+		if max == r then
+			h = (g - b) / d + (g < b and 6 or 0)
+		elseif max == g then
+			h = (b - r) / d + 2
 		else
-			h = (self.r - self.g) / d + 4
+			h = (r - g) / d + 4
 		end
 		h = h / 6
 	end
@@ -50,9 +42,10 @@ function Color:toHSL()
 	return h * 360, s * 100, l * 100
 end
 
--- Create a new Color from HSL values
--- Parameters are Hue (0-360), Saturation (0-100), and Lightness (0-100)
-function Color.fromHSL(h, s, l)
+-- Convert HSL to RGB
+-- Parameters: h (0-360), s (0-100), l (0-100)
+-- Returns: r, g, b (0-1)
+function color.hslToRgb(h, s, l)
 	-- Normalize HSL values
 	h = h / 360
 	s = s / 100
@@ -91,90 +84,29 @@ function Color.fromHSL(h, s, l)
 		b = hue2rgb(p, q, h - 1 / 3)
 	end
 
-	return Color.new(r, g, b)
+	return r, g, b
 end
 
--- Calculate border color using Relative Luminance Border Algorithm
-function Color:getBorderColor()
-	local h, s, l = self:toHSL()
+-- Calculate a contrasting color based on RGB input
+-- Parameters: r, g, b (0-1)
+-- Returns: r, g, b (0-1) of the contrasting color
+function color.calculateContrastingColor(r, g, b)
+	local h, s, l = color.rgbToHsl(r, g, b)
 
 	-- Adjust saturation based on input color, reduce saturation but keep some color
 	local newS = clamp(s * 0.8, 20, 80)
 
 	-- Adjust lightness in opposite direction of input color
 	local lightnessOffset = 30 -- Adjust this value to control contrast
-	local newL = l > 50 and clamp(l - lightnessOffset, 20, 80) or clamp(l + lightnessOffset, 20, 80)
-
-	-- Create new color from adjusted HSL values
-	return Color.fromHSL(h, newS, newL)
-end
-
--- Calculate a contrasting color using Hue Rotation with Lightness Adjustment
-function Color:getContrastingColor()
-	local h, s, l = self:toHSL()
-
-	-- Rotate hue by 180 degrees (opposite on color wheel)
-	local newH = (h + 180) % 360
-
-	-- Adjust lightness for readability
 	local newL
 	if l > 50 then
-		-- For light backgrounds, darken the foreground
-		newL = clamp(l - 50, 10, 40)
+		newL = clamp(l - lightnessOffset, 20, 80)
 	else
-		-- For dark backgrounds, lighten the foreground
-		newL = clamp(l + 50, 60, 90)
+		newL = clamp(l + lightnessOffset, 20, 80)
 	end
 
-	return Color.fromHSL(newH, s, newL)
-end
-
--- Convert color to hex string
-function Color:toHex()
-	local r = math.floor(self.r * 255 + 0.5)
-	local g = math.floor(self.g * 255 + 0.5)
-	local b = math.floor(self.b * 255 + 0.5)
-	return string.format("#%02X%02X%02X", r, g, b)
-end
-
--- Create a new Color from hex string
-function Color.fromHex(hex)
-	-- Remove # if present
-	hex = hex:gsub("^#", "")
-
-	-- Convert hex to RGB
-	local r = tonumber(hex:sub(1, 2), 16) / 255
-	local g = tonumber(hex:sub(3, 4), 16) / 255
-	local b = tonumber(hex:sub(5, 6), 16) / 255
-
-	return Color.new(r, g, b)
-end
-
--- Convert color to LÖVE-compatible array
-function Color:toLove()
-	return { self.r, self.g, self.b, self.a }
-end
-
-function color.rgbToHsl(r, g, b)
-	local col = Color.new(r, g, b)
-	return col:toHSL()
-end
-
-function color.hslToRgb(h, s, l)
-	local col = Color.fromHSL(h, s, l)
-	return col.r, col.g, col.b
-end
-
-function color.calculateBorderColor(r, g, b)
-	local col = Color.new(r, g, b)
-	local border = col:getBorderColor()
-	return border.r, border.g, border.b
-end
-
-function color.calculateContrastingColor(r, g, b)
-	local col = Color.new(r, g, b)
-	local contrast = col:getContrastingColor()
-	return contrast.r, contrast.g, contrast.b
+	-- Create new color from adjusted HSL values
+	return color.hslToRgb(h, newS, newL)
 end
 
 -- Convert hex string to RGB values (0-1 range)
@@ -182,9 +114,9 @@ function color.hexToRgb(hexString)
 	-- Remove # if present
 	hexString = hexString:gsub("^#", "")
 
-	-- Ensure we have a valid 6-character hex string
+	-- Return white as fallback for invalid hex strings
 	if #hexString ~= 6 then
-		return 1, 1, 1 -- Return white as fallback
+		return 1, 1, 1
 	end
 
 	-- Convert hex to RGB (0-1 range)
@@ -236,24 +168,23 @@ function color.hexToLove(hexString, alpha)
 	return { r, g, b, alpha or 1 }
 end
 
--- Convert RGB to HSV values (0-1 range for all)
+-- Convert RGB to HSV values
+-- Parameters: r, g, b (0-1 range)
+-- Returns: h, s, v (0-1 range)
 function color.rgbToHsv(r, g, b)
 	local max = math.max(r, g, b)
 	local min = math.min(r, g, b)
 	local h, s, v
 
 	v = max
-
 	local delta = max - min
 
-	if max ~= 0 then
-		s = delta / max
-	else
-		-- r = g = b = 0, s = 0, v = 0
-		s = 0
-		h = 0 -- undefined, but set to 0
-		return h, s, v
+	if max == 0 then
+		-- r = g = b = 0
+		return 0, 0, 0
 	end
+
+	s = delta / max
 
 	if delta == 0 then
 		h = 0 -- gray

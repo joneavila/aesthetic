@@ -52,7 +52,7 @@ Want to improve **Aesthetic**?
 
 - If you've found a bug or have a suggestion or question, [open an issue](https://github.com/joneavila/aesthetic/issues/new) or join the discussion on the [dedicated thread in the muOS community forum](https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld).
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
-- Check out the wiki for the development guide.
+- Check out the [wiki for the development guide](https://github.com/joneavila/aesthetic/wiki).
 
 ## ❤️ Support
 
@@ -71,17 +71,16 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 
 ## ⭐ Credits
 
-- [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](src/assets/fonts/cascadia_code/LICENSE)
+- [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](assets/fonts/cascadia_code/LICENSE)
 - [**Catppuccin Palettes**](https://github.com/catppuccin/palette) • Color palette • [MIT](https://github.com/catppuccin/palette/blob/main/LICENSE)
-- [**Input Prompts**](https://kenney.nl/assets/input-prompts) • Icons • [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)  
-- [**Inter**](https://github.com/rsms/inter) • Font • [OFL-1.1](src/assets/fonts/inter/OFL.txt)
+- [**Inter**](https://github.com/rsms/inter) • Font • [OFL-1.1](assets/fonts/inter/OFL.txt)
 - [**LÖVE**](https://github.com/love2d/love) • Game framework • [ZLIB](bin/LICENSE.txt)
 - [**Lucide Icons**](https://github.com/lucide-icons/lucide) • Icons • [ISC](https://github.com/lucide-icons/lucide/blob/main/LICENSE)
 - [**Material Icons**](https://github.com/google/material-design-icons) • Icons • [Apache 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE)
 - [**MinUI**](https://github.com/shauninman/MinUI) • Inspiration (design) • No license provided
 - [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
-- [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](src/assets/fonts/nunito/OFL.txt)
-- [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](src/assets/fonts/retro_pixel/LICENSE)
+- [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](assets/fonts/nunito/OFL.txt)
+- [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](assets/fonts/retro_pixel/LICENSE)
 - [**TÖVE**](https://github.com/poke1024/tove2d) • LÖVE library • [MIT](src/tove/LICENSE)
 - [**tween.lua**](https://github.com/kikito/tween.lua) • Tweening library • [MIT](https://github.com/kikito/tween.lua/blob/master/LICENSE.txt)
 

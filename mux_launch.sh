@@ -27,6 +27,6 @@ export TEMPLATE_DIR="$ROOT_DIR/template"
 cd "$ROOT_DIR" || exit
 SET_VAR "system" "foreground_process" "love"
 
-# Redirect stdout and stderr to log file
+# Redirect stdout and stderr to log file with immediate flushing
 LOG_FILE="$LOG_DIR/$(date +%Y%m%d_%H%M%S).log"
-./bin/love . > "$LOG_FILE" 2>&1
+./bin/love . 2>&1 | tee "$LOG_FILE"

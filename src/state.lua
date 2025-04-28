@@ -1,7 +1,6 @@
 --- State management module
 ---
 --- This module centralizes all global application state
-local love = require("love")
 
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application
@@ -11,6 +10,8 @@ local love = require("love")
 ---   2. State for the color palette picker
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
+local fonts = require("ui.fonts")
+
 local function createColorContext(defaultColor)
 	return {
 		-- Palette state
@@ -45,26 +46,16 @@ local state = {
 	screenWidth = 0,
 	screenHeight = 0,
 
-	fonts = {},
+	-- Font settings (moved to ui.fonts but kept references here for compatibility)
+	fonts = fonts.loaded,
+	selectedFont = fonts.defaultFont,
+	fontSize = fonts.defaultFontSize,
 
-	-- Font definitions mapping
-	fontDefs = {
-		header = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 32 },
-		body = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 24 },
-		caption = { name = "Inter", path = "assets/fonts/inter/Inter_24pt-SemiBold.ttf", size = 18 },
-		monoTitle = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 48 },
-		monoBody = { name = "Cascadia Code", path = "assets/fonts/cascadia_code/CascadiaCode-Bold.ttf", size = 22 },
-		nunito = { name = "Nunito", path = "assets/fonts/nunito/Nunito-Bold.ttf", size = 24 },
-		retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro-pixel-thick.ttf", size = 24 },
-	},
-
-	-- Font name to font key mapping for easy lookup
-	fontNameToKey = {},
-
-	selectedFont = "Inter", -- Default selected font
-	fontSize = "Default", -- Default font size
 	previousScreen = "menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
+
+	-- Set the alignment of the theme's bottom navigation icons and text
+	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
 
 	-- Box art settings
 	boxArtWidth = "Disabled", -- Default box art width
@@ -75,6 +66,7 @@ local state = {
 	rgbSpeed = 5, -- Default RGB speed (1-10)
 
 	themeApplied = false, -- Whether the theme has been applied
+	source = "user", -- Default source type for themes (user-created vs built-in)
 
 	-- Color contexts
 	activeColorContext = "background", -- Default active color context
@@ -118,21 +110,19 @@ function state.setColorValue(contextKey, colorValue)
 	return colorValue
 end
 
---- Helper function to get a font by name
+--- Helper function to get a font by name (delegated to fonts)
 function state.getFontByName(fontName)
-	local fontKey = state.fontNameToKey[fontName]
-	if fontKey then
-		return state.fonts[fontKey]
-	end
-	return state.fonts.body -- Return default font if not found
+	return fonts.getByName(fontName)
 end
 
---- Helper function to initialize font name to key mapping
+--- Helper function to initialize font name to key mapping (delegated to fonts)
 function state.initFontNameMapping()
-	state.fontNameToKey = {}
-	for key, def in pairs(state.fontDefs) do
-		state.fontNameToKey[def.name] = key
-	end
+	fonts.initNameMapping()
+end
+
+--- Helper function to set the default font (delegated to fonts)
+function state.setDefaultFont()
+	fonts.setDefault()
 end
 
 return state
