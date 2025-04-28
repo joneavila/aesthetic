@@ -7,7 +7,7 @@ function love.conf(t)
 	t.window.height = 480
 
 	t.window.resizable = true
-	t.window.fullscreen = true
+	t.window.fullscreen = false
 	t.window.title = "Aesthetic"
 	t.window.borderless = true
 	t.gammacorrect = true
