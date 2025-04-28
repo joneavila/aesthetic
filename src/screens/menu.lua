@@ -34,6 +34,7 @@ menu.BUTTONS = {
 }
 
 menu.BOTTOM_PADDING = controls.HEIGHT
+menu.BOTTOM_MARGIN = 100 -- Margin from bottom for the main action button
 
 -- Screen switching
 local switchScreen = nil
@@ -66,7 +67,7 @@ function menu.load()
 		end
 	end
 
-	local availableHeight = state.screenHeight - button.BUTTON.BOTTOM_MARGIN - button.BUTTON.PADDING
+	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.PADDING
 	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)))
 end
 
@@ -180,7 +181,7 @@ function menu.draw()
 	end
 
 	if createThemeButton then
-		local bottomY = state.screenHeight - button.BUTTON.BOTTOM_MARGIN
+		local bottomY = state.screenHeight - menu.BOTTOM_MARGIN
 		local buttonWidth = state.screenWidth - 24
 		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth, buttonWidth)
 	end

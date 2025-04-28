@@ -8,10 +8,8 @@ local colorUtils = require("utils.color")
 local BUTTON = {
 	HEIGHT = 50,
 	PADDING = 20,
-	COLOR_DISPLAY_SIZE = 30,
-	CORNER_RADIUS = 8, -- Corner radius for all buttons
+	CORNER_RADIUS = 8,
 	SELECTED_OUTLINE_WIDTH = 4,
-	BOTTOM_MARGIN = 100, -- Margin from bottom for the "Create theme" button
 }
 
 -- Module table to export public functions
@@ -137,6 +135,7 @@ end
 
 -- Function to draw a button with color preview
 function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexColor, isDisabled, monoFont, buttonWidth)
+	local COLOR_DISPLAY_SIZE = 30
 	local dimensions = calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected)
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 	drawButtonText(text, x, y, isDisabled)
@@ -144,8 +143,8 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 	-- Only draw color display if we have a valid color
 	if hexColor then
 		-- Draw color square
-		local colorX = dimensions.rightEdge - BUTTON.COLOR_DISPLAY_SIZE
-		local colorY = y + (BUTTON.HEIGHT - BUTTON.COLOR_DISPLAY_SIZE) / 2
+		local colorX = dimensions.rightEdge - COLOR_DISPLAY_SIZE
+		local colorY = y + (BUTTON.HEIGHT - COLOR_DISPLAY_SIZE) / 2
 
 		local r, g, b = colorUtils.hexToRgb(hexColor)
 		local opacity = isDisabled and 0.5 or 1
@@ -155,8 +154,8 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 			"fill",
 			colorX,
 			colorY,
-			BUTTON.COLOR_DISPLAY_SIZE,
-			BUTTON.COLOR_DISPLAY_SIZE,
+			COLOR_DISPLAY_SIZE,
+			COLOR_DISPLAY_SIZE,
 			BUTTON.CORNER_RADIUS / 2 -- Using half the button corner radius for the color square
 		)
 
@@ -167,8 +166,8 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 			"line",
 			colorX,
 			colorY,
-			BUTTON.COLOR_DISPLAY_SIZE,
-			BUTTON.COLOR_DISPLAY_SIZE,
+			COLOR_DISPLAY_SIZE,
+			COLOR_DISPLAY_SIZE,
 			BUTTON.CORNER_RADIUS / 2 -- Using half the button corner radius for the color square
 		)
 
