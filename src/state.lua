@@ -13,6 +13,7 @@
 local fonts = require("ui.fonts")
 local colors = require("colors")
 local errorHandler = require("error_handler")
+local colorUtils = require("utils.color")
 
 local function createColorContext(defaultColor)
 	return {
@@ -95,15 +96,15 @@ end
 
 --- Helper function to set the current color value for a context
 function state.setColorValue(contextKey, colorValue)
-	-- Normalize color value to hex if needed
-	local normalizedColor = colorValue
+	-- Only accept hex color values
 	if colorValue:sub(1, 1) ~= "#" then
-		normalizedColor = colors.toHex(colorValue)
-	end
-	if not normalizedColor then
-		errorHandler.setError("Failed to set color value: " .. tostring(colorValue))
+		errorHandler.setError(
+			"Failed to set color value: only hex color strings (starting with #) are supported. Got: "
+				.. tostring(colorValue)
+		)
 		return
 	end
+	local normalizedColor = colorValue
 	local context = state.getColorContext(contextKey)
 	context.currentColor = normalizedColor
 
@@ -111,7 +112,6 @@ function state.setColorValue(contextKey, colorValue)
 	context.hex.input = normalizedColor:sub(2) -- Remove # sign
 
 	-- Initialize HSV values based on RGB
-	local colorUtils = require("utils.color")
 	local r, g, b = colorUtils.hexToRgb(normalizedColor)
 	local h, s, v = colorUtils.rgbToHsv(r, g, b)
 	context.hsv.hue = h * 360 -- Convert 0-1 to 0-360

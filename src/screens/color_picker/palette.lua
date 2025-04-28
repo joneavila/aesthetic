@@ -5,6 +5,7 @@ local state = require("state")
 local tween = require("tween")
 local controls = require("controls")
 local constants = require("screens.color_picker.constants")
+local colorUtils = require("utils.color")
 
 local palette = {}
 
@@ -41,19 +42,14 @@ local function getCurrentPaletteState()
 	return context.palette -- Return the palette specific state for this color context
 end
 
--- Helper function to get all color keys
-local function getColorKeys()
-	-- Use the ordered keys directly from the colors.palette module
-	local keys = {}
-	for _, key in ipairs(colors.palette._ordered_keys) do
-		table.insert(keys, key)
-	end
-	return keys
+-- Helper function to get all palette colors (ordered)
+local function getPaletteColors()
+	return colors.palette
 end
 
 -- Helper function to calculate grid dimensions
 local function calculateGridSize()
-	local totalColors = #getColorKeys()
+	local totalColors = #getPaletteColors()
 	local cols = 8
 	local rows = math.ceil(totalColors / cols)
 	return {
@@ -69,40 +65,32 @@ end
 
 -- Helper function to check if a grid position has a color
 local function hasColorAt(row, col, grid, totalColors)
-	-- Check if it's a regular color position
 	local index = gridPosToIndex(row, col, grid)
 	return index <= totalColors
 end
 
 -- Helper function to calculate grid dimensions and layout
 local function calculateGridDimensions()
-	-- Get updated color keys and grid size
-	local colorKeys = getColorKeys()
+	local paletteColors = getPaletteColors()
 	local gridSize = calculateGridSize()
 
 	local contentArea = constants.calculateContentArea()
 
-	-- Calculate available space
 	local availableHeight = contentArea.height - (PADDING * 2)
 	local availableWidth = contentArea.width - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
-	-- Calculate square size based on available width and fixed number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
-
-	-- Calculate how many rows can be displayed at once
 	local visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
 
-	-- Calculate total grid dimensions
 	local totalWidth = (gridSize.cols * squareSize) + (gridSize.cols - 1) * SQUARE_SPACING
 	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * SQUARE_SPACING
 	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
 
-	-- Calculate grid position
 	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
 	local offsetY = math.floor(contentArea.y + PADDING)
 
 	return {
-		colorKeys = colorKeys,
+		paletteColors = paletteColors,
 		gridSize = gridSize,
 		squareSize = squareSize,
 		visibleRows = visibleRows,
@@ -114,7 +102,7 @@ local function calculateGridDimensions()
 end
 
 local paletteState = {
-	colorKeys = getColorKeys(),
+	paletteColors = getPaletteColors(),
 	gridSize = nil,
 	squareSize = 0,
 	currentScale = 1,
@@ -127,11 +115,8 @@ local paletteState = {
 }
 
 function palette.load()
-	-- Calculate grid dimensions and update state
 	local dimensions = calculateGridDimensions()
-
-	-- Update state with calculated dimensions
-	paletteState.colorKeys = dimensions.colorKeys
+	paletteState.paletteColors = dimensions.paletteColors
 	paletteState.gridSize = dimensions.gridSize
 	paletteState.squareSize = dimensions.squareSize
 	paletteState.visibleRows = dimensions.visibleRows
@@ -144,8 +129,6 @@ end
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
 	local contentArea = constants.calculateContentArea()
-
-	-- Calculate scrollbar position and dimensions
 	local scrollbarHeight = contentArea.height - (PADDING * 2)
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 	local scrollbarY = contentArea.y + PADDING
@@ -157,8 +140,6 @@ local function drawScrollbar()
 	-- Calculate handle position and size
 	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
 	local handleHeight = math.max(SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
-
-	-- Calculate handle position based on scroll position
 	local scrollRatio = 0
 	local currentState = getCurrentPaletteState()
 	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
@@ -172,7 +153,6 @@ local function drawScrollbar()
 	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
 end
 
--- Helper function to draw the controls background
 local function drawControlsBackground()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.rectangle("fill", 0, state.screenHeight - controls.HEIGHT, state.screenWidth, controls.HEIGHT)
@@ -183,39 +163,26 @@ function palette.draw()
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
 
-	-- Get current color type state
 	local currentState = getCurrentPaletteState()
-
-	-- Calculate the first visible row based on scroll position
 	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
-
-	-- Calculate the last visible row
 	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows - 1)
 
 	-- Draw color grid (only visible rows)
 	for row = firstVisibleRow, lastVisibleRow do
 		for col = 0, paletteState.gridSize.cols - 1 do
 			local colorIndex = gridPosToIndex(row, col, paletteState.gridSize)
-
-			-- Only draw if there is a color for this position
-			if colorIndex <= #paletteState.colorKeys then
+			if colorIndex <= #paletteState.paletteColors then
 				local x = paletteState.offsetX + col * (paletteState.squareSize + SQUARE_SPACING)
-
-				-- Draw each row at a fixed position regardless of scroll offset
 				local rowIndex = row - firstVisibleRow
 				local y = paletteState.offsetY + rowIndex * (paletteState.squareSize + SQUARE_SPACING)
-
-				-- Calculate scale and offset for the selected square
 				local scale = 1
 				local offset = 0
 				if row == currentState.selectedRow and col == currentState.selectedCol then
 					scale = paletteState.currentScale
 					offset = (paletteState.squareSize * (scale - 1)) / 2
 				end
-
-				-- Draw the color square with scale
-				local currentColor = paletteState.colorKeys[colorIndex]
-				love.graphics.setColor(colors.palette[currentColor])
+				local colorTable = paletteState.paletteColors[colorIndex]
+				love.graphics.setColor(colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
 				love.graphics.rectangle(
 					"fill",
 					x - offset,
@@ -243,10 +210,7 @@ function palette.draw()
 			end
 		end
 	end
-
 	drawScrollbar()
-
-	-- Draw controls
 	drawControlsBackground()
 	controls.draw({
 		{
@@ -276,10 +240,7 @@ function palette.update(dt)
 	if state.canProcessInput() then
 		local virtualJoystick = require("input").virtualJoystick
 		local moved = false
-
-		-- Get current color type state
 		local currentState = getCurrentPaletteState()
-
 		local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
 		-- Handle directional input
@@ -300,9 +261,7 @@ function palette.update(dt)
 				newCol = currentState.selectedCol + 1
 			end
 		end
-
-		-- Only move if the new position has a color
-		if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.colorKeys) then
+		if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.paletteColors) then
 			if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
 				currentState.selectedRow = newRow
 				currentState.selectedCol = newCol
@@ -349,21 +308,15 @@ function palette.update(dt)
 
 		-- Handle select
 		if virtualJoystick:isGamepadDown("a") then
-			-- Regular color selected
 			local selectedIndex =
 				gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
-			local selectedKey = paletteState.colorKeys[selectedIndex]
-			if selectedKey then
-				-- Convert the selected color key to hex code
-				local hexCode = colors.toHex(selectedKey, "palette")
+			local colorTable = paletteState.paletteColors[selectedIndex]
+			if colorTable then
+				local hexCode = colorUtils.rgbToHex(colorTable[1], colorTable[2], colorTable[3])
 				if hexCode then
-					-- Store in central state
 					local context = state.getColorContext(state.activeColorContext)
 					context.currentColor = hexCode
-
-					-- Set the color value in state
 					state.setColorValue(state.activeColorContext, hexCode)
-
 					if switchScreen then
 						switchScreen(state.previousScreen)
 						state.resetInputTimer()
@@ -380,41 +333,27 @@ end
 
 -- Helper function to find the closest color in the palette to a given hex value
 function palette.findClosestColor(hexColor)
-	-- Convert hex to RGB
-	local colorUtil = require("utils.color")
-	local targetR, targetG, targetB = colorUtil.hexToRgb(hexColor)
-
+	local targetR, targetG, targetB = colorUtils.hexToRgb(hexColor)
 	local minDistance = math.huge
-	local closestColor = nil
+	local closestIndex = nil
 	local closestRow = 0
 	local closestCol = 0
-
-	-- Loop through all colors
-	local colorKeys = getColorKeys()
+	local paletteColors = getPaletteColors()
 	local gridSize = calculateGridSize()
-
-	for i, colorKey in ipairs(colorKeys) do
+	for i, colorTable in ipairs(paletteColors) do
 		local row = math.floor((i - 1) / gridSize.cols)
 		local col = (i - 1) % gridSize.cols
-
-		local paletteColor = colors.palette[colorKey]
-		if paletteColor then
-			local r, g, b = paletteColor[1], paletteColor[2], paletteColor[3]
-
-			-- Calculate color distance (simple Euclidean distance in RGB space)
-			local distance = math.sqrt((r - targetR) ^ 2 + (g - targetG) ^ 2 + (b - targetB) ^ 2)
-
-			if distance < minDistance then
-				minDistance = distance
-				closestColor = colorKey
-				closestRow = row
-				closestCol = col
-			end
+		local r, g, b = colorTable[1], colorTable[2], colorTable[3]
+		local distance = math.sqrt((r - targetR) ^ 2 + (g - targetG) ^ 2 + (b - targetB) ^ 2)
+		if distance < minDistance then
+			minDistance = distance
+			closestIndex = i
+			closestRow = row
+			closestCol = col
 		end
 	end
-
 	return {
-		colorKey = closestColor,
+		index = closestIndex,
 		row = closestRow,
 		col = closestCol,
 	}
@@ -427,16 +366,10 @@ function palette.initializePaletteState()
 
 	-- Find the closest color in the palette
 	local closestInfo = palette.findClosestColor(hexColor)
-
-	if closestInfo and closestInfo.colorKey then
-		-- Get palette state for the current color context
+	if closestInfo and closestInfo.index then
 		local currentPaletteState = getCurrentPaletteState()
-
-		-- Update the palette state with the closest color's position
 		currentPaletteState.selectedRow = closestInfo.row
 		currentPaletteState.selectedCol = closestInfo.col
-
-		-- Ensure proper scrolling to make the selection visible
 		local dimensions = calculateGridDimensions()
 		local squareSize = dimensions.squareSize
 		local spacing = SQUARE_SPACING
@@ -454,13 +387,9 @@ function palette.initializePaletteState()
 	end
 end
 
--- Function called when entering this screen
 function palette.onEnter()
-	-- Calculate grid dimensions and update state
 	local dimensions = calculateGridDimensions()
-
-	-- Update state with calculated dimensions
-	paletteState.colorKeys = dimensions.colorKeys
+	paletteState.paletteColors = dimensions.paletteColors
 	paletteState.gridSize = dimensions.gridSize
 	paletteState.squareSize = dimensions.squareSize
 	paletteState.visibleRows = dimensions.visibleRows
@@ -468,11 +397,7 @@ function palette.onEnter()
 	paletteState.visibleGridHeight = dimensions.visibleGridHeight
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
-
-	-- Try to initialize palette state based on current color
 	palette.initializePaletteState()
-
-	-- Get current color type state
 	local currentState = getCurrentPaletteState()
 
 	-- Validate that the selected position is still valid after grid size changes
@@ -480,7 +405,6 @@ function palette.onEnter()
 	if currentState.selectedRow >= paletteState.gridSize.rows then
 		currentState.selectedRow = paletteState.gridSize.rows - 1
 	end
-
 	if currentState.selectedCol >= paletteState.gridSize.cols then
 		currentState.selectedCol = paletteState.gridSize.cols - 1
 	end
@@ -491,7 +415,7 @@ function palette.onEnter()
 			currentState.selectedRow,
 			currentState.selectedCol,
 			paletteState.gridSize,
-			#paletteState.colorKeys
+			#paletteState.paletteColors
 		)
 	then
 		-- If not, reset to the first color
