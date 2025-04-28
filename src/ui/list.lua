@@ -33,7 +33,6 @@ function list.draw(params)
 
 	-- Set button width based on whether scrollbar is needed
 	local buttonWidth = screenWidth - itemPadding - (needsScrollBar and scrollBarWidth or 0)
-	button.setWidth(buttonWidth)
 
 	-- Draw the list using scrollView
 	scrollView.draw({
@@ -72,7 +71,8 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							currentValue
+							currentValue,
+							buttonWidth
 						)
 					elseif item.min ~= nil and item.max ~= nil then
 						-- For numeric ranges
@@ -84,7 +84,8 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							tostring(currentValue)
+							tostring(currentValue),
+							buttonWidth
 						)
 					elseif item.valueText then
 						-- For items with valueText property
@@ -95,14 +96,23 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							item.valueText
+							item.valueText,
+							buttonWidth
 						)
 					elseif item.value then
 						-- For items with a simple value display
-						button.drawWithTextPreview(item.text, 0, y, item.selected, screenWidth, tostring(item.value))
+						button.drawWithTextPreview(
+							item.text,
+							0,
+							y,
+							item.selected,
+							screenWidth,
+							tostring(item.value),
+							buttonWidth
+						)
 					else
 						-- Basic button with no extras
-						button.draw(item.text, 0, y, item.selected, screenWidth)
+						button.draw(item.text, 0, y, item.selected, screenWidth, buttonWidth)
 					end
 				end
 
