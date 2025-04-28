@@ -2,7 +2,6 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local mainMenuScreen = require("screens.main_menu")
 local tween = require("tween")
 local colorUtils = require("utils.color")
 local controls = require("controls")
@@ -576,8 +575,8 @@ function hsv.update(dt)
 			local context = state.getColorContext(state.activeColorContext)
 			context.currentColor = hexCode
 
-			-- Pass the hex code to menu
-			mainMenuScreen.setSelectedColor(state.activeColorContext, hexCode)
+			-- Set the color value in state
+			state.setColorValue(state.activeColorContext, hexCode)
 
 			-- Switch back to menu
 			if switchScreen then

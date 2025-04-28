@@ -542,15 +542,6 @@ function menu.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
-function menu.setSelectedColor(buttonType, colorKey)
-	-- Convert color value to hex if needed
-	local colorValue = colorKey:sub(1, 1) ~= "#" and colors.toHex(colorKey) or colorKey
-	if not colorValue then
-		errorHandler.setError("Failed to set color value: " .. colorKey)
-	end
-	state.setColorValue(buttonType, colorValue)
-end
-
 function menu.onExit()
 	-- Clean up working directory when leaving menu screen
 	themeCreator.cleanup()

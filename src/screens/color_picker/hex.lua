@@ -424,8 +424,7 @@ function hex.update(_dt)
 					-- Return to menu and apply the color
 					if switchScreen then
 						switchScreen(state.previousScreen)
-						local mainMenuScreen = require("screens.main_menu")
-						mainMenuScreen.setSelectedColor(state.activeColorContext, hexCode)
+						state.setColorValue(state.activeColorContext, hexCode)
 					end
 				end
 			else

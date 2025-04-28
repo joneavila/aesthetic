@@ -11,6 +11,8 @@
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
 local fonts = require("ui.fonts")
+local colors = require("colors")
+local errorHandler = require("error_handler")
 
 local function createColorContext(defaultColor)
 	return {
@@ -93,21 +95,30 @@ end
 
 --- Helper function to set the current color value for a context
 function state.setColorValue(contextKey, colorValue)
+	-- Normalize color value to hex if needed
+	local normalizedColor = colorValue
+	if colorValue:sub(1, 1) ~= "#" then
+		normalizedColor = colors.toHex(colorValue)
+	end
+	if not normalizedColor then
+		errorHandler.setError("Failed to set color value: " .. tostring(colorValue))
+		return
+	end
 	local context = state.getColorContext(contextKey)
-	context.currentColor = colorValue
+	context.currentColor = normalizedColor
 
 	-- Initialize the hex input with the new value
-	context.hex.input = colorValue:sub(2) -- Remove # sign
+	context.hex.input = normalizedColor:sub(2) -- Remove # sign
 
 	-- Initialize HSV values based on RGB
 	local colorUtils = require("utils.color")
-	local r, g, b = colorUtils.hexToRgb(colorValue)
+	local r, g, b = colorUtils.hexToRgb(normalizedColor)
 	local h, s, v = colorUtils.rgbToHsv(r, g, b)
 	context.hsv.hue = h * 360 -- Convert 0-1 to 0-360
 	context.hsv.sat = s
 	context.hsv.val = v
 
-	return colorValue
+	return normalizedColor
 end
 
 --- Helper function to get a font by name (delegated to fonts)
