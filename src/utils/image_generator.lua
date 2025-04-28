@@ -194,7 +194,7 @@ function imageGenerator.createIconImage(options)
 end
 
 -- Create a preview image for muOS theme selection
-function imageGenerator.createPreviewImage(outputPath, fonts)
+function imageGenerator.createPreviewImage(outputPath, previewFonts)
 	-- Set the preview image dimensions based on the screen resolution
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
 
@@ -237,11 +237,11 @@ function imageGenerator.createPreviewImage(outputPath, fonts)
 	love.graphics.setColor(fgColor)
 	local selectedFontName = state.selectedFont
 	local fontMap = {
-		["Inter"] = fonts and fonts.body or state.fonts.body,
-		["Cascadia Code"] = fonts and fonts.monoBody or state.fonts.monoBody,
-		["Retro Pixel"] = fonts and fonts.retroPixel or state.fonts.retroPixel,
+		["Inter"] = previewFonts and previewFonts.body or state.fonts.body,
+		["Cascadia Code"] = previewFonts and previewFonts.monoBody or state.fonts.monoBody,
+		["Retro Pixel"] = previewFonts and previewFonts.retroPixel or state.fonts.retroPixel,
 	}
-	local font = fontMap[selectedFontName] or (fonts and fonts.nunito or state.fonts.nunito)
+	local font = fontMap[selectedFontName] or (previewFonts and previewFonts.nunito or state.fonts.nunito)
 	love.graphics.setFont(font)
 
 	-- Center text

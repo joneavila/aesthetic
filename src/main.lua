@@ -62,7 +62,7 @@ local function setupFonts()
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
 	-- Update font sizes based on scale factor
-	for key, def in pairs(fonts.definitions) do
+	for _, def in pairs(fonts.definitions) do
 		def.size = def.size * scaleFactor
 	end
 

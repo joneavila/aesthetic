@@ -10,7 +10,6 @@
 ---   2. State for the color palette picker
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
-local love = require("love")
 local fonts = require("ui.fonts")
 
 local function createColorContext(defaultColor)

@@ -214,24 +214,24 @@ function rgb.update(_dt)
 	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
 		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
 
-		for _, button in ipairs(BUTTONS) do
-			if button.selected then
-				if button.options and not button.disabled then
+		for _, btn in ipairs(BUTTONS) do
+			if btn.selected then
+				if btn.options and not btn.disabled then
 					-- Calculate new option index
-					local newIndex = button.currentOption + direction
+					local newIndex = btn.currentOption + direction
 
 					-- Wrap around if needed
 					if newIndex < 1 then
-						newIndex = #button.options
-					elseif newIndex > #button.options then
+						newIndex = #btn.options
+					elseif newIndex > #btn.options then
 						newIndex = 1
 					end
 
 					-- Update current option
-					button.currentOption = newIndex
+					btn.currentOption = newIndex
 
 					-- Update state with selected option
-					state.rgbMode = button.options[button.currentOption]
+					state.rgbMode = btn.options[btn.currentOption]
 
 					-- Update disabled states based on new mode
 					updateButtonStates()
@@ -241,21 +241,21 @@ function rgb.update(_dt)
 
 					state.resetInputTimer()
 					break
-				elseif button.min ~= nil and button.max ~= nil and not button.disabled then
+				elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
 					-- Handle brightness or speed adjustment
-					local isSpeed = button.text == "Speed"
+					local isSpeed = btn.text == "Speed"
 
-					local newValue = button.value + (direction * button.step)
+					local newValue = btn.value + (direction * btn.step)
 
 					-- Clamp to min/max
-					if newValue < button.min then
-						newValue = button.min
-					elseif newValue > button.max then
-						newValue = button.max
+					if newValue < btn.min then
+						newValue = btn.min
+					elseif newValue > btn.max then
+						newValue = btn.max
 					end
 
 					-- Update button value
-					button.value = newValue
+					btn.value = newValue
 
 					-- Update state
 					if isSpeed then
@@ -283,10 +283,10 @@ function rgb.update(_dt)
 
 	-- Handle A button to go to color picker for RGB color
 	if virtualJoystick:isGamepadDown("a") then
-		for _, button in ipairs(BUTTONS) do
-			if button.selected and button.colorKey and switchScreen and not button.disabled then
+		for _, btn in ipairs(BUTTONS) do
+			if btn.selected and btn.colorKey and switchScreen and not btn.disabled then
 				-- Open color picker for this color
-				state.activeColorContext = button.colorKey
+				state.activeColorContext = btn.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
 				switchScreen(COLOR_PICKER_SCREEN)
 				state.resetInputTimer()

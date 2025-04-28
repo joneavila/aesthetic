@@ -202,23 +202,23 @@ function box_art.update(_dt)
 	-- Handle left/right to change box art width value
 	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
 		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
-		local button = BUTTONS[1]
+		local btn = BUTTONS[1]
 
 		-- Calculate new option index
-		local newIndex = button.currentOption + direction
+		local newIndex = btn.currentOption + direction
 
 		-- Wrap around if needed
 		if newIndex < 1 then
-			newIndex = #button.options
-		elseif newIndex > #button.options then
+			newIndex = #btn.options
+		elseif newIndex > #btn.options then
 			newIndex = 1
 		end
 
 		-- Update current option
-		button.currentOption = newIndex
+		btn.currentOption = newIndex
 
 		-- Update state with selected option
-		state.boxArtWidth = button.options[button.currentOption]
+		state.boxArtWidth = btn.options[btn.currentOption]
 
 		state.resetInputTimer()
 	end

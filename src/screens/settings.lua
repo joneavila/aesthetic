@@ -101,8 +101,8 @@ function settings.update(_dt)
 		if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
 			-- Toggle button selection
 			local modalButtons = modal.getModalButtons()
-			for _, button in ipairs(modalButtons) do
-				button.selected = not button.selected
+			for _, btn in ipairs(modalButtons) do
+				btn.selected = not btn.selected
 			end
 			modal.setModalButtons(modalButtons)
 			state.resetInputTimer()
@@ -111,9 +111,9 @@ function settings.update(_dt)
 		if virtualJoystick:isGamepadDown("a") then
 			-- Handle button selection
 			local modalButtons = modal.getModalButtons()
-			for _, button in ipairs(modalButtons) do
-				if button.selected then
-					if modalMode == "save_input" and button.text == "Save" then
+			for _, btn in ipairs(modalButtons) do
+				if btn.selected then
+					if modalMode == "save_input" and btn.text == "Save" then
 						-- Save the preset
 						local success = presets.savePreset(presetName)
 						if success then
@@ -165,9 +165,9 @@ function settings.update(_dt)
 
 	-- Handle button selection (A button)
 	if virtualJoystick:isGamepadDown("a") then
-		for _, button in ipairs(BUTTONS) do
-			if button.selected then
-				if button.text == "Save theme preset" then
+		for _, btn in ipairs(BUTTONS) do
+			if btn.selected then
+				if btn.text == "Save theme preset" then
 					presetName = generatePresetName()
 
 					-- Show save preset modal
@@ -176,14 +176,14 @@ function settings.update(_dt)
 						"Save current theme settings as preset?",
 						{ { text = "Cancel", selected = false }, { text = "Save", selected = true } }
 					)
-				elseif button.text == "Load theme preset" then
+				elseif btn.text == "Load theme preset" then
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")
 						state.resetInputTimer()
 						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
-				elseif button.text == "About" then
+				elseif btn.text == "About" then
 					-- Navigate to the about screen
 					if switchScreen then
 						switchScreen("about")
