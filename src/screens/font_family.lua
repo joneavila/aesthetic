@@ -21,10 +21,14 @@ local FONT_PREVIEW = {
 	PREVIEW_BG_CORNER_RADIUS = 10,
 	PREVIEW_BOTTOM_MARGIN = 15, -- Margin between preview box and controls
 	FONT_SIZE = 24, -- Use a consistent font size for all preview fonts
+	PADDING = 12, -- Padding around the preview text
 }
 
 -- Font cache for previewing (to avoid recreating fonts every frame)
 local previewFontCache = {}
+
+-- Store the maximum preview height once calculated
+local maxPreviewHeight = nil
 
 -- Helper function to get a consistent preview font
 local function getPreviewFont(fontName)
@@ -54,6 +58,27 @@ local function getPreviewFont(fontName)
 	-- Cache the font for future use
 	previewFontCache[fontName] = previewFont
 	return previewFont
+end
+
+-- Helper function to calculate the maximum preview height across all fonts
+local function calculateMaxPreviewHeight()
+	if maxPreviewHeight then
+		return maxPreviewHeight
+	end
+
+	local maxHeight = 0
+	for _, fontChoice in ipairs(fonts.choices) do
+		local previewFont = getPreviewFont(fontChoice.name)
+		local _, textLines = previewFont:getWrap(
+			FONT_PREVIEW.PREVIEW_TEXT,
+			state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 2) - (FONT_PREVIEW.PADDING * 2)
+		)
+		local height = #textLines * previewFont:getHeight() + (FONT_PREVIEW.PADDING * 2)
+		maxHeight = math.max(maxHeight, height)
+	end
+
+	maxPreviewHeight = maxHeight
+	return maxHeight
 end
 
 -- Font items with their selected state
@@ -99,8 +124,13 @@ function font.draw()
 	-- Make sure we restore the default UI font for the button list
 	love.graphics.setFont(state.fonts.body)
 
-	-- Calculate start Y position for the list
+	-- Calculate the preview height and position
+	local previewHeight = calculateMaxPreviewHeight()
+	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
+
+	-- Calculate start Y position for the list and available height
 	local startY = header.getHeight() + button.BUTTON.HEADER_MARGIN
+	local availableHeight = previewY - startY
 
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont
@@ -111,17 +141,6 @@ function font.draw()
 		end
 	end
 
-	-- Get the font for preview - with special handling to ensure consistent sizing
-	local previewFont = getPreviewFont(hoveredFontName)
-
-	-- Get text wrapping for preview
-	local textLines = love.graphics
-		.getFont()
-		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 2))
-	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.HORIZONTAL_PADDING * 2
-
-	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
-
 	-- Draw the list using our list component
 	local result = list.draw({
 		items = fontItems,
@@ -130,9 +149,9 @@ function font.draw()
 		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
+		screenHeight = startY + availableHeight, -- Constrain to available height
 		drawItemFunc = function(item, _index, y)
-			button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, previewFont)
+			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,
 	})
 
@@ -151,25 +170,17 @@ function font.draw()
 
 	-- Draw preview text if a font is selected
 	if hoveredFontName then
-		-- Draw preview text
-		love.graphics.setColor(colors.ui.subtext)
-		love.graphics.setFont(state.fonts.body)
-		love.graphics.printf(
-			"Preview",
-			button.BUTTON.EDGE_MARGIN,
-			previewY,
-			state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2),
-			"left"
-		)
+		-- Get the font for preview
+		local previewFont = getPreviewFont(hoveredFontName)
 
 		-- Draw the actual preview with the selected font
 		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.setFont(previewFont)
 		love.graphics.printf(
 			FONT_PREVIEW.PREVIEW_TEXT,
-			button.BUTTON.HORIZONTAL_PADDING,
-			previewY + button.BUTTON.VERTICAL_PADDING,
-			state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 4),
+			button.BUTTON.EDGE_MARGIN + FONT_PREVIEW.PADDING,
+			previewY + FONT_PREVIEW.PADDING,
+			state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2) - (FONT_PREVIEW.PADDING * 2),
 			"left"
 		)
 	end
@@ -246,8 +257,9 @@ end
 
 -- Function called when exiting this screen
 function font.onExit()
-	-- Clear the font cache to free memory
+	-- Clear the font cache and preview height cache to free memory
 	previewFontCache = {}
+	maxPreviewHeight = nil
 end
 
 return font
