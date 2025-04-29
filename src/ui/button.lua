@@ -42,6 +42,9 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	local leftPadding = 20
 	local rightPadding = 0 -- Consistent padding for right-aligned content
 
+	-- Default buttonWidth to screenWidth if not provided
+	buttonWidth = buttonWidth or screenWidth
+
 	-- If there's no scrollbar needed, reduce right padding to match left
 	-- and adjust the right edge position for content
 	local hasFullWidth = buttonWidth >= screenWidth - BUTTON.PADDING

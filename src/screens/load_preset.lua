@@ -212,7 +212,7 @@ function loadPreset.update(_dt)
 
 				-- Return to main menu screen
 				if switchScreen then
-					switchScreen("menu")
+					switchScreen("main_menu")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				end

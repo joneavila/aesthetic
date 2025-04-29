@@ -14,7 +14,7 @@ local rgb = {}
 
 -- Screen switching
 local switchScreen = nil
-local MENU_SCREEN = "menu"
+local MENU_SCREEN = "main_menu"
 local COLOR_PICKER_SCREEN = "color_picker"
 
 -- RGB mode options

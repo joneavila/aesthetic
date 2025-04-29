@@ -54,7 +54,7 @@ local state = {
 	selectedFont = fonts.defaultFont,
 	fontSize = fonts.defaultFontSize,
 
-	previousScreen = "menu", -- Default screen to return to after color picker
+	previousScreen = "main_menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled
 
 	-- Set the alignment of the theme's bottom navigation icons and text

@@ -3,7 +3,7 @@ local screens = {}
 local love = require("love")
 
 -- Private state
-local currentScreen = "menu" -- Default screen
+local currentScreen = "main_menu" -- Default screen
 local registeredScreens = {}
 
 -- Register a screen module

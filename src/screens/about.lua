@@ -10,7 +10,7 @@ local about = {}
 
 -- Constants
 local PADDING = 20
-local MENU_SCREEN = "menu"
+local MENU_SCREEN = "main_menu"
 local ABOUT_TEXT_PART1 = "Check out the source code on GitHub!"
 local GITHUB_LINK = "https://github.com/joneavila/aesthetic"
 local ABOUT_TEXT_PART2 = [[

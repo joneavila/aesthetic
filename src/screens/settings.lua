@@ -200,7 +200,7 @@ function settings.update(_dt)
 	-- Return to menu with B button
 	if virtualJoystick:isGamepadDown("b") then
 		if switchScreen then
-			switchScreen("menu")
+			switchScreen("main_menu")
 		end
 		state.resetInputTimer()
 	end

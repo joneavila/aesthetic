@@ -71,8 +71,7 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							currentValue,
-							buttonWidth
+							currentValue
 						)
 					elseif item.min ~= nil and item.max ~= nil then
 						-- For numeric ranges
@@ -84,8 +83,7 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							tostring(currentValue),
-							buttonWidth
+							tostring(currentValue)
 						)
 					elseif item.valueText then
 						-- For items with valueText property
@@ -96,20 +94,11 @@ function list.draw(params)
 							item.selected,
 							item.disabled,
 							screenWidth,
-							item.valueText,
-							buttonWidth
+							item.valueText
 						)
 					elseif item.value then
 						-- For items with a simple value display
-						button.drawWithTextPreview(
-							item.text,
-							0,
-							y,
-							item.selected,
-							screenWidth,
-							tostring(item.value),
-							buttonWidth
-						)
+						button.drawWithTextPreview(item.text, 0, y, item.selected, screenWidth, tostring(item.value))
 					else
 						-- Basic button with no extras
 						button.draw(item.text, 0, y, item.selected, screenWidth, buttonWidth)

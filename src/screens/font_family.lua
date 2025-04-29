@@ -208,7 +208,7 @@ function font.update(_dt)
 
 	-- Handle B button (Back to menu)
 	if virtualJoystick:isGamepadDown("b") and switchScreen then
-		switchScreen("menu")
+		switchScreen("main_menu")
 		state.resetInputTimer()
 		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 		return
@@ -224,7 +224,7 @@ function font.update(_dt)
 
 				-- Return to menu
 				if switchScreen then
-					switchScreen("menu")
+					switchScreen("main_menu")
 					state.resetInputTimer()
 					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				end

@@ -13,7 +13,7 @@ local box_art = {}
 
 -- Screen switching
 local switchScreen = nil
-local MENU_SCREEN = "menu"
+local MENU_SCREEN = "main_menu"
 
 -- Box art width options will be generated dynamically in load()
 local BOX_ART_WIDTH_OPTIONS = { "Disabled" }

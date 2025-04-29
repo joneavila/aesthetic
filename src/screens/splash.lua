@@ -143,7 +143,7 @@ function splash.update(dt)
 				-- Initialize the fade effect before switching
 				state.fading = true
 				state.fadeTimer = 0
-				switchScreen("menu")
+				switchScreen("main_menu")
 			end
 		end
 	end

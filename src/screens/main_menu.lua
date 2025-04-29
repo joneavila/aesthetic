@@ -366,7 +366,7 @@ local function handleSelectedButton(btn)
 	elseif btn.colorKey and switchScreen then
 		-- Any color selection button
 		state.activeColorContext = btn.colorKey
-		state.previousScreen = "menu" -- Set previous screen to return to
+		state.previousScreen = "main_menu" -- Set previous screen to return to
 		switchScreen("color_picker")
 	elseif btn.text == "Create theme" then
 		-- Show the process modal first
