@@ -24,18 +24,6 @@ local selectedIndex = 1
 local scrollPosition = 0
 local visibleItemCount = 0
 
--- Calculate the visible item count based on available screen space
-local function calculateVisibleItemCount()
-	-- Calculate available height between header and controls
-	local availableHeight = state.screenHeight - header.getHeight() - controls.HEIGHT
-
-	-- Account for padding at the top but not bottom since we want to use all available space
-	availableHeight = availableHeight - button.BUTTON.HEADER_MARGIN
-
-	-- Calculate how many items can fit in the available height
-	visibleItemCount = math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING))
-end
-
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
 	-- Clear existing presets
@@ -98,9 +86,6 @@ local function loadPresetsList()
 		presetItems[1].selected = true
 		selectedIndex = 1
 	end
-
-	-- Calculate how many items can be displayed in the available space
-	calculateVisibleItemCount()
 end
 
 function loadPreset.load()
@@ -133,9 +118,6 @@ function loadPreset.draw()
 		return
 	end
 
-	-- Calculate visible items count based on current screen dimensions
-	calculateVisibleItemCount()
-
 	-- Draw the list of presets using the list component
 	local result = list.draw({
 		items = presetItems,
@@ -145,7 +127,6 @@ function loadPreset.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,
-		visibleCount = visibleItemCount,
 		drawItemFunc = function(item, _index, y)
 			-- Draw the basic button first
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
@@ -170,6 +151,9 @@ function loadPreset.draw()
 			end
 		end,
 	})
+
+	-- Store the returned visibleCount for scroll calculations
+	visibleItemCount = result.visibleCount
 
 	-- Draw controls
 	controls.draw({
@@ -228,14 +212,9 @@ function loadPreset.update(_dt)
 
 	-- Handle B button (Back)
 	if virtualJoystick:isGamepadDown("b") and switchScreen then
-		switchScreen("settings")
+		switchScreen("main_menu")
 		state.resetInputTimer()
 		state.forceInputDelay(0.2) -- Add extra delay when switching screens
-	end
-
-	-- Reset input timer if moved
-	if moved then
-		state.resetInputTimer()
 	end
 end
 
@@ -243,13 +222,9 @@ function loadPreset.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
--- Function called when entering this screen
 function loadPreset.onEnter()
-	-- Refresh the presets list
 	loadPresetsList()
-
-	-- Recalculate visible items based on current screen dimensions
-	calculateVisibleItemCount()
+	scrollPosition = 0
 end
 
 return loadPreset

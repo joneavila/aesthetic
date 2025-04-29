@@ -149,7 +149,7 @@ function font.draw()
 		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
-		screenHeight = startY + availableHeight, -- Constrain to available height
+		screenHeight = previewY, -- Set the maximum height for the list
 		drawItemFunc = function(item, _index, y)
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,

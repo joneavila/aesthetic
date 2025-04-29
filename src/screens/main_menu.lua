@@ -60,25 +60,17 @@ local modalInputState = {
 }
 
 function menu.load()
-	-- Count regular buttons and calculate visible buttons
+	-- Count regular buttons
 	buttonCount = 0
 	for _, btn in ipairs(menu.BUTTONS) do
 		if not btn.isBottomButton then
 			buttonCount = buttonCount + 1
 		end
 	end
-
-	-- Calculate available height for buttons
-	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.SPACING
-	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING)))
 end
 
 function menu.draw()
 	local startY = header.getHeight()
-
-	-- Recalculate visible button count based on current screen height
-	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.SPACING
-	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING)))
 
 	background.draw()
 	header.draw("Main menu")
@@ -113,16 +105,19 @@ function menu.draw()
 		end
 	end
 
+	-- Calculate the maximum available height for the list (space above the Create theme button)
+	local bottomY = state.screenHeight - menu.BOTTOM_MARGIN
+	local maxListHeight = bottomY - startY
+
 	-- Draw regular buttons with list component
-	list.draw({
+	local result = list.draw({
 		items = regularButtons,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
 		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
-		visibleCount = visibleButtonCount,
 		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
+		screenHeight = bottomY,
 		scrollBarWidth = scrollBarWidth,
 		drawItemFunc = function(item, _index, y)
 			-- Draw the button based on its type
@@ -176,6 +171,9 @@ function menu.draw()
 			end
 		end,
 	})
+
+	-- Store the visibleCount from the result for use in scroll calculations
+	visibleButtonCount = result.visibleCount
 
 	-- Draw the "Create theme" button separately with accented style
 	-- Find the "Create theme" button

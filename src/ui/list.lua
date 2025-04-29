@@ -20,7 +20,13 @@ function list.draw(params)
 	local screenHeight = params.screenHeight or love.graphics.getHeight()
 	local scrollBarWidth = params.scrollBarWidth or scrollView.SCROLL_BAR_WIDTH
 	local itemCount = #items
-	local visibleCount = params.visibleCount or math.floor((screenHeight - startY) / (itemHeight + itemPadding))
+
+	-- Calculate the visible content area height
+	local contentAreaHeight = screenHeight - startY
+
+	-- Calculate how many full items can fit in the visible area
+	local visibleCount = math.floor(contentAreaHeight / (itemHeight + itemPadding))
+
 	-- drawItemFunc: Function responsible for drawing each item
 	-- Parameters:
 	--   item: The current item being drawn (contains all properties like text, selected, etc.)
@@ -55,6 +61,11 @@ function list.draw(params)
 
 				visibleItemCount = visibleItemCount + 1
 				local y = startY + (visibleItemCount - 1) * (itemHeight + itemPadding)
+
+				-- Skip if item would be partially drawn outside the content area
+				if y + itemHeight > screenHeight then
+					goto continue
+				end
 
 				-- If there's a custom drawing function, let the caller handle all drawing
 				if drawItemFunc then
