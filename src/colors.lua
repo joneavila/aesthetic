@@ -1,6 +1,6 @@
 --- Color management module
 
-local colorUtils = require("src.utils.color")
+local colorUtils = require("utils.color")
 
 local colors = {}
 
