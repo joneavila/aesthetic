@@ -74,7 +74,7 @@ function menu.load()
 end
 
 function menu.draw()
-	local startY = header.getHeight() + button.BUTTON.PADDING
+	local startY = header.getHeight()
 
 	background.draw()
 	header.draw("Main menu")
