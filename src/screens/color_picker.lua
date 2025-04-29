@@ -216,7 +216,7 @@ function colorPicker.draw()
 	love.graphics.rectangle(
 		"fill",
 		TAB_CONTAINER_PADDING,
-		header.HEIGHT,
+		header.getHeight(),
 		state.screenWidth - (TAB_CONTAINER_PADDING * 2),
 		TAB_CONTAINER_HEIGHT,
 		TAB_CORNER_RADIUS,
@@ -228,7 +228,7 @@ function colorPicker.draw()
 	love.graphics.rectangle(
 		"fill",
 		tabIndicator.x,
-		header.HEIGHT,
+		header.getHeight(),
 		tabIndicator.width,
 		TAB_CONTAINER_HEIGHT,
 		TAB_CORNER_RADIUS,
@@ -237,7 +237,7 @@ function colorPicker.draw()
 
 	-- Draw tabs (text only, since the background indicator is drawn separately)
 	for i, tab in ipairs(tabs) do
-		local tabY = header.HEIGHT
+		local tabY = header.getHeight()
 
 		-- Calculate tab position to ensure it fits flush with the container
 		local tabX = tab.x

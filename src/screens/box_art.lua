@@ -86,7 +86,7 @@ function box_art.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate starting Y position for the list (after header)
-	local startY = header.HEIGHT + button.BUTTON.PADDING
+	local startY = header.getHeight() + button.BUTTON.PADDING
 
 	-- Draw the button list
 	list.draw({

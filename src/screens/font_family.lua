@@ -100,7 +100,7 @@ function font.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate available space for list
-	local startY = header.HEIGHT + button.BUTTON.PADDING
+	local startY = header.getHeight() + button.BUTTON.PADDING
 
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont

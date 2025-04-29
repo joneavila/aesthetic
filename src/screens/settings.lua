@@ -54,7 +54,7 @@ function settings.draw()
 	header.draw("Settings")
 
 	-- Calculate starting Y position for the list
-	local startY = header.HEIGHT + button.BUTTON.PADDING
+	local startY = header.getHeight() + button.BUTTON.PADDING
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
