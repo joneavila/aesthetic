@@ -117,8 +117,8 @@ function font.draw()
 	-- Get text wrapping for preview
 	local textLines = love.graphics
 		.getFont()
-		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.CONTENT_MARGIN * 2))
-	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.CONTENT_MARGIN * 2
+		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 2))
+	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.HORIZONTAL_PADDING * 2
 
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
@@ -167,9 +167,9 @@ function font.draw()
 		love.graphics.setFont(previewFont)
 		love.graphics.printf(
 			FONT_PREVIEW.PREVIEW_TEXT,
-			button.BUTTON.CONTENT_MARGIN,
-			previewY + button.BUTTON.CONTENT_MARGIN,
-			state.screenWidth - (button.BUTTON.CONTENT_MARGIN * 4),
+			button.BUTTON.HORIZONTAL_PADDING,
+			previewY + button.BUTTON.VERTICAL_PADDING,
+			state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 4),
 			"left"
 		)
 	end
