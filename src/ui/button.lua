@@ -8,7 +8,6 @@ local colorUtils = require("utils.color")
 local BUTTON = {
 	VERTICAL_PADDING = 12, -- Padding above and below text
 	SPACING = 12, -- Used for vertical spacing between list items
-	TOP_MARGIN = 12, -- Space between header and content below it
 	EDGE_MARGIN = 16, -- Horizontal padding from screen edges
 	HORIZONTAL_PADDING = 14, -- Internal horizontal padding for text and content
 	CORNER_RADIUS = 8,
@@ -249,7 +248,7 @@ function button.drawAccented(text, isSelected, y, screenWidth, buttonWidth)
 
 		-- Draw outline
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.setLineWidth(2)
+		love.graphics.setLineWidth(1)
 		love.graphics.rectangle("line", buttonX, y, buttonWidth, buttonHeight, cornerRadius)
 
 		-- Draw text

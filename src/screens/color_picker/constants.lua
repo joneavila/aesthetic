@@ -25,6 +25,8 @@ end
 -- Function to calculate the content area dimensions for sub-screens (tab views)
 constants.calculateContentArea = function()
 	local controls = require("controls")
+	-- Ensure HEIGHT is calculated before using it
+	controls.calculateHeight()
 	return {
 		x = 0,
 		y = HEADER_HEIGHT + TAB_CONTAINER_HEIGHT + TAB_CONTENT_OVERLAP, -- Negative margin

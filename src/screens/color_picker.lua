@@ -204,7 +204,7 @@ function colorPicker.draw()
 
 	-- Draw header with current color context
 	local contextTitle = formatColorContext(state.activeColorContext)
-	header.draw(contextTitle)
+	header.draw(string.upper(contextTitle))
 
 	-- Draw tab container (pill-shaped background)
 	love.graphics.setColor(

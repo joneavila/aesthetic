@@ -8,12 +8,13 @@ local colors = {}
 -- Catppuccin Mocha: https://catppuccin.com/palette/
 colors.ui = {
 	foreground = colorUtils.hexToLove("#cdd6f4"), -- Text
-	background = colorUtils.hexToLove("#1e1e2e"), -- Base
-	surface = colorUtils.hexToLove("#45475a"), -- Surface 1
 	subtext = colorUtils.hexToLove("#a6adc8"), -- Subtext 0
-	overlay = colorUtils.hexToLove("#6c7086"), -- Overlay 0
-	accent = colorUtils.hexToLove("#89b4fa"), -- Blue
+	background = colorUtils.hexToLove("#1e1e2e"), -- Base
 	background_dim = colorUtils.hexToLove("#181825"), -- Mantle
+	surface = colorUtils.hexToLove("#313244"), -- Surface 0
+	overlay = colorUtils.hexToLove("#6c7086"), -- Overlay 0
+	surface_dim = colorUtils.hexToLove("#585b70"), -- Surface 2
+	accent = colorUtils.hexToLove("#89b4fa"), -- Blue
 	green = colorUtils.hexToLove("#a6e3a1"), -- Green
 	red = colorUtils.hexToLove("#f38ba8"), -- Red
 }

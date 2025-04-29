@@ -80,13 +80,13 @@ function box_art.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("Box art width")
+	header.draw("BOX ART WIDTH")
 
 	-- Set font
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list
-	local startY = header.getHeight() + button.BUTTON.TOP_MARGIN
+	local startY = header.getHeight()
 
 	-- Draw the list using our list component
 	local result = list.draw({

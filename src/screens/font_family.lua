@@ -119,17 +119,21 @@ function font.draw()
 	background.draw()
 
 	-- Draw header with title using the UI component
-	header.draw("Font family")
+	header.draw("FONT FAMILY")
 
 	-- Make sure we restore the default UI font for the button list
 	love.graphics.setFont(state.fonts.body)
+
+	-- Ensure controls HEIGHT is calculated
+	local controls = require("controls")
+	controls.calculateHeight()
 
 	-- Calculate the preview height and position
 	local previewHeight = calculateMaxPreviewHeight()
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
 	-- Calculate start Y position for the list and available height
-	local startY = header.getHeight() + button.BUTTON.TOP_MARGIN
+	local startY = header.getHeight()
 	local availableHeight = previewY - startY
 
 	-- Find the currently hovered font

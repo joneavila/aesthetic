@@ -97,7 +97,7 @@ function loadPreset.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("Load theme preset")
+	header.draw("LOAD THEME PRESET")
 
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(state.fonts.body)
@@ -105,11 +105,7 @@ function loadPreset.draw()
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print(
-			"No presets found",
-			button.BUTTON.EDGE_MARGIN,
-			header.getHeight() + button.BUTTON.TOP_MARGIN
-		)
+		love.graphics.print("No presets found", button.BUTTON.EDGE_MARGIN, header.getHeight())
 
 		-- Draw controls
 		controls.draw({
@@ -121,7 +117,7 @@ function loadPreset.draw()
 	-- Draw the list of presets using the list component
 	local result = list.draw({
 		items = presetItems,
-		startY = header.getHeight() + button.BUTTON.TOP_MARGIN,
+		startY = header.getHeight(),
 		itemHeight = button.calculateHeight(),
 		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,

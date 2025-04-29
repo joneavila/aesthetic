@@ -41,20 +41,25 @@ fonts.choices = {
 
 -- Note: Antialiasing should be set to 0 for pixelated fonts
 -- Font definitions mapping
+local bodySize = 22
 fonts.definitions = {
-	header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 32 },
-	body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 24 },
-	bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = 24 },
-	caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 20 },
+	header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
+	body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = bodySize },
+	bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = bodySize },
+	caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
 	monoTitle = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 48 },
 	monoHeader = {
 		name = "JetBrains Mono",
 		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 		size = 32,
 	},
-	monoBody = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 24 },
+	monoBody = {
+		name = "JetBrains Mono",
+		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		size = bodySize,
+	},
 	nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
-	retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = 24 },
+	retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = bodySize },
 }
 
 -- Screen height to font size mapping

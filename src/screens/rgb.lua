@@ -114,12 +114,12 @@ function rgb.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("RGB lighting")
+	header.draw("RGB LIGHTING")
 
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list
-	local startY = header.getHeight() + button.BUTTON.TOP_MARGIN
+	local startY = header.getHeight()
 
 	-- Draw the list using our list component
 	local result = list.draw({

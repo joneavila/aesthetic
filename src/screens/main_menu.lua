@@ -23,19 +23,26 @@ menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
 
 -- Button state
 menu.BUTTONS = {
-	{ text = "Background color", selected = true, colorKey = "background" },
-	{ text = "Foreground color", selected = false, colorKey = "foreground" },
-	{ text = "RGB lighting", selected = false, rgbLighting = true },
-	{ text = "Font family", selected = false, fontSelection = true },
-	{ text = "Font size", selected = false, fontSizeToggle = true },
+	{ text = "Background Color", selected = true, colorKey = "background" },
+	{ text = "Foreground Color", selected = false, colorKey = "foreground" },
+	{ text = "RGB Lighting", selected = false, rgbLighting = true },
+	{ text = "Font Family", selected = false, fontSelection = true },
+	{ text = "Font Size", selected = false, fontSizeToggle = true },
 	{ text = "Icons", selected = false, glyphsToggle = true },
-	{ text = "Box art width", selected = false, boxArt = true },
-	{ text = "Navigation alignment", selected = false, navAlignToggle = true },
-	{ text = "Create theme", selected = false, isBottomButton = true },
+	{ text = "Box Art Width", selected = false, boxArt = true },
+	{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
+	{ text = "Create Theme", selected = false, isBottomButton = true },
 }
 
-menu.BOTTOM_PADDING = controls.HEIGHT
-menu.BOTTOM_MARGIN = 100 -- Margin from bottom for the main action button
+-- Function to calculate button height
+local function calculateButtonHeight()
+	local font = love.graphics.getFont()
+	return font:getHeight() + (button.BUTTON and button.BUTTON.VERTICAL_PADDING * 2)
+end
+
+-- Calculate margin dynamically based on button height plus initial fixed margin
+local buttonBottomMargin = 6
+menu.BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + calculateButtonHeight() + buttonBottomMargin
 
 -- Screen switching
 local switchScreen = nil
@@ -73,7 +80,7 @@ function menu.draw()
 	local startY = header.getHeight()
 
 	background.draw()
-	header.draw("Main menu")
+	header.draw("MAIN MENU")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
@@ -105,8 +112,8 @@ function menu.draw()
 		end
 	end
 
-	-- Calculate the maximum available height for the list (space above the Create theme button)
-	local bottomY = state.screenHeight - menu.BOTTOM_MARGIN
+	-- Calculate the maximum available height for the list (space above the "Create Theme" button)
+	local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
 	local maxListHeight = bottomY - startY
 
 	-- Draw regular buttons with list component
@@ -175,19 +182,19 @@ function menu.draw()
 	-- Store the visibleCount from the result for use in scroll calculations
 	visibleButtonCount = result.visibleCount
 
-	-- Draw the "Create theme" button separately with accented style
-	-- Find the "Create theme" button
+	-- Draw the "Create Theme" button separately with accented style
+	-- Find the "Create Theme" button
 	local createThemeButton = nil
 	for _, btn in ipairs(bottomButtons) do
-		if btn.text == "Create theme" then
+		if btn.text == "Create Theme" then
 			createThemeButton = btn
 			break
 		end
 	end
 
 	if createThemeButton then
-		local bottomY = state.screenHeight - menu.BOTTOM_MARGIN
-		local buttonWidth = state.screenWidth - 24
+		local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
+		local buttonWidth = state.screenWidth - 34
 		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth, buttonWidth)
 	end
 
@@ -373,7 +380,7 @@ local function handleSelectedButton(btn)
 		state.activeColorContext = btn.colorKey
 		state.previousScreen = "main_menu" -- Set previous screen to return to
 		switchScreen("color_picker")
-	elseif btn.text == "Create theme" then
+	elseif btn.text == "Create Theme" then
 		-- Show the process modal first
 		modal.showProcessModal("Creating theme...")
 		-- Set waiting state to create theme after modal fades in
