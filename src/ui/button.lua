@@ -52,9 +52,6 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	-- Import scroll bar width once at the start since we need it for calculations
 	local scrollView = require("ui.scroll_view")
 
-	-- Define consistent padding using EDGE_MARGIN
-	local leftPadding = BUTTON.EDGE_MARGIN
-
 	-- Default buttonWidth to screenWidth if not provided
 	buttonWidth = buttonWidth or screenWidth
 

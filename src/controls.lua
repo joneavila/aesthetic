@@ -60,14 +60,14 @@ function controls.draw(controls_list)
 
 		if type(control.button) == "table" then
 			-- Multiple buttons with "/" between them
-			for i, buttonKey in ipairs(control.button) do
+			for btn, buttonKey in ipairs(control.button) do
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
 				buttonLabel = string.upper(buttonLabel)
 				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
 				buttonsWidth = buttonsWidth + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 
 				-- Add width for "/" separator if not the last button
-				if i < #control.button then
+				if btn < #control.button then
 					buttonsWidth = buttonsWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
@@ -95,7 +95,7 @@ function controls.draw(controls_list)
 	for i, control in ipairs(controls_list) do
 		if type(control.button) == "table" then
 			-- Draw multiple buttons with "/" between them
-			for i, buttonKey in ipairs(control.button) do
+			for btn, buttonKey in ipairs(control.button) do
 				-- Get button label
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
 				buttonLabel = string.upper(buttonLabel)
@@ -122,7 +122,7 @@ function controls.draw(controls_list)
 				x = x + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 
 				-- Draw separator if not the last button
-				if i < #control.button then
+				if btn < #control.button then
 					love.graphics.setColor(globalColor)
 					love.graphics.setFont(state.fonts.caption)
 					love.graphics.print("/", x + BUTTON_TEXT_SPACING, y)

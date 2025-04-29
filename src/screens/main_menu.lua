@@ -1,6 +1,5 @@
 --- Main menu screen
 local love = require("love")
-local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local rgbUtils = require("utils.rgb")
@@ -74,6 +73,8 @@ function menu.load()
 			buttonCount = buttonCount + 1
 		end
 	end
+
+	list.resetScrollPosition()
 end
 
 function menu.draw()
@@ -114,7 +115,6 @@ function menu.draw()
 
 	-- Calculate the maximum available height for the list (space above the "Create Theme" button)
 	local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
-	local maxListHeight = bottomY - startY
 
 	-- Draw regular buttons with list component
 	local result = list.draw({
@@ -193,9 +193,15 @@ function menu.draw()
 	end
 
 	if createThemeButton then
-		local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
+		local newBottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
 		local buttonWidth = state.screenWidth - 34
-		button.drawAccented(createThemeButton.text, createThemeButton.selected, bottomY, state.screenWidth, buttonWidth)
+		button.drawAccented(
+			createThemeButton.text,
+			createThemeButton.selected,
+			newBottomY,
+			state.screenWidth,
+			buttonWidth
+		)
 	end
 
 	-- Draw modal if active
@@ -450,6 +456,7 @@ function menu.update(dt)
 
 		-- Use list navigation helper
 		list.navigate(navButtons, direction)
+
 		state.resetInputTimer()
 	end
 
@@ -541,9 +548,20 @@ function menu.update(dt)
 
 	-- Update scroll position based on selected button
 	local selectedIndex = list.findSelectedIndex(regularButtons)
-	if selectedIndex > 0 then -- Only adjust if a regular button is selected
+	if selectedIndex > 0 then -- When a regular button is selected
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleButtonCount,
+		})
+	else
+		-- When focus is on bottom button, use last selected index for proper positioning
+		local lastSelectedIndex = list.getLastSelectedIndex()
+
+		-- Adjust scroll position based on the last selected index in the regular list
+		-- This will be skipped if transitioning to the bottom button (no extra scroll)
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = lastSelectedIndex,
 			scrollPosition = scrollPosition,
 			visibleCount = visibleButtonCount,
 		})
@@ -554,9 +572,10 @@ function menu.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
 end
 
+-- To perform when exiting the screen
 function menu.onExit()
-	-- Clean up working directory when leaving menu screen
 	themeCreator.cleanup()
+	list.resetScrollPosition()
 end
 
 function menu.updateFontName()

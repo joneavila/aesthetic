@@ -11,7 +11,6 @@
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
 local fonts = require("ui.fonts")
-local colors = require("colors")
 local errorHandler = require("error_handler")
 local colorUtils = require("utils.color")
 

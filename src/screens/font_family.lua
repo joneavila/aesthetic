@@ -2,12 +2,12 @@
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
-local controls = require("controls")
 local fonts = require("ui.fonts")
 local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
+local controls = require("controls")
 
 -- Module table to export public functions
 local font = {}
@@ -125,7 +125,6 @@ function font.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Ensure controls HEIGHT is calculated
-	local controls = require("controls")
 	controls.calculateHeight()
 
 	-- Calculate the preview height and position
@@ -134,7 +133,6 @@ function font.draw()
 
 	-- Calculate start Y position for the list and available height
 	local startY = header.getHeight()
-	local availableHeight = previewY - startY
 
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont

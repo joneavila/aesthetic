@@ -89,7 +89,7 @@ function box_art.draw()
 	local startY = header.getHeight()
 
 	-- Draw the list using our list component
-	local result = list.draw({
+	list.draw({
 		items = BUTTONS,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
@@ -130,7 +130,7 @@ function box_art.draw()
 	-- Draw preview rectangles
 	local previewHeight = 100
 	local previewYOffset = 40
-	local previewY = previewY + previewYOffset
+	previewY = previewY + previewYOffset
 
 	-- Draw labels for the preview
 	love.graphics.setColor(colors.ui.subtext)

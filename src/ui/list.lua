@@ -8,6 +8,15 @@ local scrollView = require("ui.scroll_view")
 -- Module table to export public functions
 local list = {}
 
+-- Store the last scroll position to prevent jumps when moving focus out of the list
+local lastScrollPosition = 0
+
+-- Track the last selected item index when focus moves out of the list
+local lastSelectedIndex = 1
+
+-- Store whether selected item is transitioning to a bottom button
+local movingToBottomButton = false
+
 -- Draw a scrollable list of items
 -- Returns a table with needsScrollBar (boolean) and visibleCount (number) properties
 function list.draw(params)
@@ -15,11 +24,14 @@ function list.draw(params)
 	local startY = params.startY or 0
 	local itemHeight = params.itemHeight or button.calculateHeight()
 	local itemPadding = params.itemPadding or button.BUTTON.SPACING
-	local scrollPosition = params.scrollPosition or 0
+	local scrollPosition = params.scrollPosition or lastScrollPosition
 	local screenWidth = params.screenWidth or love.graphics.getWidth()
 	local screenHeight = params.screenHeight or love.graphics.getHeight()
 	local scrollBarWidth = params.scrollBarWidth or scrollView.SCROLL_BAR_WIDTH
 	local itemCount = #items
+
+	-- Save the current scroll position
+	lastScrollPosition = scrollPosition
 
 	-- Calculate the visible content area height
 	local contentAreaHeight = screenHeight - startY
@@ -124,16 +136,37 @@ function list.draw(params)
 	return {
 		needsScrollBar = needsScrollBar,
 		visibleCount = visibleCount,
+		firstVisibleItem = math.floor(scrollPosition) + 1,
+		lastVisibleItem = math.min(math.floor(scrollPosition) + visibleCount, itemCount),
 	}
 end
 
 -- Adjust the scroll position to ensure the selected item is visible
 function list.adjustScrollPosition(params)
-	return scrollView.adjustScrollPosition({
-		selectedIndex = params.selectedIndex,
+	local oldScrollPosition = params.scrollPosition
+	local selectedIndex = params.selectedIndex > 0 and params.selectedIndex or lastSelectedIndex
+
+	-- If we're transitioning to a bottom button, maintain current scroll position
+	if movingToBottomButton then
+		movingToBottomButton = false
+		return oldScrollPosition
+	end
+
+	local newScrollPosition = scrollView.adjustScrollPosition({
+		selectedIndex = selectedIndex,
 		scrollPosition = params.scrollPosition,
 		visibleCount = params.visibleCount,
 	})
+
+	-- Update the lastScrollPosition so it's maintained even when focus leaves the list
+	lastScrollPosition = newScrollPosition
+
+	-- Store the selected index for when focus leaves the list
+	if params.selectedIndex > 0 then
+		lastSelectedIndex = params.selectedIndex
+	end
+
+	return newScrollPosition
 end
 
 -- Helper function to find the currently selected item index
@@ -143,12 +176,18 @@ function list.findSelectedIndex(items)
 			return i
 		end
 	end
-	return 1 -- Default to first item if none selected
+	return -1 -- Return -1 if none selected instead of defaulting to 1
 end
 
 -- Helper function to navigate between items
 function list.navigate(items, direction)
 	local currentIndex = list.findSelectedIndex(items)
+
+	-- If no item is selected but remembered index exists, use that
+	if currentIndex == -1 then
+		currentIndex = lastSelectedIndex
+	end
+
 	local newIndex = currentIndex + direction
 
 	-- Wrap around if needed
@@ -158,12 +197,45 @@ function list.navigate(items, direction)
 		newIndex = 1
 	end
 
+	-- Check if transitioning from regular list to bottom button
+	local wasLastItem = (currentIndex == #items - 1 and direction == 1)
+	if wasLastItem and newIndex == #items then
+		movingToBottomButton = true
+	end
+
 	-- Update selection state
 	for i, item in ipairs(items) do
 		item.selected = (i == newIndex)
 	end
 
+	-- Store the new index if it's within the regular items
+	if newIndex >= 1 and newIndex <= #items - 1 then -- Assuming last item is always the bottom button
+		lastSelectedIndex = newIndex
+	end
+
 	return newIndex
+end
+
+-- Set whether moving to a bottom button
+function list.setMovingToBottomButton(value)
+	movingToBottomButton = value
+end
+
+-- Reset the stored scroll position (useful when switching screens)
+function list.resetScrollPosition()
+	lastScrollPosition = 0
+	lastSelectedIndex = 1
+	movingToBottomButton = false
+end
+
+-- Get the current scroll position
+function list.getScrollPosition()
+	return lastScrollPosition
+end
+
+-- Get the last selected index (useful for maintaining position when focus moves out of list)
+function list.getLastSelectedIndex()
+	return lastSelectedIndex
 end
 
 return list

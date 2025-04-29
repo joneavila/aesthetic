@@ -165,7 +165,6 @@ function loadPreset.update(_dt)
 	end
 
 	local virtualJoystick = require("input").virtualJoystick
-	local moved = false
 
 	-- Handle D-pad navigation
 	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
@@ -173,7 +172,6 @@ function loadPreset.update(_dt)
 
 		-- Update selected index using list's navigation helper
 		selectedIndex = list.navigate(presetItems, direction)
-		moved = true
 
 		-- Adjust scroll position to ensure selected item is visible
 		scrollPosition = list.adjustScrollPosition({
