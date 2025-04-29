@@ -122,6 +122,22 @@ function love.load()
 	state.fading = false -- Fade effect will be handled after splash screen completes
 end
 
+function love.resize(w, h)
+	-- Update screen dimensions in state
+	state.screenWidth, state.screenHeight = w, h
+
+	-- Recalculate and reload fonts
+	setupFonts()
+
+	-- Reload the current screen to update layout
+	if screens then
+		local currentScreen = screens.getCurrentScreen()
+		if currentScreen then
+			screens.switchTo(currentScreen)
+		end
+	end
+end
+
 function love.update(dt)
 	updateInputTimer(dt)
 	input.update(dt)
