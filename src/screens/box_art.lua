@@ -116,79 +116,81 @@ function box_art.draw()
 		end,
 	})
 
-	-- Draw preview if available
-	if state.boxArtPreview then
-		local previewY = result.endY + button.BUTTON.SPACING
-		local previewWidth = state.screenWidth - button.BUTTON.EDGE_MARGIN * 2
+	-- Calculate where the list ends
+	local totalListHeight = #BUTTONS * (button.calculateHeight() + button.BUTTON.SPACING)
+	local endY = startY + totalListHeight
 
-		-- Get current value for preview
-		local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
+	-- Draw preview rectangles
+	local previewY = endY + button.BUTTON.SPACING
+	local previewWidth = state.screenWidth - button.BUTTON.EDGE_MARGIN * 2
 
-		-- Draw preview rectangles
-		local previewHeight = 100
-		local previewYOffset = 40
-		local previewY = previewY + previewYOffset
+	-- Get current value for preview
+	local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
 
-		-- Draw labels for the preview
-		love.graphics.setColor(colors.ui.subtext)
-		love.graphics.setFont(state.fonts.body)
+	-- Draw preview rectangles
+	local previewHeight = 100
+	local previewYOffset = 40
+	local previewY = previewY + previewYOffset
+
+	-- Draw labels for the preview
+	love.graphics.setColor(colors.ui.subtext)
+	love.graphics.setFont(state.fonts.body)
+	love.graphics.printf(
+		"Preview",
+		button.BUTTON.EDGE_MARGIN,
+		previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+		previewWidth,
+		"left"
+	)
+
+	-- Determine box art width from current selection
+	local boxArtWidth = 0 -- Default width for "Disabled"
+	if type(currentValue) == "number" then
+		boxArtWidth = currentValue
+	end
+
+	-- Calculate left rectangle width
+	local leftRectWidth = previewWidth - boxArtWidth
+
+	-- Draw left rectangle (green)
+	love.graphics.setColor(colors.ui.green)
+	love.graphics.rectangle("fill", button.BUTTON.EDGE_MARGIN, previewY, leftRectWidth, previewHeight)
+
+	-- Draw right rectangle (red)
+	love.graphics.setColor(colors.ui.red)
+	love.graphics.rectangle("fill", leftRectWidth + button.BUTTON.EDGE_MARGIN, previewY, boxArtWidth, previewHeight)
+
+	if boxArtWidth > 0 then
+		-- Draw labels for content and box art areas with background color
+		love.graphics.setColor(colors.ui.background)
 		love.graphics.printf(
-			"Preview",
+			"Text width",
+			button.BUTTON.EDGE_MARGIN,
+			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+			leftRectWidth,
+			"center"
+		)
+
+		-- Only show box art label if there's enough space
+		if boxArtWidth >= 70 then
+			love.graphics.printf(
+				"Box art width",
+				leftRectWidth + button.BUTTON.EDGE_MARGIN,
+				previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+				boxArtWidth,
+				"center"
+			)
+		end
+	else
+		-- If disabled, show "Box art disabled" in the center with background color
+		love.graphics.setColor(colors.ui.background)
+		love.graphics.printf(
+			"Text width (box art disabled)",
 			button.BUTTON.EDGE_MARGIN,
 			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
 			previewWidth,
-			"left"
+			"center"
 		)
-
-		-- Determine box art width from current selection
-		local boxArtWidth = 0 -- Default width for "Disabled"
-		if type(currentValue) == "number" then
-			boxArtWidth = currentValue
-		end
-
-		-- Calculate left rectangle width
-		local leftRectWidth = previewWidth - boxArtWidth
-
-		-- Draw left rectangle (green)
-		love.graphics.setColor(colors.ui.green)
-		love.graphics.rectangle("fill", button.BUTTON.EDGE_MARGIN, previewY, leftRectWidth, previewHeight)
-
-		-- Draw right rectangle (red)
-		love.graphics.setColor(colors.ui.red)
-		love.graphics.rectangle("fill", leftRectWidth + button.BUTTON.EDGE_MARGIN, previewY, boxArtWidth, previewHeight)
-
-		if boxArtWidth > 0 then
-			-- Draw labels for content and box art areas with background color
-			love.graphics.setColor(colors.ui.background)
-			love.graphics.printf(
-				"Text width",
-				button.BUTTON.EDGE_MARGIN,
-				previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-				leftRectWidth,
-				"center"
-			)
-
-			-- Only show box art label if there's enough space
-			if boxArtWidth >= 70 then
-				love.graphics.printf(
-					"Box art width",
-					leftRectWidth + button.BUTTON.EDGE_MARGIN,
-					previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-					boxArtWidth,
-					"center"
-				)
-			end
-		else
-			-- If disabled, show "Box art disabled" in the center with background color
-			love.graphics.setColor(colors.ui.background)
-			love.graphics.printf(
-				"Text width (box art disabled)",
-				button.BUTTON.EDGE_MARGIN,
-				previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-				previewWidth,
-				"center"
-			)
-		end
 	end
 
 	-- Draw controls
