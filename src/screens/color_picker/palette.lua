@@ -76,17 +76,25 @@ local function calculateGridDimensions()
 
 	local contentArea = constants.calculateContentArea()
 
+	-- Calculate available space accounting for padding
 	local availableHeight = contentArea.height - (PADDING * 2)
 	local availableWidth = contentArea.width - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
+	-- Calculate square size based on available width and number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
+
+	-- Calculate number of visible rows that can fit in the available height
 	local visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
 
+	-- Calculate total grid dimensions
 	local totalWidth = (gridSize.cols * squareSize) + (gridSize.cols - 1) * SQUARE_SPACING
 	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * SQUARE_SPACING
 	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
 
+	-- Center the grid horizontally in the content area
 	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
+
+	-- Position grid vertically starting from the content area's top edge
 	local offsetY = math.floor(contentArea.y + PADDING)
 
 	return {
@@ -160,7 +168,12 @@ function palette.draw()
 
 	local currentState = getCurrentPaletteState()
 	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
-	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows - 1)
+
+	-- Calculate the last visible row based on the visible grid height
+	local contentArea = constants.calculateContentArea()
+	local visibleBottom = contentArea.y + contentArea.height
+	local lastVisibleRow = firstVisibleRow + paletteState.visibleRows
+	lastVisibleRow = math.min(lastVisibleRow, paletteState.gridSize.rows - 1)
 
 	-- Draw color grid (only visible rows)
 	for row = firstVisibleRow, lastVisibleRow do
@@ -170,38 +183,42 @@ function palette.draw()
 				local x = paletteState.offsetX + col * (paletteState.squareSize + SQUARE_SPACING)
 				local rowIndex = row - firstVisibleRow
 				local y = paletteState.offsetY + rowIndex * (paletteState.squareSize + SQUARE_SPACING)
-				local scale = 1
-				local offset = 0
-				if row == currentState.selectedRow and col == currentState.selectedCol then
-					scale = paletteState.currentScale
-					offset = (paletteState.squareSize * (scale - 1)) / 2
-				end
-				local colorTable = paletteState.paletteColors[colorIndex]
-				love.graphics.setColor(colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
-				love.graphics.rectangle(
-					"fill",
-					x - offset,
-					y - offset,
-					paletteState.squareSize * scale,
-					paletteState.squareSize * scale,
-					BORDER.CORNER_RADIUS
-				)
 
-				-- Draw border
-				love.graphics.setColor(colors.ui.foreground)
-				if row == currentState.selectedRow and col == currentState.selectedCol then
-					love.graphics.setLineWidth(constants.OUTLINE.SELECTED_WIDTH)
-				else
-					love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
+				-- Check if this square would be visible (not overlapping with controls)
+				if y + paletteState.squareSize <= visibleBottom then
+					local scale = 1
+					local offset = 0
+					if row == currentState.selectedRow and col == currentState.selectedCol then
+						scale = paletteState.currentScale
+						offset = (paletteState.squareSize * (scale - 1)) / 2
+					end
+					local colorTable = paletteState.paletteColors[colorIndex]
+					love.graphics.setColor(colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
+					love.graphics.rectangle(
+						"fill",
+						x - offset,
+						y - offset,
+						paletteState.squareSize * scale,
+						paletteState.squareSize * scale,
+						BORDER.CORNER_RADIUS
+					)
+
+					-- Draw border
+					love.graphics.setColor(colors.ui.foreground)
+					if row == currentState.selectedRow and col == currentState.selectedCol then
+						love.graphics.setLineWidth(constants.OUTLINE.SELECTED_WIDTH)
+					else
+						love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
+					end
+					love.graphics.rectangle(
+						"line",
+						x - offset,
+						y - offset,
+						paletteState.squareSize * scale,
+						paletteState.squareSize * scale,
+						BORDER.CORNER_RADIUS
+					)
 				end
-				love.graphics.rectangle(
-					"line",
-					x - offset,
-					y - offset,
-					paletteState.squareSize * scale,
-					paletteState.squareSize * scale,
-					BORDER.CORNER_RADIUS
-				)
 			end
 		end
 	end
