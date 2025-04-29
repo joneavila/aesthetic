@@ -76,6 +76,10 @@ end
 function menu.draw()
 	local startY = header.getHeight()
 
+	-- Recalculate visible button count based on current screen height
+	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.SPACING
+	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING)))
+
 	background.draw()
 	header.draw("Main menu")
 
