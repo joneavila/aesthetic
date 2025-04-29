@@ -15,6 +15,8 @@ local HUE_SLIDER_WIDTH = 32
 local ELEMENT_SPACING = 10
 local PREVIEW_SQUARE_SPACING = 30
 local PREVIEW_HEIGHT = nil -- Will be calculated in load()
+local OPACITY_UNFOCUSED = 0.2
+
 local CURSOR = {
 	CIRCLE_RADIUS = 12,
 	CIRCLE_LINE_WIDTH = 4,
@@ -208,7 +210,7 @@ function hsv.draw()
 	)
 
 	-- Draw "Current" label
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.7)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(state.fonts.caption)
 	love.graphics.printf(
 		"Old",
@@ -246,7 +248,7 @@ function hsv.draw()
 	)
 
 	-- Draw "New" label with adjusted position
-	love.graphics.setColor(colors.white, 0.7)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf(
 		"New",
 		pickerState.previewX,
@@ -263,7 +265,7 @@ function hsv.draw()
 		hueX = hueX + wiggleOffset
 	end
 
-	love.graphics.setColor(colors.white)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.draw(
 		pickerState.cache.hueSlider,
 		hueX,
@@ -274,7 +276,12 @@ function hsv.draw()
 	)
 
 	-- Draw Hue slider outline
-	love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], currentState.focusSquare and 0.2 or 1)
+	love.graphics.setColor(
+		colors.ui.foreground[1],
+		colors.ui.foreground[2],
+		colors.ui.foreground[3],
+		currentState.focusSquare and OPACITY_UNFOCUSED or 1
+	)
 	love.graphics.setLineWidth(
 		currentState.focusSquare and constants.OUTLINE.NORMAL_WIDTH or constants.OUTLINE.SELECTED_WIDTH
 	)
@@ -292,9 +299,14 @@ function hsv.draw()
 
 	-- Draw hue selection triangles
 	if not currentState.focusSquare then
-		love.graphics.setColor(colors.white)
+		love.graphics.setColor(colors.ui.foreground)
 	else
-		love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], 0.2)
+		love.graphics.setColor(
+			colors.ui.foreground[1],
+			colors.ui.foreground[2],
+			colors.ui.foreground[3],
+			OPACITY_UNFOCUSED
+		)
 	end
 
 	-- Left triangle
@@ -325,7 +337,7 @@ function hsv.draw()
 		svX = svX + wiggleOffset
 	end
 
-	love.graphics.setColor(colors.white)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.draw(
 		pickerState.cache.svSquare,
 		svX,
@@ -336,7 +348,7 @@ function hsv.draw()
 	)
 
 	-- Draw SV square outline
-	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or 0.2)
+	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
 	love.graphics.setLineWidth(
 		currentState.focusSquare and constants.OUTLINE.SELECTED_WIDTH or constants.OUTLINE.NORMAL_WIDTH
 	)
@@ -354,9 +366,14 @@ function hsv.draw()
 
 	-- Draw SV cursor
 	if currentState.focusSquare then
-		love.graphics.setColor(colors.white)
+		love.graphics.setColor(colors.ui.foreground)
 	else
-		love.graphics.setColor(colors.white[1], colors.white[2], colors.white[3], 0.2)
+		love.graphics.setColor(
+			colors.ui.foreground[1],
+			colors.ui.foreground[2],
+			colors.ui.foreground[3],
+			OPACITY_UNFOCUSED
+		)
 	end
 	love.graphics.setLineWidth(CURSOR.CIRCLE_LINE_WIDTH)
 	love.graphics.circle("line", currentState.cursor.svX, currentState.cursor.svY, CURSOR.CIRCLE_RADIUS)
