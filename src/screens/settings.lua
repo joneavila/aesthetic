@@ -53,8 +53,8 @@ function settings.draw()
 	-- Draw header with title
 	header.draw("Settings")
 
-	-- Calculate starting Y position for the list
-	local startY = header.getHeight() + button.BUTTON.PADDING
+	-- Calculate start Y position for the list
+	local startY = header.getHeight() + button.BUTTON.HEADER_MARGIN
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
@@ -63,8 +63,8 @@ function settings.draw()
 	local result = list.draw({
 		items = BUTTONS,
 		startY = startY,
-		itemHeight = button.BUTTON.HEIGHT,
-		itemPadding = button.BUTTON.PADDING,
+		itemHeight = button.calculateHeight(),
+		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,

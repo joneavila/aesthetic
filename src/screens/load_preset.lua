@@ -30,10 +30,10 @@ local function calculateVisibleItemCount()
 	local availableHeight = state.screenHeight - header.getHeight() - controls.HEIGHT
 
 	-- Account for padding at the top but not bottom since we want to use all available space
-	availableHeight = availableHeight - button.BUTTON.PADDING
+	availableHeight = availableHeight - button.BUTTON.HEADER_MARGIN
 
-	-- Calculate how many items can fit
-	visibleItemCount = math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING))
+	-- Calculate how many items can fit in the available height
+	visibleItemCount = math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING))
 end
 
 -- Helper function to load presets and verify they are valid
@@ -120,7 +120,11 @@ function loadPreset.draw()
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(state.fonts.body)
-		love.graphics.print("No presets found", button.BUTTON.PADDING, header.getHeight() + button.BUTTON.PADDING)
+		love.graphics.print(
+			"No presets found",
+			button.BUTTON.EDGE_MARGIN,
+			header.getHeight() + button.BUTTON.HEADER_MARGIN
+		)
 
 		-- Draw controls
 		controls.draw({
@@ -133,11 +137,11 @@ function loadPreset.draw()
 	calculateVisibleItemCount()
 
 	-- Draw the list of presets using the list component
-	list.draw({
+	local result = list.draw({
 		items = presetItems,
-		startY = header.getHeight() + button.BUTTON.PADDING,
-		itemHeight = button.BUTTON.HEIGHT,
-		itemPadding = button.BUTTON.PADDING,
+		startY = header.getHeight() + button.BUTTON.HEADER_MARGIN,
+		itemHeight = button.calculateHeight(),
+		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,

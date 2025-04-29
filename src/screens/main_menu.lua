@@ -67,8 +67,9 @@ function menu.load()
 		end
 	end
 
-	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.PADDING
-	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)))
+	-- Calculate available height for buttons
+	local availableHeight = state.screenHeight - menu.BOTTOM_MARGIN - button.BUTTON.SPACING
+	visibleButtonCount = math.max(3, math.floor(availableHeight / (button.calculateHeight() + button.BUTTON.SPACING)))
 end
 
 function menu.draw()
@@ -110,8 +111,8 @@ function menu.draw()
 	list.draw({
 		items = regularButtons,
 		startY = startY,
-		itemHeight = button.BUTTON.HEIGHT,
-		itemPadding = button.BUTTON.PADDING,
+		itemHeight = button.calculateHeight(),
+		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		visibleCount = visibleButtonCount,
 		screenWidth = state.screenWidth,

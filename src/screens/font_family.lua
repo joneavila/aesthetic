@@ -99,8 +99,8 @@ function font.draw()
 	-- Make sure we restore the default UI font for the button list
 	love.graphics.setFont(state.fonts.body)
 
-	-- Calculate available space for list
-	local startY = header.getHeight() + button.BUTTON.PADDING
+	-- Calculate start Y position for the list
+	local startY = header.getHeight() + button.BUTTON.HEADER_MARGIN
 
 	-- Find the currently hovered font
 	local hoveredFontName = state.selectedFont
@@ -114,35 +114,25 @@ function font.draw()
 	-- Get the font for preview - with special handling to ensure consistent sizing
 	local previewFont = getPreviewFont(hoveredFontName)
 
-	-- Set the font for preview text
-	love.graphics.setFont(previewFont)
-
-	-- Calculate preview text height for background
-	local _, textLines =
-		love.graphics.getFont():getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.PADDING * 2))
-	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.PADDING * 2
+	-- Get text wrapping for preview
+	local textLines = love.graphics
+		.getFont()
+		:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (button.BUTTON.CONTENT_MARGIN * 2))
+	local previewHeight = #textLines * love.graphics.getFont():getHeight() + button.BUTTON.CONTENT_MARGIN * 2
 
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
-	-- Calculate available space for the list
-	local availableHeight = previewY - startY
-
-	-- Reset to UI font before drawing the list
-	love.graphics.setFont(state.fonts.body)
-
-	-- Draw the font list
+	-- Draw the list using our list component
 	local result = list.draw({
 		items = fontItems,
 		startY = startY,
-		itemHeight = button.BUTTON.HEIGHT,
-		itemPadding = button.BUTTON.PADDING,
+		itemHeight = button.calculateHeight(),
+		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,
-		visibleCount = math.floor(availableHeight / (button.BUTTON.HEIGHT + button.BUTTON.PADDING)),
 		drawItemFunc = function(item, _index, y)
-			-- Font family items are just simple buttons
-			button.draw(item.text, 0, y, item.selected, state.screenWidth)
+			button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, previewFont)
 		end,
 	})
 
@@ -152,28 +142,37 @@ function font.draw()
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle(
 		"fill",
-		button.BUTTON.PADDING,
+		button.BUTTON.EDGE_MARGIN,
 		previewY,
-		state.screenWidth - (button.BUTTON.PADDING * 2),
+		state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2),
 		previewHeight,
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
 
-	-- Set preview font for drawing the preview text
-	love.graphics.setFont(getPreviewFont(hoveredFontName))
+	-- Draw preview text if a font is selected
+	if hoveredFontName then
+		-- Draw preview text
+		love.graphics.setColor(colors.ui.subtext)
+		love.graphics.setFont(state.fonts.body)
+		love.graphics.printf(
+			"Preview",
+			button.BUTTON.EDGE_MARGIN,
+			previewY,
+			state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2),
+			"left"
+		)
 
-	-- Draw preview text
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.printf(
-		FONT_PREVIEW.PREVIEW_TEXT,
-		button.BUTTON.PADDING * 2,
-		previewY + button.BUTTON.PADDING,
-		state.screenWidth - (button.BUTTON.PADDING * 4),
-		"left"
-	)
-
-	-- Restore UI font
-	love.graphics.setFont(state.fonts.body)
+		-- Draw the actual preview with the selected font
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.setFont(previewFont)
+		love.graphics.printf(
+			FONT_PREVIEW.PREVIEW_TEXT,
+			button.BUTTON.CONTENT_MARGIN,
+			previewY + button.BUTTON.CONTENT_MARGIN,
+			state.screenWidth - (button.BUTTON.CONTENT_MARGIN * 4),
+			"left"
+		)
+	end
 
 	-- Draw controls
 	controls.draw({

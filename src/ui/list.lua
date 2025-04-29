@@ -13,8 +13,8 @@ local list = {}
 function list.draw(params)
 	local items = params.items or {}
 	local startY = params.startY or 0
-	local itemHeight = params.itemHeight or button.BUTTON.HEIGHT
-	local itemPadding = params.itemPadding or button.BUTTON.PADDING
+	local itemHeight = params.itemHeight or button.calculateHeight()
+	local itemPadding = params.itemPadding or button.BUTTON.SPACING
 	local scrollPosition = params.scrollPosition or 0
 	local screenWidth = params.screenWidth or love.graphics.getWidth()
 	local screenHeight = params.screenHeight or love.graphics.getHeight()

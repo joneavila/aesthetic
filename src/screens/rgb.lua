@@ -119,14 +119,14 @@ function rgb.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list
-	local startY = header.getHeight() + button.BUTTON.PADDING
+	local startY = header.getHeight() + button.BUTTON.HEADER_MARGIN
 
 	-- Draw the list using our list component
 	local result = list.draw({
 		items = BUTTONS,
 		startY = startY,
-		itemHeight = button.BUTTON.HEIGHT,
-		itemPadding = button.BUTTON.PADDING,
+		itemHeight = button.calculateHeight(),
+		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,
