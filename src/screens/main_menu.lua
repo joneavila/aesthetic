@@ -305,7 +305,10 @@ local function handleModalNavigation(virtualJoystick, dt)
 			for i, btn in ipairs(modalButtons) do
 				if btn.selected then
 					if i == 1 then -- Apply theme later button
-						os.exit(0)
+						modal.hideModal()
+						modalState = "none"
+						resetModalInputState()
+						state.forceInputDelay(0.3) -- Add delay when closing the modal
 					else -- Apply theme now button
 						-- Set the theme path for installation
 						waitingThemePath = createdThemePath
