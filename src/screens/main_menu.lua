@@ -13,6 +13,7 @@ local themeCreator = require("theme_creator")
 local fonts = require("ui.fonts")
 local list = require("ui.list")
 local scrollView = require("ui.scroll_view")
+local header = require("ui.header")
 
 -- Module table to export public functions
 local menu = {}
@@ -73,9 +74,10 @@ function menu.load()
 end
 
 function menu.draw()
-	local startY = button.BUTTON.PADDING
+	local startY = header.getHeight() + button.BUTTON.PADDING
 
 	background.draw()
+	header.draw("Main menu")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
