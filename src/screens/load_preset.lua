@@ -108,7 +108,7 @@ function loadPreset.draw()
 		love.graphics.print(
 			"No presets found",
 			button.BUTTON.EDGE_MARGIN,
-			header.getHeight() + button.BUTTON.HEADER_MARGIN
+			header.getHeight() + button.BUTTON.TOP_MARGIN
 		)
 
 		-- Draw controls
@@ -121,7 +121,7 @@ function loadPreset.draw()
 	-- Draw the list of presets using the list component
 	local result = list.draw({
 		items = presetItems,
-		startY = header.getHeight() + button.BUTTON.HEADER_MARGIN,
+		startY = header.getHeight() + button.BUTTON.TOP_MARGIN,
 		itemHeight = button.calculateHeight(),
 		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,

@@ -129,7 +129,7 @@ function font.draw()
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
 	-- Calculate start Y position for the list and available height
-	local startY = header.getHeight() + button.BUTTON.HEADER_MARGIN
+	local startY = header.getHeight() + button.BUTTON.TOP_MARGIN
 	local availableHeight = previewY - startY
 
 	-- Find the currently hovered font

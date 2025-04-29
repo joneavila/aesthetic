@@ -7,8 +7,8 @@ local colorUtils = require("utils.color")
 -- Button constants
 local BUTTON = {
 	VERTICAL_PADDING = 12, -- Padding above and below text
-	SPACING = 14, -- Used for vertical spacing between list items
-	HEADER_MARGIN = 10, -- Space between header and content below it
+	SPACING = 12, -- Used for vertical spacing between list items
+	TOP_MARGIN = 12, -- Space between header and content below it
 	EDGE_MARGIN = 16, -- Horizontal padding from screen edges
 	HORIZONTAL_PADDING = 14, -- Internal horizontal padding for text and content
 	CORNER_RADIUS = 8,
