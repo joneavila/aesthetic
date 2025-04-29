@@ -69,6 +69,9 @@ local function setupFonts()
 	-- Load all fonts
 	fonts.loadFonts()
 
+	-- Ensure font name mapping is initialized
+	state.initFontNameMapping()
+
 	-- Set the default font
 	fonts.setDefault()
 end

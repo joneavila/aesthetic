@@ -138,7 +138,12 @@ function imageGenerator.createIconImage(options)
 		-- Create a larger version of the font
 		local imageFontSize = paths.getImageFontSize(height)
 		local fontSize = math.floor(imageFontSize * 1.3)
-		local fontDef = fonts.definitions[fonts.nameToKey[state.selectedFont]]
+		local fontKey = fonts.nameToKey[state.selectedFont]
+		if not fontKey then
+			errorHandler.setError("Font mapping not found or initialized")
+			return false
+		end
+		local fontDef = fonts.definitions[fontKey]
 		local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 
 		-- Set the font and color
