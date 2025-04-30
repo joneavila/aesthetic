@@ -107,7 +107,7 @@ function system.createArchive(sourceDir, outputPath)
 	end
 
 	-- Use zip command line tool with error capture
-	local cmd = string.format('cd "%s" && zip -r "%s" *', sourceDir, finalPath)
+	local cmd = string.format('cd "%s" && zip -q -r "%s" *', sourceDir, finalPath)
 	local handle = io.popen(cmd .. " 2>&1")
 	if not handle then
 		errorHandler.setError("Failed to execute zip command")

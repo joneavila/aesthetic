@@ -15,6 +15,8 @@ local colors = require("colors")
 local state = require("state")
 local fonts = require("ui.fonts")
 local settings = require("utils.settings")
+local logger = require("utils.logger")
+local errorHandler = require("error_handler")
 -- Remove the circular dependency by loading the screens module after state is initialized
 
 -- Input delay handling
@@ -107,7 +109,13 @@ function love.load()
 	loadSettings()
 
 	local rgbUtils = require("utils.rgb")
-	rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+	logger.debug("Backing up current RGB config")
+	local backupSuccess = rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+	if not backupSuccess then
+		logger.error("Failed to backup current RGB config")
+		errorHandler.setError("Failed to backup current RGB config")
+	end
+	logger.debug("Applying RGB settings from state")
 	rgbUtils.updateConfig() -- Apply RGB settings from state
 
 	-- Now that state is initialized, load the screens module
@@ -173,12 +181,15 @@ end
 
 -- Handle application exit
 function love.quit()
+	logger.debug("Quitting application")
 	-- Save current settings before exiting
+	logger.debug("Saving settings")
 	saveSettings()
 
 	-- Restore original RGB configuration if no theme was applied
 	local rgbUtils = require("utils.rgb")
 	if not state.themeApplied then
+		logger.debug("Theme was applied, restoring RGB config")
 		rgbUtils.restoreConfig()
 	end
 end

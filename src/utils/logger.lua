@@ -14,7 +14,7 @@ local LOG_LEVELS = {
 
 -- Get calling module name from stack traceback
 local function getCallerModule()
-	local info = debug.getinfo(3, "S")
+	local info = debug.getinfo(4, "S")
 	local unknownModuleName = "unknown-module"
 	if info and info.source then
 		-- Remove leading '@' if present
@@ -36,25 +36,31 @@ local function writeLog(level, message)
 	local moduleName = getCallerModule()
 	local logLine = string.format("[%s] [%s] [%s] %s", getTimestamp(), level, moduleName, message)
 
-	-- Get log directory from environment variable
+	-- Get session log file from environment variable
+	local sessionLogFile = os.getenv("SESSION_LOG_FILE")
 	local logDir = os.getenv("LOG_DIR")
-	if not logDir or logDir == "" then
-		-- Fallback if LOG_DIR is not set
-		print("WARNING: LOG_DIR environment variable not set. Logging to stdout only.")
-		print(logLine)
-		return
+
+	if not sessionLogFile or sessionLogFile == "" then
+		-- Fallback to LOG_DIR if SESSION_LOG_FILE is not set
+		if not logDir or logDir == "" then
+			-- Last fallback if neither variable is set
+			print("WARNING: SESSION_LOG_FILE and LOG_DIR environment variables not set. Logging to stdout only.")
+			print(logLine)
+			return
+		else
+			-- Create session ID if not already set
+			local sessionId = os.getenv("SESSION_ID") or os.date("%Y%m%d_%H%M%S")
+			sessionLogFile = logDir .. "/" .. sessionId .. ".log"
+		end
 	end
 
-	-- Create log filename using current date
-	local logFile = logDir .. "/" .. os.date("%Y%m%d") .. ".log"
-
 	-- Append to log file
-	local file = io.open(logFile, "a")
+	local file = io.open(sessionLogFile, "a")
 	if file then
 		file:write(logLine .. "\n")
 		file:close()
 	else
-		print("ERROR: Could not open log file: " .. logFile)
+		print("ERROR: Could not open log file: " .. sessionLogFile)
 		print(logLine)
 	end
 end

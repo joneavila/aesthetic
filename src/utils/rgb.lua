@@ -4,6 +4,7 @@ local commands = require("utils.commands")
 local system = require("utils.system")
 local paths = require("paths")
 local errorHandler = require("error_handler")
+local logger = require("utils.logger")
 
 -- Module table to export public functions
 local rgb = {}
@@ -36,11 +37,13 @@ end
 -- Function to execute the RGB configuration file or its contents
 function rgb.executeConfig(rgbConfPath)
 	if not rgbConfPath then
+		logger.error("RGB configuration path is nil")
 		return false
 	end
 
 	local file = io.open(rgbConfPath, "r")
 	if not file then
+		logger.error("Failed to open RGB configuration file: " .. rgbConfPath)
 		return false
 	end
 
@@ -48,6 +51,7 @@ function rgb.executeConfig(rgbConfPath)
 	file:close()
 
 	if not command or command == "" then
+		logger.error("RGB configuration file is empty: " .. rgbConfPath)
 		return false
 	end
 
@@ -59,16 +63,13 @@ end
 
 -- Function to update RGB configuration and apply it immediately
 function rgb.updateConfig()
-	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
-	local rgbConfPath = rgbDir .. "/rgbconf.sh"
-
-	system.ensurePath(rgbDir)
-
 	-- Generate the command
 	local command = rgb.buildCommand()
 
+	logger.debug("Generated command: " .. command)
+
 	-- Create the configuration file for persistence
-	if rgb.writeCommandToFile(command, rgbConfPath) then
+	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH) then
 		-- Execute the command directly
 		local result = commands.executeCommand(command)
 		return result == 0
@@ -78,12 +79,12 @@ function rgb.updateConfig()
 end
 
 -- Function to build the RGB command string based on current settings
-function rgb.buildCommand()
+function rgb.buildCommand(forceOff)
 	-- Base command for led_control.sh
 	local command = "/opt/muos/device/current/script/led_control.sh"
 
-	-- Special case for "Off" mode
-	if state.rgbMode == "Off" then
+	-- Special case for "Off" mode or when forceOff is true
+	if state.rgbMode == "Off" or forceOff then
 		-- Format: $0 1 0 0 0 0 0 0 0
 		command = command .. " 1 0 0 0 0 0 0 0"
 	else
@@ -129,10 +130,13 @@ end
 -- Function to write command to config file
 function rgb.writeCommandToFile(command, rgbConfPath)
 	-- Write directly to the target file using command
+	-- TODO: You may want to ensureDir here
+	system.writeFile(rgbConfPath, command)
+	logger.debug("Writing command to file: " .. rgbConfPath)
 	commands.executeCommand(string.format('echo "%s" > "%s"', command, rgbConfPath))
 
 	-- Make the file executable
-	commands.executeCommand(string.format('chmod +x "%s"', rgbConfPath))
+	-- commands.executeCommand(string.format('chmod +x "%s"', rgbConfPath))
 
 	return true
 end
@@ -151,11 +155,14 @@ end
 -- Function to parse RGB configuration from a file
 function rgb.parseConfig(filePath)
 	if not filePath then
+		logger.error("File path is nil")
 		return nil
 	end
 
 	local file = io.open(filePath, "r")
 	if not file then
+		logger.error("Failed to open RGB configuration file: " .. filePath)
+		errorHandler.setError("Failed to open RGB configuration file: " .. filePath)
 		return nil
 	end
 
@@ -216,6 +223,8 @@ end
 function rgb.backupConfig()
 	-- Check if active config exists
 	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
+		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
+		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
 		return false
 	end
 
@@ -232,6 +241,7 @@ end
 function rgb.restoreConfig()
 	-- Only restore if we haven't applied a theme
 	if state.themeApplied then
+		logger.warning("Someone called rgb.restoreConfig() but a theme is applied")
 		return false
 	end
 
@@ -243,54 +253,47 @@ function rgb.restoreConfig()
 		end
 
 		-- Execute the restored config
+		logger.debug("Backup found, executing restored config")
 		return rgb.executeConfig(paths.ACTIVE_RGB_CONF_PATH)
 	else
 		-- No backup exists, which means there was no RGB lighting
 		-- when the application started. Turn off RGB lighting.
-		local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
-		local rgbConfPath = rgbDir .. "/rgbconf.sh"
-
-		-- Ensure directory exists
-		system.ensurePath(rgbDir)
-
-		-- Create an "off" command for RGB
-		local command = "/opt/muos/device/current/script/led_control.sh 1 0 0 0 0 0 0 0"
+		-- Create an "off" command for RGB using buildCommand with forceOff parameter
+		local command = rgb.buildCommand(true)
 
 		-- Write the command to file
-		rgb.writeCommandToFile(command, rgbConfPath)
+		logger.debug("No backup found, writing 'off' command to file")
+		rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH)
 
 		-- Execute the command directly to turn off lighting
+		logger.debug("Executing 'off' command")
 		return commands.executeCommand(command) == 0
 	end
 end
 
 -- Function to backup the current RGB configuration if it exists
 function rgb.backupCurrentConfig()
-	if system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
-		return rgb.backupConfig()
+	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
+		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
+		return false
 	end
-	return true
+	return rgb.backupConfig()
 end
 
 -- Function to install RGB config from theme to active config
 function rgb.installFromTheme()
-	-- Get the active RGB directory and configuration path
-	local rgbDir = system.getEnvironmentVariable("RGB_DIR") or "/run/muos/storage/theme/active/rgb"
-	local rgbConfPath = rgbDir .. "/rgbconf.sh"
-
-	system.ensurePath(rgbDir)
-
 	-- Build command string based on current RGB settings
 	local command = rgb.buildCommand()
 
 	-- Write command to config file for persistence
-	local writeSuccess = rgb.writeCommandToFile(command, rgbConfPath)
+	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH)
 	if not writeSuccess then
 		errorHandler.setError("Failed to write RGB command to config file")
 		return false
 	end
 
 	-- Execute the command directly
+	logger.debug("[rgb.installFromTheme] Executing command: " .. command)
 	commands.executeCommand(command)
 
 	return true

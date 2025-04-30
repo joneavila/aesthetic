@@ -14,6 +14,8 @@ local list = require("ui.list")
 local scrollView = require("ui.scroll_view")
 local header = require("ui.header")
 
+local logger = require("utils.logger")
+
 -- Module table to export public functions
 local menu = {}
 
@@ -242,6 +244,7 @@ end
 -- Handle theme installation process
 local function handleThemeInstallation()
 	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
+	logger.debug("Waiting theme name: " .. waitingThemeName)
 	local success = themeCreator.installTheme(waitingThemeName)
 
 	waitingThemePath = nil
@@ -337,7 +340,7 @@ local function handleModalNavigation(virtualJoystick, dt)
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
 				if btn.selected and btn.text == "Exit" then
-					os.exit(0)
+					love.event.quit()
 				end
 			end
 			modal.hideModal()
@@ -414,6 +417,7 @@ function menu.update(dt)
 		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
 			waitingState = "none"
 			handleThemeInstallation()
+			logger.debug("Main menu handled theme installation")
 		end
 		return
 	end
@@ -526,8 +530,11 @@ function menu.update(dt)
 
 	-- Handle B button (Exit)
 	if virtualJoystick:isGamepadDown("b") then
+		logger.debug("Main menu handling B button")
 		-- Restore original RGB configuration if no theme was applied
-		rgbUtils.restoreConfig()
+		if not state.themeApplied then
+			rgbUtils.restoreConfig()
+		end
 		love.event.quit()
 		return
 	end

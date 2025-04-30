@@ -166,11 +166,6 @@ local function copySelectedFont()
 	return true
 end
 
--- Function to create `rgb/rgbconf.sh` file containing the RGB lighting configuration
-local function createRgbConfFile()
-	return rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH)
-end
-
 -- Function to copy sound files to the theme
 local function copySoundFiles()
 	-- Get list of sound files
@@ -193,6 +188,7 @@ end
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
 		-- Clean up and prepare working directory
+		logger.debug("Cleaning working directory")
 		system.removeDir(paths.WORKING_THEME_DIR)
 		system.ensurePath(paths.WORKING_THEME_DIR)
 
@@ -318,7 +314,7 @@ function themeCreator.createTheme()
 
 		-- Create theme's RGB configuration file
 		logger.debug("Creating theme's RGB configuration file")
-		if not createRgbConfFile() then
+		if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH) then
 			return false
 		end
 
@@ -358,13 +354,17 @@ end
 
 -- Function to install the theme to muOS active theme directory
 function themeCreator.installTheme(themeName)
+	logger.debug("Installing theme: " .. themeName)
 	local status, err = xpcall(function()
 		local cmd = string.format('/opt/muos/script/package/theme.sh install "%s"', themeName)
+		logger.debug("Executing install command: " .. cmd)
 		local result = commands.executeCommand(cmd)
+		logger.debug("Install theme result: " .. tostring(result))
 		return result == 0
 	end, debug.traceback)
 
 	if not status then
+		logger.error("Error during installation: " .. tostring(err))
 		errorHandler.setError("Error during installation: " .. tostring(err))
 		return false
 	end

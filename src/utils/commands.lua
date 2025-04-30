@@ -9,8 +9,14 @@ function commands.executeCommand(command)
 	logger.debug("Executing command: " .. command)
 	local result = os.execute(command)
 	if not result then
+		logger.error("Command failed: " .. command)
 		errorHandler.setError("Failed to execute command: " .. command)
 		return false
+	end
+	if result == 0 then
+		logger.debug("Command executed successfully, result: " .. tostring(result))
+	else
+		logger.error("Command returned error: " .. tostring(result))
 	end
 	return result
 end
