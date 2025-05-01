@@ -16,7 +16,7 @@ local switchScreen = nil
 local MENU_SCREEN = "main_menu"
 
 -- Box art width options will be generated dynamically in load()
-local BOX_ART_WIDTH_OPTIONS = { "Disabled" }
+local BOX_ART_WIDTH_OPTIONS = { 0 }
 
 -- List handling variables
 local scrollPosition = 0
@@ -33,12 +33,21 @@ local BUTTONS = {
 
 -- Initialize box art width in state if it doesn't exist
 if state.boxArtWidth == nil then
-	state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1] -- Default to first option
+	state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1] -- Default to first option (0)
+end
+
+-- Function to get display text for a box art width value
+local function getDisplayText(width)
+	if width == 0 then
+		return "Disabled"
+	else
+		return tostring(width)
+	end
 end
 
 -- Generate width options from 220 to half screen width in steps of 20
 local function generateWidthOptions()
-	-- Clear existing numeric options but keep "Disabled"
+	-- Clear existing numeric options but keep 0
 	while #BOX_ART_WIDTH_OPTIONS > 1 do
 		table.remove(BOX_ART_WIDTH_OPTIONS)
 	end
@@ -67,8 +76,7 @@ function box_art.load()
 		end
 	end
 
-	-- If the stored width is not in the options (possibly due to screen size change),
-	-- default to "Disabled"
+	-- If the stored width is not in the options (possibly due to screen size change), default to 0
 	if not found then
 		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
 		BUTTONS[1].currentOption = 1
@@ -101,15 +109,8 @@ function box_art.draw()
 			if item.options then
 				-- For items with multiple options
 				local currentValue = item.options[item.currentOption]
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					currentValue
-				)
+				local displayText = getDisplayText(currentValue)
+				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
 			else
 				button.draw(item.text, 0, y, item.selected, state.screenWidth)
 			end
@@ -144,10 +145,7 @@ function box_art.draw()
 	)
 
 	-- Determine box art width from current selection
-	local boxArtWidth = 0 -- Default width for "Disabled"
-	if type(currentValue) == "number" then
-		boxArtWidth = currentValue
-	end
+	local boxArtWidth = currentValue
 
 	-- Calculate left rectangle width
 	local leftRectWidth = previewWidth - boxArtWidth
@@ -257,8 +255,7 @@ function box_art.onEnter()
 		end
 	end
 
-	-- If the stored width is not in the options (possibly due to screen size change),
-	-- default to "Disabled"
+	-- If the stored width is not in the options (possibly due to screen size change), default to 0
 	if not found then
 		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
 		BUTTONS[1].currentOption = 1

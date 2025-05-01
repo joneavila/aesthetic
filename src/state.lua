@@ -60,7 +60,7 @@ local state = {
 	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
 
 	-- Box art settings
-	boxArtWidth = "Disabled", -- Default box art width
+	boxArtWidth = 0, -- Default box art width (0 means disabled)
 
 	-- RGB lighting related settings
 	rgbMode = "Solid", -- Default RGB lighting mode

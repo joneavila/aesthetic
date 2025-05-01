@@ -108,8 +108,8 @@ function menu.draw()
 		elseif btn.glyphsToggle then
 			btn.valueText = state.glyphs_enabled and "Enabled" or "Disabled"
 		elseif btn.boxArt then
-			-- Box art width should be displayed without indicators
-			btn.value = state.boxArtWidth == "Disabled" and "Disabled" or tostring(state.boxArtWidth)
+			-- Box art width should be displayed with special handling for 0
+			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
 		elseif btn.navAlignToggle then
 			btn.valueText = state.navigationAlignment
 		end
@@ -159,8 +159,8 @@ function menu.draw()
 				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
 			elseif item.boxArt then
 				local boxArtText = state.boxArtWidth
-				if boxArtText == "Disabled" then
-					boxArtText = "0 (Disabled)"
+				if boxArtText == 0 then
+					boxArtText = "Disabled"
 				end
 				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, boxArtText)
 			elseif item.rgbLighting then
