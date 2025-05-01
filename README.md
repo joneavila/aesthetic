@@ -54,6 +54,17 @@ Want to improve **Aesthetic**?
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
 - Check out the [wiki for the development guide](https://github.com/joneavila/aesthetic/wiki).
 
+## 🚀 Local Development (macOS, Linux)
+
+To run Aesthetic on your development machine:
+
+1. Install [LÖVE](https://love2d.org/)
+1. Clone this repository: `git clone https://github.com/joneavila/aesthetic.git`
+1. Make the development launch script executable: `chmod +x dev_launch.sh`
+1. Run the script to launch Aesthetic: `./dev_launch.sh`
+
+The launch script automatically sets up the necessary environment variables that would normally be provided by muOS. Output is logged to console and to a new `.dev/logs` directory.
+
 ## ❤️ Support
 
 You can support this project by starring the repo, sharing it with others, showcasing it in a video, or donating via Ko-fi. Any support is greatly appreciated – thank you for supporting open source software!

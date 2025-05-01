@@ -10,7 +10,7 @@ local virtualJoystick = {}
 -- Useful for testing application while developing
 local keyToButton = {
 	["escape"] = "back",
-	["return"] = "start", -- TODO: Remap keys to better match gamepad
+	["return"] = "start",
 	["lshift"] = "leftshoulder",
 	["rshift"] = "rightshoulder",
 	["up"] = "dpup",

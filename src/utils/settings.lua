@@ -14,17 +14,30 @@ settings.FILENAME = "settings.lua"
 settings.SOURCE_BUILTIN = "built-in"
 settings.SOURCE_USER = "user"
 
--- Function to save the current settings to a file
-function settings.saveToFile()
+-- Function to get the settings file path
+function settings.getFilePath()
 	-- Get the ROOT_DIR from environment variable
 	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
 	if not rootDir then
 		errorHandler.setError("Failed to get ROOT_DIR environment variable")
-		return false
+		return nil
 	end
 
-	-- Prepare the file path
-	local filePath = rootDir .. "/" .. settings.FILENAME
+	-- Check if we're in development mode - if DEV_DIR is set, use it
+	local devDir = system.getEnvironmentVariable("DEV_DIR")
+	local baseDir = devDir or rootDir
+
+	-- Return the appropriate path
+	return baseDir .. "/" .. settings.FILENAME
+end
+
+-- Function to save the current settings to a file
+function settings.saveToFile()
+	-- Get file path
+	local filePath = settings.getFilePath()
+	if not filePath then
+		return false
+	end
 
 	-- Create the file
 	local file, err = io.open(filePath, "w")
@@ -83,15 +96,11 @@ end
 
 -- Function to load settings from file
 function settings.loadFromFile()
-	-- Get the ROOT_DIR from environment variable
-	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
-	if not rootDir then
-		errorHandler.setError("Failed to get ROOT_DIR environment variable")
+	-- Get file path
+	local filePath = settings.getFilePath()
+	if not filePath then
 		return false
 	end
-
-	-- Prepare the file path
-	local filePath = rootDir .. "/" .. settings.FILENAME
 
 	-- Check if the file exists
 	if not system.fileExists(filePath) then

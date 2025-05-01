@@ -9,8 +9,9 @@ local paths = {}
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
 
--- muOS themes directory
-paths.THEME_DIR = "/run/muos/storage/theme"
+-- muOS themes directory - using environment variable
+local muosThemeDir = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
+paths.THEME_DIR = muosThemeDir
 
 -- Working theme directory where files are written before archiving into a theme
 paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
@@ -19,15 +20,21 @@ paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
 -- Active RGB configuration paths
-paths.ACTIVE_RGB_DIR = "/run/muos/storage/theme/active/rgb"
+paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
 paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
 paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
 
 -- Generated theme path where the generated theme is written
 paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".muxthm"
 
+-- Device script directory for LED control
+local deviceScriptDir = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR")
+paths.DEVICE_SCRIPT_DIR = deviceScriptDir
+paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR .. "/led_control.sh"
+
 -- muOS version file path (contains version info)
-paths.MUOS_VERSION_PATH = "/opt/muos/config/version.txt"
+local muosConfigDir = deviceScriptDir:gsub("/device/current/script", "/config")
+paths.MUOS_VERSION_PATH = muosConfigDir .. "/version.txt"
 -- Theme version file path
 -- Assuming the application is updated with every release, this file will contain
 -- the version info read from muOS
@@ -75,7 +82,6 @@ paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"
 paths.THEME_RESOLUTION_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
 paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp"
-
 
 -- `image`
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"

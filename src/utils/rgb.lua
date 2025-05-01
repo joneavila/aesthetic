@@ -81,7 +81,7 @@ end
 -- Function to build the RGB command string based on current settings
 function rgb.buildCommand(forceOff)
 	-- Base command for led_control.sh
-	local command = "/opt/muos/device/current/script/led_control.sh"
+	local command = paths.LED_CONTROL_SCRIPT
 
 	-- Special case for "Off" mode or when forceOff is true
 	if state.rgbMode == "Off" or forceOff then
@@ -173,14 +173,17 @@ function rgb.parseConfig(filePath)
 	local params = {}
 
 	-- Parse mode number (first parameter after the script path)
-	local modeNum = content:match("/led_control%.sh%s+(%d+)")
+	-- Match regardless of the path to led_control.sh
+	local modeNum = content:match("led_control%.sh%s+(%d+)")
 	if not modeNum then
+		logger.error("Failed to parse mode from RGB config: " .. content)
 		return nil
 	end
 
 	-- Parse remaining parameters based on mode
-	local paramStr = content:match("/led_control%.sh%s+%d+%s+(.+)$")
+	local paramStr = content:match("led_control%.sh%s+%d+%s+(.+)$")
 	if not paramStr then
+		logger.error("Failed to parse parameters from RGB config: " .. content)
 		return nil
 	end
 
