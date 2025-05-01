@@ -176,22 +176,20 @@ function imageGenerator.createIconImage(options)
 	local imageData = canvas:newImageData()
 
 	-- Save file
-	if outputPath then
-		if saveAsBmp then
-			if not bmp.saveToFile(imageData, outputPath) then
-				return false
-			end
-		else
-			local pngData = imageData:encode("png")
-			if not pngData then
-				errorHandler.setError("Failed to encode PNG")
-				return false
-			end
+	if saveAsBmp then
+		if not bmp.saveToFile(imageData, outputPath) then
+			return false
+		end
+	else
+		local pngData = imageData:encode("png")
+		if not pngData then
+			errorHandler.setError("Failed to encode PNG")
+			return false
+		end
 
-			if not system.writeBinaryFile(outputPath, pngData:getString()) then
-				errorHandler.setError("Failed to write PNG")
-				return false
-			end
+		if not system.writeBinaryFile(outputPath, pngData:getString()) then
+			errorHandler.setError("Failed to write PNG")
+			return false
 		end
 	end
 
