@@ -17,6 +17,8 @@ colors.ui = {
 	accent = colorUtils.hexToLove("#89b4fa"), -- Blue
 	green = colorUtils.hexToLove("#a6e3a1"), -- Green
 	red = colorUtils.hexToLove("#f38ba8"), -- Red
+	teal = colorUtils.hexToLove("#94e2d5"), -- Teal
+	lavender = colorUtils.hexToLove("#b4befe"), -- Lavender
 }
 
 -- Palette colors (ordered array)

@@ -7,6 +7,7 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
+local tween = require("tween")
 
 -- Module table to export public functions
 local box_art = {}
@@ -17,6 +18,19 @@ local MENU_SCREEN = "main_menu"
 
 -- Box art width options will be generated dynamically in load()
 local BOX_ART_WIDTH_OPTIONS = { 0 }
+
+-- Display constants
+local EDGE_PADDING = 10
+local RECTANGLE_SPACING = 8
+local CORNER_RADIUS = 12
+local PREVIEW_BOTTOM_PADDING = 15
+
+-- Animation variables
+local animatedLeftWidth = 0
+local animatedRightWidth = 0
+local currentTween = nil
+local ANIMATION_DURATION = 0.25
+local tweenObj = { leftWidth = 0, rightWidth = 0 }
 
 -- List handling variables
 local scrollPosition = 0
@@ -81,6 +95,14 @@ function box_art.load()
 		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
 		BUTTONS[1].currentOption = 1
 	end
+
+	-- Initialize animation values
+	local boxArtWidth = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
+	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth - RECTANGLE_SPACING or 0
+	animatedLeftWidth = tweenObj.leftWidth
+	animatedRightWidth = tweenObj.rightWidth
 end
 
 function box_art.draw()
@@ -123,7 +145,7 @@ function box_art.draw()
 
 	-- Draw preview rectangles
 	local previewY = endY + button.BUTTON.SPACING
-	local previewWidth = state.screenWidth - button.BUTTON.EDGE_MARGIN * 2
+	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 
 	-- Get current value for preview
 	local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
@@ -131,60 +153,65 @@ function box_art.draw()
 	-- Draw preview rectangles
 	local previewHeight = 100
 	local previewYOffset = 40
-	previewY = previewY + previewYOffset
 
-	-- Draw labels for the preview
-	love.graphics.setColor(colors.ui.subtext)
-	love.graphics.setFont(state.fonts.body)
-	love.graphics.printf(
-		"Preview",
-		button.BUTTON.EDGE_MARGIN,
-		previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-		previewWidth,
-		"left"
-	)
+	previewY = previewY + previewYOffset
 
 	-- Determine box art width from current selection
 	local boxArtWidth = currentValue
 
-	-- Calculate left rectangle width
-	local leftRectWidth = previewWidth - boxArtWidth
+	-- Draw left rectangle with teal color
+	love.graphics.setColor(colors.ui.teal)
+	love.graphics.rectangle(
+		"fill",
+		EDGE_PADDING,
+		previewY,
+		animatedLeftWidth,
+		previewHeight,
+		CORNER_RADIUS,
+		CORNER_RADIUS
+	)
 
-	-- Draw left rectangle (green)
-	love.graphics.setColor(colors.ui.green)
-	love.graphics.rectangle("fill", button.BUTTON.EDGE_MARGIN, previewY, leftRectWidth, previewHeight)
-
-	-- Draw right rectangle (red)
-	love.graphics.setColor(colors.ui.red)
-	love.graphics.rectangle("fill", leftRectWidth + button.BUTTON.EDGE_MARGIN, previewY, boxArtWidth, previewHeight)
+	-- Draw right rectangle with lavender color, only if box art is enabled
+	if animatedRightWidth > 0 then
+		love.graphics.setColor(colors.ui.lavender)
+		love.graphics.rectangle(
+			"fill",
+			EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
+			previewY,
+			animatedRightWidth,
+			previewHeight,
+			CORNER_RADIUS,
+			CORNER_RADIUS
+		)
+	end
 
 	if boxArtWidth > 0 then
 		-- Draw labels for content and box art areas with background color
 		love.graphics.setColor(colors.ui.background)
 		love.graphics.printf(
-			"Text width",
-			button.BUTTON.EDGE_MARGIN,
+			"Text",
+			EDGE_PADDING,
 			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-			leftRectWidth,
+			animatedLeftWidth,
 			"center"
 		)
 
 		-- Only show box art label if there's enough space
 		if boxArtWidth >= 70 then
 			love.graphics.printf(
-				"Box art width",
-				leftRectWidth + button.BUTTON.EDGE_MARGIN,
+				"Box art",
+				EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
 				previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
-				boxArtWidth,
+				animatedRightWidth,
 				"center"
 			)
 		end
 	else
-		-- If disabled, show "Box art disabled" in the center with background color
+		-- If disabled, show simple text label in the center with background color
 		love.graphics.setColor(colors.ui.background)
 		love.graphics.printf(
-			"Text width (box art disabled)",
-			button.BUTTON.EDGE_MARGIN,
+			"Text",
+			EDGE_PADDING,
 			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
 			previewWidth,
 			"center"
@@ -198,8 +225,19 @@ function box_art.draw()
 	})
 end
 
-function box_art.update(_dt)
+function box_art.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
+
+	-- Update tween animation if it exists
+	if currentTween then
+		local completed = currentTween:update(dt)
+		if completed then
+			currentTween = nil
+		end
+		-- Update animated values from tween object
+		animatedLeftWidth = tweenObj.leftWidth
+		animatedRightWidth = tweenObj.rightWidth
+	end
 
 	if not state.canProcessInput() then
 		return
@@ -225,6 +263,21 @@ function box_art.update(_dt)
 
 		-- Update state with selected option
 		state.boxArtWidth = btn.options[btn.currentOption]
+
+		-- Create animation tween for the transition
+		local boxArtWidth = state.boxArtWidth
+		local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+		local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+		local targetRightWidth = boxArtWidth > 0 and boxArtWidth - RECTANGLE_SPACING or 0
+
+		-- Target object for the animation
+		local target = {
+			leftWidth = targetLeftWidth,
+			rightWidth = targetRightWidth,
+		}
+
+		-- Create tween with current values as starting point - using inOutQuad for ease in ease out
+		currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
 
 		state.resetInputTimer()
 	end
