@@ -2,12 +2,20 @@
 local love = require("love")
 
 function love.conf(t)
+	-- Default dimensions
+	local defaultWidth = 640
+	local defaultHeight = 480
+
+	-- Check for width and height from environment variables
+	local width = os.getenv("WIDTH")
+	local height = os.getenv("HEIGHT")
+
 	-- The window dimensions below are set to match most Anbernic devices supported by muOS
 	-- (see: https://muos.dev/devices/anbernic).
 	-- The UI is fully responsive, so `window.resizable` is set to `true` to allow muOS to resize the window
 	-- based on the device's screen dimensions
-	t.window.width = 640
-	t.window.height = 480
+	t.window.width = tonumber(width) or defaultWidth
+	t.window.height = tonumber(height) or defaultHeight
 	t.window.minwidth = 640
 	t.window.minheight = 480
 	t.window.resizable = true

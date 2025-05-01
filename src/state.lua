@@ -48,6 +48,9 @@ local state = {
 	screenWidth = 0,
 	screenHeight = 0,
 
+	-- Development mode flag
+	isDevelopment = os.getenv("DEV_DIR") ~= nil,
+
 	-- Font settings (moved to ui.fonts but kept references here for compatibility)
 	fonts = fonts.loaded,
 	selectedFont = fonts.defaultFont,

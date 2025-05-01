@@ -54,10 +54,11 @@ esac
 ROOT_DIR="$(pwd)"
 DEV_DIR="$ROOT_DIR/.dev"
 LOG_DIR="$DEV_DIR/logs"
-TEMPLATE_DIR="$ROOT_DIR/template"
+TEMPLATE_DIR="$ROOT_DIR/src/template"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"
+mkdir -p "$DEV_DIR/theme_working"
 
 # Generate a unique session ID based on timestamp
 SESSION_ID=$(date +%Y%m%d_%H%M%S)
@@ -125,4 +126,6 @@ echo ""
 
 # Launch application with LÖVE and pass screen dimensions
 cd "$ROOT_DIR" || exit
+# Launch with explicit width and height arguments
 "$LOVE_PATH" src --width $WIDTH --height $HEIGHT 2>&1 | tee -a "$SESSION_LOG_FILE" 
+# "$LOVE_PATH" src 2>&1 | tee -a "$SESSION_LOG_FILE" 

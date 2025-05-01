@@ -23,9 +23,17 @@ function settings.getFilePath()
 		return nil
 	end
 
-	-- Check if we're in development mode - if DEV_DIR is set, use it
-	local devDir = system.getEnvironmentVariable("DEV_DIR")
-	local baseDir = devDir or rootDir
+	-- Set baseDir based on development mode
+	local baseDir
+	if state.isDevelopment then
+		baseDir = system.getEnvironmentVariable("DEV_DIR")
+		if not baseDir then
+			errorHandler.setError("DEV_DIR environment variable not set but isDevelopment is true")
+			return nil
+		end
+	else
+		baseDir = rootDir
+	end
 
 	-- Return the appropriate path
 	return baseDir .. "/" .. settings.FILENAME

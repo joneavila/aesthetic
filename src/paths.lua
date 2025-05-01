@@ -2,6 +2,7 @@
 local system = require("utils.system")
 local state = require("state")
 local fonts = require("ui.fonts")
+local errorHandler = require("error_handler")
 
 local paths = {}
 
@@ -9,12 +10,27 @@ local paths = {}
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
 
+-- Get dev directory if in development mode
+local devDir = nil
+if state.isDevelopment then
+	devDir = system.getEnvironmentVariable("DEV_DIR")
+	if not devDir then
+		errorHandler.setError("DEV_DIR environment variable not set but isDevelopment is true")
+	end
+end
+
 -- muOS themes directory - using environment variable
 local muosThemeDir = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
 paths.THEME_DIR = muosThemeDir
 
 -- Working theme directory where files are written before archiving into a theme
-paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
+if state.isDevelopment then
+	-- Use .dev/theme_working when running from dev_launch.sh
+	paths.WORKING_THEME_DIR = devDir .. "/theme_working"
+else
+	-- Use the standard directory otherwise
+	paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
+end
 
 -- Active theme directory where files of the currently active theme are stored
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
@@ -75,13 +91,33 @@ paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 -- `sound`
 paths.THEME_SOUND_PATH = paths.WORKING_THEME_DIR .. "/sound"
 
--- `<width>x<height>`
-paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight
-paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png"
--- `<width>x<height>/image`
-paths.THEME_RESOLUTION_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image"
+-- Create getter functions for resolution-dependent paths so they update with screen dimensions
+-- Get resolution directory path
+function paths.getThemeResolutionDir()
+	return paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight
+end
+
+-- Get preview image path
+function paths.getThemePreviewImagePath()
+	return paths.getThemeResolutionDir() .. "/preview.png"
+end
+
+-- Get resolution image directory path
+function paths.getThemeResolutionImageDir()
+	return paths.getThemeResolutionDir() .. "/image"
+end
+
+-- Get boot logo image path
+function paths.getThemeBootlogoImagePath()
+	return paths.getThemeResolutionImageDir() .. "/bootlogo.bmp"
+end
+
+-- Keep these for backwards compatibility but deprecate their use
+paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/0x0" -- Will be replaced by function call
+paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png" -- Will be replaced by function call
+paths.THEME_RESOLUTION_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image" -- Will be replaced by function call
 paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
-paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp"
+paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp" -- Will be replaced by function call
 
 -- `image`
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"

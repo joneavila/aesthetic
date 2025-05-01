@@ -23,6 +23,7 @@ local paths = require("paths")
 local tove = require("tove")
 local fonts = require("ui.fonts")
 local svg = require("utils.svg")
+local logger = require("utils.logger")
 
 local imageGenerator = {}
 
@@ -176,6 +177,9 @@ end
 function imageGenerator.createPreviewImage(outputPath, previewFonts)
 	-- Set the preview image dimensions based on the screen resolution
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
+
+	-- Log dimensions for debugging
+	logger.debug("Creating preview image with dimensions: " .. screenWidth .. "x" .. screenHeight)
 
 	-- Define preview dimensions based on screen resolution
 	-- Default to the 640x480 ratio if no match is found

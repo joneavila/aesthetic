@@ -5,19 +5,24 @@ local controls = {}
 
 -- Constants
 local CONTROL_SPACING = 14 -- Horizontal spacing between different control groups
-local SCREEN_EDGE_PADDING = 20 -- Padding from right edge of screen
+local SCREEN_EDGE_PADDING = 20 -- Padding from edge of screen
 local BUTTON_TEXT_SPACING = 4 -- Spacing used for separator between multiple buttons
 local BUTTON_RADIUS = 4 -- Corner radius of button background
 local BUTTON_HORIZONTAL_PADDING = 6 -- Horizontal padding inside button background
 local BUTTON_VERTICAL_PADDING = 1 -- Vertical padding inside button background
 local ACTION_TEXT_SPACING = 6 -- Space between button and action text
-local CONTROL_BAR_VERTICAL_PADDING = 10 -- Additional padding for the control bar (top and bottom combined)
+local CONTROL_BAR_TOP_PADDING = 0 -- Top padding for the control bar
+local CONTROL_BAR_BOTTOM_PADDING = 12 -- Bottom padding for the control bar
+local ALIGNMENT = "left" -- Controls alignment: "left" or "right"
 
 -- Function to calculate the HEIGHT based on font size and padding
 function controls.calculateHeight()
 	if state.fonts and state.fonts.caption then
 		local fontHeight = state.fonts.caption:getHeight()
-		controls.HEIGHT = fontHeight + (BUTTON_VERTICAL_PADDING * 2) + CONTROL_BAR_VERTICAL_PADDING
+		controls.HEIGHT = fontHeight
+			+ (BUTTON_VERTICAL_PADDING * 2)
+			+ CONTROL_BAR_TOP_PADDING
+			+ CONTROL_BAR_BOTTOM_PADDING
 	end
 	return controls.HEIGHT
 end
@@ -87,8 +92,14 @@ function controls.draw(controls_list)
 		end
 	end
 
-	-- Start drawing from the right side, accounting for padding
-	local x = state.screenWidth - totalWidth - SCREEN_EDGE_PADDING
+	-- Set starting X position based on alignment
+	local x
+	if ALIGNMENT == "right" then
+		x = state.screenWidth - totalWidth - SCREEN_EDGE_PADDING
+	else -- left alignment
+		x = SCREEN_EDGE_PADDING
+	end
+
 	local y = state.screenHeight - controls.HEIGHT + (controls.HEIGHT - state.fonts.caption:getHeight()) / 2
 
 	-- Draw each control
