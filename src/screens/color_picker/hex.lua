@@ -5,8 +5,8 @@ local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
 local constants = require("screens.color_picker.constants")
-local tove = require("tove")
 local errorHandler = require("error_handler")
+local svg = require("utils.svg")
 
 local hex = {}
 
@@ -45,23 +45,6 @@ local buttons = {
 	{ "8", "9", "A", "B", "CLEAR" },
 	{ "C", "D", "E", "F", "CONFIRM" },
 }
-
--- Icon cache
-local iconCache = {}
-
--- Helper function to load an icon
-local function loadIcon(name)
-	if not iconCache[name] then
-		local svgPath = "assets/icons/lucide/ui/" .. name .. ".svg"
-		local svg = love.filesystem.read(svgPath)
-		if svg then
-			iconCache[name] = tove.newGraphics(svg, ICON_SIZE)
-		else
-			errorHandler.setError("Failed to load SVG icon: " .. svgPath)
-		end
-	end
-	return iconCache[name]
-end
 
 -- Helper function to check if hex input is valid
 local function isValidHex(input)
@@ -125,9 +108,7 @@ function hex.load()
 	-- Default context values are set in `state.lua`, nothing to do here
 
 	-- Preload icons
-	loadIcon("delete")
-	loadIcon("trash")
-	loadIcon("check")
+	svg.preloadIcons({ "delete", "trash", "check" }, ICON_SIZE)
 end
 
 function hex.draw()
@@ -246,68 +227,47 @@ function hex.draw()
 				-- Special handling for icon buttons
 				if buttonText == "BACKSPACE" then
 					-- Backspace icon
-					local icon = loadIcon("delete")
+					local icon = svg.loadIcon("delete", ICON_SIZE)
 					if icon then
-						-- Set icon color directly using foreground color
-						icon:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
-						-- Also set the LÖVE draw color to foreground
-						love.graphics.setColor(colors.ui.foreground)
-						-- Draw the icon centered on the button
+						-- Draw the icon centered on the button with SVG utility
 						local centerX = x + width / 2
 						local centerY = y + height / 2
-						icon:draw(centerX, centerY)
+						svg.drawIcon(icon, centerX, centerY, colors.ui.foreground)
 					end
 				elseif buttonText == "CLEAR" then
 					-- Trash icon
-					local icon = loadIcon("trash")
+					local icon = svg.loadIcon("trash", ICON_SIZE)
 					if icon then
-						-- Set icon color directly using foreground color
-						icon:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
-						-- Also set the LÖVE draw color to foreground
-						love.graphics.setColor(colors.ui.foreground)
-						-- Draw the icon centered on the button
+						-- Draw the icon centered on the button with SVG utility
 						local centerX = x + width / 2
 						local centerY = y + height / 2
-						icon:draw(centerX, centerY)
+						svg.drawIcon(icon, centerX, centerY, colors.ui.foreground)
 					end
 				elseif buttonText == "CONFIRM" then
 					-- Check icon (confirm)
-					local icon = loadIcon("check")
+					local icon = svg.loadIcon("check", ICON_SIZE)
 					if icon then
+						local iconColor
 						-- Use foreground color for icon
 						if isConfirmDisabled and not isSelected then
 							-- If disabled and not selected, use dimmed foreground color
-							local dimmedColor = {
+							iconColor = {
 								colors.ui.foreground[1] * 0.5,
 								colors.ui.foreground[2] * 0.5,
 								colors.ui.foreground[3] * 0.5,
 							}
-							icon:setMonochrome(dimmedColor[1], dimmedColor[2], dimmedColor[3])
-							-- Also set the LÖVE draw color to the same dimmed foreground
-							love.graphics.setColor(dimmedColor)
 						elseif isSelected and isValidHex(currentState.input) then
 							-- If selected and valid, use background color for icon (for contrast with accent background)
-							icon:setMonochrome(
-								colors.ui.background[1],
-								colors.ui.background[2],
-								colors.ui.background[3]
-							)
-							-- Also set the LÖVE draw color to background
-							love.graphics.setColor(colors.ui.background)
+							iconColor = colors.ui.background
 						else
 							-- Otherwise use full foreground color
-							icon:setMonochrome(
-								colors.ui.foreground[1],
-								colors.ui.foreground[2],
-								colors.ui.foreground[3]
-							)
-							-- Also set the LÖVE draw color to foreground
-							love.graphics.setColor(colors.ui.foreground)
+							iconColor = colors.ui.foreground
 						end
-						-- Draw the icon centered on the button
+
+						-- Draw the icon centered on the button with SVG utility
 						local centerX = x + width / 2
 						local centerY = y + height / 2
-						icon:draw(centerX, centerY)
+						svg.drawIcon(icon, centerX, centerY, iconColor)
 					end
 				else
 					-- Regular text button - set color for text
@@ -447,17 +407,6 @@ end
 function hex.onEnter()
 	-- No additional initialization needed as state is managed centrally
 	-- If hex-specific state needs to be initialized, do it here
-
-	-- Optionally initialize input with current color if it's empty
-	local currentState = getCurrentHexState()
-	if currentState.input == "" then
-		local colorType = state.activeColorContext
-		local currentColorHex = state.getColorValue(colorType)
-		if currentColorHex and currentColorHex:sub(1, 1) == "#" then
-			-- Remove the # and convert to uppercase
-			currentState.input = currentColorHex:sub(2):upper()
-		end
-	end
 end
 
 return hex

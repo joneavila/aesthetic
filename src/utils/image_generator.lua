@@ -22,6 +22,7 @@ local system = require("utils.system")
 local paths = require("paths")
 local tove = require("tove")
 local fonts = require("ui.fonts")
+local svg = require("utils.svg")
 
 local imageGenerator = {}
 
@@ -43,33 +44,6 @@ function imageGenerator.finishCanvas(previousCanvas)
 	love.graphics.setCanvas(previousCanvas)
 end
 
--- Draw centered SVG icon on canvas
-function imageGenerator.drawSvgIcon(svg, size, x, y, color, forcePremultiplied)
-	-- Set proper blend mode for drawing to canvas
-	-- See: https://www.love2d.org/wiki/Canvas
-	-- When drawing to a Canvas, alpha values get premultiplied with RGB values
-	-- Using "alpha" blend mode for drawing to canvas, then "premultiplied" when displaying
-	love.graphics.setBlendMode("alpha")
-
-	local icon = tove.newGraphics(svg, size)
-	icon:setMonochrome(color[1], color[2], color[3])
-
-	-- Ensure full opacity when drawing SVG
-	local r, g, b, _ = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, 1.0)
-
-	icon:draw(x, y)
-
-	-- Restore default blend mode for canvas rendering
-	-- This ensures proper color rendering when the canvas is displayed
-	-- For boot images (BMP), we'll keep the alpha blend mode
-	if not forcePremultiplied then
-		love.graphics.setBlendMode("alpha", "premultiplied")
-	end
-
-	return icon
-end
-
 -- Create an image with centered svg icon and optional text
 function imageGenerator.createIconImage(options)
 	local width = options.width or state.screenWidth
@@ -89,10 +63,10 @@ function imageGenerator.createIconImage(options)
 	end
 
 	-- Load icon SVG
-	local svg
+	local svgContent
 	if iconPath then
-		svg = system.readFile(iconPath)
-		if not svg then
+		svgContent = system.readFile(iconPath)
+		if not svgContent then
 			errorHandler.setError("Failed to read SVG file: " .. iconPath)
 			return false
 		end
@@ -121,12 +95,14 @@ function imageGenerator.createIconImage(options)
 	local iconY = height / 2 - (text and 50 or 0)
 
 	-- Set color for SVG with maximum opacity for BMP format
-	if saveAsBmp then
-		-- For BMP format, we need to ensure full opacity
-		local r, g, b = fgColor[1], fgColor[2], fgColor[3]
-		imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, { r, g, b }, true)
-	else
-		imageGenerator.drawSvgIcon(svg, iconSize, iconX, iconY, fgColor, false)
+	if svgContent then
+		if saveAsBmp then
+			-- For BMP format, we need to ensure full opacity
+			local r, g, b = fgColor[1], fgColor[2], fgColor[3]
+			svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, { r, g, b }, false)
+		else
+			svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, fgColor, true)
+		end
 	end
 
 	-- Draw text if provided

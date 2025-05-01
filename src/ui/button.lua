@@ -3,15 +3,7 @@
 local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
-local tove = require("tove")
-
--- Note on SVG rendering and blend modes:
--- When drawing SVG content to a Canvas using TOVE in LÖVE, we need to handle blend modes carefully:
--- 1. Use "alpha" blend mode when drawing SVG icons to ensure correct color values
--- 2. Use "alpha", "premultiplied" blend mode when displaying the canvas elsewhere
--- 3. Ensure full opacity (1.0) when drawing SVG icons
--- 4. Restore original blend mode when finished
--- This approach fixes issues where SVG icons appear darker than text when rendered with the same color.
+local svg = require("utils.svg")
 
 -- Button constants
 local BUTTON = {
@@ -30,23 +22,8 @@ local CHEVRON = {
 	PADDING = 16,
 }
 
--- Icon cache and size
-local iconCache = {}
+-- Icon size for button icons
 local ICON_SIZE = 14
-
--- Helper function to load an icon
-local function loadIcon(name)
-	if not iconCache[name] then
-		local svgPath = "assets/icons/lucide/ui/" .. name .. ".svg"
-		local svg = love.filesystem.read(svgPath)
-		if svg then
-			iconCache[name] = tove.newGraphics(svg, ICON_SIZE)
-		else
-			error("Failed to load SVG icon: " .. svgPath)
-		end
-	end
-	return iconCache[name]
-end
 
 -- Function to calculate button height based on current font
 local function calculateButtonHeight()
@@ -153,13 +130,9 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 	local iconY = y + buttonHeight / 2
 	local opacity = isDisabled and 0.3 or 1
 
-	-- Load chevron icons if not already loaded
-	local leftChevron = loadIcon("chevron-left")
-	local rightChevron = loadIcon("chevron-right")
-
-	-- Save current graphics state
-	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
-	local prevR, prevG, prevB, prevA = love.graphics.getColor()
+	-- Load chevron icons
+	local leftChevron = svg.loadIcon("chevron-left", ICON_SIZE)
+	local rightChevron = svg.loadIcon("chevron-right", ICON_SIZE)
 
 	-- Draw value text with proper opacity
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
@@ -169,35 +142,16 @@ function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWid
 		y + (buttonHeight - love.graphics.getFont():getHeight()) / 2
 	)
 
-	-- Draw left chevron with special SVG handling
+	-- Draw chevron icons with the svg utility
 	if leftChevron then
-		-- Set foreground color with monochrome setting
-		leftChevron:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
-
-		-- Set alpha blend mode for SVG drawing
-		love.graphics.setBlendMode("alpha")
-
-		-- Draw with white at the proper opacity
-		love.graphics.setColor(1, 1, 1, opacity)
-		leftChevron:draw(valueX + ICON_SIZE / 2, iconY)
+		local iconColor = colors.ui.foreground
+		svg.drawIcon(leftChevron, valueX + ICON_SIZE / 2, iconY, iconColor, opacity)
 	end
 
-	-- Draw right chevron with special SVG handling
 	if rightChevron then
-		-- Set foreground color with monochrome setting
-		rightChevron:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
-
-		-- Set alpha blend mode for SVG drawing
-		love.graphics.setBlendMode("alpha")
-
-		-- Draw with white at the proper opacity
-		love.graphics.setColor(1, 1, 1, opacity)
-		rightChevron:draw(rightEdge - ICON_SIZE / 2, iconY)
+		local iconColor = colors.ui.foreground
+		svg.drawIcon(rightChevron, rightEdge - ICON_SIZE / 2, iconY, iconColor, opacity)
 	end
-
-	-- Restore original graphics state
-	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
-	love.graphics.setColor(prevR, prevG, prevB, prevA)
 end
 
 -- Function to draw a button with color preview
@@ -306,8 +260,7 @@ button.calculateHeight = calculateButtonHeight
 
 -- Preload icons
 function button.load()
-	loadIcon("chevron-left")
-	loadIcon("chevron-right")
+	svg.preloadIcons({ "chevron-left", "chevron-right" }, ICON_SIZE)
 end
 
 return button
