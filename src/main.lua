@@ -17,7 +17,7 @@ local fonts = require("ui.fonts")
 local settings = require("utils.settings")
 local logger = require("utils.logger")
 local errorHandler = require("error_handler")
--- Remove the circular dependency by loading the screens module after state is initialized
+local rgbUtils = require("utils.rgb")
 
 -- Input delay handling
 local lastInpuSeconds = 0
@@ -41,18 +41,9 @@ local function updateInputTimer(dt)
 	lastInpuSeconds = lastInpuSeconds + dt
 end
 
+-- Function to setup fonts based on reference resolution and aspect ratio
 local function setupFonts()
-	-- Calculate font sizes based on reference resolution and aspect ratio
-
-	-- The default muOS Pixie theme includes the following resolutions:
-	-- 	640x480
-	-- 	720x480
-	-- 	720x576
-	-- 	720x720
-	-- 	1024x768
-	-- 	1280x720
-
-	-- Reference resolution is 720x720 (square display)
+	-- Reference resolution is 720x720
 	local referenceWidth = 720
 	local referenceHeight = 720
 
@@ -61,6 +52,7 @@ local function setupFonts()
 
 	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
 	-- Add a minimum scale factor to prevent fonts from becoming too small
+	-- TODO: Change value from 1.0 or remove scaling
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
 	-- Update font sizes based on scale factor
@@ -68,25 +60,17 @@ local function setupFonts()
 		def.size = def.size * scaleFactor
 	end
 
-	-- Load all fonts
 	fonts.loadFonts()
 
 	-- Ensure font name mapping is initialized
 	state.initFontNameMapping()
 
-	-- Set the default font
 	fonts.setDefault()
 end
 
 -- Function to load settings from file
 local function loadSettings()
-	-- Try to load settings from file
-	local success = settings.loadFromFile()
-
-	-- We'll update the font selection state later when the menu screen is loaded
-	-- This avoids circular dependencies
-
-	return success
+	return settings.loadFromFile()
 end
 
 -- Function to save settings to file
@@ -95,9 +79,6 @@ local function saveSettings()
 end
 
 function love.load()
-	-- Alternatively, use the muOS GET_VAR function (load the file containing the GET_VAR function first)
-	-- 		$(GET_VAR device mux/width)
-	-- 		$(GET_VAR device mux/height)
 	state.screenWidth, state.screenHeight = love.graphics.getDimensions()
 	state.fadeDuration = 0.5
 	setupFonts()
@@ -108,28 +89,26 @@ function love.load()
 	-- Load user settings if they exist
 	loadSettings()
 
-	local rgbUtils = require("utils.rgb")
-	logger.debug("Backing up current RGB config")
-	local backupSuccess = rgbUtils.backupCurrentConfig() -- Backup the current RGB config if it exists
+	-- Backup the current RGB config if it exists
+	local backupSuccess = rgbUtils.backupCurrentConfig()
 	if not backupSuccess then
-		logger.error("Failed to backup current RGB config")
 		errorHandler.setError("Failed to backup current RGB config")
 	end
-	logger.debug("Applying RGB settings from state")
 	rgbUtils.updateConfig() -- Apply RGB settings from state
 
 	-- Now that state is initialized, load the screens module
 	screens = require("screens")
 
-	-- Load all screens
 	screens.load()
 
 	-- Start with the splash screen
 	screens.switchTo("splash")
 
-	state.fading = false -- Fade effect will be handled after splash screen completes
+	-- Fade effect will be handled after splash screen completes
+	state.fading = false
 end
 
+-- Function to handle window resize
 function love.resize(w, h)
 	-- Update screen dimensions in state
 	state.screenWidth, state.screenHeight = w, h
@@ -181,15 +160,10 @@ end
 
 -- Handle application exit
 function love.quit()
-	logger.debug("Quitting application")
-	-- Save current settings before exiting
-	logger.debug("Saving settings")
 	saveSettings()
 
 	-- Restore original RGB configuration if no theme was applied
-	local rgbUtils = require("utils.rgb")
 	if not state.themeApplied then
-		logger.debug("Theme was applied, restoring RGB config")
 		rgbUtils.restoreConfig()
 	end
 end

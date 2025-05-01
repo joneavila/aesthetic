@@ -273,6 +273,7 @@ end
 
 -- Function to backup the current RGB configuration if it exists
 function rgb.backupCurrentConfig()
+	logger.debug("Backing up current RGB config")
 	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
 		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
 		return false
