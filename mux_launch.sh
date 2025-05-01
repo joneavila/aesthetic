@@ -10,7 +10,6 @@
 # Define paths
 # `$(GET_VAR "device" "storage/rom/mount")` will resolve to either `/mnt/mmc` (SD1) or `/mnt/sdcard` (SD2)
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic/.aesthetic"
-BINDIR="$ROOT_DIR/bin"
 LOG_DIR="$ROOT_DIR/logs"
 
 # Make sure the directory exists
