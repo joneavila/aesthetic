@@ -96,6 +96,10 @@ function love.load()
 	end
 	rgbUtils.updateConfig() -- Apply RGB settings from state
 
+	-- Load UI components that require initialization
+	local button = require("ui.button")
+	button.load()
+
 	-- Now that state is initialized, load the screens module
 	screens = require("screens")
 

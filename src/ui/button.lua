@@ -3,6 +3,15 @@
 local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
+local tove = require("tove")
+
+-- Note on SVG rendering and blend modes:
+-- When drawing SVG content to a Canvas using TOVE in LÖVE, we need to handle blend modes carefully:
+-- 1. Use "alpha" blend mode when drawing SVG icons to ensure correct color values
+-- 2. Use "alpha", "premultiplied" blend mode when displaying the canvas elsewhere
+-- 3. Ensure full opacity (1.0) when drawing SVG icons
+-- 4. Restore original blend mode when finished
+-- This approach fixes issues where SVG icons appear darker than text when rendered with the same color.
 
 -- Button constants
 local BUTTON = {
@@ -17,11 +26,27 @@ local BUTTON = {
 -- Module table to export public functions
 local button = {}
 
-local TRIANGLE = {
-	HEIGHT = 20,
-	WIDTH = 12,
+local CHEVRON = {
 	PADDING = 16,
 }
+
+-- Icon cache and size
+local iconCache = {}
+local ICON_SIZE = 14
+
+-- Helper function to load an icon
+local function loadIcon(name)
+	if not iconCache[name] then
+		local svgPath = "assets/icons/lucide/ui/" .. name .. ".svg"
+		local svg = love.filesystem.read(svgPath)
+		if svg then
+			iconCache[name] = tove.newGraphics(svg, ICON_SIZE)
+		else
+			error("Failed to load SVG icon: " .. svgPath)
+		end
+	end
+	return iconCache[name]
+end
 
 -- Function to calculate button height based on current font
 local function calculateButtonHeight()
@@ -114,46 +139,65 @@ function button.drawWithTextPreview(text, x, y, isSelected, screenWidth, preview
 	love.graphics.print(previewText, dimensions.rightEdge - textWidth - BUTTON.HORIZONTAL_PADDING, textY)
 end
 
--- Function to draw a button with triangle indicators for selecting values
+-- Function to draw a button with chevron indicators for selecting values
 function button.drawWithIndicators(text, x, y, isSelected, isDisabled, screenWidth, valueText, buttonWidth)
 	local dimensions = calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected)
 	drawButtonBackground(y, dimensions.drawWidth, isSelected)
 	drawButtonText(text, x, y, isDisabled)
+
 	local textWidth = love.graphics.getFont():getWidth(valueText)
-	local totalWidth = textWidth + (TRIANGLE.WIDTH + TRIANGLE.PADDING) * 2
+	local totalWidth = textWidth + (ICON_SIZE + CHEVRON.PADDING) * 2
 	local rightEdge = dimensions.rightEdge - BUTTON.HORIZONTAL_PADDING
 	local valueX = rightEdge - totalWidth
 	local buttonHeight = calculateButtonHeight()
-	local triangleY = y + buttonHeight / 2
+	local iconY = y + buttonHeight / 2
 	local opacity = isDisabled and 0.3 or 1
+
+	-- Load chevron icons if not already loaded
+	local leftChevron = loadIcon("chevron-left")
+	local rightChevron = loadIcon("chevron-right")
+
+	-- Save current graphics state
+	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
+	local prevR, prevG, prevB, prevA = love.graphics.getColor()
+
+	-- Draw value text with proper opacity
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
-
-	-- Left triangle (pointing left)
-	love.graphics.polygon(
-		"fill",
-		valueX + TRIANGLE.WIDTH,
-		triangleY - TRIANGLE.HEIGHT / 2,
-		valueX + TRIANGLE.WIDTH,
-		triangleY + TRIANGLE.HEIGHT / 2,
-		valueX,
-		triangleY
-	)
-
-	-- Draw text
 	love.graphics.print(
 		valueText,
-		valueX + TRIANGLE.WIDTH + TRIANGLE.PADDING,
+		valueX + ICON_SIZE + CHEVRON.PADDING,
 		y + (buttonHeight - love.graphics.getFont():getHeight()) / 2
 	)
-	love.graphics.polygon(
-		"fill",
-		rightEdge - TRIANGLE.WIDTH,
-		triangleY - TRIANGLE.HEIGHT / 2,
-		rightEdge - TRIANGLE.WIDTH,
-		triangleY + TRIANGLE.HEIGHT / 2,
-		rightEdge,
-		triangleY
-	)
+
+	-- Draw left chevron with special SVG handling
+	if leftChevron then
+		-- Set foreground color with monochrome setting
+		leftChevron:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
+
+		-- Set alpha blend mode for SVG drawing
+		love.graphics.setBlendMode("alpha")
+
+		-- Draw with white at the proper opacity
+		love.graphics.setColor(1, 1, 1, opacity)
+		leftChevron:draw(valueX + ICON_SIZE / 2, iconY)
+	end
+
+	-- Draw right chevron with special SVG handling
+	if rightChevron then
+		-- Set foreground color with monochrome setting
+		rightChevron:setMonochrome(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3])
+
+		-- Set alpha blend mode for SVG drawing
+		love.graphics.setBlendMode("alpha")
+
+		-- Draw with white at the proper opacity
+		love.graphics.setColor(1, 1, 1, opacity)
+		rightChevron:draw(rightEdge - ICON_SIZE / 2, iconY)
+	end
+
+	-- Restore original graphics state
+	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
+	love.graphics.setColor(prevR, prevG, prevB, prevA)
 end
 
 -- Function to draw a button with color preview
@@ -259,5 +303,11 @@ end
 -- Export button constants and height calculation
 button.BUTTON = BUTTON
 button.calculateHeight = calculateButtonHeight
+
+-- Preload icons
+function button.load()
+	loadIcon("chevron-left")
+	loadIcon("chevron-right")
+end
 
 return button
