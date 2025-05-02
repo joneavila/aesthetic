@@ -20,9 +20,12 @@ function love.conf(t)
 	t.window.minheight = 480
 	t.window.resizable = true
 
+	-- Some calculations are based on display scale
+	-- Enabling this setting might result in generated images being larger than expected
+	t.window.highdpi = false
+
 	t.window.borderless = false -- Enable for better screenshots
 	t.window.fullscreen = false
-	t.window.highdpi = false
 	t.window.msaa = 4 -- Enable multi-sample anti-aliasing for better quality (at cost of performance)
 	t.window.title = "Aesthetic"
 	t.version = "11.5"
