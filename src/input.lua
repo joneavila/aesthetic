@@ -9,18 +9,24 @@ local virtualJoystick = {}
 -- Virtual joystick key mappings
 -- Useful for testing application while developing
 local keyToButton = {
-	["escape"] = "back",
-	["return"] = "start",
-	["lshift"] = "leftshoulder",
-	["rshift"] = "rightshoulder",
-	["up"] = "dpup",
-	["down"] = "dpdown",
-	["left"] = "dpleft",
-	["right"] = "dpright",
-	["a"] = "a",
-	["b"] = "b",
-	["x"] = "x",
-	["y"] = "y",
+
+	["return"] = "start", -- Start
+	["space"] = "back", -- Back (Select)
+	["escape"] = "guide", -- Guide (M)
+	["c"] = "leftstick", -- Left Stick
+	["v"] = "rightstick", -- Right Stick
+	["q"] = "leftshoulder", -- L1
+	["w"] = "rightshoulder", -- R1
+	["e"] = "lefttrigger", -- L2
+	["r"] = "righttrigger", -- R2
+	["up"] = "dpup", -- D-Pad Up
+	["down"] = "dpdown", -- D-Pad Down
+	["left"] = "dpleft", -- D-Pad Left
+	["right"] = "dpright", -- D-Pad Right
+	["z"] = "a", -- A
+	["x"] = "b", -- B
+	["a"] = "x", -- X
+	["s"] = "y", -- Y
 }
 
 -- Check if a gamepad button is currently pressed

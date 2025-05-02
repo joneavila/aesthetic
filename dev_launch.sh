@@ -124,7 +124,7 @@ echo "WINDOW DIMENSIONS: ${WIDTH}x${HEIGHT}"
 # Extract and print keyboard to button mappings from input.lua
 echo ""
 echo "KEYBOARD TO HANDHELD BUTTON MAPPING:"
-grep -E '\["[^"]+"\] = "[^"]+",' "$ROOT_DIR/src/input.lua" | sed 's/\s*\["\([^"]*\)"\] = "\([^"]*\)",/  \1 = \2/'
+grep -E '\["[^"]+"\] = "[^"]+",' "$ROOT_DIR/src/input.lua" | sed -E 's/\s*\["([^"]+)"\] = "[^"]+", -- (.+)/  \1 = \2/' | awk '{first=substr($1,1,1); rest=substr($1,2); print "  " toupper(first) rest " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9}'
 echo ""
 
 # Launch application with LÖVE and pass screen dimensions
