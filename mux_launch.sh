@@ -11,6 +11,8 @@
 # `$(GET_VAR "device" "storage/rom/mount")` will resolve to either `/mnt/mmc` (SD1) or `/mnt/sdcard` (SD2)
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic/.aesthetic"
 LOG_DIR="$ROOT_DIR/logs"
+MUOS_STORAGE_THEME_DIR="/run/muos/storage/theme"
+MUOS_DEVICE_SCRIPT_DIR="/opt/muos/device/current/script"
 
 # Make sure the directory exists
 mkdir -p "$LOG_DIR"
@@ -27,6 +29,8 @@ export SESSION_ID
 export SESSION_LOG_FILE
 export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/tove:$LD_LIBRARY_PATH" # Add libraries to the library path
 export TEMPLATE_DIR="$ROOT_DIR/template"
+export MUOS_STORAGE_THEME_DIR
+export MUOS_DEVICE_SCRIPT_DIR
 
 # Launch application
 cd "$ROOT_DIR" || exit
