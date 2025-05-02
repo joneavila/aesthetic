@@ -123,7 +123,7 @@ end
 local function createVersionFile()
 	-- Read the content from the source file
 	local content = system.readFile(paths.MUOS_VERSION_PATH)
-	local versionNumber = "1.0.0-dev" -- Default version for development environments
+	local versionNumber = system.getEnvironmentVariable("MUOS_VERSION")
 
 	if content then
 		-- Extract just the version number using pattern matching

@@ -69,6 +69,8 @@ LOCAL_MUOS_STORAGE_DIR="$DEV_DIR/run/muos/storage"
 LOCAL_MUOS_DEVICE_DIR="$DEV_DIR/opt/muos/device"
 LOCAL_MUOS_CONFIG_DIR="$DEV_DIR/opt/muos/config"
 
+MUOS_VERSION="2502.0"
+
 # Create directories for RGB config and other needed paths
 mkdir -p "$LOCAL_MUOS_STORAGE_DIR/theme/active/rgb"
 mkdir -p "$LOCAL_MUOS_DEVICE_DIR/current/script"
@@ -92,6 +94,7 @@ export MUOS_STORAGE_THEME_DIR="$LOCAL_MUOS_STORAGE_DIR/theme"
 export MUOS_DEVICE_SCRIPT_DIR="$LOCAL_MUOS_DEVICE_DIR/current/script"
 export WIDTH
 export HEIGHT
+export MUOS_VERSION
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then

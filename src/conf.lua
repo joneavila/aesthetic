@@ -22,7 +22,7 @@ function love.conf(t)
 
 	t.window.borderless = false -- Enable for better screenshots
 	t.window.fullscreen = false
-	t.window.highdpi = true
+	t.window.highdpi = false
 	t.window.msaa = 4 -- Enable multi-sample anti-aliasing for better quality (at cost of performance)
 	t.window.title = "Aesthetic"
 	t.version = "11.5"
