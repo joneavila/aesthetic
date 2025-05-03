@@ -435,6 +435,14 @@ function menu.update(dt)
 		return
 	end
 
+	-- Check for debug screen button combination (D-pad Left + A)
+	if virtualJoystick:isGamepadDown("dpleft") and virtualJoystick:isGamepadDown("a") and switchScreen then
+		switchScreen("debug")
+		state.resetInputTimer()
+		state.forceInputDelay(0.3) -- Add delay when switching screens
+		return
+	end
+
 	-- Split buttons into navigation groups
 	local regularButtons = {}
 	local bottomButtons = {}
