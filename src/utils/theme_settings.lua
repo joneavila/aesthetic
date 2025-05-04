@@ -134,7 +134,6 @@ function themeSettings.applyContentWidth(schemeFilePath)
 		local boxArtWidth = 0
 		if type(state.boxArtWidth) == "number" then
 			-- Add some padding to account for list selected padding
-			-- TODO: This padding is not shown in the UI
 			boxArtWidth = state.boxArtWidth + 20
 		end
 		-- For "Disabled", boxArtWidth remains 0

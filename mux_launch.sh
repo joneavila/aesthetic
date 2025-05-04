@@ -21,6 +21,9 @@ mkdir -p "$LOG_DIR"
 SESSION_ID=$(date +%Y%m%d_%H%M%S)
 SESSION_LOG_FILE="$LOG_DIR/$SESSION_ID.log"
 
+WIDTH=$(GET_VAR device mux/width)
+HEIGHT=$(GET_VAR device mux/height)
+
 # Export environment variables
 export ROOT_DIR
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
@@ -31,6 +34,8 @@ export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/tove:$LD_LIBRARY_PATH" # Add lib
 export TEMPLATE_DIR="$ROOT_DIR/template"
 export MUOS_STORAGE_THEME_DIR
 export MUOS_DEVICE_SCRIPT_DIR
+export WIDTH
+export HEIGHT
 
 # Launch application
 cd "$ROOT_DIR" || exit

@@ -38,9 +38,8 @@ function splash.load()
 	splash.textHeight = splash.font:getHeight()
 
 	-- Calculate the fixed center position (ensure pixel-perfect alignment)
-	local screenWidth, screenHeight = love.graphics.getDimensions()
-	splash.centerX = math.floor(screenWidth / 2 - splash.textWidth / 2)
-	splash.centerY = math.floor(screenHeight / 2 - splash.textHeight / 2)
+	splash.centerX = math.floor(state.screenWidth / 2 - splash.textWidth / 2)
+	splash.centerY = math.floor(state.screenHeight / 2 - splash.textHeight / 2)
 
 	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	splash.state = "waiting"

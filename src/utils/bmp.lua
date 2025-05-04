@@ -148,7 +148,7 @@ function bmp.encode(imageData)
 						a = type(pixelResult[4]) == "number" and pixelResult[4] or 1
 					else
 						-- If pixel access failed, use black
-						logger.warn("Failed to get pixel at " .. x .. "," .. y .. ", using black instead")
+						logger.warning("Failed to get pixel at " .. x .. "," .. y .. ", using black instead")
 					end
 
 					-- Clamp values to valid range
@@ -214,7 +214,7 @@ function bmp.encode(imageData)
 
 		-- Check if we're running out of memory
 		if collectgarbage("count") > 1000000 then -- If using more than ~1GB
-			logger.warn("Memory usage high, attempting garbage collection")
+			logger.warning("Memory usage high, attempting garbage collection")
 			collectgarbage("collect")
 		end
 	end

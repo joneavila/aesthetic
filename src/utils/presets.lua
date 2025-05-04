@@ -238,7 +238,6 @@ function presets.listPresets()
 	if not handle then
 		errorHandler.setError("Failed to list presets")
 		return {}
-		-- TODO: Return something meaningful upon error, or let error bubble up and set error there
 	end
 	local result = handle:read("*a")
 	handle:close()

@@ -52,7 +52,6 @@ local function setupFonts()
 
 	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
 	-- Add a minimum scale factor to prevent fonts from becoming too small
-	-- TODO: Change value from 1.0 or remove scaling
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
 
 	-- Update font sizes based on scale factor
@@ -79,19 +78,11 @@ local function saveSettings()
 end
 
 function love.load()
-	-- Check for dimensions in environment variables first
 	local envWidth = tonumber(os.getenv("WIDTH"))
 	local envHeight = tonumber(os.getenv("HEIGHT"))
-
-	-- If environment variables are set, use them over love.graphics.getDimensions()
 	if envWidth and envHeight and envWidth > 0 and envHeight > 0 then
 		state.screenWidth = envWidth
 		state.screenHeight = envHeight
-		print("Using dimensions from environment variables: " .. state.screenWidth .. "x" .. state.screenHeight)
-	else
-		-- Otherwise get dimensions from LOVE
-		state.screenWidth, state.screenHeight = love.graphics.getDimensions()
-		print("Using dimensions from LOVE: " .. state.screenWidth .. "x" .. state.screenHeight)
 	end
 
 	print("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)

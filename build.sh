@@ -127,7 +127,6 @@ rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" && echo "src/" || { echo "F
 rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
 rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
 rsync -aq src/tove/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/tove" && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
-# TODO: Copying the entire assets directory is unnecessary
 rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" && echo "assets/" || { echo "Failed to copy assets/"; exit 1; }
 rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
 
@@ -153,6 +152,3 @@ else
     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi
 
-# Automatically launch application after deployment
-# TODO: The following command does not work as expected
-# ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh"

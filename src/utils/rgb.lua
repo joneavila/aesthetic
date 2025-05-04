@@ -130,14 +130,9 @@ end
 -- Function to write command to config file
 function rgb.writeCommandToFile(command, rgbConfPath)
 	-- Write directly to the target file using command
-	-- TODO: You may want to ensureDir here
 	system.writeFile(rgbConfPath, command)
 	logger.debug("Writing command to file: " .. rgbConfPath)
 	commands.executeCommand(string.format('echo "%s" > "%s"', command, rgbConfPath))
-
-	-- Make the file executable
-	-- commands.executeCommand(string.format('chmod +x "%s"', rgbConfPath))
-
 	return true
 end
 

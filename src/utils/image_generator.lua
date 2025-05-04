@@ -58,7 +58,6 @@ function imageGenerator.createIconImage(options)
 	local saveAsBmp = options.saveAsBmp or false
 
 	-- Ensure output path parent directory exists
-	-- TODO: This might not be needed if it called in the functions that write to the file
 	if not system.ensurePath(outputPath) then
 		return false
 	end
