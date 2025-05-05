@@ -62,6 +62,9 @@ APP_GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
 
 ARCHIVE_BASE_NAME=Aesthetic
 
+# This would be a .muxupd if there were an additional `update.sh` script in `opt/`: https://muos.dev/help/archive
+ARCHIVE_TYPE="muxzip"
+
 echoHeader "Setting up clean build environment"
 rm -rf "${DIST_DIR}" "${BUILD_DIR}"
 mkdir -p "${DIST_DIR}"
@@ -81,6 +84,7 @@ fi
 
 # Files to remove when using --clean option
 # Targets both SD1 (/mnt/mmc/) and SD2 (/mnt/sdcard/) locations
+# Targets both .muxupd and .muxzip archives
 ITEMS_TO_DELETE=(
     "/mnt/mmc/MUOS/application/Aesthetic"
     "/mnt/mmc/MUOS/theme/active/glyph/muxapp/aesthetic.png"
@@ -88,8 +92,11 @@ ITEMS_TO_DELETE=(
     "/mnt/mmc/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/sdcard/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/mmc/ARCHIVE/Aesthetic_*.muxupd"
+    "/mnt/mmc/ARCHIVE/Aesthetic_*.muxzip"
     "/mnt/sdcard/ARCHIVE/Aesthetic_*.muxupd"
+    "/mnt/sdcard/ARCHIVE/Aesthetic_*.muxzip"
     "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxupd.done"
+    "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxzip.done"
     "/opt/muos/default/MUOS/theme/active/glyph/muxapp/aesthetic.png"
 )
 
@@ -130,25 +137,33 @@ rsync -aq src/tove/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/tove" && echo "src/tove/
 rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" && echo "assets/" || { echo "Failed to copy assets/"; exit 1; }
 rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
 
-# Create .muxupd archive
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving
-(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" || { echo "Failed to create archive"; exit 1; }
+(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echo "Failed to create archive"; exit 1; }
 
-# Clean up temporary files
-echoHeader "Cleaning up"
+echoHeader "Cleaning up temporary files"
 rm -rf "${BUILD_DIR}" && echo "Removed build directory" || echo "Failed to remove build directory"
 
-echoHeader "Uploading to $HANDHELD_IP"
-if [ -z "$PRIVATE_KEY_PATH" ]; then
-    echo "No PRIVATE_KEY_PATH provided"
+if [ -z "$PRIVATE_KEY_PATH" ] && [ -z "$HANDHELD_IP" ]; then
+    echo "Skipping upload. To enable automatic upload, provide PRIVATE_KEY_PATH and HANDHELD_IP arguments."
+    echo "Done!"
     exit 0
-elif [ -z "$HANDHELD_IP" ]; then
-    echo "No HANDHELD_IP provided"
-    exit 0
-else
-    scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
-    echoHeader "Extracting on $HANDHELD_IP"
-    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.muxupd"
 fi
+
+if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
+    echo "Skipping upload. To enable automatic upload, provide PRIVATE_KEY_PATH and HANDHELD_IP arguments."
+    echo "Done!"
+    exit 0
+fi
+
+echoHeader "Uploading to $HANDHELD_IP"
+scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
+
+echoHeader "Extracting on $HANDHELD_IP"
+ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
+
+# echoHeader "Attempting to run"
+# ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "echo 'flip' > /tmp/act_go"
+
+echo "Done!"
 
