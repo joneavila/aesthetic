@@ -32,8 +32,7 @@ echoError() {
     echo -e "${RED}${text}${RESET}" >&2
 }
 
-# Verify SSH connection to the handheld
-checkConnection() {
+verifyConnection() {
     if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
         echoHeader "Checking connection to $HANDHELD_IP"
         
@@ -77,7 +76,7 @@ HANDHELD_IP=$2
 # Verify connection if credentials are provided
 # Assume the connection remains stable for the duration of the script
 if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
-    checkConnection
+    verifyConnection
 fi
 
 # Local directories
