@@ -95,10 +95,9 @@ ARCHIVE_TYPE="muxzip"
 
 echoHeader "Setting up clean build environment"
 rm -rf "${DIST_DIR}" "${BUILD_DIR}"
-mkdir -p "${DIST_DIR}"
-mkdir -p "${BUILD_DIR}/${APP_DIR}"
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic"
-mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}"
+mkdir -p "${DIST_DIR}" || { echoError "Failed to create distribution directory"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic" || { echoError "Failed to create app directory structure"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to create glyph directory"; exit 1; }
 
 # Extract version information from Lua source
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -167,10 +166,12 @@ rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}
 
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving
-(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") && echo "${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echo "Failed to create archive"; exit 1; }
+(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") || { echoError "Failed to create archive"; exit 1; }
+echo "Created ${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
 
 echoHeader "Cleaning up temporary files"
-rm -rf "${BUILD_DIR}" && echo "Removed build directory" || echo "Failed to remove build directory"
+# TODO Exit if remove fails?
+rm -rf "${BUILD_DIR}" || { echoError "Failed to remove build directory"; }
 
 if [ -z "$PRIVATE_KEY_PATH" ] && [ -z "$HANDHELD_IP" ]; then
     echo "Skipping upload. To enable automatic upload, provide PRIVATE_KEY_PATH and HANDHELD_IP arguments."
@@ -185,10 +186,10 @@ if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
 fi
 
 echoHeader "Uploading to $HANDHELD_IP"
-scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE
+scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE || { echoError "Failed to upload archive"; exit 1; }
 
 echoHeader "Extracting on $HANDHELD_IP"
-ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
+ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
 
 # echoHeader "Attempting to run"
 # ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "echo 'flip' > /tmp/act_go"
