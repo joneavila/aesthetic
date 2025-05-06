@@ -16,22 +16,50 @@
 #   ./build.sh ~/.ssh/id_ed25519 192.168.68.123
 #   ./build.sh --clean ~/.ssh/id_ed25519 192.168.68.123
 
+# Color formatting functions
+printRed() {
+    local text="$1"
+    local RED="\033[31m"
+    local RESET="\033[0m"
+    echo -e "${RED}${text}${RESET}" >&2
+}
+
 # Display formatted message
 echoHeader() {
     local text="$1"
     local MAGENTA="\033[35m"
     local RESET="\033[0m"
-    echo -e "${MAGENTA}${text}...${RESET}"
+    echo -e "${MAGENTA}${text}${RESET}"
 }
 
 # Verify SSH connection to the handheld
 checkConnection() {
     if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
         echoHeader "Checking connection to $HANDHELD_IP"
-        if ! ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>/dev/null; then
-            echo "Error: Could not connect to ${HANDHELD_IP}. Exiting."
+        
+        # Set up verbose output capture for SSH connection attempt
+        SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
+        SSH_STATUS=$?
+        
+        if [ $SSH_STATUS -ne 0 ]; then
+            echo "${SSH_OUTPUT}"
+            printRed "Error: Could not connect to ${HANDHELD_IP}."
+            if [[ "$SSH_OUTPUT" == *"Host key verification failed"* ]]; then
+                echo "Your handheld's IP address may have changed, try:"
+                echo "  ssh-keygen -R ${HANDHELD_IP}"
+                echo "  ssh -o StrictHostKeyChecking=accept-new root@${HANDHELD_IP} exit"
+                echo "Consider setting up reserved IPs in your router to prevent changes."
+            elif [[ "$SSH_OUTPUT" == *"Permission denied"* ]]; then
+                echo "Your SSH key may not be authorized on the device. Try:"
+                echo "  ssh-copy-id -i ${PRIVATE_KEY_PATH}.pub root@${HANDHELD_IP}"
+            elif [[ "$SSH_OUTPUT" == *"Connection refused"* ]]; then
+                echo "Your handheld may not have SSH enabled. Try enabling it in mUOS settings."
+            elif [[ "$SSH_OUTPUT" == *"Connection timed out"* ]]; then
+                echo "Check that your handheld is powered on and connected to your network."
+            fi
             exit 1
         fi
+        
         echo "Connection successful"
     fi
 }
