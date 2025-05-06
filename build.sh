@@ -38,34 +38,32 @@ echoWarning() {
 }
 
 verifyConnection() {
-    if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
-        echoHeader "Verifying connection to $HANDHELD_IP"
-        
-        # Set up verbose output capture for SSH connection attempt
-        SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
-        SSH_STATUS=$?
-        
-        if [ $SSH_STATUS -ne 0 ]; then
-            echo "${SSH_OUTPUT}"
-            echoError "Could not connect to ${HANDHELD_IP}."
-            if [[ "$SSH_OUTPUT" == *"Host key verification failed"* ]]; then
-                echo "Your handheld's IP address may have changed, try:"
-                echo "  ssh-keygen -R ${HANDHELD_IP}"
-                echo "  ssh -o StrictHostKeyChecking=accept-new root@${HANDHELD_IP} exit"
-                echo "Consider setting up reserved IPs in your router to prevent changes."
-            elif [[ "$SSH_OUTPUT" == *"Permission denied"* ]]; then
-                echo "Your SSH key may not be authorized on the device. Try:"
-                echo "  ssh-copy-id -i ${PRIVATE_KEY_PATH}.pub root@${HANDHELD_IP}"
-            elif [[ "$SSH_OUTPUT" == *"Connection refused"* ]]; then
-                echo "Your handheld may not have SSH enabled. Try enabling it in mUOS settings."
-            elif [[ "$SSH_OUTPUT" == *"Connection timed out"* ]]; then
-                echo "Check that your handheld is powered on and connected to your network."
-            fi
-            exit 1
+    echoHeader "Verifying connection to $HANDHELD_IP"
+    
+    # Set up verbose output capture for SSH connection attempt
+    SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
+    SSH_STATUS=$?
+    
+    if [ $SSH_STATUS -ne 0 ]; then
+        echo "${SSH_OUTPUT}"
+        echoError "Could not connect to ${HANDHELD_IP}."
+        if [[ "$SSH_OUTPUT" == *"Host key verification failed"* ]]; then
+            echo "Your handheld's IP address may have changed, try:"
+            echo "  ssh-keygen -R ${HANDHELD_IP}"
+            echo "  ssh -o StrictHostKeyChecking=accept-new root@${HANDHELD_IP} exit"
+            echo "Consider setting up reserved IPs in your router to prevent changes."
+        elif [[ "$SSH_OUTPUT" == *"Permission denied"* ]]; then
+            echo "Your SSH key may not be authorized on the device. Try:"
+            echo "  ssh-copy-id -i ${PRIVATE_KEY_PATH}.pub root@${HANDHELD_IP}"
+        elif [[ "$SSH_OUTPUT" == *"Connection refused"* ]]; then
+            echo "Your handheld may not have SSH enabled. Try enabling it in mUOS settings."
+        elif [[ "$SSH_OUTPUT" == *"Connection timed out"* ]]; then
+            echo "Check that your handheld is powered on and connected to your network."
         fi
-        
-        echo "Connection successful"
+        exit 1
     fi
+    
+    echo "Connection successful"
 }
 
 # Process command line arguments
