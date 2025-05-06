@@ -5,7 +5,7 @@
 
 # Source muOS system functions
 . /opt/muos/script/var/func.sh # For `GET_VAR`, `SET_VAR`
-. -n /opt/muos/script/package/theme.sh # For `theme.sh` `install` function
+. /opt/muos/script/package/theme.sh # For `theme.sh` `install` function
 
 # Define paths
 # `$(GET_VAR "device" "storage/rom/mount")` will resolve to either `/mnt/mmc` (SD1) or `/mnt/sdcard` (SD2)
@@ -41,3 +41,5 @@ export HEIGHT
 cd "$ROOT_DIR" || exit
 SET_VAR "system" "foreground_process" "love"
 ./bin/love .
+
+# TODO: `unset` environment variables
