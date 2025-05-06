@@ -186,8 +186,10 @@ scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCH
 echoHeader "Extracting on $HANDHELD_IP"
 ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
 
-# echoHeader "Attempting to run"
-# ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "echo 'flip' > /tmp/act_go"
-
-echo "Done!"
-
+echoHeader "Launching application on $HANDHELD_IP"
+ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+    . /opt/muos/script/var/func.sh
+    killall -9 \$(GET_VAR \"system\" \"foreground_process\")
+    /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
+    echo \"0\" > /tmp/safe_quit
+"
