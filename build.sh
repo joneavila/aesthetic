@@ -16,7 +16,6 @@
 #   ./build.sh ~/.ssh/id_ed25519 192.168.68.123
 #   ./build.sh --clean ~/.ssh/id_ed25519 192.168.68.123
 
-# Print in color
 echoHeader() {
     local text="$1"
     local CYAN="\033[36m"
@@ -24,17 +23,23 @@ echoHeader() {
     echo -e "${CYAN}${text}${RESET}"
 }
 
-# Print in color to stderr
 echoError() {
     local text="$1"
     local RED="\033[31m"
     local RESET="\033[0m"
-    echo -e "${RED}${text}${RESET}" >&2
+    echo -e "${RED}Error: ${text}${RESET}" >&2
+}
+
+echoWarning() {
+    local text="$1"
+    local YELLOW="\033[33m"
+    local RESET="\033[0m"
+    echo -e "Warning: ${YELLOW}${text}${RESET}"
 }
 
 verifyConnection() {
     if [ -n "$PRIVATE_KEY_PATH" ] && [ -n "$HANDHELD_IP" ]; then
-        echoHeader "Checking connection to $HANDHELD_IP"
+        echoHeader "Verifying connection to $HANDHELD_IP"
         
         # Set up verbose output capture for SSH connection attempt
         SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
@@ -42,7 +47,7 @@ verifyConnection() {
         
         if [ $SSH_STATUS -ne 0 ]; then
             echo "${SSH_OUTPUT}"
-            echoError "Error: Could not connect to ${HANDHELD_IP}."
+            echoError "Could not connect to ${HANDHELD_IP}."
             if [[ "$SSH_OUTPUT" == *"Host key verification failed"* ]]; then
                 echo "Your handheld's IP address may have changed, try:"
                 echo "  ssh-keygen -R ${HANDHELD_IP}"
@@ -83,7 +88,7 @@ fi
 DIST_DIR=".dist"
 BUILD_DIR=".build"
 
-# Handheld directories
+# Target directories
 APP_DIR="mnt/mmc/MUOS/application/Aesthetic"
 APP_GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
 
@@ -129,7 +134,7 @@ ITEMS_TO_DELETE=(
 # Remove previous installation files if requested
 if [ "$CLEAN" = true ]; then
     if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
-        echo "Error: --clean requires both PRIVATE_KEY_PATH and HANDHELD_IP"
+        echoError "--clean requires both PRIVATE_KEY_PATH and HANDHELD_IP"
         exit 1
     fi
     
@@ -139,7 +144,6 @@ if [ "$CLEAN" = true ]; then
     for file in "${ITEMS_TO_DELETE[@]}"; do
         # Remove leading ./ if present
         remote_file="${file#./}"
-        
         if [[ "$remote_file" == *"*"* ]]; then
             ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "for f in ${remote_file}; do if [ -e \"\$f\" ]; then rm -rf \"\$f\" && echo \"\$f\"; fi; done"
         else
@@ -155,28 +159,20 @@ fi
 
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
-rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" && echo "mux_launch.sh" || { echo "Failed to copy mux_launch.sh"; exit 1; }
-rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" && echo "src/" || { echo "Failed to copy src/"; exit 1; }
-rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" && echo "bin/" || { echo "Failed to copy bin/"; exit 1; }
-rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" && echo "lib/" || { echo "Failed to copy lib/"; exit 1; }
-rsync -aq src/tove/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/tove" && echo "src/tove/" || { echo "Failed to copy src/tove/"; exit 1; }
-rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" && echo "assets/" || { echo "Failed to copy assets/"; exit 1; }
-rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" && echo "aesthetic.png" || { echo "Failed to copy aesthetic.png"; exit 1; }
+rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || { echoError "Failed to copy mux_launch.sh"; exit 1; }
+rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" || { echoError "Failed to copy src/"; exit 1; }
+rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" || { echoError "Failed to copy bin/"; exit 1; }
+rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" || { echoError "Failed to copy lib/"; exit 1; }
+rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" || { echoError "Failed to copy assets/"; exit 1; }
+rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to copy aesthetic.png"; exit 1; }
 
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving
 (cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") || { echoError "Failed to create archive"; exit 1; }
 echo "Created ${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
 
-echoHeader "Cleaning up temporary files"
-# TODO Exit if remove fails?
-rm -rf "${BUILD_DIR}" || { echoError "Failed to remove build directory"; }
-
-if [ -z "$PRIVATE_KEY_PATH" ] && [ -z "$HANDHELD_IP" ]; then
-    echo "Skipping upload. To enable automatic upload, provide PRIVATE_KEY_PATH and HANDHELD_IP arguments."
-    echo "Done!"
-    exit 0
-fi
+echoHeader "Removing build directory"
+rm -rf "${BUILD_DIR}" || { echoWarning "Failed to remove build directory, continuing anyway"; }
 
 if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
     echo "Skipping upload. To enable automatic upload, provide PRIVATE_KEY_PATH and HANDHELD_IP arguments."
