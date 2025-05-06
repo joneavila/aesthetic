@@ -16,20 +16,20 @@
 #   ./build.sh ~/.ssh/id_ed25519 192.168.68.123
 #   ./build.sh --clean ~/.ssh/id_ed25519 192.168.68.123
 
-# Color formatting functions
-printRed() {
+# Print in color
+echoHeader() {
+    local text="$1"
+    local CYAN="\033[36m"
+    local RESET="\033[0m"
+    echo -e "${CYAN}${text}${RESET}"
+}
+
+# Print in color to stderr
+echoError() {
     local text="$1"
     local RED="\033[31m"
     local RESET="\033[0m"
     echo -e "${RED}${text}${RESET}" >&2
-}
-
-# Display formatted message
-echoHeader() {
-    local text="$1"
-    local MAGENTA="\033[35m"
-    local RESET="\033[0m"
-    echo -e "${MAGENTA}${text}${RESET}"
 }
 
 # Verify SSH connection to the handheld
@@ -43,7 +43,7 @@ checkConnection() {
         
         if [ $SSH_STATUS -ne 0 ]; then
             echo "${SSH_OUTPUT}"
-            printRed "Error: Could not connect to ${HANDHELD_IP}."
+            echoError "Error: Could not connect to ${HANDHELD_IP}."
             if [[ "$SSH_OUTPUT" == *"Host key verification failed"* ]]; then
                 echo "Your handheld's IP address may have changed, try:"
                 echo "  ssh-keygen -R ${HANDHELD_IP}"
