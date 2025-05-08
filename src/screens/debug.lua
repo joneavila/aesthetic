@@ -1,9 +1,11 @@
 --- Debug screen for development purposes
 local love = require("love")
 local state = require("state")
-local controls = require("controls")
 local background = require("ui.background")
 local header = require("ui.header")
+local input = require("input")
+local logger = require("utils.logger")
+local colors = require("colors")
 
 -- Module table to export public functions
 local debug = {}
@@ -11,96 +13,20 @@ local debug = {}
 -- Screen switching
 local switchScreen = nil
 
--- Debug state
-local lastButtonPressed = ""
-local lastAxisMoved = ""
-local axisValues = {}
-local rawButtonValues = {}
-local nonStandardButtonsPressed = {}
-
--- Gamepad button list (from GamepadButton enum)
-local gamepadButtons = {
-	"a",
-	"b",
-	"x",
-	"y",
-	"start",
-	"back",
-	"guide",
-	"leftstick",
-	"rightstick",
-	"leftshoulder",
-	"rightshoulder",
-	"dpup",
-	"dpdown",
-	"dpleft",
-	"dpright",
-}
-
--- Non-standard buttons to detect
-local nonStandardButtons = {
-	"power",
-	"volumeup",
-	"volumedown",
-	"l2trigger",
-	"r2trigger",
-}
-
--- Gamepad axis list (from GamepadAxis enum)
-local gamepadAxes = {
-	"leftx",
-	"lefty",
-	"rightx",
-	"righty",
-	"triggerleft",
-	"triggerright",
-}
-
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)
-	return virtualJoystick.isGamepadPressedWithDelay("dpleft") and virtualJoystick.isGamepadPressedWithDelay("a")
+	return virtualJoystick.isButtonCombinationPressed({ "dpleft", "a" })
 end
 
--- Safely check if a gamepad button is supported and pressed
-local function safeIsGamepadDown(joystick, button)
-	local success, result = pcall(function()
-		return joystick.isGamepadPressedWithDelay(button)
-	end)
-
-	return success and result
-end
-
--- Safely get gamepad axis value
-local function safeGetGamepadAxis(joystick, axis)
-	local success, result = pcall(function()
-		return joystick:getGamepadAxis(axis)
-	end)
-
-	return success and result or 0
-end
-
--- Safely get raw button state (for detecting any button)
-local function getRawButtonValue(joystick, button)
-	local success, result = pcall(function()
-		return joystick:isDown(button)
-	end)
-
-	return success and result or false
+-- Function to get text height with padding
+local function getTextHeight(padding)
+	padding = padding or 5
+	local font = love.graphics.getFont()
+	return font:getHeight() + padding
 end
 
 function debug.load()
 	-- Initialize debug screen
-	axisValues = {}
-	for _, axis in ipairs(gamepadAxes) do
-		axisValues[axis] = 0
-	end
-
-	-- Initialize raw button detection
-	rawButtonValues = {}
-	nonStandardButtonsPressed = {}
-	for _, button in ipairs(nonStandardButtons) do
-		nonStandardButtonsPressed[button] = false
-	end
 end
 
 function debug.draw()
@@ -110,156 +36,139 @@ function debug.draw()
 
 	-- Set default body font
 	love.graphics.setFont(state.fonts.body)
+	local lineHeight = getTextHeight()
 
-	-- Calculate text position (below header)
-	local textY = header.getHeight() + 20
+	-- Get joystick information
+	local joysticks = love.joystick.getJoysticks()
 
-	-- Draw last button pressed text
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.print("Last button pressed: " .. lastButtonPressed, 20, textY)
-	textY = textY + 30
+	-- Draw joystick diagnostic info
+	local textY = header.getHeight()
+	love.graphics.setColor(colors.ui.foreground)
 
-	-- Draw last axis moved text
-	love.graphics.print("Last axis moved: " .. lastAxisMoved, 20, textY)
-	textY = textY + 30
+	-- Get the physical joystick
+	local physicalJoystick = joysticks[1]
 
-	-- Draw all axis values
-	love.graphics.setColor(0.8, 0.8, 1, 1)
-	love.graphics.print("Axis values:", 20, textY)
-	textY = textY + 25
+	if physicalJoystick then
+		-- Draw D-pad states
+		textY = textY + lineHeight
+		love.graphics.setColor(colors.ui.red)
+		love.graphics.print("D-Pad States:", 20, textY)
+		textY = textY + lineHeight
 
-	for _, axis in ipairs(gamepadAxes) do
-		local value = axisValues[axis] or 0
-		love.graphics.print(axis .. ": " .. string.format("%.3f", value), 30, textY)
-		textY = textY + 20
-	end
+		local labelX = 30
 
-	-- Draw all available buttons
-	textY = textY + 10
-	love.graphics.setColor(0.8, 1, 0.8, 1)
-	love.graphics.print("Available buttons:", 20, textY)
-	textY = textY + 25
+		-- Check for D-pad buttons via gamepad API
+		local upPressed = false
+		local rightPressed = false
+		local downPressed = false
+		local leftPressed = false
 
-	local virtualJoystick = require("input").virtualJoystick
-	local col1Y = textY
-	local col2Y = textY
+		-- Try to get button states, with error handling
+		local dpad_success, dpad_error = pcall(function()
+			upPressed = physicalJoystick:isGamepadDown("dpup")
+			rightPressed = physicalJoystick:isGamepadDown("dpright")
+			downPressed = physicalJoystick:isGamepadDown("dpdown")
+			leftPressed = physicalJoystick:isGamepadDown("dpleft")
 
-	for i, button in ipairs(gamepadButtons) do
-		local y = i <= #gamepadButtons / 2 and col1Y or col2Y
-		local x = i <= #gamepadButtons / 2 and 30 or 200
+			-- Log button states
+			logger.debug(
+				"D-pad buttons state - Up: "
+					.. tostring(upPressed)
+					.. ", Right: "
+					.. tostring(rightPressed)
+					.. ", Down: "
+					.. tostring(downPressed)
+					.. ", Left: "
+					.. tostring(leftPressed)
+			)
+		end)
 
-		local isDown = safeIsGamepadDown(virtualJoystick, button)
+		if not dpad_success then
+			logger.error("Error getting D-pad button states: " .. tostring(dpad_error))
+		end
 
-		if isDown ~= nil then
-			love.graphics.setColor(isDown and 1 or 0.6, isDown and 0.6 or 0.6, isDown and 0.6 or 0.6, 1)
-			love.graphics.print(button, x, y)
+		-- Up
+		if upPressed then
+			love.graphics.setColor(colors.ui.green) -- Green for active
+		else
+			love.graphics.setColor(colors.ui.surface_dim) -- Gray for inactive
+		end
+		love.graphics.print("Up", labelX + 30, textY)
+		textY = textY + lineHeight
 
-			if i <= #gamepadButtons / 2 then
-				col1Y = col1Y + 20
+		-- Right
+		if rightPressed then
+			love.graphics.setColor(colors.ui.green)
+		else
+			love.graphics.setColor(colors.ui.surface_dim)
+		end
+		love.graphics.print("Right", labelX + 30, textY)
+		textY = textY + lineHeight
+
+		-- Down
+		if downPressed then
+			love.graphics.setColor(colors.ui.green)
+		else
+			love.graphics.setColor(colors.ui.surface_dim)
+		end
+		love.graphics.print("Down", labelX + 30, textY)
+		textY = textY + lineHeight
+
+		-- Left
+		if leftPressed then
+			love.graphics.setColor(colors.ui.green)
+		else
+			love.graphics.setColor(colors.ui.surface_dim)
+		end
+		love.graphics.print("Left", labelX + 30, textY)
+		textY = textY + lineHeight * 1.5
+
+		-- Draw raw button state (direct button access)
+		love.graphics.setColor(colors.ui.accent)
+		love.graphics.print("Raw Button States:", 20, textY)
+		textY = textY + lineHeight
+
+		local buttonCount = physicalJoystick:getButtonCount()
+		local col1Y = textY
+		local col2Y = textY
+
+		for i = 1, buttonCount do
+			local y = i <= buttonCount / 2 and col1Y or col2Y
+			local x = i <= buttonCount / 2 and 30 or 200
+
+			local isDown = false
+			-- Try to get button state, with error handling
+			pcall(function()
+				isDown = physicalJoystick:isDown(i - 1) -- Joystick buttons are 0-indexed
+			end)
+
+			-- Set color to green if button is pressed, otherwise normal color
+			if isDown then
+				love.graphics.setColor(colors.ui.green) -- Green for pressed buttons
 			else
-				col2Y = col2Y + 20
+				love.graphics.setColor(colors.ui.subtext) -- Gray for unpressed buttons
+			end
+
+			love.graphics.print("Button " .. (i - 1), x, y)
+
+			if i <= buttonCount / 2 then
+				col1Y = col1Y + lineHeight
+			else
+				col2Y = col2Y + lineHeight
 			end
 		end
-	end
-
-	-- Draw non-standard buttons section
-	textY = textY + math.max(col1Y - textY, col2Y - textY) + 20
-	love.graphics.setColor(1, 0.8, 0.8, 1)
-	love.graphics.print("Non-standard buttons:", 20, textY)
-	textY = textY + 25
-
-	for _, button in ipairs(nonStandardButtons) do
-		local isDown = nonStandardButtonsPressed[button] or false
-		love.graphics.setColor(isDown and 1 or 0.6, isDown and 0.6 or 0.6, isDown and 0.6 or 0.6, 1)
-		love.graphics.print(button, 30, textY)
-		textY = textY + 20
-	end
-
-	-- Draw raw button values section
-	textY = textY + 10
-	love.graphics.setColor(0.8, 0.8, 0.8, 1)
-	love.graphics.print("Raw button activity:", 20, textY)
-	textY = textY + 25
-
-	local rawTextY = textY
-	local maxRawButtons = 8 -- Max number of raw buttons to display
-	local displayCount = 0
-
-	for button, value in pairs(rawButtonValues) do
-		if value and displayCount < maxRawButtons then
-			love.graphics.setColor(1, 1, 1, 1)
-			love.graphics.print("Button " .. button .. ": " .. tostring(value), 30, rawTextY)
-			rawTextY = rawTextY + 20
-			displayCount = displayCount + 1
-		end
-	end
-
-	if displayCount == 0 then
-		love.graphics.setColor(0.7, 0.7, 0.7, 1)
-		love.graphics.print("Press any button to see raw values", 30, rawTextY)
 	end
 
 	-- Show instructions to exit
-	local instructionsY = love.graphics.getHeight() - 50
-	love.graphics.setColor(0.7, 0.7, 0.7, 1)
-	love.graphics.print("Press D-pad Left + A to return to main menu", 20, instructionsY)
+	local instructionsY = love.graphics.getHeight() - lineHeight * 2
+	love.graphics.setColor(colors.ui.subtext)
+	love.graphics.print("Press D-Pad Left + A to return to main menu", 20, instructionsY)
 end
 
-function debug.update(dt)
-	local virtualJoystick = require("input").virtualJoystick
+function debug.update(_dt)
+	local virtualJoystick = input.virtualJoystick
 
-	-- Check for button presses
-	for _, button in ipairs(gamepadButtons) do
-		local isDown = safeIsGamepadDown(virtualJoystick, button)
-
-		if isDown then
-			-- Update last button pressed (only if it's not part of the exit combo)
-			if
-				not (button == "dpleft" and safeIsGamepadDown(virtualJoystick, "a"))
-				and not (button == "a" and safeIsGamepadDown(virtualJoystick, "dpleft"))
-			then
-				lastButtonPressed = button
-			end
-		end
-	end
-
-	-- Check for non-standard button presses
-	for _, button in ipairs(nonStandardButtons) do
-		local isDown = safeIsGamepadDown(virtualJoystick, button)
-		nonStandardButtonsPressed[button] = isDown
-
-		if isDown then
-			lastButtonPressed = button
-		end
-	end
-
-	-- Detect raw button presses (detect any button)
-	for i = 1, 32 do -- Check a reasonable number of possible buttons
-		local isDown = getRawButtonValue(virtualJoystick, i)
-		if isDown then
-			rawButtonValues[i] = true
-			-- Update last button pressed
-			lastButtonPressed = "Raw:" .. i
-		else
-			-- Clear the value if not pressed
-			rawButtonValues[i] = nil
-		end
-	end
-
-	-- Check axis movements
-	for _, axis in ipairs(gamepadAxes) do
-		local value = safeGetGamepadAxis(virtualJoystick, axis)
-
-		-- Store the axis value
-		axisValues[axis] = value
-
-		-- Update last axis moved if there's significant movement
-		if math.abs(value) > 0.25 then
-			lastAxisMoved = axis .. " (" .. string.format("%.2f", value) .. ")"
-		end
-	end
-
-	-- Return to main menu with the same button combination
+	-- Return to main menu with the button combination
 	if isDebugComboPressed(virtualJoystick) and switchScreen then
 		switchScreen("main_menu")
 	end
@@ -271,24 +180,10 @@ end
 
 function debug.onEnter()
 	-- Reset when entering
-	lastButtonPressed = ""
-	lastAxisMoved = ""
-	for _, axis in ipairs(gamepadAxes) do
-		axisValues[axis] = 0
-	end
-
-	-- Clear button detection
-	rawButtonValues = {}
-	nonStandardButtonsPressed = {}
-	for _, button in ipairs(nonStandardButtons) do
-		nonStandardButtonsPressed[button] = false
-	end
 end
 
 function debug.onExit()
 	-- Clean up when exiting the screen
-	rawButtonValues = {}
-	nonStandardButtonsPressed = {}
 end
 
 return debug

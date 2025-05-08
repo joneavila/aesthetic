@@ -4,6 +4,8 @@
 --- to ensure consistent input handling across all screens. Use this function for all navigation and action input
 --- checks. To override, pass a custom delay as the second argument.
 local love = require("love")
+local logger = require("utils.logger")
+
 local input = {}
 
 local joystick
@@ -13,11 +15,12 @@ local virtualJoystick = {}
 local DEFAULT_INPUT_DELAY = 0.2
 -- Table to track last press time for each button
 local lastButtonPress = {}
+-- Table to track last press time for button combinations
+local lastCombinationPress = {}
 
 -- Virtual joystick key mappings
 -- Useful for testing application while developing
 local keyToButton = {
-
 	["return"] = "start", -- Start
 	["space"] = "back", -- Back (Select)
 	["escape"] = "guide", -- Guide (M)
@@ -77,7 +80,60 @@ function virtualJoystick.isGamepadPressedWithDelay(button, delay)
 	return false
 end
 
+-- Function for checking button combinations with delay
+-- Accepts an array of button names that must all be pressed simultaneously
+-- Returns true once per delay interval when the combination is pressed
+function virtualJoystick.isButtonCombinationPressed(buttons, delay)
+	delay = delay or DEFAULT_INPUT_DELAY
+	local now = love.timer.getTime()
+
+	-- Check if buttons parameter is valid
+	if not buttons or type(buttons) ~= "table" or #buttons == 0 then
+		error("Buttons parameter must be a non-empty table")
+	end
+
+	-- Create a unique key for this combination
+	local combinationKey = table.concat(buttons, "+")
+
+	-- Check if all buttons are currently pressed
+	local allButtonsPressed = true
+	for _, button in ipairs(buttons) do
+		local isPressed = false
+
+		-- Check physical gamepad
+		if joystick and joystick:isGamepadDown(button) then
+			isPressed = true
+		else
+			-- Check keyboard mappings
+			for key, mappedButton in pairs(keyToButton) do
+				if mappedButton == button and love.keyboard.isDown(key) then
+					isPressed = true
+					break
+				end
+			end
+		end
+
+		if not isPressed then
+			allButtonsPressed = false
+			break
+		end
+	end
+
+	-- Apply delay logic
+	if allButtonsPressed then
+		if not lastCombinationPress[combinationKey] or now - lastCombinationPress[combinationKey] >= delay then
+			lastCombinationPress[combinationKey] = now
+			return true
+		end
+	else
+		lastCombinationPress[combinationKey] = nil -- Reset on release
+	end
+
+	return false
+end
+
 function input.load()
+	-- Load gamepad mappings before initializing joystick
 	local joysticks = love.joystick.getJoysticks()
 	-- If there is at least one joystick connected, use the first one
 	if #joysticks > 0 then
@@ -86,28 +142,8 @@ function input.load()
 end
 
 function input.update(dt)
-	-- Check for global exit shortcut
-	local leftShoulderPressed = false
-	local rightShoulderPressed = false
-
-	if joystick and joystick:isGamepadDown("leftshoulder") then
-		leftShoulderPressed = true
-	end
-	if joystick and joystick:isGamepadDown("rightshoulder") then
-		rightShoulderPressed = true
-	end
-
-	-- Also check keyboard mappings
-	for key, mappedButton in pairs(keyToButton) do
-		if mappedButton == "leftshoulder" and love.keyboard.isDown(key) then
-			leftShoulderPressed = true
-		end
-		if mappedButton == "rightshoulder" and love.keyboard.isDown(key) then
-			rightShoulderPressed = true
-		end
-	end
-
-	if leftShoulderPressed and rightShoulderPressed then
+	-- Check for global exit shortcut using button combination
+	if virtualJoystick.isButtonCombinationPressed({ "leftshoulder", "rightshoulder" }) then
 		love.event.quit()
 	end
 end

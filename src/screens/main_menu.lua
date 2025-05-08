@@ -412,11 +412,7 @@ function menu.update(dt)
 	end
 
 	-- Handle debug screen
-	if
-		virtualJoystick.isGamepadPressedWithDelay("dpleft")
-		and virtualJoystick.isGamepadPressedWithDelay("a")
-		and switchScreen
-	then
+	if virtualJoystick.isButtonCombinationPressed({ "dpleft", "a" }) and switchScreen then
 		switchScreen("debug")
 		return
 	end
