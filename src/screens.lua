@@ -51,10 +51,6 @@ function screens.switchTo(screenName, tabName)
 	-- Set default font to ensure consistent rendering across screens
 	local state = require("state")
 	state.setDefaultFont()
-
-	-- Add consistent input delay when switching screens
-	state.resetInputTimer()
-	state.forceInputDelay(0.2)
 end
 
 function screens.draw()

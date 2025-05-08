@@ -58,13 +58,13 @@ local gamepadAxes = {
 
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)
-	return virtualJoystick:isGamepadDown("dpleft") and virtualJoystick:isGamepadDown("a")
+	return virtualJoystick.isGamepadPressedWithDelay("dpleft") and virtualJoystick.isGamepadPressedWithDelay("a")
 end
 
 -- Safely check if a gamepad button is supported and pressed
 local function safeIsGamepadDown(joystick, button)
 	local success, result = pcall(function()
-		return joystick:isGamepadDown(button)
+		return joystick.isGamepadPressedWithDelay(button)
 	end)
 
 	return success and result
@@ -208,10 +208,6 @@ end
 function debug.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	if not state.canProcessInput() then
-		return
-	end
-
 	-- Check for button presses
 	for _, button in ipairs(gamepadButtons) do
 		local isDown = safeIsGamepadDown(virtualJoystick, button)
@@ -266,8 +262,6 @@ function debug.update(dt)
 	-- Return to main menu with the same button combination
 	if isDebugComboPressed(virtualJoystick) and switchScreen then
 		switchScreen("main_menu")
-		state.resetInputTimer()
-		state.forceInputDelay(0.3) -- Add delay when switching screens
 	end
 end
 

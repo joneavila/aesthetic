@@ -292,109 +292,97 @@ function hex.draw()
 end
 
 function hex.update(_dt)
-	if state.canProcessInput() then
-		local virtualJoystick = require("input").virtualJoystick
+	local virtualJoystick = require("input").virtualJoystick
 
-		-- Get current color type state
-		local currentState = getCurrentHexState()
+	-- Get current color type state
+	local currentState = getCurrentHexState()
 
-		-- Handle D-pad navigation
-		if virtualJoystick:isGamepadDown("dpup") then
-			currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
+	-- Handle D-pad navigation
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
 
-			-- Skip empty buttons
-			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
-				currentState.selectedButton.col = currentState.selectedButton.col - 1
-				if currentState.selectedButton.col < 1 then
-					currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
-				end
-			end
-
-			state.resetInputTimer()
-		elseif virtualJoystick:isGamepadDown("dpdown") then
-			currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
-
-			-- Skip empty buttons
-			while
-				currentState.selectedButton.col > #buttons[currentState.selectedButton.row]
-				or buttons[currentState.selectedButton.row][currentState.selectedButton.col] == ""
-			do
-				currentState.selectedButton.col =
-					math.min(currentState.selectedButton.col, #buttons[currentState.selectedButton.row])
-				if buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" then
-					currentState.selectedButton.col = currentState.selectedButton.col - 1
-				end
-			end
-
-			state.resetInputTimer()
-		elseif virtualJoystick:isGamepadDown("dpleft") then
+		-- Skip empty buttons
+		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
 			currentState.selectedButton.col = currentState.selectedButton.col - 1
 			if currentState.selectedButton.col < 1 then
 				currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
 			end
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
 
-			-- Skip empty buttons
-			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
+		-- Skip empty buttons
+		while
+			currentState.selectedButton.col > #buttons[currentState.selectedButton.row]
+			or buttons[currentState.selectedButton.row][currentState.selectedButton.col] == ""
+		do
+			currentState.selectedButton.col =
+				math.min(currentState.selectedButton.col, #buttons[currentState.selectedButton.row])
+			if buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" then
 				currentState.selectedButton.col = currentState.selectedButton.col - 1
-				if currentState.selectedButton.col < 1 then
-					currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
-				end
 			end
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+		currentState.selectedButton.col = currentState.selectedButton.col - 1
+		if currentState.selectedButton.col < 1 then
+			currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
+		end
 
-			state.resetInputTimer()
-		elseif virtualJoystick:isGamepadDown("dpright") then
+		-- Skip empty buttons
+		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
+			currentState.selectedButton.col = currentState.selectedButton.col - 1
+			if currentState.selectedButton.col < 1 then
+				currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
+			end
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		currentState.selectedButton.col = currentState.selectedButton.col + 1
+		if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
+			currentState.selectedButton.col = 1
+		end
+
+		-- Skip empty buttons
+		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
 			currentState.selectedButton.col = currentState.selectedButton.col + 1
 			if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
 				currentState.selectedButton.col = 1
 			end
-
-			-- Skip empty buttons
-			while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
-				currentState.selectedButton.col = currentState.selectedButton.col + 1
-				if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
-					currentState.selectedButton.col = 1
-				end
-			end
-
-			state.resetInputTimer()
 		end
+	end
 
-		-- Handle button press (A button)
-		if virtualJoystick:isGamepadDown("a") then
-			local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
+	-- Handle button press (A button)
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
+		local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
 
-			if selectedButton == "BACKSPACE" then
-				-- Backspace - remove last character
-				if #currentState.input > 0 then
-					currentState.input = currentState.input:sub(1, -2)
-				end
-			elseif selectedButton == "CLEAR" then
-				-- Clear - remove all characters
-				currentState.input = ""
-			elseif selectedButton == "CONFIRM" then
-				-- Confirm - only if input is valid
-				if isValidHex(currentState.input) and switchScreen then
-					-- Create hex code
-					local hexCode = "#" .. currentState.input:upper()
+		if selectedButton == "BACKSPACE" then
+			-- Backspace - remove last character
+			if #currentState.input > 0 then
+				currentState.input = currentState.input:sub(1, -2)
+			end
+		elseif selectedButton == "CLEAR" then
+			-- Clear - remove all characters
+			currentState.input = ""
+		elseif selectedButton == "CONFIRM" then
+			-- Confirm - only if input is valid
+			if isValidHex(currentState.input) and switchScreen then
+				-- Create hex code
+				local hexCode = "#" .. currentState.input:upper()
 
-					-- Store in central state
-					local context = state.getColorContext(state.activeColorContext)
-					context.currentColor = hexCode
+				-- Store in central state
+				local context = state.getColorContext(state.activeColorContext)
+				context.currentColor = hexCode
 
-					-- Return to menu and apply the color
-					if switchScreen then
-						switchScreen(state.previousScreen)
-						state.setColorValue(state.activeColorContext, hexCode)
-					end
-				end
-			else
-				-- Add character if not at max length
-				if #currentState.input < hexState.maxInputLength then
-					currentState.input = currentState.input .. selectedButton
+				-- Return to menu and apply the color
+				if switchScreen then
+					switchScreen(state.previousScreen)
+					state.setColorValue(state.activeColorContext, hexCode)
 				end
 			end
-
-			state.resetInputTimer()
+		else
+			-- Add character if not at max length
+			if #currentState.input < hexState.maxInputLength then
+				currentState.input = currentState.input .. selectedButton
+			end
 		end
 	end
 end

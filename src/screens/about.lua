@@ -5,6 +5,7 @@ local controls = require("controls")
 local input = require("input")
 local version = require("version")
 local background = require("ui.background")
+local virtualJoystick = require("input").virtualJoystick
 
 local about = {}
 
@@ -77,10 +78,9 @@ function about.draw()
 end
 
 function about.update(_dt)
-	if state.canProcessInput() and input.virtualJoystick:isGamepadDown("b") then
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		if switchScreen then
 			switchScreen(MENU_SCREEN)
-			state.resetInputTimer()
 		end
 	end
 end

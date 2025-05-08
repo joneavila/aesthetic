@@ -62,8 +62,6 @@ local waitingThemePath = nil
 
 -- Modal input state tracking for handling press-and-hold
 local modalInputState = {
-	lastInputTime = 0,
-	inputDelay = 0.25, -- Minimum delay between inputs when holding a button
 	isFirstInput = true,
 }
 
@@ -230,9 +228,6 @@ local function handleThemeCreation()
 			{ text = "Apply theme later", selected = false },
 			{ text = "Apply theme now", selected = true },
 		})
-		-- Add input delay to prevent immediately processing inputs after modal appears
-		state.resetInputTimer()
-		state.forceInputDelay(0.5)
 	else
 		errorHandler.showErrorModal("Error creating theme")
 	end
@@ -267,12 +262,10 @@ local function toggleModalButtonSelection(modalButtons)
 	for _, btn in ipairs(modalButtons) do
 		btn.selected = not btn.selected
 	end
-	state.resetInputTimer()
 end
 
 -- Reset modal input state
 local function resetModalInputState()
-	modalInputState.lastInputTime = 0
 	modalInputState.isFirstInput = true
 end
 
@@ -283,26 +276,23 @@ local function handleModalNavigation(virtualJoystick, dt)
 		return -- Skip navigation for buttonless modals
 	end
 
-	-- Update last input time
-	modalInputState.lastInputTime = modalInputState.lastInputTime + dt
-
-	-- Handle navigation for modal buttons with input throttling
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		-- Allow immediate input for first press, then enforce delay for subsequent inputs
-		if modalInputState.isFirstInput or modalInputState.lastInputTime >= modalInputState.inputDelay then
-			toggleModalButtonSelection(modalButtons)
-			modalInputState.lastInputTime = 0
-			modalInputState.isFirstInput = false
-		end
+	-- Handle navigation for modal buttons
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		toggleModalButtonSelection(modalButtons)
+		modalInputState.isFirstInput = false
 	else
 		-- Reset first input flag when buttons are released
-		if not (virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown")) then
+		if
+			not (
+				virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown")
+			)
+		then
 			modalInputState.isFirstInput = true
 		end
 	end
 
 	-- Handle selection in modals (A button)
-	if virtualJoystick:isGamepadDown("a") then
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		if modalState == "created" then
 			for i, btn in ipairs(modalButtons) do
 				if btn.selected then
@@ -310,7 +300,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 						modal.hideModal()
 						modalState = "none"
 						resetModalInputState()
-						state.forceInputDelay(0.3) -- Add delay when closing the modal
 					else -- Apply theme now button
 						-- Set the theme path for installation
 						waitingThemePath = createdThemePath
@@ -320,7 +309,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 
 						modalState = "none"
 						resetModalInputState()
-						state.resetInputTimer()
 
 						-- Set waiting state to install theme after modal transitions
 						waitingState = "install_theme"
@@ -329,12 +317,10 @@ local function handleModalNavigation(virtualJoystick, dt)
 					break
 				end
 			end
-			state.resetInputTimer()
 		elseif modalState == "manual" or modalState == "automatic" then
 			modal.hideModal()
 			modalState = "none"
 			resetModalInputState()
-			state.forceInputDelay(0.3) -- Add extra delay when closing the modal
 		else
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
@@ -344,7 +330,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 			end
 			modal.hideModal()
 			resetModalInputState()
-			state.forceInputDelay(0.2) -- Add delay after handling default modals
 		end
 	end
 end
@@ -365,11 +350,9 @@ local function handleSelectedButton(btn)
 		else
 			state.fontSize = "Default"
 		end
-		state.resetInputTimer()
 	elseif btn.glyphsToggle then
 		-- Toggle glyphs enabled state
 		state.glyphs_enabled = not state.glyphs_enabled
-		state.resetInputTimer()
 	elseif btn.navAlignToggle then
 		-- Toggle navigation alignment between "Left", "Center", and "Right"
 		if state.navigationAlignment == "Left" then
@@ -379,7 +362,6 @@ local function handleSelectedButton(btn)
 		else
 			state.navigationAlignment = "Left"
 		end
-		state.resetInputTimer()
 	elseif btn.rgbLighting and switchScreen then
 		-- RGB lighting screen
 		switchScreen("rgb")
@@ -422,32 +404,27 @@ function menu.update(dt)
 	end
 
 	if modal.isModalVisible() then
-		-- Show controls for modals with buttons
 		if #modal.getModalButtons() > 0 then
 			controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
 		end
 		handleModalNavigation(virtualJoystick, dt)
-		return -- Don't process other input while modal is shown
-	end
-
-	if not state.canProcessInput() then
 		return
 	end
 
-	-- Check for debug screen button combination (D-pad Left + A)
-	if virtualJoystick:isGamepadDown("dpleft") and virtualJoystick:isGamepadDown("a") and switchScreen then
+	-- Handle debug screen
+	if
+		virtualJoystick.isGamepadPressedWithDelay("dpleft")
+		and virtualJoystick.isGamepadPressedWithDelay("a")
+		and switchScreen
+	then
 		switchScreen("debug")
-		state.resetInputTimer()
-		state.forceInputDelay(0.3) -- Add delay when switching screens
 		return
 	end
 
-	-- Split buttons into navigation groups
 	local regularButtons = {}
 	local bottomButtons = {}
-	local navButtons = {} -- Combined navigation order
+	local navButtons = {}
 
-	-- Collect regular and bottom buttons separately
 	for _, btn in ipairs(menu.BUTTONS) do
 		if btn.isBottomButton then
 			table.insert(bottomButtons, btn)
@@ -465,26 +442,19 @@ function menu.update(dt)
 	end
 
 	-- Handle D-pad navigation
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
-
-		-- Use list navigation helper
-		list.navigate(navButtons, direction)
-
-		state.resetInputTimer()
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		list.navigate(navButtons, -1)
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		list.navigate(navButtons, 1)
 	end
 
-	-- Handle D-pad left/right for cycling through options
-	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
-
-		-- Find the selected button
+	-- Handle cycling through options
+	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
 		for _, btn in ipairs(menu.BUTTONS) do
 			if btn.selected then
 				if btn.fontSizeToggle then
-					-- Toggle font size
 					if direction > 0 then
-						-- Go forward
 						if state.fontSize == "Default" then
 							state.fontSize = "Large"
 						elseif state.fontSize == "Large" then
@@ -493,7 +463,6 @@ function menu.update(dt)
 							state.fontSize = "Default"
 						end
 					else
-						-- Go backward
 						if state.fontSize == "Default" then
 							state.fontSize = "Extra Large"
 						elseif state.fontSize == "Extra Large" then
@@ -502,15 +471,10 @@ function menu.update(dt)
 							state.fontSize = "Default"
 						end
 					end
-					state.resetInputTimer()
 				elseif btn.glyphsToggle then
-					-- Toggle glyphs enabled
 					state.glyphs_enabled = not state.glyphs_enabled
-					state.resetInputTimer()
 				elseif btn.navAlignToggle then
-					-- Toggle navigation alignment
 					if direction > 0 then
-						-- Go forward
 						if state.navigationAlignment == "Left" then
 							state.navigationAlignment = "Center"
 						elseif state.navigationAlignment == "Center" then
@@ -519,7 +483,6 @@ function menu.update(dt)
 							state.navigationAlignment = "Left"
 						end
 					else
-						-- Go backward
 						if state.navigationAlignment == "Left" then
 							state.navigationAlignment = "Right"
 						elseif state.navigationAlignment == "Right" then
@@ -528,17 +491,15 @@ function menu.update(dt)
 							state.navigationAlignment = "Left"
 						end
 					end
-					state.resetInputTimer()
 				end
 				break
 			end
 		end
 	end
 
-	-- Handle B button (Exit)
-	if virtualJoystick:isGamepadDown("b") then
+	-- Handle exit
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		logger.debug("Main menu handling B button")
-		-- Restore original RGB configuration if no theme was applied
 		if not state.themeApplied then
 			rgbUtils.restoreConfig()
 		end
@@ -546,15 +507,14 @@ function menu.update(dt)
 		return
 	end
 
-	-- Handle Start button (Settings)
-	if virtualJoystick:isGamepadDown("start") and switchScreen then
+	-- Handle settings screen
+	if virtualJoystick.isGamepadPressedWithDelay("start") and switchScreen then
 		switchScreen("settings")
 		return
 	end
 
-	-- Handle A button (Select)
-	if virtualJoystick:isGamepadDown("a") then
-		-- Find which button is selected
+	-- Handle select
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		for _, btn in ipairs(menu.BUTTONS) do
 			if btn.selected then
 				handleSelectedButton(btn)
@@ -565,7 +525,7 @@ function menu.update(dt)
 
 	-- Update scroll position based on selected button
 	local selectedIndex = list.findSelectedIndex(regularButtons)
-	if selectedIndex > 0 then -- When a regular button is selected
+	if selectedIndex > 0 then
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = selectedIndex,
 			scrollPosition = scrollPosition,
@@ -574,9 +534,6 @@ function menu.update(dt)
 	else
 		-- When focus is on bottom button, use last selected index for proper positioning
 		local lastSelectedIndex = list.getLastSelectedIndex()
-
-		-- Adjust scroll position based on the last selected index in the regular list
-		-- This will be skipped if transitioning to the bottom button (no extra scroll)
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = lastSelectedIndex,
 			scrollPosition = scrollPosition,

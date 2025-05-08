@@ -237,13 +237,9 @@ function box_art.update(dt)
 		animatedRightWidth = tweenObj.rightWidth
 	end
 
-	if not state.canProcessInput() then
-		return
-	end
-
 	-- Handle left/right to change box art width value
-	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
 		local btn = BUTTONS[1]
 
 		-- Calculate new option index
@@ -276,15 +272,11 @@ function box_art.update(dt)
 
 		-- Create tween with current values as starting point - using inOutQuad for ease in ease out
 		currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
-
-		state.resetInputTimer()
 	end
 
 	-- Handle B button to return to menu
-	if virtualJoystick:isGamepadDown("b") and switchScreen then
+	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen(MENU_SCREEN)
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 	end
 end
 

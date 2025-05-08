@@ -19,27 +19,8 @@ local logger = require("utils.logger")
 local errorHandler = require("error_handler")
 local rgbUtils = require("utils.rgb")
 
--- Input delay handling
-local lastInpuSeconds = 0
-local inputDelaySeconds = 0.2
-local screens = nil -- Will hold the screens module after initialization
-
-function state.canProcessInput()
-	return lastInpuSeconds >= inputDelaySeconds
-end
-
-function state.resetInputTimer()
-	lastInpuSeconds = 0
-end
-
-function state.forceInputDelay(extraDelay)
-	-- Set lastInputSeconds to a negative value to force an additional delay
-	lastInpuSeconds = -extraDelay
-end
-
-local function updateInputTimer(dt)
-	lastInpuSeconds = lastInpuSeconds + dt
-end
+-- Screens module will be initialized after loading
+local screens = nil
 
 -- Function to setup fonts based on reference resolution and aspect ratio
 local function setupFonts()
@@ -136,7 +117,6 @@ function love.resize(w, h)
 end
 
 function love.update(dt)
-	updateInputTimer(dt)
 	input.update(dt)
 
 	-- Use the screens module that was loaded in love.load

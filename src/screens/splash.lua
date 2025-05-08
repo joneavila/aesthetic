@@ -3,6 +3,7 @@ local love = require("love")
 local splash = {}
 local colors = require("colors")
 local state = require("state")
+local virtualJoystick = require("input").virtualJoystick
 
 -- Screen switching function set by the screens manager
 local switchScreen = nil

@@ -91,23 +91,18 @@ end
 function settings.update(_dt)
 	local virtualJoystick = input.virtualJoystick
 
-	if not state.canProcessInput() then
-		return
-	end
-
 	-- Handle modal if visible
 	if modal.isModalVisible() then
-		if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
+		if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 			-- Toggle button selection
 			local modalButtons = modal.getModalButtons()
 			for _, btn in ipairs(modalButtons) do
 				btn.selected = not btn.selected
 			end
 			modal.setModalButtons(modalButtons)
-			state.resetInputTimer()
 		end
 
-		if virtualJoystick:isGamepadDown("a") then
+		if virtualJoystick.isGamepadPressedWithDelay("a") then
 			-- Handle button selection
 			local modalButtons = modal.getModalButtons()
 			for _, btn in ipairs(modalButtons) do
@@ -130,15 +125,13 @@ function settings.update(_dt)
 					break
 				end
 			end
-			state.resetInputTimer()
 			return
 		end
 
 		-- Exit modal with B button
-		if virtualJoystick:isGamepadDown("b") then
+		if virtualJoystick.isGamepadPressedWithDelay("b") then
 			modal.hideModal()
 			modalMode = "none"
-			state.resetInputTimer()
 			return
 		end
 
@@ -146,8 +139,8 @@ function settings.update(_dt)
 	end
 
 	-- Handle D-pad navigation
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
 
 		-- Use list navigation helper
 		local selectedIndex = list.navigate(BUTTONS, direction)
@@ -158,12 +151,10 @@ function settings.update(_dt)
 			scrollPosition = scrollPosition,
 			visibleCount = visibleCount,
 		})
-
-		state.resetInputTimer()
 	end
 
 	-- Handle button selection (A button)
-	if virtualJoystick:isGamepadDown("a") then
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected then
 				if btn.text == "Save theme preset" then
@@ -179,29 +170,25 @@ function settings.update(_dt)
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")
-						state.resetInputTimer()
-						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
 				elseif btn.text == "About" then
 					-- Navigate to the about screen
 					if switchScreen then
 						switchScreen("about")
-						state.resetInputTimer()
-						state.forceInputDelay(0.2) -- Add extra delay when switching screens
 					end
 				end
 				break
 			end
 		end
-		state.resetInputTimer()
+		return
 	end
 
 	-- Return to menu with B button
-	if virtualJoystick:isGamepadDown("b") then
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		if switchScreen then
 			switchScreen("main_menu")
 		end
-		state.resetInputTimer()
+		return
 	end
 end
 

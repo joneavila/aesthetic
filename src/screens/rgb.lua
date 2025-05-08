@@ -187,13 +187,9 @@ end
 function rgb.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	if not state.canProcessInput() then
-		return
-	end
-
 	-- Handle navigation
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
 
 		-- Use list navigation helper
 		local selectedIndex = list.navigate(BUTTONS, direction)
@@ -204,13 +200,11 @@ function rgb.update(_dt)
 			scrollPosition = scrollPosition,
 			visibleCount = visibleCount,
 		})
-
-		state.resetInputTimer()
 	end
 
 	-- Handle left/right to change option values
-	if virtualJoystick:isGamepadDown("dpleft") or virtualJoystick:isGamepadDown("dpright") then
-		local direction = virtualJoystick:isGamepadDown("dpleft") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
 
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected then
@@ -236,9 +230,6 @@ function rgb.update(_dt)
 
 					-- Apply RGB settings immediately
 					rgbUtils.updateConfig()
-
-					state.resetInputTimer()
-					break
 				elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
 					-- Handle brightness or speed adjustment
 					local isSpeed = btn.text == "Speed"
@@ -264,31 +255,24 @@ function rgb.update(_dt)
 
 					-- Apply RGB settings immediately
 					rgbUtils.updateConfig()
-
-					state.resetInputTimer()
-					break
 				end
 			end
 		end
 	end
 
 	-- Handle B button to return to menu
-	if virtualJoystick:isGamepadDown("b") and switchScreen then
+	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen(MENU_SCREEN)
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 	end
 
 	-- Handle A button to go to color picker for RGB color
-	if virtualJoystick:isGamepadDown("a") then
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected and btn.colorKey and switchScreen and not btn.disabled then
 				-- Open color picker for this color
 				state.activeColorContext = btn.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
 				switchScreen(COLOR_PICKER_SCREEN)
-				state.resetInputTimer()
-				state.forceInputDelay(0.2) -- Add extra delay when switching screens
 			end
 		end
 	end

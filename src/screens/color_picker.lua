@@ -5,7 +5,7 @@ local state = require("state")
 local constants = require("screens.color_picker.constants")
 local errorHandler = require("error_handler")
 local header = require("ui.header")
-local tween = require("tween") -- Import the tween library
+local tween = require("tween")
 
 -- Import sub-screens
 local paletteScreen = require("screens.color_picker.palette")
@@ -272,59 +272,51 @@ function colorPicker.update(dt)
 		end
 	end
 
-	if state.canProcessInput() then
-		local virtualJoystick = require("input").virtualJoystick
+	local virtualJoystick = require("input").virtualJoystick
 
-		-- Handle B button (return to menu screen)
-		if virtualJoystick:isGamepadDown("b") then
-			if switchScreen then
-				switchScreen(state.previousScreen)
-				state.resetInputTimer()
-			end
-			return
+	-- Handle B button (return to menu screen)
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		if switchScreen then
+			switchScreen(state.previousScreen)
+		end
+	end
+
+	-- Handle tab switching with shoulder buttons
+	if virtualJoystick.isGamepadPressedWithDelay("leftshoulder") then
+		-- Switch to previous tab
+		local newIndex = activeIndex - 1
+		if newIndex < 1 then
+			newIndex = #tabs
 		end
 
-		-- Handle tab switching with shoulder buttons
-		if virtualJoystick:isGamepadDown("leftshoulder") then
-			-- Switch to previous tab
-			local newIndex = activeIndex - 1
-			if newIndex < 1 then
-				newIndex = #tabs
-			end
+		for i, tab in ipairs(tabs) do
+			tab.active = (i == newIndex)
+		end
 
-			for i, tab in ipairs(tabs) do
-				tab.active = (i == newIndex)
-			end
+		-- Update tab animations
+		updateTabAnimations()
 
-			-- Update tab animations
-			updateTabAnimations()
+		-- Call onEnter for the newly activated tab if it exists
+		if tabs[newIndex].screen.onEnter then
+			tabs[newIndex].screen.onEnter()
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("rightshoulder") then
+		-- Switch to next tab
+		local newIndex = activeIndex + 1
+		if newIndex > #tabs then
+			newIndex = 1
+		end
 
-			-- Call onEnter for the newly activated tab if it exists
-			if tabs[newIndex].screen.onEnter then
-				tabs[newIndex].screen.onEnter()
-			end
+		for i, tab in ipairs(tabs) do
+			tab.active = (i == newIndex)
+		end
 
-			state.resetInputTimer()
-		elseif virtualJoystick:isGamepadDown("rightshoulder") then
-			-- Switch to next tab
-			local newIndex = activeIndex + 1
-			if newIndex > #tabs then
-				newIndex = 1
-			end
+		-- Update tab animations
+		updateTabAnimations()
 
-			for i, tab in ipairs(tabs) do
-				tab.active = (i == newIndex)
-			end
-
-			-- Update tab animations
-			updateTabAnimations()
-
-			-- Call onEnter for the newly activated tab if it exists
-			if tabs[newIndex].screen.onEnter then
-				tabs[newIndex].screen.onEnter()
-			end
-
-			state.resetInputTimer()
+		-- Call onEnter for the newly activated tab if it exists
+		if tabs[newIndex].screen.onEnter then
+			tabs[newIndex].screen.onEnter()
 		end
 	end
 end

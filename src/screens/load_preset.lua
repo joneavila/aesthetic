@@ -158,21 +158,19 @@ function loadPreset.draw()
 	})
 end
 
-function loadPreset.update(_dt)
-	if not state.canProcessInput() then
-		return
-	end
-
+function loadPreset.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle D-pad navigation
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
-
-		-- Update selected index using list's navigation helper
-		selectedIndex = list.navigate(presetItems, direction)
-
-		-- Adjust scroll position to ensure selected item is visible
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		selectedIndex = list.navigate(presetItems, -1)
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleItemCount,
+		})
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		selectedIndex = list.navigate(presetItems, 1)
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = selectedIndex,
 			scrollPosition = scrollPosition,
@@ -181,9 +179,8 @@ function loadPreset.update(_dt)
 	end
 
 	-- Handle A button (Select)
-	if virtualJoystick:isGamepadDown("a") and #presetItems > 0 then
+	if virtualJoystick.isGamepadPressedWithDelay("a") and #presetItems > 0 then
 		local selectedPreset = presetItems[selectedIndex]
-
 		if selectedPreset.isValid then
 			-- Load the selected preset
 			local success = presets.loadPreset(selectedPreset.name)
@@ -194,20 +191,14 @@ function loadPreset.update(_dt)
 				-- Return to main menu screen
 				if switchScreen then
 					switchScreen("main_menu")
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				end
 			end
 		end
-
-		state.resetInputTimer()
 	end
 
 	-- Handle B button (Back)
-	if virtualJoystick:isGamepadDown("b") and switchScreen then
+	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen("main_menu")
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 	end
 end
 

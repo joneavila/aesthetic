@@ -248,90 +248,81 @@ function palette.update(dt)
 		end
 	end
 
-	if state.canProcessInput() then
-		local virtualJoystick = require("input").virtualJoystick
-		local moved = false
-		local currentState = getCurrentPaletteState()
-		local newRow, newCol = currentState.selectedRow, currentState.selectedCol
+	local virtualJoystick = require("input").virtualJoystick
+	local moved = false
+	local currentState = getCurrentPaletteState()
+	local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
-		-- Handle directional input
-		if virtualJoystick:isGamepadDown("dpup") then
-			if currentState.selectedRow > 0 then
-				newRow = currentState.selectedRow - 1
-			end
-		elseif virtualJoystick:isGamepadDown("dpdown") then
-			if currentState.selectedRow < paletteState.gridSize.rows - 1 then
-				newRow = currentState.selectedRow + 1
-			end
-		elseif virtualJoystick:isGamepadDown("dpleft") then
-			if currentState.selectedCol > 0 then
-				newCol = currentState.selectedCol - 1
-			end
-		elseif virtualJoystick:isGamepadDown("dpright") then
-			if currentState.selectedCol < paletteState.gridSize.cols - 1 then
-				newCol = currentState.selectedCol + 1
-			end
+	-- Handle directional input
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		if currentState.selectedRow > 0 then
+			newRow = currentState.selectedRow - 1
 		end
-		if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.paletteColors) then
-			if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
-				currentState.selectedRow = newRow
-				currentState.selectedCol = newCol
-				moved = true
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		if currentState.selectedRow < paletteState.gridSize.rows - 1 then
+			newRow = currentState.selectedRow + 1
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+		if currentState.selectedCol > 0 then
+			newCol = currentState.selectedCol - 1
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		if currentState.selectedCol < paletteState.gridSize.cols - 1 then
+			newCol = currentState.selectedCol + 1
+		end
+	end
+	if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.paletteColors) then
+		if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
+			currentState.selectedRow = newRow
+			currentState.selectedCol = newCol
+			moved = true
 
-				-- Start new hover animation
-				paletteState.currentScale = 1
-				paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
-					currentScale = ANIMATION.SCALE,
-				}, "outQuad")
+			-- Start new hover animation
+			paletteState.currentScale = 1
+			paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
+				currentScale = ANIMATION.SCALE,
+			}, "outQuad")
 
-				-- Handle scrolling when selection moves out of view
-				local rowPosition = currentState.selectedRow * (paletteState.squareSize + SQUARE_SPACING)
+			-- Handle scrolling when selection moves out of view
+			local rowPosition = currentState.selectedRow * (paletteState.squareSize + SQUARE_SPACING)
 
-				-- Calculate the visible area boundaries
-				local visibleTop = currentState.scrollY
-				local visibleBottom = visibleTop + paletteState.visibleGridHeight - paletteState.squareSize
+			-- Calculate the visible area boundaries
+			local visibleTop = currentState.scrollY
+			local visibleBottom = visibleTop + paletteState.visibleGridHeight - paletteState.squareSize
 
-				-- Scroll up if selection is above visible area
-				if rowPosition < visibleTop then
-					currentState.scrollY = rowPosition
-				end
-
-				-- Scroll down if selection is below visible area
-				if rowPosition > visibleBottom then
-					currentState.scrollY = rowPosition
-						- paletteState.visibleGridHeight
-						+ paletteState.squareSize
-						+ SQUARE_SPACING
-				end
-
-				-- Ensure scroll position doesn't go out of bounds
-				currentState.scrollY = math.max(
-					0,
-					math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight)
-				)
+			-- Scroll up if selection is above visible area
+			if rowPosition < visibleTop then
+				currentState.scrollY = rowPosition
 			end
-		end
 
-		-- Reset timer if moved
-		if moved then
-			state.resetInputTimer()
-		end
+			-- Scroll down if selection is below visible area
+			if rowPosition > visibleBottom then
+				currentState.scrollY = rowPosition
+					- paletteState.visibleGridHeight
+					+ paletteState.squareSize
+					+ SQUARE_SPACING
+			end
 
-		-- Handle select
-		if virtualJoystick:isGamepadDown("a") then
-			local selectedIndex =
-				gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
-			local colorTable = paletteState.paletteColors[selectedIndex]
-			if colorTable then
-				local hexCode = colorUtils.rgbToHex(colorTable[1], colorTable[2], colorTable[3])
-				if hexCode then
-					local context = state.getColorContext(state.activeColorContext)
-					context.currentColor = hexCode
-					state.setColorValue(state.activeColorContext, hexCode)
-					if switchScreen then
-						switchScreen(state.previousScreen)
-						state.resetInputTimer()
-					end
+			-- Ensure scroll position doesn't go out of bounds
+			currentState.scrollY = math.max(
+				0,
+				math.min(currentState.scrollY, paletteState.totalGridHeight - paletteState.visibleGridHeight)
+			)
+		end
+	end
+
+	-- Handle select
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
+		local selectedIndex = gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
+		local colorTable = paletteState.paletteColors[selectedIndex]
+		if colorTable then
+			local hexCode = colorUtils.rgbToHex(colorTable[1], colorTable[2], colorTable[3])
+			if hexCode then
+				local context = state.getColorContext(state.activeColorContext)
+				context.currentColor = hexCode
+				state.setColorValue(state.activeColorContext, hexCode)
+				if switchScreen then
+					switchScreen(state.previousScreen)
 				end
 			end
 		end

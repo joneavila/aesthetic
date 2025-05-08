@@ -427,184 +427,188 @@ local function updateSVSquare()
 	pickerState.lastRenderedHue = currentState.hue
 end
 
-function hsv.update(dt)
-	-- Update any active tweens
+-- Helper function to update all active tweens
+local function updateTweens(dt)
 	if pickerState.tweens.svCursor then
 		pickerState.tweens.svCursor:update(dt)
 	end
 	if pickerState.tweens.hueCursor then
 		pickerState.tweens.hueCursor:update(dt)
 	end
+end
+
+-- Helper function to update wiggle animation
+local function updateWiggleAnimation(dt)
 	if pickerState.animation.wiggleTween then
 		pickerState.animation.wiggleTween:update(dt)
 	end
+end
 
-	if state.canProcessInput() then
-		local virtualJoystick = require("input").virtualJoystick
-		local moved = false
+function hsv.update(dt)
+	-- Update tweens
+	updateTweens(dt)
 
-		-- Get current color type state
-		local currentState = getCurrentHsvState()
+	-- Update wiggle animation
+	updateWiggleAnimation(dt)
 
-		-- Handle Y button for cursor swapping
-		if virtualJoystick:isGamepadDown("y") then
-			currentState.focusSquare = not currentState.focusSquare
-			startWiggleAnimation() -- Start animation immediately after focus change
+	local virtualJoystick = require("input").virtualJoystick
+	local moved = false
+
+	-- Get current color type state
+	local currentState = getCurrentHsvState()
+
+	-- Handle Y button for cursor swapping
+	if virtualJoystick.isGamepadPressedWithDelay("y") then
+		currentState.focusSquare = not currentState.focusSquare
+		startWiggleAnimation() -- Start animation immediately after focus change
+		moved = true
+	end
+
+	-- Get left stick values if joystick is connected
+	local leftX, leftY = 0, 0
+	local joystick = love.joystick.getJoysticks()[1]
+	if joystick and joystick:isConnected() then
+		-- Gamepad axes are typically:
+		-- leftx = axis 1, lefty = axis 2
+		if joystick:isGamepad() then
+			leftX = joystick:getGamepadAxis("leftx")
+			leftY = joystick:getGamepadAxis("lefty")
+		else
+			-- Fallback for non-gamepad joysticks
+			leftX = joystick:getAxis(1)
+			leftY = joystick:getAxis(2)
+		end
+	end
+
+	if currentState.focusSquare then
+		-- Handle SV square navigation
+		local step = 0.03
+		local newSat, newVal = currentState.sat, currentState.val
+
+		-- D-pad controls
+		if virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+			newSat = math.max(0, newSat - step)
+			moved = true
+		elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+			newSat = math.min(1, newSat + step)
+			moved = true
+		end
+		if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+			newVal = math.min(1, newVal + step)
+			moved = true
+		elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+			newVal = math.max(0, newVal - step)
 			moved = true
 		end
 
-		-- Get left stick values if joystick is connected
-		local leftX, leftY = 0, 0
-		local joystick = love.joystick.getJoysticks()[1]
-		if joystick and joystick:isConnected() then
-			-- Gamepad axes are typically:
-			-- leftx = axis 1, lefty = axis 2
-			if joystick:isGamepad() then
-				leftX = joystick:getGamepadAxis("leftx")
-				leftY = joystick:getGamepadAxis("lefty")
-			else
-				-- Fallback for non-gamepad joysticks
-				leftX = joystick:getAxis(1)
-				leftY = joystick:getAxis(2)
-			end
+		-- Left joystick controls
+		if leftX ~= 0 then
+			newSat = math.max(0, math.min(1, newSat + leftX * step))
+			moved = true
 		end
-
-		if currentState.focusSquare then
-			-- Handle SV square navigation
-			local step = 0.03
-			local newSat, newVal = currentState.sat, currentState.val
-
-			-- D-pad controls
-			if virtualJoystick:isGamepadDown("dpleft") then
-				newSat = math.max(0, newSat - step)
-				moved = true
-			elseif virtualJoystick:isGamepadDown("dpright") then
-				newSat = math.min(1, newSat + step)
-				moved = true
-			end
-			if virtualJoystick:isGamepadDown("dpup") then
-				newVal = math.min(1, newVal + step)
-				moved = true
-			elseif virtualJoystick:isGamepadDown("dpdown") then
-				newVal = math.max(0, newVal - step)
-				moved = true
-			end
-
-			-- Left joystick controls
-			if leftX ~= 0 then
-				newSat = math.max(0, math.min(1, newSat + leftX * step))
-				moved = true
-			end
-			if leftY ~= 0 then
-				newVal = math.max(0, math.min(1, newVal - leftY * step))
-				moved = true
-			end
-
-			if moved then
-				currentState.sat = newSat
-				currentState.val = newVal
-
-				-- Create new tween for SV cursor
-				local targetX = pickerState.startX + (newSat * pickerState.squareSize)
-				local targetY = pickerState.startY + ((1 - newVal) * pickerState.contentHeight)
-				pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
-					svX = targetX,
-					svY = targetY,
-				}, "outQuad")
-			end
-		else
-			-- Handle Hue slider navigation
-			local step = 6
-
-			-- D-pad controls
-			if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-				local newHue = currentState.hue
-				if virtualJoystick:isGamepadDown("dpup") then
-					newHue = (newHue + step) % 360
-				else
-					newHue = (newHue - step) % 360
-				end
-
-				currentState.hue = newHue
-				-- Update the SV square when hue changes
-				updateSVSquare()
-
-				-- Calculate new cursor Y position
-				local baseY = pickerState.startY + ((360 - newHue) / 360 * pickerState.contentHeight)
-				local sliderBottom = pickerState.startY + pickerState.contentHeight
-
-				-- Handle wrapping when cursor goes halfway off either end
-				if baseY < pickerState.startY - (CURSOR.HUE_HEIGHT / 2) then
-					-- Wrap from top to bottom
-					baseY = sliderBottom - (CURSOR.HUE_HEIGHT / 2)
-				elseif baseY > sliderBottom + (CURSOR.HUE_HEIGHT / 2) then
-					-- Wrap from bottom to top
-					baseY = pickerState.startY + (CURSOR.HUE_HEIGHT / 2)
-				end
-
-				-- Create new tween for hue cursor
-				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
-					hueY = baseY,
-				}, "outQuad")
-
-				moved = true
-			end
-
-			-- Left joystick Y-axis controls for hue
-			if leftY ~= 0 then
-				local newHue = currentState.hue
-				newHue = (newHue - leftY * step) % 360
-
-				currentState.hue = newHue
-				-- Update the SV square when hue changes
-				updateSVSquare()
-
-				-- Calculate new cursor Y position
-				local baseY = pickerState.startY + ((360 - newHue) / 360 * pickerState.contentHeight)
-				local sliderBottom = pickerState.startY + pickerState.contentHeight
-
-				-- Handle wrapping when cursor goes halfway off either end
-				if baseY < pickerState.startY - (CURSOR.HUE_HEIGHT / 2) then
-					-- Wrap from top to bottom
-					baseY = sliderBottom - (CURSOR.HUE_HEIGHT / 2)
-				elseif baseY > sliderBottom + (CURSOR.HUE_HEIGHT / 2) then
-					-- Wrap from bottom to top
-					baseY = pickerState.startY + (CURSOR.HUE_HEIGHT / 2)
-				end
-
-				-- Create new tween for hue cursor
-				pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
-					hueY = baseY,
-				}, "outQuad")
-
-				moved = true
-			end
-		end
-
-		-- Handle selection
-		if virtualJoystick:isGamepadDown("a") then
-			local r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
-
-			-- Create hex code using the utility function
-			local hexCode = colorUtils.rgbToHex(r, g, b)
-
-			-- Store in the central state
-			local context = state.getColorContext(state.activeColorContext)
-			context.currentColor = hexCode
-
-			-- Set the color value in state
-			state.setColorValue(state.activeColorContext, hexCode)
-
-			-- Switch back to menu
-			if switchScreen then
-				switchScreen(state.previousScreen)
-				state.resetInputTimer()
-			end
+		if leftY ~= 0 then
+			newVal = math.max(0, math.min(1, newVal - leftY * step))
 			moved = true
 		end
 
 		if moved then
-			state.resetInputTimer()
+			currentState.sat = newSat
+			currentState.val = newVal
+
+			-- Create new tween for SV cursor
+			local targetX = pickerState.startX + (newSat * pickerState.squareSize)
+			local targetY = pickerState.startY + ((1 - newVal) * pickerState.contentHeight)
+			pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
+				svX = targetX,
+				svY = targetY,
+			}, "outQuad")
+		end
+	else
+		-- Handle Hue slider navigation
+		local step = 6
+
+		-- D-pad controls
+		if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+			local newHue = currentState.hue
+			if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+				newHue = (newHue + step) % 360
+			else
+				newHue = (newHue - step) % 360
+			end
+
+			currentState.hue = newHue
+			-- Update the SV square when hue changes
+			updateSVSquare()
+
+			-- Calculate new cursor Y position
+			local baseY = pickerState.startY + ((360 - newHue) / 360 * pickerState.contentHeight)
+			local sliderBottom = pickerState.startY + pickerState.contentHeight
+
+			-- Handle wrapping when cursor goes halfway off either end
+			if baseY < pickerState.startY - (CURSOR.HUE_HEIGHT / 2) then
+				-- Wrap from top to bottom
+				baseY = sliderBottom - (CURSOR.HUE_HEIGHT / 2)
+			elseif baseY > sliderBottom + (CURSOR.HUE_HEIGHT / 2) then
+				-- Wrap from bottom to top
+				baseY = pickerState.startY + (CURSOR.HUE_HEIGHT / 2)
+			end
+
+			-- Create new tween for hue cursor
+			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
+				hueY = baseY,
+			}, "outQuad")
+
+			moved = true
+		end
+
+		-- Left joystick Y-axis controls for hue
+		if leftY ~= 0 then
+			local newHue = currentState.hue
+			newHue = (newHue - leftY * step) % 360
+
+			currentState.hue = newHue
+			-- Update the SV square when hue changes
+			updateSVSquare()
+
+			-- Calculate new cursor Y position
+			local baseY = pickerState.startY + ((360 - newHue) / 360 * pickerState.contentHeight)
+			local sliderBottom = pickerState.startY + pickerState.contentHeight
+
+			-- Handle wrapping when cursor goes halfway off either end
+			if baseY < pickerState.startY - (CURSOR.HUE_HEIGHT / 2) then
+				-- Wrap from top to bottom
+				baseY = sliderBottom - (CURSOR.HUE_HEIGHT / 2)
+			elseif baseY > sliderBottom + (CURSOR.HUE_HEIGHT / 2) then
+				-- Wrap from bottom to top
+				baseY = pickerState.startY + (CURSOR.HUE_HEIGHT / 2)
+			end
+
+			-- Create new tween for hue cursor
+			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
+				hueY = baseY,
+			}, "outQuad")
+
+			moved = true
+		end
+	end
+
+	-- Handle selection
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
+		local r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
+
+		-- Create hex code using the utility function
+		local hexCode = colorUtils.rgbToHex(r, g, b)
+
+		-- Store in the central state
+		local context = state.getColorContext(state.activeColorContext)
+		context.currentColor = hexCode
+
+		-- Set the color value in state
+		state.setColorValue(state.activeColorContext, hexCode)
+
+		-- Switch back to menu
+		if switchScreen then
+			switchScreen(state.previousScreen)
 		end
 	end
 end

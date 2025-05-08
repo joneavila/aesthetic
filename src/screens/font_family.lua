@@ -194,15 +194,11 @@ function font.draw()
 end
 
 function font.update(_dt)
-	if not state.canProcessInput() then
-		return
-	end
-
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle D-pad up/down navigation
-	if virtualJoystick:isGamepadDown("dpup") or virtualJoystick:isGamepadDown("dpdown") then
-		local direction = virtualJoystick:isGamepadDown("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
 
 		-- Use the list navigation helper
 		local selectedIndex = list.navigate(fontItems, direction)
@@ -213,20 +209,16 @@ function font.update(_dt)
 			scrollPosition = scrollPosition,
 			visibleCount = visibleCount,
 		})
-
-		state.resetInputTimer()
 	end
 
 	-- Handle B button (Back to menu)
-	if virtualJoystick:isGamepadDown("b") and switchScreen then
+	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen("main_menu")
-		state.resetInputTimer()
-		state.forceInputDelay(0.2) -- Add extra delay when switching screens
 		return
 	end
 
 	-- Handle A button (Select font)
-	if virtualJoystick:isGamepadDown("a") then
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		-- Find which font is selected
 		for _, item in ipairs(fontItems) do
 			if item.selected then
@@ -236,8 +228,6 @@ function font.update(_dt)
 				-- Return to menu
 				if switchScreen then
 					switchScreen("main_menu")
-					state.resetInputTimer()
-					state.forceInputDelay(0.2) -- Add extra delay when switching screens
 				end
 				break
 			end
