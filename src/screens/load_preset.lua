@@ -136,7 +136,7 @@ function loadPreset.draw()
 				love.graphics.print(
 					indicatorText,
 					state.screenWidth - scrollView.SCROLL_BAR_WIDTH - textWidth - button.BUTTON.PADDING * 2,
-					y + (button.BUTTON.HEIGHT - state.fonts.body:getHeight()) / 2
+					y + (button.calculateHeight() - state.fonts.body:getHeight()) / 2
 				)
 			end
 
