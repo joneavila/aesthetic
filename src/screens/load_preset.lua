@@ -119,7 +119,6 @@ function loadPreset.draw()
 		items = presetItems,
 		startY = header.getHeight(),
 		itemHeight = button.calculateHeight(),
-		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,

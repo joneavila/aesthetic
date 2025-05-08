@@ -126,7 +126,6 @@ function rgb.draw()
 		items = BUTTONS,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
-		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,

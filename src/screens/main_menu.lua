@@ -123,7 +123,6 @@ function menu.draw()
 		items = regularButtons,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
-		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = bottomY,

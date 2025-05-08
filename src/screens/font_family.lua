@@ -148,7 +148,6 @@ function font.draw()
 		items = fontItems,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
-		itemPadding = button.BUTTON.SPACING,
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = previewY, -- Set the maximum height for the list

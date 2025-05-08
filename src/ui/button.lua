@@ -13,6 +13,7 @@ local BUTTON = {
 	HORIZONTAL_PADDING = 14, -- Internal horizontal padding for text and content
 	CORNER_RADIUS = 8,
 	SELECTED_OUTLINE_WIDTH = 4,
+	PADDING = 16, -- General padding value for use in UI screens
 }
 
 -- Module table to export public functions
