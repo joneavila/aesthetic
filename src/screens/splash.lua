@@ -73,8 +73,6 @@ function splash.onEnter()
 end
 
 function splash.draw()
-	logger.debug("Splash screen draw called")
-
 	-- Draw the background
 	love.graphics.clear(splash.background.color)
 

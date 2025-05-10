@@ -40,7 +40,14 @@ local function generatePresetName()
 end
 
 function settings.load()
-	-- Nothing to initialize for buttons as list component handles sizing
+	-- Reset scroll position
+	scrollPosition = 0
+	list.resetScrollPosition()
+
+	-- Ensure initial button selection state
+	for i, btn in ipairs(BUTTONS) do
+		btn.selected = (i == 1)
+	end
 end
 
 function settings.setScreenSwitcher(switchFunc)
@@ -140,13 +147,21 @@ function settings.update(_dt)
 	end
 
 	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		-- Use list navigation helper for up direction
+		local selectedIndex = list.navigate(BUTTONS, -1)
 
-		-- Use list navigation helper
-		local selectedIndex = list.navigate(BUTTONS, direction)
+		-- Update scroll position based on the new selected index
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		-- Use list navigation helper for down direction
+		local selectedIndex = list.navigate(BUTTONS, 1)
 
-		-- Update scroll position
+		-- Update scroll position based on the new selected index
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = selectedIndex,
 			scrollPosition = scrollPosition,
@@ -198,6 +213,8 @@ function settings.onExit()
 	-- Reset modal state
 	modal.hideModal()
 	modalMode = "none"
+	scrollPosition = 0
+	list.resetScrollPosition()
 end
 
 return settings
