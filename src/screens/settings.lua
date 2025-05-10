@@ -19,8 +19,8 @@ local switchScreen = nil
 
 -- Button constants
 local BUTTONS = {
-	{ text = "Save theme preset", selected = true },
-	{ text = "Load theme preset", selected = false },
+	-- { text = "Save theme preset", selected = true }, -- Disabled until the feature is more complete
+	{ text = "Load theme preset", selected = true },
 	{ text = "About", selected = false },
 }
 
@@ -173,16 +173,8 @@ function settings.update(_dt)
 	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected then
-				if btn.text == "Save theme preset" then
-					presetName = generatePresetName()
-
-					-- Show save preset modal
-					modalMode = "save_input"
-					modal.showModal(
-						"Save current theme settings as preset?",
-						{ { text = "Cancel", selected = false }, { text = "Save", selected = true } }
-					)
-				elseif btn.text == "Load theme preset" then
+				-- "Save theme preset" button handler is disabled until the feature is more complete
+				if btn.text == "Load theme preset" then
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")
