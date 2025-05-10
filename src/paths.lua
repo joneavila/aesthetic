@@ -127,6 +127,9 @@ paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 
+-- Presets images directory - use direct path for LÖVE compatibility
+paths.PRESETS_IMAGES_DIR = "assets/images/presets"
+
 -- Screen height to font size mapping
 local SCREEN_HEIGHT_MAPPING = fonts.screenHeightMapping
 

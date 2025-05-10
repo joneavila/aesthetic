@@ -1,7 +1,7 @@
 -- Theme preset
 -- Green palette inspired by the original handheld console
 return {
-	displayName = "GB",
+	displayName = "DMG",
 	background = {
 		value = "#9BBC0F",
 	},
