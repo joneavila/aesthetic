@@ -197,11 +197,19 @@ function font.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle D-pad up/down navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		-- Use the list navigation helper with negative direction for up
+		local selectedIndex = list.navigate(fontItems, -1)
 
-		-- Use the list navigation helper
-		local selectedIndex = list.navigate(fontItems, direction)
+		-- Update scroll position
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		-- Use the list navigation helper with positive direction for down
+		local selectedIndex = list.navigate(fontItems, 1)
 
 		-- Update scroll position
 		scrollPosition = list.adjustScrollPosition({
