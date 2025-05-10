@@ -260,6 +260,12 @@ function loadPreset.update(dt)
 			scrollPosition = scrollPosition,
 			visibleCount = visibleItemCount,
 		})
+
+		-- Special case for the last item to ensure it's visible
+		if selectedIndex == #presetItems then
+			scrollPosition = #presetItems - visibleItemCount
+		end
+
 		-- Load preview image for the selected preset
 		if presetItems[selectedIndex] then
 			loadPreviewImage(presetItems[selectedIndex].name)
