@@ -8,6 +8,7 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local controls = require("controls")
+local scrollView = require("ui.scroll_view")
 
 -- Module table to export public functions
 local font = {}
@@ -85,6 +86,7 @@ end
 local fontItems = {}
 local scrollPosition = 0
 local visibleCount = 0
+local scrollBarWidth = scrollView.SCROLL_BAR_WIDTH
 
 -- Initialize font items based on fonts.choices
 local function initFontItems()
@@ -151,6 +153,7 @@ function font.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = previewY, -- Set the maximum height for the list
+		scrollBarWidth = scrollBarWidth,
 		drawItemFunc = function(item, _index, y)
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,
@@ -219,6 +222,16 @@ function font.update(_dt)
 		})
 	end
 
+	-- Always update scroll position based on current selection, not just after navigation
+	local selectedIndex = list.findSelectedIndex(fontItems)
+	if selectedIndex > 0 then
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
+	end
+
 	-- Handle B button (Back to menu)
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen("main_menu")
@@ -259,6 +272,7 @@ function font.onExit()
 	-- Clear the font cache and preview height cache to free memory
 	previewFontCache = {}
 	maxPreviewHeight = nil
+	list.resetScrollPosition()
 end
 
 return font
