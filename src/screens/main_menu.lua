@@ -342,26 +342,12 @@ local function handleSelectedButton(btn)
 			switchScreen("font_family")
 		end
 	elseif btn.fontSizeToggle then
-		-- Toggle font size between "Default", "Large", and "Extra Large"
-		if state.fontSize == "Default" then
-			state.fontSize = "Large"
-		elseif state.fontSize == "Large" then
-			state.fontSize = "Extra Large"
-		else
-			state.fontSize = "Default"
-		end
+		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.glyphsToggle then
 		-- Toggle glyphs enabled state
 		state.glyphs_enabled = not state.glyphs_enabled
 	elseif btn.navAlignToggle then
-		-- Toggle navigation alignment between "Left", "Center", and "Right"
-		if state.navigationAlignment == "Left" then
-			state.navigationAlignment = "Center"
-		elseif state.navigationAlignment == "Center" then
-			state.navigationAlignment = "Right"
-		else
-			state.navigationAlignment = "Left"
-		end
+		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.rgbLighting and switchScreen then
 		-- RGB lighting screen
 		switchScreen("rgb")
@@ -445,12 +431,18 @@ function menu.update(dt)
 	end
 
 	-- Handle cycling through options
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
+	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
+	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
+
+	if pressedLeft or pressedRight then
+		logger.debug("dpleft or dpright")
+		local direction = pressedLeft and -1 or 1
+		logger.debug("direction: " .. direction)
 		for _, btn in ipairs(menu.BUTTONS) do
 			if btn.selected then
 				if btn.fontSizeToggle then
-					if direction > 0 then
+					-- Font size cycles through three values
+					if direction > 0 then -- Right direction
 						if state.fontSize == "Default" then
 							state.fontSize = "Large"
 						elseif state.fontSize == "Large" then
@@ -458,7 +450,7 @@ function menu.update(dt)
 						else
 							state.fontSize = "Default"
 						end
-					else
+					else -- Left direction
 						if state.fontSize == "Default" then
 							state.fontSize = "Extra Large"
 						elseif state.fontSize == "Extra Large" then
@@ -468,9 +460,11 @@ function menu.update(dt)
 						end
 					end
 				elseif btn.glyphsToggle then
+					-- Glyphs toggle doesn't need direction - it's just a boolean toggle
 					state.glyphs_enabled = not state.glyphs_enabled
 				elseif btn.navAlignToggle then
-					if direction > 0 then
+					-- Navigation alignment cycles through three values
+					if direction > 0 then -- Right direction
 						if state.navigationAlignment == "Left" then
 							state.navigationAlignment = "Center"
 						elseif state.navigationAlignment == "Center" then
@@ -478,7 +472,7 @@ function menu.update(dt)
 						else
 							state.navigationAlignment = "Left"
 						end
-					else
+					else -- Left direction
 						if state.navigationAlignment == "Left" then
 							state.navigationAlignment = "Right"
 						elseif state.navigationAlignment == "Right" then
