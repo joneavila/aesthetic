@@ -61,6 +61,11 @@ fonts.definitions = {
 	},
 	nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
 	retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = bodySize },
+	cascadiaCode = {
+		name = "Cascadia Code",
+		path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
+		size = bodySize,
+	},
 }
 
 -- Screen height to font size mapping
