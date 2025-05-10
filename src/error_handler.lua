@@ -3,12 +3,14 @@
 
 local errorHandler = {}
 local modal = require("ui.modal")
+local logger = require("utils.logger")
 
 -- Error state
 local errorMessage = nil
 
 -- Function to set error message
 function errorHandler.setError(message)
+	logger.error("Error set: " .. tostring(message))
 	errorMessage = message
 end
 
@@ -23,6 +25,7 @@ function errorHandler.showErrorModal(prefix)
 	if prefix then
 		message = prefix .. ": " .. message
 	end
+	logger.error("Showing error modal: " .. message)
 	modal.showModal(message, { { text = "Exit", selected = true } })
 end
 

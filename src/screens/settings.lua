@@ -9,6 +9,7 @@ local background = require("ui.background")
 local list = require("ui.list")
 local modal = require("ui.modal")
 local button = require("ui.button")
+local logger = require("utils.logger")
 
 -- Screen module
 local settings = {}

@@ -13,8 +13,10 @@
 local fonts = require("ui.fonts")
 local errorHandler = require("error_handler")
 local colorUtils = require("utils.color")
+local logger = require("utils.logger")
 
 local function createColorContext(defaultColor)
+	logger.debug("Creating color context with default color: " .. defaultColor)
 	return {
 		-- Palette state
 		palette = {
@@ -82,10 +84,17 @@ local state = {
 	},
 }
 
+logger.debug("State initialized with dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
+logger.debug("Application name: " .. state.applicationName)
+
 --- Helper function to get a color context
 function state.getColorContext(contextKey)
 	if not state.colorContexts[contextKey] then
-		error("Color context '" .. contextKey .. "' does not exist. Create it first using createColorContext.")
+		local errorMsg = "Color context '"
+			.. contextKey
+			.. "' does not exist. Create it first using createColorContext."
+		logger.error(errorMsg)
+		error(errorMsg)
 	end
 	return state.colorContexts[contextKey]
 end
@@ -100,10 +109,10 @@ end
 function state.setColorValue(contextKey, colorValue)
 	-- Only accept hex color values
 	if colorValue:sub(1, 1) ~= "#" then
-		errorHandler.setError(
-			"Failed to set color value: only hex color strings (starting with #) are supported. Got: "
-				.. tostring(colorValue)
-		)
+		local errorMsg = "Failed to set color value: only hex color strings (starting with #) are supported. Got: "
+			.. tostring(colorValue)
+		logger.error(errorMsg)
+		errorHandler.setError(errorMsg)
 		return
 	end
 	local normalizedColor = colorValue

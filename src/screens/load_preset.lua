@@ -9,6 +9,7 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local scrollView = require("ui.scroll_view")
+local logger = require("utils.logger")
 
 -- Module table to export public functions
 local loadPreset = {}
@@ -34,27 +35,37 @@ local function loadPresetsList()
 	local presetDetails = {}
 
 	-- Validate each preset and gather creation dates
-	for _, presetName in ipairs(availablePresets) do
+	logger.debug("Starting preset validation loop")
+	for i, presetName in ipairs(availablePresets) do
+		logger.debug("Validating preset " .. i .. ": " .. tostring(presetName))
 		local isValid, presetData = presets.validatePreset(presetName)
+		logger.debug("Preset " .. tostring(presetName) .. " valid: " .. tostring(isValid))
 
 		local createdTime = 0
 		local displayName = presetName
 		local source = "user"
 
 		if presetData then
+			logger.debug("Preset data available for " .. tostring(presetName))
 			if presetData.created then
+				logger.debug("Preset has creation time: " .. tostring(presetData.created))
 				createdTime = presetData.created
 			end
 
 			if presetData.displayName then
+				logger.debug("Preset has display name: " .. tostring(presetData.displayName))
 				displayName = presetData.displayName
 			end
 
 			if presetData.source then
+				logger.debug("Preset has source: " .. tostring(presetData.source))
 				source = presetData.source
 			end
+		else
+			logger.debug("No preset data available for " .. tostring(presetName))
 		end
 
+		logger.debug("Adding preset " .. tostring(presetName) .. " to presetDetails")
 		table.insert(presetDetails, {
 			name = presetName, -- Original filename (sanitized)
 			displayName = displayName, -- Name to display
@@ -65,12 +76,15 @@ local function loadPresetsList()
 	end
 
 	-- Sort by creation date (newest first)
+	logger.debug("Sorting presets by creation date")
 	table.sort(presetDetails, function(a, b)
 		return a.created > b.created
 	end)
 
 	-- Create the sorted list of preset items
-	for _, detail in ipairs(presetDetails) do
+	logger.debug("Creating sorted list of preset items")
+	for i, detail in ipairs(presetDetails) do
+		logger.debug("Processing preset detail " .. i .. ": " .. tostring(detail.name))
 		table.insert(presetItems, {
 			name = detail.name, -- Keep the original name for loading
 			text = detail.displayName, -- Use the display name for showing (match list.lua's expected structure)
@@ -82,14 +96,21 @@ local function loadPresetsList()
 	end
 
 	-- Select the first preset if available
+	logger.debug("Setting initial selection")
 	if #presetItems > 0 then
+		logger.debug("Selecting first preset: " .. tostring(presetItems[1].name))
 		presetItems[1].selected = true
 		selectedIndex = 1
+	else
+		logger.debug("No presets available to select")
 	end
+	logger.debug("Completed loadPresetsList()")
 end
 
 function loadPreset.load()
+	logger.debug("loadPreset.load() called")
 	loadPresetsList()
+	logger.debug("loadPreset.load() completed")
 end
 
 function loadPreset.draw()
@@ -206,8 +227,10 @@ function loadPreset.setScreenSwitcher(switchFunc)
 end
 
 function loadPreset.onEnter()
+	logger.debug("loadPreset.onEnter() called")
 	loadPresetsList()
 	scrollPosition = 0
+	logger.debug("loadPreset.onEnter() completed")
 end
 
 return loadPreset

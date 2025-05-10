@@ -4,6 +4,7 @@ local splash = {}
 local colors = require("colors")
 local state = require("state")
 local virtualJoystick = require("input").virtualJoystick
+local logger = require("utils.logger")
 
 -- Screen switching function set by the screens manager
 local switchScreen = nil
@@ -13,6 +14,7 @@ function splash.setScreenSwitcher(switcher)
 end
 
 function splash.load()
+	logger.debug("Splash screen load started")
 	-- Animation settings
 	splash.title = state.applicationName
 	splash.typingDelay = 0.05 -- Delay between revealing each character
@@ -42,6 +44,8 @@ function splash.load()
 	splash.centerX = math.floor(state.screenWidth / 2 - splash.textWidth / 2)
 	splash.centerY = math.floor(state.screenHeight / 2 - splash.textHeight / 2)
 
+	logger.debug("Splash text position: " .. splash.centerX .. "," .. splash.centerY)
+
 	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	splash.state = "waiting"
 
@@ -49,9 +53,12 @@ function splash.load()
 	splash.background = {
 		color = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 },
 	}
+
+	logger.debug("Splash screen load completed")
 end
 
 function splash.onEnter()
+	logger.debug("Entering splash screen")
 	-- Reset animation state when entering the screen
 	splash.currentIndex = 0
 	splash.letterTimer = 0
@@ -61,9 +68,13 @@ function splash.onEnter()
 	splash.holdTimer = 0
 	splash.fadeTimer = 0
 	splash.state = "waiting"
+
+	logger.debug("Splash animation state reset to waiting")
 end
 
 function splash.draw()
+	logger.debug("Splash screen draw called")
+
 	-- Draw the background
 	love.graphics.clear(splash.background.color)
 
@@ -98,6 +109,7 @@ end
 
 function splash.update(dt)
 	if not dt then
+		logger.error("dt is nil in splash.update")
 		return
 	end
 
@@ -115,6 +127,7 @@ function splash.update(dt)
 	if splash.state == "waiting" then
 		splash.letterTimer = splash.letterTimer + dt
 		if splash.letterTimer >= 0.3 then
+			logger.debug("Splash state changing: waiting -> typing")
 			splash.state = "typing"
 			splash.letterTimer = 0
 		end
@@ -124,6 +137,7 @@ function splash.update(dt)
 			splash.letterTimer = 0
 			splash.currentIndex = splash.currentIndex + 1
 			if splash.currentIndex >= string.len(splash.title) then
+				logger.debug("Splash state changing: typing -> holding")
 				splash.state = "holding"
 				splash.holdTimer = splash.holdDuration
 			end
@@ -131,19 +145,24 @@ function splash.update(dt)
 	elseif splash.state == "holding" then
 		splash.holdTimer = splash.holdTimer - dt
 		if splash.holdTimer <= 0 then
+			logger.debug("Splash state changing: holding -> fading")
 			splash.state = "fading"
 		end
 	elseif splash.state == "fading" then
 		splash.fadeTimer = splash.fadeTimer + dt
 		splash.alpha = math.max(0, 1 - (splash.fadeTimer / splash.fadeOutDuration))
 		if splash.alpha <= 0 then
+			logger.debug("Splash state changing: fading -> done")
 			splash.state = "done"
 			-- When done, switch to the menu screen
 			if switchScreen then
+				logger.debug("Splash completed, switching to main_menu")
 				-- Initialize the fade effect before switching
 				state.fading = true
 				state.fadeTimer = 0
 				switchScreen("main_menu")
+			else
+				logger.error("switchScreen function is nil, cannot transition from splash screen")
 			end
 		end
 	end

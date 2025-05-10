@@ -66,6 +66,7 @@ local modalInputState = {
 }
 
 function menu.load()
+	logger.debug("Main menu load started")
 	-- Count regular buttons
 	buttonCount = 0
 	for _, btn in ipairs(menu.BUTTONS) do
@@ -76,6 +77,7 @@ function menu.load()
 
 	list.resetScrollPosition()
 end
+
 
 function menu.draw()
 	local startY = header.getHeight()
@@ -217,11 +219,13 @@ end
 
 -- Handle theme creation process
 local function handleThemeCreation()
+	logger.debug("Handling theme creation")
 	-- Create the theme after showing the modal
 	createdThemePath = themeCreator.createTheme()
 
 	-- Show success/error modal after theme is created
 	if createdThemePath then
+		logger.debug("Theme created successfully at: " .. createdThemePath)
 		modalState = "created"
 		-- Replace the process modal with success modal for smooth transition
 		modal.replaceModal("Created theme successfully.", {
@@ -229,6 +233,7 @@ local function handleThemeCreation()
 			{ text = "Apply theme now", selected = true },
 		})
 	else
+		logger.error("Theme creation failed")
 		errorHandler.showErrorModal("Error creating theme")
 	end
 
@@ -238,7 +243,7 @@ end
 -- Handle theme installation process
 local function handleThemeInstallation()
 	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
-	logger.debug("Waiting theme name: " .. waitingThemeName)
+	logger.debug("Installing theme: " .. (waitingThemeName or "nil"))
 	local success = themeCreator.installTheme(waitingThemeName)
 
 	waitingThemePath = nil

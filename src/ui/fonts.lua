@@ -2,6 +2,7 @@
 -- This module contains all font definitions and utilities used across the application
 
 local love = require("love")
+local logger = require("utils.logger")
 
 local fonts = {}
 
@@ -95,25 +96,34 @@ end
 
 -- Helper function to get a font by name
 fonts.getByName = function(fontName)
+	logger.debug("Getting font by name: " .. (fontName or "nil"))
 	local fontKey = fonts.nameToKey[fontName]
 	if fontKey and fonts.loaded[fontKey] then
+		logger.debug("Found font by name: " .. fontName .. " -> " .. fontKey)
 		return fonts.loaded[fontKey]
 	end
+	logger.debug("Font not found by name: " .. (fontName or "nil") .. ", returning default")
 	return fonts.loaded.body -- Return default font if not found
 end
 
 -- Helper function to initialize font name to key mapping
 fonts.initNameMapping = function()
+	logger.debug("Initializing font name to key mapping")
 	fonts.nameToKey = {}
 	for key, def in pairs(fonts.definitions) do
 		fonts.nameToKey[def.name] = key
+		logger.debug("Font name mapping: " .. def.name .. " -> " .. key)
 	end
 end
 
 -- Helper function to set the default font
 fonts.setDefault = function()
+	logger.debug("Setting default font")
 	if love and fonts.loaded.body then
+		logger.debug("Default font set to body")
 		love.graphics.setFont(fonts.loaded.body)
+	else
+		logger.error("Failed to set default font - body font not loaded")
 	end
 end
 
@@ -124,8 +134,19 @@ end
 
 -- Load all fonts defined in fonts.definitions
 fonts.loadFonts = function()
+	logger.debug("Loading all fonts")
 	for key, def in pairs(fonts.definitions) do
-		fonts.loaded[key] = love.graphics.newFont(def.path, def.size)
+		logger.debug("Loading font: " .. key .. " from " .. def.path .. " size " .. def.size)
+		local success, result = pcall(function()
+			return love.graphics.newFont(def.path, def.size)
+		end)
+
+		if success then
+			fonts.loaded[key] = result
+			logger.debug("Font loaded: " .. key)
+		else
+			logger.error("Failed to load font: " .. key .. " - " .. tostring(result))
+		end
 	end
 	-- Initialize the name to key mapping after loading fonts
 	fonts.initNameMapping()

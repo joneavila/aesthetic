@@ -34,6 +34,7 @@ local function setupFonts()
 	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
 	-- Add a minimum scale factor to prevent fonts from becoming too small
 	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
+	logger.debug("Font scale factor: " .. scaleFactor)
 
 	-- Update font sizes based on scale factor
 	for _, def in pairs(fonts.definitions) do
@@ -64,13 +65,15 @@ function love.load()
 	if envWidth and envHeight and envWidth > 0 and envHeight > 0 then
 		state.screenWidth = envWidth
 		state.screenHeight = envHeight
+		logger.debug("Using environment dimensions: " .. envWidth .. "x" .. envHeight)
+	else
+		logger.warning("Using default dimensions")
 	end
 
-	print("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
+	logger.info("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
 	state.fadeDuration = 0.5
 	setupFonts()
 
-	-- Apply default RGB lighting settings when first launching application
 	input.load()
 
 	-- Load user settings if they exist
@@ -101,6 +104,7 @@ end
 
 -- Function to handle window resize
 function love.resize(w, h)
+	logger.debug("Window resized to: " .. w .. "x" .. h)
 	-- Update screen dimensions in state
 	state.screenWidth, state.screenHeight = w, h
 
@@ -111,6 +115,7 @@ function love.resize(w, h)
 	if screens then
 		local currentScreen = screens.getCurrentScreen()
 		if currentScreen then
+			logger.debug("Reloading screen: " .. currentScreen)
 			screens.switchTo(currentScreen)
 		end
 	end
@@ -122,6 +127,8 @@ function love.update(dt)
 	-- Use the screens module that was loaded in love.load
 	if screens then
 		screens.update(dt)
+	else
+		logger.error("screens module is nil in love.update")
 	end
 
 	if state.fading then
@@ -137,6 +144,8 @@ function love.draw()
 	-- Draw the current screen using the screens module loaded in love.load
 	if screens then
 		screens.draw()
+	else
+		logger.error("screens module is nil in love.draw")
 	end
 
 	-- Apply the fade-in overlay if needed
@@ -150,10 +159,12 @@ end
 
 -- Handle application exit
 function love.quit()
+	logger.debug("Application quitting")
 	saveSettings()
 
 	-- Restore original RGB configuration if no theme was applied
 	if not state.themeApplied then
+		logger.debug("Restoring original RGB config")
 		rgbUtils.restoreConfig()
 	end
 end
