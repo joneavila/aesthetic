@@ -203,8 +203,11 @@ function rgb.update(_dt)
 	end
 
 	-- Handle left/right to change option values
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
+	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
+	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
+
+	if pressedLeft or pressedRight then
+		local direction = pressedLeft and -1 or 1
 
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected then

@@ -238,8 +238,11 @@ function box_art.update(dt)
 	end
 
 	-- Handle left/right to change box art width value
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpleft") and -1 or 1
+	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
+	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
+
+	if pressedLeft or pressedRight then
+		local direction = pressedLeft and -1 or 1
 		local btn = BUTTONS[1]
 
 		-- Calculate new option index
