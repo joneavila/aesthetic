@@ -15,7 +15,7 @@ local switchScreen = nil
 
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)
-	return virtualJoystick.isButtonCombinationPressed({ "dpleft", "a" })
+	return virtualJoystick.isButtonCombinationPressed({ "guide", "y" })
 end
 
 -- Function to get text height with padding
@@ -162,7 +162,7 @@ function debug.draw()
 	-- Show instructions to exit
 	local instructionsY = love.graphics.getHeight() - lineHeight * 2
 	love.graphics.setColor(colors.ui.subtext)
-	love.graphics.print("Press D-Pad Left + A to return to main menu", 20, instructionsY)
+	love.graphics.print("Press Menu + Y to return to main menu", 20, instructionsY)
 end
 
 function debug.update(_dt)

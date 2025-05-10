@@ -398,7 +398,7 @@ function menu.update(dt)
 	end
 
 	-- Handle debug screen
-	if virtualJoystick.isButtonCombinationPressed({ "dpleft", "a" }) and switchScreen then
+	if virtualJoystick.isButtonCombinationPressed({ "guide", "y" }) and switchScreen then
 		switchScreen("debug")
 		return
 	end
