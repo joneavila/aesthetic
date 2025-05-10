@@ -152,7 +152,6 @@ function loadPreset.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ button = "d_pad", text = "Navigate" },
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	})

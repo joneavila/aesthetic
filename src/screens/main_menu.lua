@@ -391,7 +391,7 @@ function menu.update(dt)
 
 	if modal.isModalVisible() then
 		if #modal.getModalButtons() > 0 then
-			controls.draw({ { button = "d_pad", text = "Navigate" }, { button = "a", text = "Select" } })
+			controls.draw({ { button = "a", text = "Select" } })
 		end
 		handleModalNavigation(virtualJoystick, dt)
 		return
