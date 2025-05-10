@@ -2,10 +2,11 @@
 # Build and deploy Aesthetic for muOS handhelds
 #
 # Usage: 
-#   ./build.sh [--clean] [<PRIVATE_KEY_PATH>] [<HANDHELD_IP>]
+#   ./build.sh [--clean] [--launch] [<PRIVATE_KEY_PATH>] [<HANDHELD_IP>]
 #
 # Options:
 #   --clean           Remove previous installation files before deploying
+#   --launch          Launch the application after deploying
 #   PRIVATE_KEY_PATH  SSH private key for authentication
 #   HANDHELD_IP       IP address of the target muOS handheld
 #
@@ -15,6 +16,8 @@
 #   ./build.sh
 #   ./build.sh ~/.ssh/id_ed25519 192.168.68.123
 #   ./build.sh --clean ~/.ssh/id_ed25519 192.168.68.123
+#   ./build.sh --clean --launch ~/.ssh/id_ed25519 192.168.68.123
+#   ./build.sh --launch ~/.ssh/id_ed25519 192.168.68.123
 
 echoHeader() {
     local text="$1"
@@ -69,12 +72,26 @@ verifyConnection() {
 }
 
 # Process command line arguments
-if [[ "$1" == "--clean" ]]; then
-    CLEAN=true
-    shift
-else
-    CLEAN=false
-fi
+CLEAN=false
+LAUNCH=false
+
+while [[ "$1" == --* ]]; do
+    case "$1" in
+        --clean)
+            CLEAN=true
+            shift
+            ;;
+        --launch)
+            LAUNCH=true
+            shift
+            ;;
+        *)
+            echoError "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
 PRIVATE_KEY_PATH=$1
 HANDHELD_IP=$2
 
@@ -210,10 +227,14 @@ scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCH
 echoHeader "Extracting on $HANDHELD_IP"
 ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
 
-echoHeader "Launching application on $HANDHELD_IP"
-ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
-    . /opt/muos/script/var/func.sh
-    killall -9 \$(GET_VAR \"system\" \"foreground_process\")
-    /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
-    echo \"0\" > /tmp/safe_quit
-"
+if [ "$LAUNCH" = true ]; then
+    echoHeader "Launching application on $HANDHELD_IP"
+    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+        . /opt/muos/script/var/func.sh
+        killall -9 \$(GET_VAR \"system\" \"foreground_process\")
+        /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
+        echo \"0\" > /tmp/safe_quit
+    "
+else
+    echo "Skipping application launch. Use --launch flag to automatically launch after deployment."
+fi
