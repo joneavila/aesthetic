@@ -78,11 +78,14 @@ function scrollView.adjustScrollPosition(params)
 
 	-- Adjust scroll position if the selected item is outside the visible area
 	if selectedIndex <= scrollPosition then
+		-- Adjust when selection moves above the visible area
 		return selectedIndex - 1
 	elseif selectedIndex > scrollPosition + visibleCount then
+		-- Adjust when selection moves below the visible area
 		return selectedIndex - visibleCount
 	end
 
+	-- If still in view, maintain current scroll position
 	return scrollPosition
 end
 
