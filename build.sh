@@ -163,7 +163,31 @@ rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || { echoError "Failed to copy
 rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" || { echoError "Failed to copy src/"; exit 1; }
 rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" || { echoError "Failed to copy bin/"; exit 1; }
 rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" || { echoError "Failed to copy lib/"; exit 1; }
-rsync -aq assets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets" || { echoError "Failed to copy assets/"; exit 1; }
+
+# assets/fonts (.bin and .ttf files)
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts"
+rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
+
+# assets/icons/glyph
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/glyph"
+rsync -aq assets/icons/glyph/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/glyph/" || { echoError "Failed to copy glyph icons"; exit 1; }
+
+# assets/icons/lucide/ui
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/ui"
+rsync -aq assets/icons/lucide/ui/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/ui/" || { echoError "Failed to copy lucide UI icons"; exit 1; }
+
+# assets/icons/muos
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/muos"
+rsync -aq assets/icons/muos/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/muos/" || { echoError "Failed to copy muos icons"; exit 1; }
+
+# assets/images
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images"
+rsync -aq assets/images/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/" || { echoError "Failed to copy images"; exit 1; }
+
+# assets/sounds
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/sounds"
+rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/sounds/" || { echoError "Failed to copy sounds"; exit 1; }
+
 rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to copy aesthetic.png"; exit 1; }
 
 echoHeader "Creating archive"
