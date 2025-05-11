@@ -124,6 +124,10 @@ paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
 paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
 paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
 
+-- `image/wall`
+paths.THEME_CHARGE_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
+paths.BATTERY_CHARGING_ICON_PATH = "assets/icons/lucide/ui/battery-charging.svg"
+
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 

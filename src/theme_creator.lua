@@ -106,6 +106,27 @@ local function createShutdownImage()
 	return true
 end
 
+-- Function to create charge image shown during charging
+local function createChargeImage()
+	local options = {
+		width = state.screenWidth,
+		height = state.screenHeight,
+		iconPath = paths.BATTERY_CHARGING_ICON_PATH,
+		iconSize = 100,
+		outputPath = paths.THEME_CHARGE_IMAGE_PATH,
+		saveAsBmp = false,
+	}
+
+	local result = imageGenerator.createIconImage(options)
+	resetGraphicsState()
+	if result == false then
+		errorHandler.setError("Failed to create charge image")
+		return false
+	end
+
+	return true
+end
+
 -- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage()
 	local result = imageGenerator.createPreviewImage(paths.getThemePreviewImagePath(), state.fonts)
@@ -232,6 +253,12 @@ function themeCreator.createTheme()
 		-- Create theme's shutdown image
 		logger.debug("Creating shutdown image")
 		if not createShutdownImage() then
+			return false
+		end
+
+		-- Create theme's charge image
+		logger.debug("Creating charge image")
+		if not createChargeImage() then
 			return false
 		end
 
