@@ -21,7 +21,8 @@ local BOX_ART_WIDTH_OPTIONS = { 0 }
 
 -- Display constants
 local EDGE_PADDING = 10
-local RECTANGLE_SPACING = 8
+-- This value should match padding applied in `theme_settings.lua` `applyContentWidth` function
+local RECTANGLE_SPACING = 20
 local CORNER_RADIUS = 12
 local PREVIEW_BOTTOM_PADDING = 15
 
@@ -100,7 +101,7 @@ function box_art.load()
 	local boxArtWidth = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
-	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth - RECTANGLE_SPACING or 0
+	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
 	animatedLeftWidth = tweenObj.leftWidth
 	animatedRightWidth = tweenObj.rightWidth
 end
@@ -265,7 +266,7 @@ function box_art.update(dt)
 		local boxArtWidth = state.boxArtWidth
 		local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 		local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
-		local targetRightWidth = boxArtWidth > 0 and boxArtWidth - RECTANGLE_SPACING or 0
+		local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
 
 		-- Target object for the animation
 		local target = {
