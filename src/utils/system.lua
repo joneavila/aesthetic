@@ -18,14 +18,25 @@ function system.fileExists(path)
 		file:close()
 		return true
 	end
+	logger.debug("File does not exist: " .. path)
 	errorHandler.setError("File does not exist: " .. path)
 	return false
 end
 
 -- Function to find next available filename
 function system.getNextAvailableFilename(basePath)
+	-- Check file existence without setting error
+	local function checkFileExists(path)
+		local file = io.open(path, "r")
+		if file then
+			file:close()
+			return true
+		end
+		return false
+	end
+
 	-- Try without number first
-	if not system.fileExists(basePath) then
+	if not checkFileExists(basePath) then
 		return basePath
 	end
 
@@ -39,7 +50,7 @@ function system.getNextAvailableFilename(basePath)
 	local i = 1
 	while true do
 		local newPath = string.format("%s (%d)%s", baseName, i, extension)
-		if not system.fileExists(newPath) then
+		if not checkFileExists(newPath) then
 			return newPath
 		end
 		i = i + 1
@@ -99,111 +110,76 @@ end
 
 -- Helper function to create archive
 function system.createArchive(sourceDir, outputPath)
+	logger.debug("Creating archive from " .. sourceDir .. " to " .. outputPath)
+
 	-- Get next available filename
 	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
+		logger.error("Failed to get available filename for archive")
 		errorHandler.setError("Failed to get available filename")
 		return false
 	end
 
-	-- Use zip command line tool with error capture
-	local cmd = string.format('cd "%s" && zip -q -r "%s" *', sourceDir, finalPath)
+	logger.debug("Using archive path: " .. finalPath)
+
+	-- Note: 7zip would be nice here but the system does not support the -tzip option
+	-- Naming the file .zip and renaming to .muxthm will not work
+	local cmd = string.format('cd "%s" && zip -r "%s" * -x "*.DS_Store"', sourceDir, finalPath)
+	logger.debug("Archive command: " .. cmd)
+
+	-- Execute command and capture output
 	local handle = io.popen(cmd .. " 2>&1")
 	if not handle then
-		errorHandler.setError("Failed to execute zip command")
+		logger.error("Failed to execute archive command")
+		errorHandler.setError("Failed to execute archive command")
 		return false
 	end
 
 	local result = handle:read("*a")
-	if not result then
-		handle:close()
-		errorHandler.setError("Failed to read command output")
+	local success = handle:close()
+
+	if not success then
+		logger.error("Archive creation failed: " .. result)
+		errorHandler.setError("Archive creation failed: " .. result)
 		return false
 	end
 
-	local success = handle:close()
-	if not success then
-		errorHandler.setError("zip command failed: " .. result)
-		return false
-	end
+	logger.debug("Created archive using zip at " .. finalPath)
+
+	-- Execute sync to ensure filesystem catches up
+	commands.executeCommand("sync")
+
 	return finalPath
 end
 
 -- Helper function to copy directory contents
 function system.copyDir(src, dest)
-	-- Create destination directory
+	-- Ensure source ends with a slash to copy contents rather than the directory itself
+	if not src:match("/$") then
+		src = src .. "/"
+	end
+
 	if not system.ensurePath(dest) then
 		errorHandler.setError("Failed to create destination directory: " .. dest)
 		return false
 	end
 
-	-- Use find to list all directories in source
-	local findCmd = string.format('find "%s" -type d', src)
-	local handle = io.popen(findCmd)
-	if not handle then
-		errorHandler.setError("Failed to list directories in source path")
+	-- Check if source directory exists
+	local checkCmd = string.format('test -d "%s"', src:sub(1, -2))
+	if commands.executeCommand(checkCmd) ~= 0 then
+		errorHandler.setError("Source directory does not exist: " .. src)
 		return false
 	end
 
-	-- Create each directory in the destination
-	local success = true
-	for dir in handle:lines() do
-		-- Get the relative path by removing the source prefix
-		local relPath = dir:sub(#src + 1)
-		if relPath ~= "" then
-			-- Create the corresponding directory in destination
-			local destDir = dest .. relPath
-			local mkdirCmd = string.format('mkdir -p "%s"', destDir)
-			local mkdirSuccess = os.execute(mkdirCmd)
-			if mkdirSuccess ~= 0 and mkdirSuccess ~= true then
-				success = false
-				errorHandler.setError("Failed to create directory: " .. destDir)
-				break
-			end
-		end
-	end
-	handle:close()
+	-- Optimize rsync command for performance:
+	-- -a: archive mode (preserves permissions, etc.)
+	-- --no-whole-file: use delta-transfer algorithm (faster for existing files)
+	-- -W: For new files, whole files are sent without using delta algorithm (faster for new files)
+	-- -z0: disable compression (more CPU efficient)
+	-- --info=none: disable progress information (reduces overhead)
+	local rsyncCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
 
-	if not success then
-		return false
-	end
-
-	-- Now find and copy each file individually
-	local findFilesCmd = string.format('find "%s" -type f', src)
-	handle = io.popen(findFilesCmd)
-	if not handle then
-		errorHandler.setError("Failed to list files in source path")
-		return false
-	end
-
-	-- Copy each file to its destination
-	success = true
-	for file in handle:lines() do
-		-- Get the relative path
-		local relPath = file:sub(#src + 1)
-		local destFile = dest .. relPath
-
-		-- Ensure parent directory exists (extra safety)
-		local destDir = destFile:match("(.+)/[^/]*$")
-		if destDir then
-			os.execute(string.format('mkdir -p "%s"', destDir))
-		end
-
-		-- Copy the file
-		local cpCmd = string.format('cp "%s" "%s"', file, destFile)
-		local cpSuccess = os.execute(cpCmd)
-		if cpSuccess ~= 0 and cpSuccess ~= true then
-			success = false
-			errorHandler.setError("Failed to copy file: " .. file .. " to " .. destFile)
-			break
-		end
-	end
-	handle:close()
-
-	if not success then
-		return false
-	end
-	return true
+	return commands.executeCommand(rsyncCmd)
 end
 
 --- Ensures a directory exists, creating it if necessary
@@ -211,6 +187,7 @@ end
 --- If path points to a directory, creates that directory
 function system.ensurePath(path)
 	if not path then
+		logger.error("No path provided to ensurePath")
 		errorHandler.setError("No path provided to ensurePath")
 		return false
 	end
@@ -226,9 +203,11 @@ function system.ensurePath(path)
 
 	local result = os.execute('mkdir -p "' .. dir .. '"')
 	if not result then
+		logger.error("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		errorHandler.setError("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		return false
 	end
+	logger.debug("Ensured directory exists: " .. dir)
 	return true
 end
 
@@ -246,8 +225,12 @@ function system.copyFile(sourcePath, destinationPath)
 		return false
 	end
 
-	-- Copy the file
-	return commands.executeCommand(string.format('cp "%s" "%s"', sourcePath, destinationPath))
+	-- Use direct copy (faster for small files)
+	-- Note: For larger files, rsync would be more efficient with:
+	-- rsync -a -W --no-compress sourcePath destinationPath
+	local cmd = string.format('cp "%s" "%s"', sourcePath, destinationPath)
+
+	return commands.executeCommand(cmd)
 end
 
 -- Get environment variable, setting error if not found
@@ -315,8 +298,18 @@ end
 
 -- Read the entire content of a file
 function system.readFile(filePath)
+	-- Check if file exists to provide better error message
+	if not system.fileExists(filePath) then
+		logger.error("File does not exist for reading: " .. filePath)
+		return nil
+	end
+
+	-- Standard file reading
+	-- Note: For larger files (>10MB), memory mapping with dd would be more efficient:
+	-- dd if=filePath bs=4M
 	local file, err = io.open(filePath, "r")
 	if not file then
+		logger.error("Failed to open file for reading (" .. filePath .. "): " .. err)
 		errorHandler.setError("Failed to open file for reading (" .. filePath .. "): " .. err)
 		return nil
 	end
@@ -325,10 +318,12 @@ function system.readFile(filePath)
 	file:close()
 
 	if not content then
+		logger.error("Failed to read content from file: " .. filePath)
 		errorHandler.setError("Failed to read content from file: " .. filePath)
 		return nil
 	end
 
+	logger.debug("Successfully read file: " .. filePath)
 	return content
 end
 
@@ -360,11 +355,13 @@ end
 function system.writeBinaryFile(filePath, binaryData)
 	-- Ensure the directory exists
 	if not system.ensurePath(filePath) then
+		logger.error("Failed to create directory for file: " .. filePath)
 		return false
 	end
 
 	local file, err = io.open(filePath, "wb")
 	if not file then
+		logger.error("Failed to open file for binary writing (" .. filePath .. "): " .. err)
 		errorHandler.setError("Failed to open file for binary writing (" .. filePath .. "): " .. err)
 		return false
 	end
@@ -373,10 +370,12 @@ function system.writeBinaryFile(filePath, binaryData)
 	file:close()
 
 	if not success then
+		logger.error("Failed to write binary data to file: " .. filePath)
 		errorHandler.setError("Failed to write binary data to file: " .. filePath)
 		return false
 	end
 
+	logger.debug("Successfully wrote binary data to file: " .. filePath)
 	return true
 end
 

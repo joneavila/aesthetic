@@ -199,20 +199,7 @@ end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	-- Get list of sound files
-	local soundFiles = { "back.wav", "confirm.wav", "error.wav", "navigate.wav", "reboot.wav", "shutdown.wav" }
-
-	-- Copy each sound file
-	for _, filename in ipairs(soundFiles) do
-		local sourcePath = paths.THEME_SOUND_SOURCE_DIR .. "/" .. filename
-		local destPath = paths.THEME_SOUND_PATH .. "/" .. filename
-
-		if not system.copyFile(sourcePath, destPath) then
-			return false
-		end
-	end
-
-	return true
+	return system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_PATH)
 end
 
 -- Main function to create theme
@@ -324,8 +311,7 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's content width settings for `muxplore.ini`
-		logger.debug("Setting theme's content width settings for `muxplore.ini`")
+		-- Set theme's content width settings for `muxplore.ini`		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not themeSettings.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
 			return false
 		end
