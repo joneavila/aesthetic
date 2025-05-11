@@ -6,6 +6,11 @@ local colors = require("colors")
 -- Module table to export public functions
 local modal = {}
 
+-- Animation durations
+modal.FADE_IN_DURATION = 0.4 -- Time to fade in completely (seconds)
+modal.FADE_OUT_DURATION = 0.4 -- Time to fade out completely (seconds)
+modal.BG_FADE_DURATION = 0.4 -- Background fade duration (seconds)
+
 -- Modal state variables
 local showModal = false
 local modalMessage = ""
@@ -143,21 +148,25 @@ end
 function modal.update(dt)
 	-- Update background opacity smoothly in both directions
 	local targetBgOpacity = showModal and 0.9 or 0
+	local bgFadeSpeed = 1 / modal.BG_FADE_DURATION
+
 	if backgroundOpacity < targetBgOpacity then
-		backgroundOpacity = math.min(backgroundOpacity + dt * 5, targetBgOpacity)
+		backgroundOpacity = math.min(backgroundOpacity + dt * bgFadeSpeed, targetBgOpacity)
 	elseif backgroundOpacity > targetBgOpacity then
-		backgroundOpacity = math.max(backgroundOpacity - dt * 5, targetBgOpacity)
+		backgroundOpacity = math.max(backgroundOpacity - dt * bgFadeSpeed, targetBgOpacity)
 	end
 
 	if showModal then
 		-- Handle fade in
 		if modalOpacity < targetOpacity and not isFadingOut then
-			modalOpacity = math.min(modalOpacity + dt * 5, targetOpacity) -- Faster fade in: 5 units per second
+			local fadeInSpeed = 1 / modal.FADE_IN_DURATION
+			modalOpacity = math.min(modalOpacity + dt * fadeInSpeed, targetOpacity) -- Fade in animation
 		end
 
 		-- Handle fade out and cleanup when fully transparent
 		if isFadingOut then
-			modalOpacity = math.max(modalOpacity - dt * 5, 0) -- Faster fade out: 5 units per second
+			local fadeOutSpeed = 1 / modal.FADE_OUT_DURATION
+			modalOpacity = math.max(modalOpacity - dt * fadeOutSpeed, 0) -- Fade out animation
 			if modalOpacity <= 0 then
 				-- Just hide this modal
 				showModal = false
@@ -172,7 +181,8 @@ function modal.update(dt)
 		isFadingOut = false
 
 		-- Fade out background when modal is hidden
-		backgroundOpacity = math.max(backgroundOpacity - dt * 5, 0)
+		local bgFadeSpeed = 1 / modal.BG_FADE_DURATION
+		backgroundOpacity = math.max(backgroundOpacity - dt * bgFadeSpeed, 0)
 	end
 end
 
