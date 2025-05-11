@@ -78,7 +78,6 @@ function menu.load()
 	list.resetScrollPosition()
 end
 
-
 function menu.draw()
 	local startY = header.getHeight()
 
@@ -227,7 +226,7 @@ local function handleThemeCreation()
 	if createdThemePath then
 		logger.debug("Theme created successfully at: " .. createdThemePath)
 		modalState = "created"
-		-- Replace the process modal with success modal for smooth transition
+		-- Replace the process modal with success modal
 		modal.replaceModal("Created theme successfully.", {
 			{ text = "Apply theme later", selected = false },
 			{ text = "Apply theme now", selected = true },
@@ -253,7 +252,7 @@ local function handleThemeInstallation()
 	-- Set flag to indicate theme was applied
 	state.themeApplied = true
 
-	-- Replace the process modal with success/failure modal for smooth transition
+	-- Replace the process modal with success/failure modal
 	modal.replaceModal(
 		success and "Applied theme successfully." or "Failed to apply theme.",
 		{ { text = "Close", selected = true } }

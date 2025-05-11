@@ -142,7 +142,7 @@ end
 -- Update function for animations
 function modal.update(dt)
 	-- Update background opacity smoothly in both directions
-	local targetBgOpacity = (showModal or nextModalInfo) and 0.9 or 0
+	local targetBgOpacity = showModal and 0.9 or 0
 	if backgroundOpacity < targetBgOpacity then
 		backgroundOpacity = math.min(backgroundOpacity + dt * 5, targetBgOpacity)
 	elseif backgroundOpacity > targetBgOpacity then
@@ -159,26 +159,10 @@ function modal.update(dt)
 		if isFadingOut then
 			modalOpacity = math.max(modalOpacity - dt * 5, 0) -- Faster fade out: 5 units per second
 			if modalOpacity <= 0 then
-				-- If we have a next modal queued, show it
-				if nextModalInfo then
-					-- Apply the next modal info
-					modalMessage = nextModalInfo.message
-					modalButtons = nextModalInfo.buttons or {}
-					isProcessModal = nextModalInfo.isProcessModal or false
-
-					-- Reset fade settings
-					modalOpacity = 0
-					targetOpacity = 1
-					isFadingOut = false
-
-					-- Clear next modal info to prevent loops
-					nextModalInfo = nil
-				else
-					-- Just hide this modal
-					showModal = false
-					isProcessModal = false
-					isFadingOut = false
-				end
+				-- Just hide this modal
+				showModal = false
+				isProcessModal = false
+				isFadingOut = false
 			end
 		end
 	else
@@ -187,10 +171,8 @@ function modal.update(dt)
 		targetOpacity = 1
 		isFadingOut = false
 
-		-- Only fade out background if no modals are queued
-		if not nextModalInfo then
-			backgroundOpacity = math.max(backgroundOpacity - dt * 5, 0)
-		end
+		-- Fade out background when modal is hidden
+		backgroundOpacity = math.max(backgroundOpacity - dt * 5, 0)
 	end
 end
 
@@ -240,38 +222,42 @@ end
 
 -- Smoothly replace current modal with a new one
 function modal.replaceModal(message, buttons)
-	-- Start fade out of current modal
+	-- If there's a current modal, replace it instantly
 	if showModal then
-		isFadingOut = true
-		targetOpacity = 0
+		-- Directly update the modal content without animation
+		modalMessage = message
+		modalButtons = buttons or {}
+		isProcessModal = false
 
-		-- Queue the next modal
-		nextModalInfo = {
-			message = message,
-			buttons = buttons or {},
-			isProcessModal = false,
-		}
+		-- Keep the opacity at full to avoid flicker
+		modalOpacity = targetOpacity
+		isFadingOut = false
+
+		-- Clear any queued modals
+		nextModalInfo = nil
 	else
-		-- No current modal, show immediately
+		-- No current modal, show with normal fade in
 		modal.showModal(message, buttons)
 	end
 end
 
 -- Replace with a process modal
 function modal.replaceWithProcessModal(message)
-	-- Start fade out of current modal
+	-- If there's a current modal, replace it instantly
 	if showModal then
-		isFadingOut = true
-		targetOpacity = 0
+		-- Directly update the modal content without animation
+		modalMessage = message
+		modalButtons = {}
+		isProcessModal = true
 
-		-- Queue the next modal
-		nextModalInfo = {
-			message = message,
-			buttons = {},
-			isProcessModal = true,
-		}
+		-- Keep the opacity at full to avoid flicker
+		modalOpacity = targetOpacity
+		isFadingOut = false
+
+		-- Clear any queued modals
+		nextModalInfo = nil
 	else
-		-- No current modal, show immediately
+		-- No current modal, show with normal fade in
 		modal.showProcessModal(message)
 	end
 end
@@ -292,7 +278,6 @@ function modal.forceHideModal()
 	targetOpacity = 1
 	isProcessModal = false
 	isFadingOut = false
-	nextModalInfo = nil
 end
 
 -- Check if modal is visible
