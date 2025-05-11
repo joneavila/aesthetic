@@ -4,6 +4,7 @@
 local errorHandler = {}
 local modal = require("ui.modal")
 local logger = require("utils.logger")
+local fonts = require("ui.fonts")
 
 -- Error state
 local errorMessage = nil
@@ -26,7 +27,9 @@ function errorHandler.showErrorModal(prefix)
 		message = prefix .. ": " .. message
 	end
 	logger.error("Showing error modal: " .. message)
-	modal.showModal(message, { { text = "Exit", selected = true } })
+
+	-- Use scrollable modal with error font
+	modal.showScrollableModal(message, { { text = "Exit", selected = true } }, fonts.loaded.error)
 end
 
 function errorHandler.update(_dt)

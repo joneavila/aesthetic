@@ -281,7 +281,11 @@ local function handleModalNavigation(virtualJoystick, dt)
 	end
 
 	-- Handle navigation for modal buttons
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+	-- For scrollable modals, don't toggle buttons on up/down as those are used for scrolling
+	if
+		not modal.isScrollableModal()
+		and (virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown"))
+	then
 		toggleModalButtonSelection(modalButtons)
 		modalInputState.isFirstInput = false
 	else
@@ -328,7 +332,7 @@ local function handleModalNavigation(virtualJoystick, dt)
 		else
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
-				if btn.selected and btn.text == "Exit" then
+				if btn.selected and btn.text == "Exit" or btn.text == "Close" then
 					love.event.quit()
 				end
 			end
@@ -394,9 +398,23 @@ function menu.update(dt)
 	end
 
 	if modal.isModalVisible() then
-		if #modal.getModalButtons() > 0 then
+		-- Add ability to scroll error modals with D-pad up/down
+		if modal.isScrollableModal() then
+			if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+				modal.scroll(-20) -- Scroll up
+			elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+				modal.scroll(20) -- Scroll down
+			end
+
+			-- Show scroll controls in the control hints area
+			controls.draw({
+				{ button = "a", text = "Select" },
+				{ button = "d_pad", text = "Scroll" },
+			})
+		elseif #modal.getModalButtons() > 0 then
 			controls.draw({ { button = "a", text = "Select" } })
 		end
+
 		handleModalNavigation(virtualJoystick, dt)
 		return
 	end

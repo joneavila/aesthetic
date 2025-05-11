@@ -59,6 +59,7 @@ fonts.definitions = {
 		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 		size = bodySize,
 	},
+	error = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 16 },
 	nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
 	retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = bodySize },
 	cascadiaCode = {
