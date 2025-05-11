@@ -5,33 +5,15 @@ local logger = require("utils.logger")
 
 local commands = {}
 function commands.executeCommand(command)
+	-- os.execute is more consistent, less flexible than io.popen
 	logger.debug("Executing command: " .. command)
-
-	-- Use popen to capture command output
-	local handle = io.popen(command .. " 2>&1")
-	if not handle then
-		logger.error("Failed to execute command: " .. command)
-		errorHandler.setError("Failed to execute command: " .. command)
-		return false
-	end
-
-	local output = handle:read("*a")
-	local _, result, code = handle:close()
-
-	if not result then
-		logger.error("Command failed: " .. command)
-		errorHandler.setError("Failed to execute command: " .. command)
-		return false
-	end
-
-	if code == 0 then
-		logger.debug("Command executed successfully, result: " .. tostring(code))
+	local result = os.execute(command)
+	if result == 0 then
+		logger.debug("Command executed successfully, result: " .. tostring(result))
 	else
-		logger.error("Command returned error code: " .. tostring(code))
-		logger.error("Command output: " .. output)
+		logger.error("Command returned error code: " .. tostring(result))
 	end
-
-	return code
+	return result
 end
 
 return commands
