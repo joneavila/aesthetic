@@ -250,6 +250,14 @@ function system.removeDir(dir)
 		errorHandler.setError("No directory path provided to removeDir")
 		return false
 	end
+
+	-- Check if directory exists before attempting removal
+	local checkCmd = string.format('test -d "%s"', dir)
+	if commands.executeCommand(checkCmd) ~= 0 then
+		logger.warning("Directory does not exist for removal: " .. dir)
+		return true -- Return true since there's nothing to remove
+	end
+
 	return commands.executeCommand('rm -rf "' .. dir .. '"')
 end
 
