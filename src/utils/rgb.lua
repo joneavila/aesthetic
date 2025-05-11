@@ -63,6 +63,12 @@ end
 
 -- Function to update RGB configuration and apply it immediately
 function rgb.updateConfig()
+	-- Skip if RGB is not supported on this device
+	if state.hasRGBSupport == false then
+		logger.debug("Skipping RGB updateConfig - device does not support RGB lighting")
+		return true
+	end
+
 	-- Generate the command
 	local command = rgb.buildCommand()
 
@@ -237,6 +243,12 @@ end
 
 -- Function to restore RGB configuration from backup or turn off if no backup
 function rgb.restoreConfig()
+	-- Skip if RGB is not supported on this device
+	if state.hasRGBSupport == false then
+		logger.debug("Skipping RGB restoreConfig - device does not support RGB lighting")
+		return true
+	end
+
 	-- Only restore if we haven't applied a theme
 	if state.themeApplied then
 		logger.warning("Someone called rgb.restoreConfig() but a theme is applied")
@@ -271,6 +283,12 @@ end
 
 -- Function to backup the current RGB configuration if it exists
 function rgb.backupCurrentConfig()
+	-- Skip if RGB is not supported on this device
+	if state.hasRGBSupport == false then
+		logger.debug("Skipping RGB backup - device does not support RGB lighting")
+		return true
+	end
+
 	logger.debug("Backing up current RGB config")
 	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
 		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
@@ -281,6 +299,12 @@ end
 
 -- Function to install RGB config from theme to active config
 function rgb.installFromTheme()
+	-- Skip if RGB is not supported on this device
+	if state.hasRGBSupport == false then
+		logger.debug("Skipping RGB theme installation - device does not support RGB lighting")
+		return true
+	end
+
 	-- Build command string based on current RGB settings
 	local command = rgb.buildCommand()
 

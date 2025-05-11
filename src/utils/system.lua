@@ -387,4 +387,41 @@ function system.writeBinaryFile(filePath, binaryData)
 	return true
 end
 
+-- Check if RGB lighting is supported on the current device
+-- by reading the RGB setting from the device config file
+function system.hasRGBSupport()
+	local configPath = "/opt/muos/device/current/config.ini"
+	local file = io.open(configPath, "r")
+
+	-- Default to true if we can't read the config file, to preserve existing behavior
+	if not file then
+		logger.warning("Could not read device config file: " .. configPath)
+		return true
+	end
+
+	local content = file:read("*all")
+	file:close()
+
+	-- Find the [led] section and check for rgb=1
+	local inLedSection = false
+	for line in content:gmatch("([^\n]*)\n?") do
+		-- Check for section header
+		local section = line:match("^%[(.+)%]$")
+		if section then
+			inLedSection = (section == "led")
+		elseif inLedSection then
+			-- Look for rgb setting in [led] section
+			local key, value = line:match("^%s*([%w_]+)%s*=%s*(%d+)%s*$")
+			if key == "rgb" then
+				logger.debug("Found RGB setting: " .. value)
+				return value == "1"
+			end
+		end
+	end
+
+	-- Default to true if setting not found, to maintain compatibility
+	logger.debug("RGB setting not found in config file, defaulting to enabled")
+	return true
+end
+
 return system

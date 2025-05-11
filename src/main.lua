@@ -18,6 +18,7 @@ local settings = require("utils.settings")
 local logger = require("utils.logger")
 local errorHandler = require("error_handler")
 local rgbUtils = require("utils.rgb")
+local system = require("utils.system")
 
 -- Screens module will be initialized after loading
 local screens = nil
@@ -79,12 +80,20 @@ function love.load()
 	-- Load user settings if they exist
 	loadSettings()
 
-	-- Backup the current RGB config if it exists
-	local backupSuccess = rgbUtils.backupCurrentConfig()
-	if not backupSuccess then
-		errorHandler.setError("Failed to backup current RGB config")
+	-- Check if device has RGB support before performing RGB operations
+	state.hasRGBSupport = system.hasRGBSupport()
+	logger.info("RGB support: " .. (state.hasRGBSupport and "enabled" or "disabled"))
+
+	if state.hasRGBSupport then
+		-- Backup the current RGB config if it exists
+		local backupSuccess = rgbUtils.backupCurrentConfig()
+		if not backupSuccess then
+			errorHandler.setError("Failed to backup current RGB config")
+		end
+		rgbUtils.updateConfig() -- Apply RGB settings from state
+	else
+		logger.info("Skipping RGB operations - device does not support RGB lighting")
 	end
-	rgbUtils.updateConfig() -- Apply RGB settings from state
 
 	-- Load UI components that require initialization
 	local button = require("ui.button")
@@ -163,7 +172,7 @@ function love.quit()
 	saveSettings()
 
 	-- Restore original RGB configuration if no theme was applied
-	if not state.themeApplied then
+	if state.hasRGBSupport and not state.themeApplied then
 		logger.debug("Restoring original RGB config")
 		rgbUtils.restoreConfig()
 	end
