@@ -16,6 +16,86 @@ fonts.loaded = {}
 -- Font name to font key mapping for easy lookup
 fonts.nameToKey = {}
 
+-- Available font sizes for selection
+local AVAILABLE_FONT_SIZES = { 24, 28, 32 }
+
+--[[
+  Calculates a scaled font size based on screen dimensions
+  
+  @param width - The width of the display in pixels
+  @param height - The height of the display in pixels
+  @param baseFontSize - The font size for the reference display (640x480)
+  @param minFontSize - The minimum allowed font size
+  @param maxFontSize - The maximum allowed font size
+  @return - The calculated font size in pixels (rounded to nearest integer)
+--]]
+local function calculateFontSize(width, height, baseFontSize, minFontSize, maxFontSize)
+	-- Calculate the diagonal length of the current display
+	local diagonal = math.sqrt(width ^ 2 + height ^ 2)
+
+	-- Calculate the diagonal length of the base display (640x480)
+	local baseDiagonal = math.sqrt(640 ^ 2 + 480 ^ 2) -- ≈ 800
+
+	-- Calculate the scaling factor
+	local scalingFactor = diagonal / baseDiagonal
+
+	-- Apply scaling factor to base font size
+	local scaledFontSize = baseFontSize * scalingFactor
+
+	-- Apply constraints to keep font size within desired range
+	local finalFontSize = math.max(minFontSize, math.min(scaledFontSize, maxFontSize))
+
+	-- Return the font size rounded to the nearest integer
+	return math.floor(finalFontSize + 0.5)
+end
+
+-- Get the closest available font size to the desired size
+local function getClosestFontSize(desiredSize)
+	-- Log the desired font size for debugging
+	logger.debug("Desired font size: " .. desiredSize)
+
+	-- Find the closest available font size
+	local closestSize = AVAILABLE_FONT_SIZES[1]
+	local minDifference = math.abs(desiredSize - closestSize)
+
+	for _, size in ipairs(AVAILABLE_FONT_SIZES) do
+		local difference = math.abs(desiredSize - size)
+		if difference < minDifference then
+			minDifference = difference
+			closestSize = size
+		end
+	end
+
+	logger.debug("Selected closest available font size: " .. closestSize)
+	return tostring(closestSize)
+end
+
+-- Calculate dynamic font sizes based on current display dimensions
+local function calculateDynamicFontSizes()
+	local width, height = love.graphics.getDimensions()
+
+	-- Base font sizes for 640x480 display
+	local defaultBaseSize = 24
+	local largeBaseSize = 28
+	local extraLargeBaseSize = 32
+
+	-- Min and max constraints
+	local minFontSize = 16
+	local maxFontSize = 40
+
+	-- Calculate the dynamic sizes
+	local defaultSize = calculateFontSize(width, height, defaultBaseSize, minFontSize, maxFontSize)
+	local largeSize = calculateFontSize(width, height, largeBaseSize, minFontSize, maxFontSize)
+	local extraLargeSize = calculateFontSize(width, height, extraLargeBaseSize, minFontSize, maxFontSize)
+
+	-- Get the closest available sizes
+	return {
+		["Default"] = getClosestFontSize(defaultSize),
+		["Large"] = getClosestFontSize(largeSize),
+		["Extra Large"] = getClosestFontSize(extraLargeSize),
+	}
+end
+
 -- Font available choices
 fonts.choices = {
 	{
@@ -77,12 +157,21 @@ fonts.screenHeightMapping = {
 	[480] = { fontSizeDir = "24", imageFontSize = 28 },
 }
 
--- Font size options mapping
-fonts.fontSizeOptions = {
-	["Default"] = "24",
-	["Large"] = "28",
-	["Extra Large"] = "32",
-}
+-- Initialize font size options with dynamic calculation
+fonts.fontSizeOptions = {} -- Will be populated in the init function
+
+-- Initialize font size options based on current display dimensions
+fonts.initFontSizeOptions = function()
+	fonts.fontSizeOptions = calculateDynamicFontSizes()
+	logger.info(
+		"Dynamic font sizes initialized: Default="
+			.. fonts.fontSizeOptions["Default"]
+			.. ", Large="
+			.. fonts.fontSizeOptions["Large"]
+			.. ", Extra Large="
+			.. fonts.fontSizeOptions["Extra Large"]
+	)
+end
 
 -- Helper function to get font size info based on screen height
 fonts.getFontSizeInfo = function(height)
@@ -118,7 +207,6 @@ fonts.initNameMapping = function()
 	fonts.nameToKey = {}
 	for key, def in pairs(fonts.definitions) do
 		fonts.nameToKey[def.name] = key
-		logger.debug("Font name mapping: " .. def.name .. " -> " .. key)
 	end
 end
 
@@ -140,6 +228,9 @@ end
 
 -- Load all fonts defined in fonts.definitions
 fonts.loadFonts = function()
+	-- Initialize font size options first
+	fonts.initFontSizeOptions()
+
 	logger.debug("Loading all fonts")
 	for key, def in pairs(fonts.definitions) do
 		logger.debug("Loading font: " .. key .. " from " .. def.path .. " size " .. def.size)
