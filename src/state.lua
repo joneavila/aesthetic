@@ -55,7 +55,7 @@ local state = {
 
 	-- Font settings (moved to ui.fonts but kept references here for compatibility)
 	fonts = fonts.loaded,
-	selectedFont = fonts.defaultFont,
+	selectedFont = fonts.defaultFontName,
 	fontSize = fonts.defaultFontSize,
 
 	previousScreen = "main_menu", -- Default screen to return to after color picker
@@ -135,11 +135,6 @@ end
 --- Helper function to get a font by name (delegated to fonts)
 function state.getFontByName(fontName)
 	return fonts.getByName(fontName)
-end
-
---- Helper function to initialize font name to key mapping (delegated to fonts)
-function state.initFontNameMapping()
-	fonts.initNameMapping()
 end
 
 --- Helper function to set the default font (delegated to fonts)

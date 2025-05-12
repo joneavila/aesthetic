@@ -167,7 +167,7 @@ end
 local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
-	for _, font in ipairs(fonts.choices) do
+	for _, font in ipairs(fonts.themeDefinitions) do
 		if fonts.isSelected(font.name, state.selectedFont) then
 			selectedFontFile = font.file
 			break
@@ -178,8 +178,18 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Default font size directory is 24pt
-	local fontSizeDir = fonts.getFontSizeDir(state.fontSize)
+	-- Get the font size directory
+	local fontSizeDir
+	local existingFontSize, result = pcall(function()
+		return fonts.themeFontSizeOptions[state.fontSize]
+	end)
+	if not existingFontSize or not result then
+		local errorMsg = "Failed to get font size: " .. tostring(state.fontSize)
+		logger.error(errorMsg)
+		errorHandler.setError(errorMsg)
+		return false
+	end
+	fontSizeDir = result
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = "assets/fonts/"

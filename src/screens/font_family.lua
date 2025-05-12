@@ -39,18 +39,18 @@ local function getPreviewFont(fontName)
 	end
 
 	local previewFont
-	if fontName == "Inter" then
-		-- For Inter, create a font directly from the file to avoid UI font scaling issues
-		previewFont = love.graphics.newFont("assets/fonts/inter/inter_24pt_semibold.ttf", FONT_PREVIEW.FONT_SIZE)
-	elseif fontName == "Nunito" then
-		previewFont = love.graphics.newFont("assets/fonts/nunito/nunito_bold.ttf", FONT_PREVIEW.FONT_SIZE)
-	elseif fontName == "JetBrains Mono" then
-		previewFont =
-			love.graphics.newFont("assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", FONT_PREVIEW.FONT_SIZE)
-	elseif fontName == "Retro Pixel" then
-		previewFont = love.graphics.newFont("assets/fonts/retro_pixel/retro_pixel_thick.ttf", FONT_PREVIEW.FONT_SIZE)
-	elseif fontName == "Cascadia Code" then
-		previewFont = love.graphics.newFont("assets/fonts/cascadia_code/cascadia_code_bold.ttf", FONT_PREVIEW.FONT_SIZE)
+
+	-- Find the font info from fonts.themeDefinitions
+	local fontInfo = nil
+	for _, choice in ipairs(fonts.themeDefinitions) do
+		if choice.name == fontName then
+			fontInfo = choice
+			break
+		end
+	end
+
+	if fontInfo and fontInfo.path then
+		previewFont = love.graphics.newFont(fontInfo.path, FONT_PREVIEW.FONT_SIZE)
 	else
 		-- Fallback to the state's font loading for unknown fonts
 		previewFont = state.getFontByName(fontName)
@@ -68,7 +68,7 @@ local function calculateMaxPreviewHeight()
 	end
 
 	local maxHeight = 0
-	for _, fontChoice in ipairs(fonts.choices) do
+	for _, fontChoice in ipairs(fonts.themeDefinitions) do
 		local previewFont = getPreviewFont(fontChoice.name)
 		local _, textLines = previewFont:getWrap(
 			FONT_PREVIEW.PREVIEW_TEXT,
@@ -88,12 +88,12 @@ local scrollPosition = 0
 local visibleCount = 0
 local scrollBarWidth = scrollView.SCROLL_BAR_WIDTH
 
--- Initialize font items based on fonts.choices
+-- Initialize font items based on fonts.themeDefinitions
 local function initFontItems()
 	fontItems = {}
 	local foundSelected = false
 
-	for _, fontItem in ipairs(fonts.choices) do
+	for _, fontItem in ipairs(fonts.themeDefinitions) do
 		local isSelected = fontItem.name == state.selectedFont
 
 		if isSelected then

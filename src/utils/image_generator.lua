@@ -119,7 +119,7 @@ function imageGenerator.createIconImage(options)
 			errorHandler.setError("Font mapping not found or initialized")
 			return false
 		end
-		local fontDef = fonts.definitions[fontKey]
+		local fontDef = fonts.uiDefinitions[fontKey]
 		local largerFont = love.graphics.newFont(fontDef.path, fontSize)
 
 		-- Set the font and color

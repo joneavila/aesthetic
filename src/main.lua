@@ -23,33 +23,6 @@ local system = require("utils.system")
 -- Screens module will be initialized after loading
 local screens = nil
 
--- Function to setup fonts based on reference resolution and aspect ratio
-local function setupFonts()
-	-- Reference resolution is 720x720
-	local referenceWidth = 720
-	local referenceHeight = 720
-
-	local widthRatio = state.screenWidth / referenceWidth
-	local heightRatio = state.screenHeight / referenceHeight
-
-	-- Use the smaller ratio to ensure text doesn't get too small on low-res displays
-	-- Add a minimum scale factor to prevent fonts from becoming too small
-	local scaleFactor = math.max(math.min(widthRatio, heightRatio), 1.0)
-	logger.debug("Font scale factor: " .. scaleFactor)
-
-	-- Update font sizes based on scale factor
-	for _, def in pairs(fonts.definitions) do
-		def.size = def.size * scaleFactor
-	end
-
-	fonts.loadFonts()
-
-	-- Ensure font name mapping is initialized
-	state.initFontNameMapping()
-
-	fonts.setDefault()
-end
-
 -- Function to load settings from file
 local function loadSettings()
 	return settings.loadFromFile()
@@ -73,7 +46,8 @@ function love.load()
 
 	logger.info("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
 	state.fadeDuration = 0.5
-	setupFonts()
+
+	fonts.initializeFonts(state.screenWidth, state.screenHeight)
 
 	input.load()
 
@@ -118,7 +92,7 @@ function love.resize(w, h)
 	state.screenWidth, state.screenHeight = w, h
 
 	-- Recalculate and reload fonts
-	setupFonts()
+	fonts.initializeFonts(state.screenWidth, state.screenHeight)
 
 	-- Reload the current screen to update layout
 	if screens then
