@@ -63,12 +63,6 @@ end
 
 -- Function to update RGB configuration and apply it immediately
 function rgb.updateConfig()
-	-- Skip if RGB is not supported on this device
-	if state.hasRGBSupport == false then
-		logger.debug("Skipping RGB updateConfig - device does not support RGB lighting")
-		return true
-	end
-
 	-- Generate the command
 	local command = rgb.buildCommand()
 

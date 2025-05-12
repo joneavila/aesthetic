@@ -232,7 +232,9 @@ function rgb.update(_dt)
 					updateButtonStates()
 
 					-- Apply RGB settings immediately
-					rgbUtils.updateConfig()
+					if state.hasRGBSupport then
+						rgbUtils.updateConfig()
+					end
 				elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
 					-- Handle brightness or speed adjustment
 					local isSpeed = btn.text == "Speed"
@@ -257,7 +259,9 @@ function rgb.update(_dt)
 					end
 
 					-- Apply RGB settings immediately
-					rgbUtils.updateConfig()
+					if state.hasRGBSupport then
+						rgbUtils.updateConfig()
+					end
 				end
 			end
 		end
@@ -290,7 +294,9 @@ function rgb.onEnter()
 	updateButtonStates()
 
 	-- Apply RGB settings in case they were changed in the color picker
-	rgbUtils.updateConfig()
+	if state.hasRGBSupport then
+		rgbUtils.updateConfig()
+	end
 end
 
 function rgb.onExit()

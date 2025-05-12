@@ -353,9 +353,15 @@ function themeCreator.createTheme()
 		end
 
 		-- Create theme's RGB configuration file
-		logger.debug("Creating theme's RGB configuration file")
-		if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH) then
-			return false
+		if state.hasRGBSupport then
+			logger.debug("Creating theme's RGB configuration file")
+			if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH) then
+				return false
+			end
+		else
+			logger.debug(
+				"Skip: Creating theme's RGB configuration file (hasRGBSupport: " .. tostring(state.hasRGBSupport) .. ")"
+			)
 		end
 
 		-- Copy sound files to the theme

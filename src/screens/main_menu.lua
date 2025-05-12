@@ -23,17 +23,26 @@ local menu = {}
 menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
 
 -- Button state
-menu.BUTTONS = {
-	{ text = "Background Color", selected = true, colorKey = "background" },
-	{ text = "Foreground Color", selected = false, colorKey = "foreground" },
-	{ text = "RGB Lighting", selected = false, rgbLighting = true },
-	{ text = "Font Family", selected = false, fontSelection = true },
-	{ text = "Font Size", selected = false, fontSizeToggle = true },
-	{ text = "Icons", selected = false, glyphsToggle = true },
-	{ text = "Box Art Width", selected = false, boxArt = true },
-	{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
-	{ text = "Create Theme", selected = false, isBottomButton = true },
-}
+menu.BUTTONS = {}
+
+-- Function to build buttons list on enter
+local function buildButtonsList()
+	menu.BUTTONS = {
+		{ text = "Background Color", selected = true, colorKey = "background" },
+		{ text = "Foreground Color", selected = false, colorKey = "foreground" },
+		{ text = "Font Family", selected = false, fontSelection = true },
+		{ text = "Font Size", selected = false, fontSizeToggle = true },
+		{ text = "Icons", selected = false, glyphsToggle = true },
+		{ text = "Box Art Width", selected = false, boxArt = true },
+		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
+		{ text = "Create Theme", selected = false, isBottomButton = true },
+	}
+
+	-- Add RGB Lighting button only if supported
+	if state.hasRGBSupport then
+		table.insert(menu.BUTTONS, 3, { text = "RGB Lighting", selected = false, rgbLighting = true })
+	end
+end
 
 -- Function to calculate button height
 local function calculateButtonHeight()
@@ -67,6 +76,9 @@ local modalInputState = {
 
 function menu.load()
 	logger.debug("Main menu load started")
+
+	buildButtonsList()
+
 	-- Count regular buttons
 	buttonCount = 0
 	for _, btn in ipairs(menu.BUTTONS) do
@@ -574,6 +586,10 @@ function menu.updateFontName()
 		end
 	end
 	return fontFamily
+end
+
+function menu.onEnter()
+	buildButtonsList()
 end
 
 return menu

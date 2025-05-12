@@ -280,7 +280,9 @@ function loadPreset.update(dt)
 			local success = presets.loadPreset(selectedPreset.name)
 			if success then
 				-- Update RGB configuration immediately after loading preset
-				rgbUtils.updateConfig()
+				if state.hasRGBSupport then
+					rgbUtils.updateConfig()
+				end
 
 				-- Return to main menu screen
 				if switchScreen then
