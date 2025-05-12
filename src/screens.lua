@@ -1,3 +1,11 @@
+--[[
+   Screen manager module
+   
+   This module manages application screens, handling screen registration, switching, and lifecycle methods
+   (load, enter, exit, update, draw). It automatically loads screens from the `screens` directory and
+   supports returning value passing between screens.
+]]
+
 --- Screen manager module
 local screens = {}
 local love = require("love")
@@ -5,6 +13,7 @@ local love = require("love")
 -- Private state
 local currentScreen = "main_menu" -- Default screen
 local registeredScreens = {}
+local returnValue = nil -- Store return values from screens
 
 -- Register a screen module
 function screens.register(screenName, screenModule)
@@ -16,8 +25,8 @@ function screens.register(screenName, screenModule)
 
 	-- Initialize screen switcher function
 	if screenModule.setScreenSwitcher then
-		screenModule.setScreenSwitcher(function(targetScreen, tabName)
-			screens.switchTo(targetScreen, tabName)
+		screenModule.setScreenSwitcher(function(targetScreen, tabName, returnVal)
+			return screens.switchTo(targetScreen, tabName, returnVal)
 		end)
 	end
 end
@@ -26,7 +35,7 @@ function screens.getCurrentScreen()
 	return currentScreen
 end
 
-function screens.switchTo(screenName, tabName)
+function screens.switchTo(screenName, tabName, retVal)
 	-- Validate screen name
 	if not registeredScreens[screenName] then
 		error("Attempting to switch to invalid screen: " .. screenName)
@@ -39,18 +48,27 @@ function screens.switchTo(screenName, tabName)
 		currentModule.onExit()
 	end
 
+	-- Store return value
+	returnValue = retVal
+
 	-- Switch screens
 	currentScreen = screenName
 
 	-- Call enter handler on new screen if it exists
 	local newModule = registeredScreens[currentScreen]
 	if newModule and newModule.onEnter then
-		newModule.onEnter(tabName)
+		newModule.onEnter(tabName, returnValue)
 	end
 
 	-- Set default font to ensure consistent rendering across screens
 	local state = require("state")
 	state.setDefaultFont()
+
+	return returnValue
+end
+
+function screens.getReturnValue()
+	return returnValue
 end
 
 function screens.draw()
