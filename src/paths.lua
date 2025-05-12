@@ -144,12 +144,12 @@ end
 
 -- Function to get font size info based on screen height
 paths.getFontSizeInfo = function(height)
-	return fonts.getFontSizeInfo(height)
+	return fonts.screenHeightMapping[height]
 end
 
 -- Function to get image font size based on screen height
 paths.getImageFontSize = function(height)
-	return fonts.getFontSizeInfo(height) and fonts.getFontSizeInfo(height).imageFontSize
+	return fonts.screenHeightMapping[height] and fonts.screenHeightMapping[height].imageFontSize
 end
 
 return paths

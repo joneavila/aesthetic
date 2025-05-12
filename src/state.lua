@@ -55,8 +55,8 @@ local state = {
 
 	-- Font settings (moved to ui.fonts but kept references here for compatibility)
 	fonts = fonts.loaded,
-	selectedFont = fonts.defaultFontName,
-	fontSize = fonts.defaultFontSize,
+	selectedFont = "Inter",
+	fontSize = "Default",
 
 	previousScreen = "main_menu", -- Default screen to return to after color picker
 	glyphs_enabled = true, -- Default value for glyphs enabled

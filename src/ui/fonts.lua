@@ -6,10 +6,6 @@ local logger = require("utils.logger")
 
 local fonts = {}
 
--- Default selected font
-fonts.defaultFontName = "Inter"
-fonts.defaultFontSize = "Default"
-
 -- Loaded font objects container
 fonts.loaded = {}
 
@@ -119,7 +115,7 @@ fonts.screenHeightMapping = {
 fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
 -- Function to set fonts based on screen dimensions
-local function initializeFonts(screenWidth, screenHeight)
+fonts.initializeFonts = function(screenWidth, screenHeight)
 	logger.debug("Initializing fonts")
 
 	-- Base font sizes for 640x480 display
@@ -157,14 +153,9 @@ local function initializeFonts(screenWidth, screenHeight)
 	fonts.setDefault()
 end
 
--- Helper function to get font size info based on screen height
-fonts.getFontSizeInfo = function(height)
-	return fonts.screenHeightMapping[height]
-end
-
 -- Image font size based on screen height
 fonts.getImageFontSize = function(screenHeight)
-	local sizeInfo = fonts.getFontSizeInfo(screenHeight)
+	local sizeInfo = fonts.screenHeightMapping[screenHeight]
 	return sizeInfo and sizeInfo.imageFontSize
 end
 
@@ -190,7 +181,7 @@ end
 
 -- Helper function to check if a font is selected
 fonts.isSelected = function(fontName, selectedFont)
-	return fontName == (selectedFont or fonts.defaultFontName)
+	return fontName == selectedFont
 end
 
 return fonts
