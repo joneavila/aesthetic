@@ -321,10 +321,10 @@ function virtual_keyboard.draw()
 			-- Draw key text, if it has any
 			if key ~= "" then
 				love.graphics.setColor(colors.ui.foreground)
-				love.graphics.setFont(state.fonts.caption)
+				love.graphics.setFont(state.fonts.body)
 
-				local textX = posX + (actualKeyWidth - state.fonts.caption:getWidth(key)) / 2
-				local textY = posY + (keyHeight - state.fonts.caption:getHeight()) / 2
+				local textX = posX + (actualKeyWidth - state.fonts.body:getWidth(key)) / 2
+				local textY = posY + (keyHeight - state.fonts.body:getHeight()) / 2
 
 				love.graphics.print(key, textX, textY)
 			end
@@ -342,11 +342,6 @@ function virtual_keyboard.draw()
 			end
 		end
 	end
-
-	-- Draw current layer indicator
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.caption)
-	love.graphics.print("Layer: " .. currentLayer .. "/3", 40, state.screenHeight - 40)
 
 	-- Draw controls
 	local controlsList = {
