@@ -26,8 +26,10 @@ end
 
 -- Function to create `name.txt` containing the theme's name
 local function createNameFile()
-	-- Use application name as theme name
-	return system.createTextFile(paths.THEME_NAME_PATH, state.applicationName)
+	-- Use the theme name from state
+	local name = state.themeName
+	logger.debug("Using theme name: " .. name)
+	return system.createTextFile(paths.THEME_NAME_PATH, name)
 end
 
 -- Function to create boot logo image shown during boot
@@ -215,7 +217,8 @@ end
 -- Main function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
-		-- Log screen dimensions for debugging
+		-- Log theme name and screen dimensions for debugging
+		logger.debug("Creating theme with name: " .. state.themeName)
 		logger.debug("Screen dimensions when creating theme: " .. state.screenWidth .. "x" .. state.screenHeight)
 
 		-- Clean up and prepare working directory
@@ -381,8 +384,8 @@ function themeCreator.createTheme()
 		end
 
 		-- Create the ZIP archive
-		logger.debug("Creating archive")
-		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.THEME_OUTPUT_PATH)
+		logger.debug("Creating archive for theme: " .. state.themeName)
+		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 		if not outputThemePath then
 			return false
 		end

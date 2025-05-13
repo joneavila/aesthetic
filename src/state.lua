@@ -45,6 +45,7 @@ end
 --- Main state table containing all global application state
 local state = {
 	applicationName = "Aesthetic",
+	themeName = "Aesthetic", -- Default theme name
 
 	-- Screen dimensions are set in `src/main.lua`
 	screenWidth = 0,

@@ -143,6 +143,10 @@ function virtual_keyboard.onEnter(params)
 		headerTitle = params.title or "Input"
 		returnScreen = params.returnScreen
 		callback = params.callback
+		-- Set initial input value if provided
+		if params.inputValue then
+			inputValue = params.inputValue
+		end
 	end
 
 	-- Re-initialize keyboard in case screen dimensions changed
@@ -168,10 +172,12 @@ local function handleKeySelection()
 		if returnScreen and virtual_keyboard.switchScreen then
 			print("Returning to " .. returnScreen .. " with value `" .. inputValue .. "`")
 
-			-- Pass both the preventImmediateInput flag AND the input value
+			-- Pass the necessary data: preventImmediateInput, inputValue, title, and returnScreen
 			virtual_keyboard.switchScreen(returnScreen, {
 				preventImmediateInput = true,
 				inputValue = inputValue,
+				title = headerTitle,
+				returnScreen = returnScreen,
 			})
 		end
 	elseif selectedKey == "" then

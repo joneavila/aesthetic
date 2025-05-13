@@ -93,6 +93,9 @@ function settings.saveToFile()
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
+	-- Theme name
+	file:write('  themeName = "' .. state.themeName .. '",\n')
+
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
 
@@ -177,6 +180,11 @@ function settings.loadFromFile()
 	-- Glyphs
 	if loadedSettings.glyphs_enabled ~= nil then
 		state.glyphs_enabled = loadedSettings.glyphs_enabled
+	end
+
+	-- Theme name
+	if loadedSettings.themeName then
+		state.themeName = loadedSettings.themeName
 	end
 
 	-- Source

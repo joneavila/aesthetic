@@ -41,7 +41,10 @@ paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
 paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
 
 -- Generated theme path where the generated theme is written
-paths.THEME_OUTPUT_PATH = paths.THEME_DIR .. "/" .. state.applicationName .. ".muxthm"
+-- Use a function to get the current theme name at time of use
+function paths.getThemeOutputPath()
+	return paths.THEME_DIR .. "/" .. state.themeName .. ".muxthm"
+end
 
 -- Device script directory for LED control
 local deviceScriptDir = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR")

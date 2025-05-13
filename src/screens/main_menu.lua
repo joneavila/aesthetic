@@ -19,6 +19,15 @@ local logger = require("utils.logger")
 -- Module table to export public functions
 local menu = {}
 
+-- Function to truncate long theme names for display
+local function truncateThemeName(name)
+	local MAX_NAME_LENGTH = 20 -- Adjust this value as needed
+	if #name > MAX_NAME_LENGTH then
+		return string.sub(name, 1, MAX_NAME_LENGTH - 3) .. "..."
+	end
+	return name
+end
+
 -- Image font size based on screen height
 menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
 
@@ -39,6 +48,7 @@ local function buildButtonsList()
 		{ text = "Icons", selected = false, glyphsToggle = true },
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
+		{ text = "Theme Name", selected = false, themeName = true },
 		{ text = "Create Theme", selected = false, isBottomButton = true },
 	}
 
@@ -127,6 +137,9 @@ function menu.draw()
 			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
 		elseif btn.navAlignToggle then
 			btn.valueText = state.navigationAlignment
+		elseif btn.themeName then
+			-- Truncate theme name for display if it is too long
+			btn.valueText = truncateThemeName(state.themeName)
 		end
 	end
 
@@ -188,6 +201,15 @@ function menu.draw()
 					item.disabled,
 					state.screenWidth,
 					state.navigationAlignment
+				)
+			elseif item.themeName then
+				button.drawWithTextPreview(
+					item.text,
+					0,
+					y,
+					item.selected,
+					state.screenWidth,
+					truncateThemeName(state.themeName)
 				)
 			else
 				button.draw(item.text, 0, y, item.selected, state.screenWidth)
@@ -378,6 +400,13 @@ local function handleSelectedButton(btn)
 	elseif btn.boxArt and switchScreen then
 		-- Box art settings screen
 		switchScreen("box_art")
+	elseif btn.themeName and switchScreen then
+		-- Theme name setting screen
+		-- The value is not pre-populated, i.e. begin with empty value
+		switchScreen("virtual_keyboard", {
+			returnScreen = "main_menu",
+			title = "Theme Name",
+		})
 	elseif btn.colorKey and switchScreen then
 		-- Any color selection button
 		state.activeColorContext = btn.colorKey
@@ -611,22 +640,19 @@ function menu.onEnter(data)
 		menu.inputCooldownTimer = menu.INPUT_COOLDOWN_DURATION
 	end
 
-	-- Check for returned data from virtual_keyboard (now inside the data table)
-	if data and type(data) == "table" and data.inputValue and data.inputValue ~= "" then
-		print("Received from keyboard: " .. data.inputValue)
-
-		-- Show returned value in a modal
-		modal.showModal("Keyboard input received: " .. data.inputValue, {
-			{ text = "OK", selected = true },
-		})
-	elseif data and type(data) == "string" and data ~= "" then
-		-- Keep original string handling for backward compatibility
-		print("Received from keyboard: " .. data)
-
-		-- Show returned value in a modal
-		modal.showModal("Keyboard input received: " .. data, {
-			{ text = "OK", selected = true },
-		})
+	-- Check for returned data from virtual_keyboard
+	if data and type(data) == "table" and data.inputValue then
+		-- When returning from theme name input
+		if data.returnScreen == "main_menu" and data.title == "Theme Name" then
+			-- Trim whitespace
+			local trimmedName = data.inputValue:gsub("^%s*(.-)%s*$", "%1")
+			-- Only update if not empty
+			if trimmedName ~= "" then
+				state.themeName = trimmedName
+			else
+				state.themeName = "Aesthetic" -- Reset to default
+			end
+		end
 	end
 end
 
