@@ -90,21 +90,27 @@ local keyboardX = 0
 local keyboardY = 0
 local inputFieldHeight = 50
 local inputFieldPadding = 10
+local screenPadding = 40 -- Padding from screen edges
 
 -- Initialize the keyboard position
 local function initializeKeyboard()
-	-- Center the keyboard horizontally
-	local totalWidth = 0
+	-- Find the maximum row length
 	local maxRowLength = 0
-
 	for _, row in ipairs(keyboard) do
 		if #row > maxRowLength then
 			maxRowLength = #row
 		end
 	end
 
-	totalWidth = maxRowLength * keyWidth + (maxRowLength - 1) * keySpacing
-	keyboardX = (state.screenWidth - totalWidth) / 2
+	-- Calculate key width based on available width
+	local availableWidth = state.screenWidth - (screenPadding * 2)
+	keyWidth = (availableWidth - ((maxRowLength - 1) * keySpacing)) / maxRowLength
+
+	-- Make keys square by setting height equal to width
+	keyHeight = keyWidth
+
+	-- Position keyboard at left edge + padding
+	keyboardX = screenPadding
 
 	-- Position keyboard below input field
 	keyboardY = header.getHeight() + inputFieldHeight + 30
