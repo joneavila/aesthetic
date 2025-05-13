@@ -239,9 +239,19 @@ function virtual_keyboard.update(dt)
 		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
 		selectedX = math.max(1, selectedX - 1)
+
+		-- Reset lastRow4X when moving horizontally in Row 5
+		if selectedY == 5 then
+			lastRow4X = nil
+		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
 		local maxX = #keyboard[selectedY]
 		selectedX = math.min(maxX, selectedX + 1)
+
+		-- Reset lastRow4X when moving horizontally in Row 5
+		if selectedY == 5 then
+			lastRow4X = nil
+		end
 	end
 
 	-- Ensure selectedX is valid for the current row
