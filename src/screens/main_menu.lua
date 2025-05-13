@@ -25,6 +25,10 @@ menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
 -- Button state
 menu.BUTTONS = {}
 
+-- Add input cooldown to prevent immediate button press after screen transition
+menu.inputCooldownTimer = 0
+menu.INPUT_COOLDOWN_DURATION = 0.3 -- seconds
+
 -- Function to build buttons list on enter
 local function buildButtonsList()
 	menu.BUTTONS = {
@@ -393,6 +397,12 @@ function menu.update(dt)
 	-- Update modal animations
 	modal.update(dt)
 
+	-- Update cooldown timer
+	if menu.inputCooldownTimer > 0 then
+		menu.inputCooldownTimer = menu.inputCooldownTimer - dt
+		return -- Skip input handling during cooldown
+	end
+
 	-- Handle IO operations only when modal has fully faded in
 	if waitingState == "create_theme" then
 		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
@@ -433,7 +443,8 @@ function menu.update(dt)
 
 	-- Handle debug screen
 	if virtualJoystick.isButtonCombinationPressed({ "guide", "y" }) and switchScreen then
-		switchScreen("debug")
+		-- switchScreen("debug") -- Original debug screen
+		switchScreen("virtual_keyboard", { returnScreen = "main_menu", title = "Keyboard Test" }) -- Temporary for keyboard testing
 		return
 	end
 
@@ -588,8 +599,35 @@ function menu.updateFontName()
 	return fontFamily
 end
 
-function menu.onEnter()
+function menu.onEnter(data)
 	buildButtonsList()
+
+	-- Set input cooldown when entering screen
+	if data and type(data) == "table" and data.preventImmediateInput then
+		-- Longer cooldown when explicitly requested
+		menu.inputCooldownTimer = menu.INPUT_COOLDOWN_DURATION * 1.5
+	else
+		-- Regular cooldown on normal entry
+		menu.inputCooldownTimer = menu.INPUT_COOLDOWN_DURATION
+	end
+
+	-- Check for returned data from virtual_keyboard (now inside the data table)
+	if data and type(data) == "table" and data.inputValue and data.inputValue ~= "" then
+		print("Received from keyboard: " .. data.inputValue)
+
+		-- Show returned value in a modal
+		modal.showModal("Keyboard input received: " .. data.inputValue, {
+			{ text = "OK", selected = true },
+		})
+	elseif data and type(data) == "string" and data ~= "" then
+		-- Keep original string handling for backward compatibility
+		print("Received from keyboard: " .. data)
+
+		-- Show returned value in a modal
+		modal.showModal("Keyboard input received: " .. data, {
+			{ text = "OK", selected = true },
+		})
+	end
 end
 
 return menu

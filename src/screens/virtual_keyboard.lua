@@ -12,7 +12,7 @@ local virtual_keyboard = {}
 Navigation behavior:
 - D-pad up/down/left/right navigates the keyboard grid
 - When moving down from Row 4 to Row 5:
-  * z/x keys → SHIFT key
+  * z/x keys → ABC key (layer switch)
   * c/v/b/n/m keys → SPACE key
   * ./,/ keys → OK key
 - When moving up from Row 5 to Row 4, the keyboard returns to the last key position that was selected in Row 4
@@ -27,20 +27,59 @@ local selectedY = 1
 local returnScreen = nil
 local callback = nil
 local lastRow4X = nil -- Track the last X position in Row 4
+local currentLayer = 1 -- Track current keyboard layer (1, 2, or 3)
 
--- Keyboard layout (QWERTY)
-local keyboard = {
-	-- Row 1: Digits
-	{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
-	-- Row 2: QWERTY
-	{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
-	-- Row 3: ASDF
-	{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "'" },
-	-- Row 4: ZXCV with spacing
-	{ "z", "x", "c", "v", "b", "n", "m", ".", ",", "/" },
-	-- Row 5: Special keys
-	{ "SHIFT", "SPACE", "OK" },
+-- Keyboard layouts for different layers
+local keyboardLayouts = {
+	-- Layer 1: Lowercase (QWERTY)
+	{
+		-- Row 1: Digits
+		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
+		-- Row 2: QWERTY
+		{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
+		-- Row 3: ASDF
+		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "'" },
+		-- Row 4: ZXCV with spacing
+		{ "z", "x", "c", "v", "b", "n", "m", ".", ",", "/" },
+		-- Row 5: Special keys
+		{ "ABC", "", "OK" },
+	},
+	-- Layer 2: Uppercase (QWERTY)
+	{
+		-- Row 1: Digits
+		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
+		-- Row 2: QWERTY uppercase
+		{ "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" },
+		-- Row 3: ASDF uppercase
+		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", "'" },
+		-- Row 4: ZXCV uppercase with spacing
+		{ "Z", "X", "C", "V", "B", "N", "M", ".", ",", "/" },
+		-- Row 5: Special keys
+		{ "!@#", "", "OK" },
+	},
+	-- Layer 3: Symbols and special characters
+	{
+		-- Row 1: Symbols
+		{ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")" },
+		-- Row 2: Symbols
+		{ "`", "~", "_", "-", "+", "=", "{", "}", "[", "]" },
+		-- Row 3: Symbols
+		{ "|", "\\", ":", ";", '"', "'", "!", "@", "#", "?" },
+		-- Row 4: Symbols
+		{ "<", ">", ",", ".", "?", "/", "$", "?", "?", "?" },
+		-- Row 5: Special keys
+		{ "abc", "", "OK" },
+	},
 }
+
+-- Variable to store the current keyboard layout
+local keyboard = keyboardLayouts[1]
+
+-- Function to switch keyboard layer
+local function switchKeyboardLayer()
+	currentLayer = currentLayer % 3 + 1 -- Cycle through layers 1, 2, 3
+	keyboard = keyboardLayouts[currentLayer]
+end
 
 -- Key dimensions and layout
 local keyWidth = 40
@@ -88,6 +127,8 @@ function virtual_keyboard.onEnter(params)
 	selectedX = 1
 	selectedY = 1
 	lastRow4X = nil -- Reset last Row 4 position
+	currentLayer = 1 -- Reset to first layer
+	keyboard = keyboardLayouts[currentLayer]
 
 	-- Store parameters
 	if params then
@@ -126,7 +167,7 @@ function virtual_keyboard.update(dt)
 					selectedX = lastRow4X
 				else
 					-- Fallback to default mapping if no previous position
-					if selectedX == 1 then -- SHIFT
+					if selectedX == 1 then -- ABC/layer switch key
 						selectedY = 4
 						selectedX = 1 -- Jump to "z"
 					elseif selectedX == 2 then -- SPACE
@@ -150,7 +191,7 @@ function virtual_keyboard.update(dt)
 				-- Moving down from the letter/number rows to special keys
 				if selectedX <= 2 then -- "z" or "x"
 					selectedY = 5
-					selectedX = 1 -- SHIFT
+					selectedX = 1 -- ABC/layer switch key
 				elseif selectedX >= 3 and selectedX <= 7 then -- "c", "v", "b", "n", "m"
 					selectedY = 5
 					selectedX = 2 -- SPACE
@@ -189,12 +230,19 @@ function virtual_keyboard.keypressed(key)
 			-- Return to previous screen with the input value
 			if returnScreen and virtual_keyboard.switchScreen then
 				print("Returning to " .. returnScreen .. " with value `" .. inputValue .. "`")
-				virtual_keyboard.switchScreen(returnScreen, nil, inputValue)
+
+				-- Pass both the preventImmediateInput flag AND the input value
+				virtual_keyboard.switchScreen(returnScreen, {
+					preventImmediateInput = true,
+					inputValue = inputValue,
+				})
 			end
-		elseif selectedKey == "SPACE" then
+		elseif selectedKey == "" then
+			-- Space key (empty text)
 			inputValue = inputValue .. " "
-		elseif selectedKey == "SHIFT" then
-			-- Implement layer switching in the future
+		elseif selectedKey == "ABC" or selectedKey == "!@#" or selectedKey == "abc" then
+			-- Layer switching
+			switchKeyboardLayer()
 		elseif selectedKey == "BACKSPACE" then
 			if #inputValue > 0 then
 				inputValue = string.sub(inputValue, 1, -2)
@@ -251,30 +299,30 @@ function virtual_keyboard.draw()
 			local posX = keyboardX + xOffset
 			local posY = keyboardY + (y - 1) * (keyHeight + keySpacing)
 
-			-- Skip empty keys
+			-- Draw all keys, including empty space key
+			-- Determine key width for special keys
+			local actualKeyWidth = keyWidth
+			if x == 2 and y == 5 then -- SPACE (now checking by position instead of label)
+				actualKeyWidth = keyWidth * 5 + keySpacing * 4
+			elseif x == 1 and y == 5 then -- ABC/layer switch key
+				actualKeyWidth = keyWidth * 2 + keySpacing
+			elseif x == 3 and y == 5 then -- OK
+				actualKeyWidth = keyWidth * 3 + keySpacing * 2
+			elseif key == "BACKSPACE" then
+				actualKeyWidth = keyWidth
+			end
+
+			-- Draw key background (highlighted if selected)
+			if x == selectedX and y == selectedY then
+				love.graphics.setColor(colors.ui.accent)
+			else
+				love.graphics.setColor(colors.ui.surface_dim)
+			end
+
+			love.graphics.rectangle("fill", posX, posY, actualKeyWidth, keyHeight, 5, 5)
+
+			-- Draw key text, if it has any
 			if key ~= "" then
-				-- Determine key width for special keys
-				local actualKeyWidth = keyWidth
-				if key == "SPACE" then
-					actualKeyWidth = keyWidth * 5 + keySpacing * 4
-				elseif key == "SHIFT" then
-					actualKeyWidth = keyWidth * 2 + keySpacing
-				elseif key == "OK" then
-					actualKeyWidth = keyWidth * 3 + keySpacing * 2
-				elseif key == "BACKSPACE" then
-					actualKeyWidth = keyWidth
-				end
-
-				-- Draw key background (highlighted if selected)
-				if x == selectedX and y == selectedY then
-					love.graphics.setColor(colors.ui.accent)
-				else
-					love.graphics.setColor(colors.ui.surface_dim)
-				end
-
-				love.graphics.rectangle("fill", posX, posY, actualKeyWidth, keyHeight, 5, 5)
-
-				-- Draw key text
 				love.graphics.setColor(colors.ui.foreground)
 				love.graphics.setFont(state.fonts.caption)
 
@@ -286,17 +334,22 @@ function virtual_keyboard.draw()
 
 			-- Increment xOffset based on key width
 			local keyStep = keyWidth + keySpacing
-			if key == "SPACE" then
+			if x == 2 and y == 5 then -- SPACE
 				xOffset = xOffset + keyWidth * 5 + keySpacing * 5
-			elseif key == "SHIFT" then
+			elseif x == 1 and y == 5 then -- ABC/layer switch key
 				xOffset = xOffset + keyWidth * 2 + keySpacing * 2
-			elseif key == "OK" then
+			elseif x == 3 and y == 5 then -- OK
 				xOffset = xOffset + keyWidth * 3 + keySpacing * 3
 			else
 				xOffset = xOffset + keyStep
 			end
 		end
 	end
+
+	-- Draw current layer indicator
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(state.fonts.caption)
+	love.graphics.print("Layer: " .. currentLayer .. "/3", 40, state.screenHeight - 40)
 
 	-- Draw controls
 	local controlsList = {
