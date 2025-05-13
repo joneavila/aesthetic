@@ -4,6 +4,7 @@ local colors = require("colors")
 local header = require("ui.header")
 local controls = require("controls")
 local background = require("ui.background")
+local input = require("input")
 
 -- Virtual keyboard screen module
 local virtual_keyboard = {}
@@ -146,121 +147,111 @@ function virtual_keyboard.onExit()
 	-- Clean up if needed
 end
 
--- Handle user input
-function virtual_keyboard.update(dt)
-	-- Handle controller input with cooldown to prevent multiple inputs
-	local inputCooldown = 0.15
-	local currentTime = love.timer.getTime()
+-- Handle key selection
+local function handleKeySelection()
+	local selectedKey = keyboard[selectedY][selectedX]
 
-	if not virtual_keyboard.lastInputTime then
-		virtual_keyboard.lastInputTime = 0
-	end
+	if selectedKey == "OK" then
+		-- Return to previous screen with the input value
+		if returnScreen and virtual_keyboard.switchScreen then
+			print("Returning to " .. returnScreen .. " with value `" .. inputValue .. "`")
 
-	if currentTime - virtual_keyboard.lastInputTime > inputCooldown then
-		-- D-pad navigation
-		if love.keyboard.isDown("up") then
-			if selectedY == 5 then
-				-- Moving up from the bottom row (special keys)
-				if lastRow4X and lastRow4X >= 1 and lastRow4X <= #keyboard[4] then
-					-- Return to previously selected position in Row 4 if valid
-					selectedY = 4
-					selectedX = lastRow4X
-				else
-					-- Fallback to default mapping if no previous position
-					if selectedX == 1 then -- ABC/layer switch key
-						selectedY = 4
-						selectedX = 1 -- Jump to "z"
-					elseif selectedX == 2 then -- SPACE
-						selectedY = 4
-						selectedX = 5 -- Jump to "b" (center of c,v,b,n,m)
-					elseif selectedX == 3 then -- OK
-						selectedY = 4
-						selectedX = 9 -- Jump to "," (center of .,/)
-					end
-				end
-			else
-				-- Regular up movement for other rows
-				selectedY = math.max(1, selectedY - 1)
-			end
-			virtual_keyboard.lastInputTime = currentTime
-		elseif love.keyboard.isDown("down") then
-			if selectedY == 4 then
-				-- Save current position in Row 4 before moving to Row 5
-				lastRow4X = selectedX
-
-				-- Moving down from the letter/number rows to special keys
-				if selectedX <= 2 then -- "z" or "x"
-					selectedY = 5
-					selectedX = 1 -- ABC/layer switch key
-				elseif selectedX >= 3 and selectedX <= 7 then -- "c", "v", "b", "n", "m"
-					selectedY = 5
-					selectedX = 2 -- SPACE
-				elseif selectedX >= 8 then -- ".", ",", "/"
-					selectedY = 5
-					selectedX = 3 -- OK
-				end
-			else
-				-- Regular down movement for other rows
-				selectedY = math.min(#keyboard, selectedY + 1)
-			end
-			virtual_keyboard.lastInputTime = currentTime
-		elseif love.keyboard.isDown("left") then
-			selectedX = math.max(1, selectedX - 1)
-			virtual_keyboard.lastInputTime = currentTime
-		elseif love.keyboard.isDown("right") then
-			local maxX = #keyboard[selectedY]
-			selectedX = math.min(maxX, selectedX + 1)
-			virtual_keyboard.lastInputTime = currentTime
+			-- Pass both the preventImmediateInput flag AND the input value
+			virtual_keyboard.switchScreen(returnScreen, {
+				preventImmediateInput = true,
+				inputValue = inputValue,
+			})
 		end
-
-		-- Ensure selectedX is valid for the current row
-		if selectedX > #keyboard[selectedY] then
-			selectedX = #keyboard[selectedY]
+	elseif selectedKey == "" then
+		-- Space key (empty text)
+		inputValue = inputValue .. " "
+	elseif selectedKey == "ABC" or selectedKey == "!@#" or selectedKey == "abc" then
+		-- Layer switching
+		switchKeyboardLayer()
+	elseif selectedKey == "BACKSPACE" then
+		if #inputValue > 0 then
+			inputValue = string.sub(inputValue, 1, -2)
 		end
+	elseif selectedKey ~= "" then
+		inputValue = inputValue .. selectedKey
 	end
 end
 
--- Handle key presses
-function virtual_keyboard.keypressed(key)
-	-- A button - select key
-	if key == "return" or key == "z" then
-		local selectedKey = keyboard[selectedY][selectedX]
+-- Handle user input
+function virtual_keyboard.update(dt)
+	local virtualJoystick = input.virtualJoystick
 
-		if selectedKey == "OK" then
-			-- Return to previous screen with the input value
-			if returnScreen and virtual_keyboard.switchScreen then
-				print("Returning to " .. returnScreen .. " with value `" .. inputValue .. "`")
-
-				-- Pass both the preventImmediateInput flag AND the input value
-				virtual_keyboard.switchScreen(returnScreen, {
-					preventImmediateInput = true,
-					inputValue = inputValue,
-				})
+	-- D-pad navigation
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		if selectedY == 5 then
+			-- Moving up from the bottom row (special keys)
+			if lastRow4X and lastRow4X >= 1 and lastRow4X <= #keyboard[4] then
+				-- Return to previously selected position in Row 4 if valid
+				selectedY = 4
+				selectedX = lastRow4X
+			else
+				-- Fallback to default mapping if no previous position
+				if selectedX == 1 then -- ABC/layer switch key
+					selectedY = 4
+					selectedX = 1 -- Jump to "z"
+				elseif selectedX == 2 then -- SPACE
+					selectedY = 4
+					selectedX = 5 -- Jump to "b" (center of c,v,b,n,m)
+				elseif selectedX == 3 then -- OK
+					selectedY = 4
+					selectedX = 9 -- Jump to "," (center of .,/)
+				end
 			end
-		elseif selectedKey == "" then
-			-- Space key (empty text)
-			inputValue = inputValue .. " "
-		elseif selectedKey == "ABC" or selectedKey == "!@#" or selectedKey == "abc" then
-			-- Layer switching
-			switchKeyboardLayer()
-		elseif selectedKey == "BACKSPACE" then
-			if #inputValue > 0 then
-				inputValue = string.sub(inputValue, 1, -2)
-			end
-		elseif selectedKey ~= "" then
-			inputValue = inputValue .. selectedKey
+		else
+			-- Regular up movement for other rows
+			selectedY = math.max(1, selectedY - 1)
 		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		if selectedY == 4 then
+			-- Save current position in Row 4 before moving to Row 5
+			lastRow4X = selectedX
+
+			-- Moving down from the letter/number rows to special keys
+			if selectedX <= 2 then -- "z" or "x"
+				selectedY = 5
+				selectedX = 1 -- ABC/layer switch key
+			elseif selectedX >= 3 and selectedX <= 7 then -- "c", "v", "b", "n", "m"
+				selectedY = 5
+				selectedX = 2 -- SPACE
+			elseif selectedX >= 8 then -- ".", ",", "/"
+				selectedY = 5
+				selectedX = 3 -- OK
+			end
+		else
+			-- Regular down movement for other rows
+			selectedY = math.min(#keyboard, selectedY + 1)
+		end
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+		selectedX = math.max(1, selectedX - 1)
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		local maxX = #keyboard[selectedY]
+		selectedX = math.min(maxX, selectedX + 1)
+	end
+
+	-- Ensure selectedX is valid for the current row
+	if selectedX > #keyboard[selectedY] then
+		selectedX = #keyboard[selectedY]
+	end
+
+	-- Button actions
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
+		handleKeySelection()
 	end
 
 	-- B button - go back
-	if key == "escape" or key == "x" then
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		if returnScreen and virtual_keyboard.switchScreen then
 			virtual_keyboard.switchScreen(returnScreen)
 		end
 	end
 
 	-- X button - backspace
-	if key == "backspace" or key == "c" then
+	if virtualJoystick.isGamepadPressedWithDelay("x") then
 		if #inputValue > 0 then
 			inputValue = string.sub(inputValue, 1, -2)
 		end
@@ -361,12 +352,10 @@ function virtual_keyboard.draw()
 	controls.draw(controlsList)
 end
 
--- Register key press handler with Love2D
+-- The keypressed function is no longer needed since we're using the input module
+-- This prevents duplicate input handling
 function love.keypressed(key)
-	local screens = require("screens")
-	if screens.getCurrentScreen() == "virtual_keyboard" then
-		virtual_keyboard.keypressed(key)
-	end
+	-- Do nothing - input is now handled via input.virtualJoystick
 end
 
 return virtual_keyboard
