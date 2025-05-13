@@ -8,6 +8,17 @@ local background = require("ui.background")
 -- Virtual keyboard screen module
 local virtual_keyboard = {}
 
+--[[
+Navigation behavior:
+- D-pad up/down/left/right navigates the keyboard grid
+- When moving down from Row 4 to Row 5:
+  * z/x keys → SHIFT key
+  * c/v/b/n/m keys → SPACE key
+  * ./,/ keys → OK key
+- When moving up from Row 5 to Row 4, the keyboard returns to the last key position that was selected in Row 4
+- If there's no remembered position, fallback mappings are used
+]]
+
 -- Screen state
 local inputValue = ""
 local headerTitle = "Input"
