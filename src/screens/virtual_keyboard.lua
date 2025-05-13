@@ -153,6 +153,11 @@ function virtual_keyboard.onExit()
 	-- Clean up if needed
 end
 
+-- Constants for outline styling to match hex.lua
+local OUTLINE_WIDTH = 2
+local SELECTED_OUTLINE_WIDTH = 4
+local BUTTON_CORNER_RADIUS = 5
+
 -- Handle key selection
 local function handleKeySelection()
 	local selectedKey = keyboard[selectedY][selectedX]
@@ -309,14 +314,39 @@ function virtual_keyboard.draw()
 				actualKeyWidth = keyWidth
 			end
 
-			-- Draw key background (highlighted if selected)
-			if x == selectedX and y == selectedY then
-				love.graphics.setColor(colors.ui.accent)
+			-- Draw key background
+			local isSelected = (x == selectedX and y == selectedY)
+
+			-- Set background color
+			if isSelected then
+				love.graphics.setColor(colors.ui.surface)
 			else
-				love.graphics.setColor(colors.ui.surface_dim)
+				love.graphics.setColor(colors.ui.background)
 			end
 
-			love.graphics.rectangle("fill", posX, posY, actualKeyWidth, keyHeight, 5, 5)
+			-- Draw key background
+			love.graphics.rectangle(
+				"fill",
+				posX,
+				posY,
+				actualKeyWidth,
+				keyHeight,
+				BUTTON_CORNER_RADIUS,
+				BUTTON_CORNER_RADIUS
+			)
+
+			-- Draw key outline (matching hex.lua)
+			love.graphics.setLineWidth(isSelected and SELECTED_OUTLINE_WIDTH or OUTLINE_WIDTH)
+			love.graphics.setColor(colors.ui.surface)
+			love.graphics.rectangle(
+				"line",
+				posX,
+				posY,
+				actualKeyWidth,
+				keyHeight,
+				BUTTON_CORNER_RADIUS,
+				BUTTON_CORNER_RADIUS
+			)
 
 			-- Draw key text, if it has any
 			if key ~= "" then
