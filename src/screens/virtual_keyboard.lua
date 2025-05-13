@@ -7,6 +7,7 @@ local background = require("ui.background")
 local input = require("input")
 
 -- Virtual keyboard screen module
+-- Its layout closely follows muOS's virtual keyboard layout
 local virtual_keyboard = {}
 
 --[[
@@ -39,9 +40,9 @@ local keyboardLayouts = {
 		-- Row 2: QWERTY
 		{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
 		-- Row 3: ASDF
-		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "'" },
+		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", ":" },
 		-- Row 4: ZXCV with spacing
-		{ "z", "x", "c", "v", "b", "n", "m", ".", ",", "/" },
+		{ "z", "x", "c", "v", "b", "n", "m", ",", ".", "/" },
 		-- Row 5: Special keys
 		{ "ABC", "", "OK" },
 	},
@@ -52,9 +53,9 @@ local keyboardLayouts = {
 		-- Row 2: QWERTY uppercase
 		{ "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" },
 		-- Row 3: ASDF uppercase
-		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", "'" },
+		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", ":" },
 		-- Row 4: ZXCV uppercase with spacing
-		{ "Z", "X", "C", "V", "B", "N", "M", ".", ",", "/" },
+		{ "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/" },
 		-- Row 5: Special keys
 		{ "!@#", "", "OK" },
 	},
@@ -65,9 +66,9 @@ local keyboardLayouts = {
 		-- Row 2: Symbols
 		{ "`", "~", "_", "-", "+", "=", "{", "}", "[", "]" },
 		-- Row 3: Symbols
-		{ "|", "\\", ":", ";", '"', "'", "!", "@", "#", "?" },
+		{ "|", "\\", ":", ";", '"', "'", "€", "£", "¥", "¢" },
 		-- Row 4: Symbols
-		{ "<", ">", ",", ".", "?", "/", "$", "?", "?", "?" },
+		{ "<", ">", ",", ".", "?", "/", "§", "°", "©", "®" },
 		-- Row 5: Special keys
 		{ "abc", "", "OK" },
 	},
