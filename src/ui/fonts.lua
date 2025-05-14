@@ -15,7 +15,8 @@ fonts.nameToKey = {}
 -- Available font sizes for selection
 local BIN_FONT_SIZES = { 24, 28, 32 }
 
---- Calculate a scaled font size based on display dimensions
+--- Calculates a scaled font size for UI or image text, based on display diagonal, a given base font size, and min/max clamping.
+--- Used for both UI font scaling and image font scaling (e.g., pass 28 as baseFontSize for image font size).
 fonts.calculateFontSize = function(displayWidth, displayHeight, baseFontSize, minFontSize, maxFontSize)
 	local displayDiagonal = math.sqrt(displayWidth ^ 2 + displayHeight ^ 2)
 	local baseDisplayDiagonal = math.sqrt(640 ^ 2 + 480 ^ 2) -- ≈ 800
@@ -26,7 +27,8 @@ fonts.calculateFontSize = function(displayWidth, displayHeight, baseFontSize, mi
 	return roundedFontSize
 end
 
--- Get the closest available font size to the desired size
+--- Returns the closest available bin font size (as a string) to the desired size.
+--- Used to map calculated sizes to available font asset directories.
 fonts.getClosestBinFontSize = function(desiredSize)
 	local closestSize = BIN_FONT_SIZES[1]
 	local minDifference = math.abs(desiredSize - closestSize)
@@ -103,14 +105,6 @@ for key, def in pairs(fonts.uiDefinitions) do
 	fonts.nameToKey[def.name] = key
 end
 
--- Screen height to font size mapping
-fonts.screenHeightMapping = {
-	[768] = { fontSizeDir = "38", imageFontSize = 45 },
-	[720] = { fontSizeDir = "36", imageFontSize = 42 },
-	[576] = { fontSizeDir = "29", imageFontSize = 34 },
-	[480] = { fontSizeDir = "24", imageFontSize = 28 },
-}
-
 -- Initialize font size options with dynamic calculation
 fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
@@ -151,12 +145,6 @@ fonts.initializeFonts = function(screenWidth, screenHeight)
 	end
 
 	fonts.setDefault()
-end
-
--- Image font size based on screen height
-fonts.getImageFontSize = function(screenHeight)
-	local sizeInfo = fonts.screenHeightMapping[screenHeight]
-	return sizeInfo and sizeInfo.imageFontSize
 end
 
 -- Helper function to get a font by name

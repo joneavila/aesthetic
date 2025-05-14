@@ -142,22 +142,16 @@ paths.KOFI_QR_CODE_PATH = "/assets/images/kofi_qrcode.png"
 -- Presets images directory - use direct path for LÖVE compatibility
 paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
--- Screen height to font size mapping
-local SCREEN_HEIGHT_MAPPING = fonts.screenHeightMapping
-
--- Add font size directory paths based on screen height mapping
-for _, info in pairs(SCREEN_HEIGHT_MAPPING) do
-	paths["THEME_FONT_SIZE_" .. info.fontSizeDir .. "_DIR"] = paths.THEME_FONT_SOURCE_DIR .. "/" .. info.fontSizeDir
+--- Returns the closest available bin font size directory (as a string) for the given display dimensions, using the
+--- diagonal and a base size of 28 for 640x480.
+paths.getFontSizeDir = function(displayWidth, displayHeight)
+	return fonts.getFontSizeDir(displayWidth, displayHeight)
 end
 
--- Function to get font size info based on screen height
-paths.getFontSizeInfo = function(height)
-	return fonts.screenHeightMapping[height]
-end
-
--- Function to get image font size based on screen height
-paths.getImageFontSize = function(height)
-	return fonts.screenHeightMapping[height] and fonts.screenHeightMapping[height].imageFontSize
+--- Returns the scaled image font size for the given display dimensions, using diagonal scaling from a base of 28 for
+--- 640x480. Uses fonts.calculateFontSize with baseFontSize=28, minFontSize=16, maxFontSize=60.
+paths.getImageFontSize = function(displayWidth, displayHeight)
+	return fonts.calculateFontSize(displayWidth, displayHeight, 28, 16, 60)
 end
 
 return paths

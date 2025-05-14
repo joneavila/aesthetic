@@ -132,7 +132,8 @@ function imageGenerator.createIconImage(options)
 		love.graphics.setBlendMode("alpha")
 
 		-- Create a larger version of the font
-		local imageFontSize = paths.getImageFontSize(height)
+		-- Get image font size using fonts.calculateFontSize (base 28, min 16, max 60) for image font scaling
+		local imageFontSize = paths.getImageFontSize(width, height)
 		local fontSize = math.floor(imageFontSize * 0.975)
 		local fontKey = fonts.nameToKey[state.selectedFont]
 		if not fontKey then

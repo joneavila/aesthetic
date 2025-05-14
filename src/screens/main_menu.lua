@@ -28,8 +28,9 @@ local function truncateThemeName(name)
 	return name
 end
 
--- Image font size based on screen height
-menu.IMAGE_FONT_SIZE = fonts.getImageFontSize(state.screenHeight)
+-- Image font size based on screen dimensions using fonts.calculateFontSize (base 28, min 16, max 60) for image font
+-- scaling
+menu.IMAGE_FONT_SIZE = fonts.calculateFontSize(state.screenWidth, state.screenHeight, 28, 16, 60)
 
 -- Button state
 menu.BUTTONS = {}
