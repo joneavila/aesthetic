@@ -120,16 +120,19 @@ paths.THEME_RESOLUTION_DIR = paths.WORKING_THEME_DIR .. "/0x0" -- Will be replac
 paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png" -- Will be replaced by function call
 paths.THEME_RESOLUTION_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image" -- Will be replaced by function call
 paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
+paths.THEME_LOGO_OUTLINE_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
 paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp" -- Will be replaced by function call
 
 -- `image`
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
 paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
+paths.THEME_REBOOT_ICON_PATH = "assets/icons/lucide/ui/refresh-cw.svg"
 paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
+paths.THEME_SHUTDOWN_ICON_PATH = "assets/icons/lucide/ui/power.svg"
 
 -- `image/wall`
 paths.THEME_CHARGE_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
-paths.BATTERY_CHARGING_ICON_PATH = "assets/icons/lucide/ui/battery-charging.svg"
+paths.THEME_CHARGE_ICON_PATH = "assets/icons/lucide/ui/zap.svg"
 
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"

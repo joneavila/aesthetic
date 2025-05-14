@@ -69,9 +69,11 @@ local function createRebootImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = "assets/icons/lucide/ui/rotate-ccw.svg",
-		iconSize = 100,
-		text = "Rebooting...",
+		iconPath = paths.THEME_REBOOT_ICON_PATH,
+		iconSize = 50,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoSize = 180,
+		text = "REBOOTING",
 		outputPath = paths.THEME_REBOOT_IMAGE_PATH,
 		saveAsBmp = false,
 	}
@@ -91,9 +93,11 @@ local function createShutdownImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = "assets/icons/lucide/ui/power.svg",
-		iconSize = 100,
-		text = "Shutting down...",
+		iconPath = paths.THEME_SHUTDOWN_ICON_PATH,
+		iconSize = 50,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoSize = 180,
+		text = "SHUTTING DOWN",
 		outputPath = paths.THEME_SHUTDOWN_IMAGE_PATH,
 		saveAsBmp = false,
 	}
@@ -113,8 +117,11 @@ local function createChargeImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.BATTERY_CHARGING_ICON_PATH,
-		iconSize = 100,
+		iconPath = paths.THEME_CHARGE_ICON_PATH,
+		iconSize = 50,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoSize = 180,
+		text = "CHARGING",
 		outputPath = paths.THEME_CHARGE_IMAGE_PATH,
 		saveAsBmp = false,
 	}

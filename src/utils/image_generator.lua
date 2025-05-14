@@ -53,6 +53,8 @@ function imageGenerator.createIconImage(options)
 	local fgColor = options.fgColor or colorUtils.hexToLove(state.getColorValue("foreground"))
 	local iconPath = options.iconPath
 	local iconSize = options.iconSize or 100
+	local backgroundLogoPath = options.backgroundLogoPath
+	local backgroundLogoSize = options.backgroundLogoSize or 180
 	local text = options.text
 	local outputPath = options.outputPath
 	local saveAsBmp = options.saveAsBmp or false
@@ -68,6 +70,16 @@ function imageGenerator.createIconImage(options)
 		svgContent = system.readFile(iconPath)
 		if not svgContent then
 			errorHandler.setError("Failed to read SVG file: " .. iconPath)
+			return false
+		end
+	end
+
+	-- Load background logo SVG if provided
+	local backgroundSvgContent
+	if backgroundLogoPath then
+		backgroundSvgContent = system.readFile(backgroundLogoPath)
+		if not backgroundSvgContent then
+			errorHandler.setError("Failed to read background SVG file: " .. backgroundLogoPath)
 			return false
 		end
 	end
@@ -89,12 +101,20 @@ function imageGenerator.createIconImage(options)
 		love.graphics.setColor(1, 1, 1, 1)
 	end
 
-	-- Draw icon
-	-- SVG icons need careful blend mode handling to render with correct colors
+	-- Draw background logo if provided
 	local iconX = width / 2
 	local iconY = height / 2 - (text and 50 or 0)
 
-	-- Set color for SVG with maximum opacity for BMP format
+	if backgroundSvgContent then
+		if saveAsBmp then
+			local r, g, b = fgColor[1], fgColor[2], fgColor[3]
+			svg.drawIconOnCanvas(backgroundSvgContent, backgroundLogoSize, iconX, iconY, { r, g, b }, false)
+		else
+			svg.drawIconOnCanvas(backgroundSvgContent, backgroundLogoSize, iconX, iconY, fgColor, true)
+		end
+	end
+
+	-- Draw foreground icon
 	if svgContent then
 		if saveAsBmp then
 			-- For BMP format, we need to ensure full opacity
@@ -113,7 +133,7 @@ function imageGenerator.createIconImage(options)
 
 		-- Create a larger version of the font
 		local imageFontSize = paths.getImageFontSize(height)
-		local fontSize = math.floor(imageFontSize * 1.3)
+		local fontSize = math.floor(imageFontSize * 0.975)
 		local fontKey = fonts.nameToKey[state.selectedFont]
 		if not fontKey then
 			errorHandler.setError("Font mapping not found or initialized")
@@ -135,7 +155,7 @@ function imageGenerator.createIconImage(options)
 		-- Draw the text centered
 		local textWidth = largerFont:getWidth(text)
 		local textX = (width - textWidth) / 2
-		local textY = height / 2 + 30
+		local textY = height / 2 + 50
 		love.graphics.print(text, textX, textY)
 	end
 
