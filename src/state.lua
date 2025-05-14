@@ -1,6 +1,10 @@
 --- State management module
 ---
 --- This module centralizes all global application state
+---
+--- Note: When adding new state properties that should persist between sessions, consider updating the `settings.lua`
+--- module to include these properties in the configuration file. The settings module handles saving and loading
+--- persistent application settings.
 
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application
