@@ -188,8 +188,20 @@ function rgb.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		local direction = virtualJoystick.isGamepadPressedWithDelay("dpup") and -1 or 1
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		local direction = -1
+
+		-- Use list navigation helper
+		local selectedIndex = list.navigate(BUTTONS, direction)
+
+		-- Update scroll position
+		scrollPosition = list.adjustScrollPosition({
+			selectedIndex = selectedIndex,
+			scrollPosition = scrollPosition,
+			visibleCount = visibleCount,
+		})
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		local direction = 1
 
 		-- Use list navigation helper
 		local selectedIndex = list.navigate(BUTTONS, direction)
