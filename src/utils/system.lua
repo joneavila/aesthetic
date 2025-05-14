@@ -3,6 +3,7 @@
 local errorHandler = require("error_handler")
 local commands = require("utils.commands")
 local logger = require("utils.logger")
+local environment = require("utils.environment")
 local system = {}
 
 -- Helper function to escape pattern special characters
@@ -171,15 +172,26 @@ function system.copyDir(src, dest)
 		return false
 	end
 
-	-- Optimize rsync command for performance:
-	-- -a: archive mode (preserves permissions, etc.)
-	-- --no-whole-file: use delta-transfer algorithm (faster for existing files)
-	-- -W: For new files, whole files are sent without using delta algorithm (faster for new files)
-	-- -z0: disable compression (more CPU efficient)
-	-- --info=none: disable progress information (reduces overhead)
-	local rsyncCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
+	-- Determine which rsync command to use based on OS
+	local rsyncCmd
+	local osType = environment.getOS()
 
-	return commands.executeCommand(rsyncCmd)
+	if osType == "macos" then
+		-- macOS compatible command (older rsync)
+		-- -a: archive mode (preserves permissions, etc.)
+		-- -q: quiet mode (suppresses non-error messages)
+		rsyncCmd = string.format('rsync -aq "%s" "%s"', src, dest)
+	else
+		-- Linux or other (assumes newer rsync with more options)
+		-- -a: archive mode (preserves permissions, etc.)
+		-- --no-whole-file: use delta-transfer algorithm (faster for existing files)
+		-- -W: For new files, whole files are sent without using delta algorithm (faster for new files)
+		-- -z0: disable compression (more CPU efficient)
+		-- --info=none: disable progress information (reduces overhead)
+		rsyncCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
+	end
+
+	return commands.executeCommand(rsyncCmd) == 0
 end
 
 --- Ensures a directory exists, creating it if necessary
