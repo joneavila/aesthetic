@@ -233,9 +233,11 @@ function themeCreator.createTheme()
 		system.removeDir(paths.WORKING_THEME_DIR)
 		system.ensurePath(paths.WORKING_THEME_DIR)
 
-		-- Copy glyph directory and contents
-		logger.debug("Copying glyph directory and contents")
-		if not system.copyDir(paths.THEME_GLYPH_SOURCE_PATH, paths.THEME_GLYPH_PATH) then
+		-- Generate glyphs dynamically from SVG sources
+		logger.debug("Generating glyphs dynamically")
+		local glyphs = require("utils.glyphs")
+		if not glyphs.generateGlyphs(paths.THEME_GLYPH_PATH) then
+			logger.error("Failed to generate glyphs")
 			return false
 		end
 

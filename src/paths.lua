@@ -84,7 +84,6 @@ paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT_PATH = paths.THEME_FONT_DIR .. "/default.bin"
 
 -- `glyph`
-paths.THEME_GLYPH_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/glyph"
 paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
 
 -- `rgb`

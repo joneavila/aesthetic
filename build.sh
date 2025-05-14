@@ -181,13 +181,17 @@ rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" || { echoError "Failed to c
 rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" || { echoError "Failed to copy bin/"; exit 1; }
 rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" || { echoError "Failed to copy lib/"; exit 1; }
 
+# Copy glyph_map.txt for dynamic glyph generation
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils" || { echoError "Failed to create utils directory"; exit 1; }
+rsync -aq utils/glyph_map.txt "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils/" || { echoError "Failed to copy glyph_map.txt"; exit 1; }
+
 # assets/fonts (.bin and .ttf files)
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts"
 rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
 
-# assets/icons/glyph
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/glyph"
-rsync -aq assets/icons/glyph/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/glyph/" || { echoError "Failed to copy glyph icons"; exit 1; }
+# assets/icons/lucide/glyph (SVG source files for dynamic glyph generation)
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/glyph"
+rsync -aq assets/icons/lucide/glyph/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/glyph/" || { echoError "Failed to copy SVG glyph source files"; exit 1; }
 
 # assets/icons/lucide/ui
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/ui"
