@@ -137,6 +137,8 @@ paths.THEME_CHARGE_ICON_PATH = "assets/icons/lucide/ui/zap.svg"
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
 
+paths.KOFI_QR_CODE_PATH = "/assets/images/kofi_qrcode.png"
+
 -- Presets images directory - use direct path for LÖVE compatibility
 paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
