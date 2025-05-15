@@ -294,7 +294,7 @@ function loadPreset.update(dt)
 
 	-- Handle B button (Back)
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen("main_menu")
+		switchScreen("settings")
 	end
 end
 
