@@ -7,7 +7,7 @@ local rgb = require("utils.rgb")
 local paths = require("paths")
 local fonts = require("ui.fonts")
 local imageGenerator = require("utils.image_generator")
-local themeSettings = require("utils.theme_settings")
+local schemeConfigurator = require("utils.scheme_configurator")
 local logger = require("utils.logger")
 local love = require("love")
 
@@ -334,54 +334,54 @@ function themeCreator.createTheme()
 
 		-- Set theme's glyph settings
 		logger.debug("Setting theme's glyph settings")
-		if not themeSettings.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's screen width settings
 		logger.debug("Setting theme's screen width settings")
-		if not themeSettings.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
+		if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
 			return false
 		end
 
 		-- Set theme's content height settings
 		logger.debug("Setting theme's content height settings")
-		if not themeSettings.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
+		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
 			return false
 		end
 
 		-- Set theme's content width settings for `muxplore.ini`		logger.debug("Setting theme's content width settings for `muxplore.ini`")
-		if not themeSettings.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
+		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
 			return false
 		end
 
 		-- Set theme's antialiasing settings
 		logger.debug("Setting theme's antialiasing settings")
-		if not themeSettings.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's navigation alignment settings
 		logger.debug("Setting theme's navigation alignment settings")
-		if not themeSettings.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's status alignment settings
 		logger.debug("Setting theme's status alignment settings")
-		if not themeSettings.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's header text alpha settings
 		logger.debug("Setting theme's header text alpha settings")
-		if not themeSettings.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
 		-- Set theme's time alignment settings
 		logger.debug("Setting theme's time alignment settings")
-		if not themeSettings.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 

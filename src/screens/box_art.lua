@@ -21,7 +21,7 @@ local BOX_ART_WIDTH_OPTIONS = { 0 }
 
 -- Display constants
 local EDGE_PADDING = 10
--- This value should match padding applied in `theme_settings.lua` `applyContentWidth` function
+-- This value should match padding applied in `scheme_configurator.lua`, `applyContentWidth` function
 local RECTANGLE_SPACING = 20
 local CORNER_RADIUS = 12
 local PREVIEW_BOTTOM_PADDING = 15
