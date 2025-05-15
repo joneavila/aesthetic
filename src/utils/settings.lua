@@ -90,6 +90,12 @@ function settings.saveToFile()
 	-- Font size
 	file:write('  fontSize = "' .. state.fontSize .. '",\n')
 
+	-- Navigation alignment
+	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
+
+	-- Navigation alpha
+	file:write("  navigationAlpha = " .. state.navigationAlpha .. ",\n")
+
 	-- Status alignment
 	file:write('  statusAlignment = "' .. state.statusAlignment .. '",\n')
 
@@ -184,6 +190,16 @@ function settings.loadFromFile()
 	-- Font size
 	if loadedSettings.fontSize then
 		state.fontSize = loadedSettings.fontSize
+	end
+
+	-- Navigation alignment
+	if loadedSettings.navigationAlignment then
+		state.navigationAlignment = loadedSettings.navigationAlignment
+	end
+
+	-- Navigation alpha
+	if loadedSettings.navigationAlpha then
+		state.navigationAlpha = loadedSettings.navigationAlpha
 	end
 
 	-- Status alignment

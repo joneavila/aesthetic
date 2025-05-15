@@ -68,6 +68,7 @@ local state = {
 
 	-- Set the alignment of the theme's bottom navigation icons and text
 	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
+	navigationAlpha = 100, -- Default navigation alpha (0-100)
 
 	-- Set the alignment of the status bar
 	-- Default status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)

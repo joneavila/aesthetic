@@ -266,4 +266,25 @@ function themeSettings.applyHeaderTextAlpha(schemeFilePath)
 	end)
 end
 
+-- Apply navigation alpha settings to a scheme file
+function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Remap navigation alpha from 0-100 to 0-255
+		local alphaValue = math.floor((state.navigationAlpha / 100) * 255)
+
+		-- Ensure the value is in the proper range
+		alphaValue = math.max(0, math.min(255, alphaValue))
+
+		-- Replace navigation alpha placeholder
+		local navigationAlphaCount
+		content, navigationAlphaCount = content:gsub("%%{%s*navigation%-alpha%s*}", tostring(alphaValue))
+		if navigationAlphaCount == 0 then
+			errorHandler.setError("Failed to replace navigation alpha setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings

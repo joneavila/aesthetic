@@ -51,6 +51,7 @@ local function buildButtonsList()
 		{ text = "Headers", selected = false, headerTextToggle = true },
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
+		{ text = "Navigation Alpha", selected = false, navAlpha = true },
 		{ text = "Status Alignment", selected = false, statusAlignToggle = true },
 		{ text = "Time Alignment", selected = false, timeAlignToggle = true },
 		{ text = "Theme Name", selected = false, themeName = true },
@@ -151,6 +152,9 @@ function menu.draw()
 			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
 		elseif btn.navAlignToggle then
 			btn.valueText = state.navigationAlignment
+		elseif btn.navAlpha then
+			-- Navigation alpha displays the percentage
+			btn.valueText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
 		elseif btn.themeName then
 			-- Truncate theme name for display if it is too long
 			btn.valueText = truncateThemeName(state.themeName)
@@ -230,6 +234,9 @@ function menu.draw()
 					state.screenWidth,
 					state.navigationAlignment
 				)
+			elseif item.navAlpha then
+				local alphaText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, alphaText)
 			elseif item.themeName then
 				button.drawWithTextPreview(
 					item.text,
@@ -441,6 +448,9 @@ local function handleSelectedButton(btn)
 		end
 	elseif btn.navAlignToggle then
 		-- Do nothing on button press, cycling handled by D-pad left/right
+	elseif btn.navAlpha and switchScreen then
+		-- Navigation alpha screen
+		switchScreen("navigation_alpha")
 	elseif btn.statusAlignToggle and switchScreen then
 		switchScreen("status_align")
 	elseif btn.rgbLighting and switchScreen then
