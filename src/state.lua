@@ -94,6 +94,8 @@ local state = {
 		foreground = createColorContext("#DBEAFE"), -- Default foreground color
 		rgb = createColorContext("#1E40AF"), -- Default RGB lighting color
 	},
+
+	headerTextEnabled = "Disabled", -- Default value for header text (Enabled/Disabled)
 }
 
 logger.debug("State initialized with dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)

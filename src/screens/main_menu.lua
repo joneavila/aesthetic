@@ -48,6 +48,7 @@ local function buildButtonsList()
 		{ text = "Font Family", selected = false, fontSelection = true },
 		{ text = "Font Size", selected = false, fontSizeToggle = true },
 		{ text = "Icons", selected = false, glyphsToggle = true },
+		{ text = "Headers", selected = false, headerTextToggle = true },
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
 		{ text = "Status Alignment", selected = false, statusAlignToggle = true },
@@ -143,6 +144,8 @@ function menu.draw()
 			btn.valueText = state.fontSize
 		elseif btn.glyphsToggle then
 			btn.valueText = state.glyphs_enabled and "Enabled" or "Disabled"
+		elseif btn.headerTextToggle then
+			btn.valueText = state.headerTextEnabled
 		elseif btn.boxArt then
 			-- Box art width should be displayed with special handling for 0
 			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
@@ -199,6 +202,16 @@ function menu.draw()
 			elseif item.glyphsToggle then
 				local displayText = state.glyphs_enabled and "Enabled" or "Disabled"
 				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
+			elseif item.headerTextToggle then
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					state.headerTextEnabled
+				)
 			elseif item.boxArt then
 				local boxArtText = state.boxArtWidth
 				if boxArtText == 0 then
@@ -419,6 +432,13 @@ local function handleSelectedButton(btn)
 	elseif btn.glyphsToggle then
 		-- Toggle glyphs enabled state
 		state.glyphs_enabled = not state.glyphs_enabled
+	elseif btn.headerTextToggle then
+		-- Header text toggle cycles between Enabled and Disabled
+		if state.headerTextEnabled == "Enabled" then
+			state.headerTextEnabled = "Disabled"
+		else
+			state.headerTextEnabled = "Enabled"
+		end
 	elseif btn.navAlignToggle then
 		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.statusAlignToggle and switchScreen then
@@ -565,6 +585,13 @@ function menu.update(dt)
 				elseif btn.glyphsToggle then
 					-- Glyphs toggle doesn't need direction - it's just a boolean toggle
 					state.glyphs_enabled = not state.glyphs_enabled
+				elseif btn.headerTextToggle then
+					-- Header text toggle cycles between Enabled and Disabled
+					if state.headerTextEnabled == "Enabled" then
+						state.headerTextEnabled = "Disabled"
+					else
+						state.headerTextEnabled = "Enabled"
+					end
 				elseif btn.navAlignToggle then
 					-- Navigation alignment cycles through three values
 					if direction > 0 then -- Right direction

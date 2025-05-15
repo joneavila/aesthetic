@@ -248,4 +248,18 @@ function themeSettings.applyTimeAlignmentSettings(schemeFilePath)
 	end)
 end
 
+-- Apply header text alpha settings to a scheme file
+function themeSettings.applyHeaderTextAlpha(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		local alphaValue = state.headerTextEnabled == "Enabled" and 255 or 0
+		local headerAlphaCount
+		content, headerAlphaCount = content:gsub("%%{%s*header%-text%-alpha%s*}", tostring(alphaValue))
+		if headerAlphaCount == 0 then
+			errorHandler.setError("Failed to replace header text alpha setting in template")
+			return content, false
+		end
+		return content, true
+	end)
+end
+
 return themeSettings

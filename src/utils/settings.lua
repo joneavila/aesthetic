@@ -102,6 +102,9 @@ function settings.saveToFile()
 	-- Theme name
 	file:write('  themeName = "' .. state.themeName .. '",\n')
 
+	-- Header text enabled
+	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
+
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
 
@@ -201,6 +204,11 @@ function settings.loadFromFile()
 	-- Theme name
 	if loadedSettings.themeName then
 		state.themeName = loadedSettings.themeName
+	end
+
+	-- Header text enabled
+	if loadedSettings.headerTextEnabled then
+		state.headerTextEnabled = loadedSettings.headerTextEnabled
 	end
 
 	-- Source

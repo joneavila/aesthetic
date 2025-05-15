@@ -373,6 +373,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's header text alpha settings
+		logger.debug("Setting theme's header text alpha settings")
+		if not themeSettings.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL_PATH) then
+			return false
+		end
+
 		-- Set theme's time alignment settings
 		logger.debug("Setting theme's time alignment settings")
 		if not themeSettings.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
