@@ -93,6 +93,9 @@ function settings.saveToFile()
 	-- Status alignment
 	file:write('  statusAlignment = "' .. state.statusAlignment .. '",\n')
 
+	-- Time alignment
+	file:write('  timeAlignment = "' .. state.timeAlignment .. '",\n')
+
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
@@ -183,6 +186,11 @@ function settings.loadFromFile()
 	-- Status alignment
 	if loadedSettings.statusAlignment then
 		state.statusAlignment = loadedSettings.statusAlignment
+	end
+
+	-- Time alignment
+	if loadedSettings.timeAlignment then
+		state.timeAlignment = loadedSettings.timeAlignment
 	end
 
 	-- Glyphs

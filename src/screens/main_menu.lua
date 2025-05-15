@@ -51,6 +51,7 @@ local function buildButtonsList()
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
 		{ text = "Status Alignment", selected = false, statusAlignToggle = true },
+		{ text = "Time Alignment", selected = false, timeAlignToggle = true },
 		{ text = "Theme Name", selected = false, themeName = true },
 		{ text = "Create Theme", selected = false, isBottomButton = true },
 	}
@@ -152,6 +153,8 @@ function menu.draw()
 			btn.valueText = truncateThemeName(state.themeName)
 		elseif btn.statusAlignToggle then
 			btn.valueText = state.statusAlignment
+		elseif btn.timeAlignToggle then
+			btn.valueText = state.timeAlignment
 		end
 	end
 
@@ -225,6 +228,16 @@ function menu.draw()
 				)
 			elseif item.statusAlignToggle then
 				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.statusAlignment)
+			elseif item.timeAlignToggle then
+				button.drawWithIndicators(
+					item.text,
+					0,
+					y,
+					item.selected,
+					item.disabled,
+					state.screenWidth,
+					state.timeAlignment
+				)
 			else
 				button.draw(item.text, 0, y, item.selected, state.screenWidth)
 			end
@@ -571,6 +584,23 @@ function menu.update(dt)
 							state.navigationAlignment = "Left"
 						end
 					end
+				elseif btn.timeAlignToggle then
+					-- Time alignment cycles through four values: Auto, Left, Center, Right
+					local options = { "Auto", "Left", "Center", "Right" }
+					local currentIndex = 1
+					for i, v in ipairs(options) do
+						if state.timeAlignment == v then
+							currentIndex = i
+							break
+						end
+					end
+					local newIndex = currentIndex + direction
+					if newIndex < 1 then
+						newIndex = #options
+					elseif newIndex > #options then
+						newIndex = 1
+					end
+					state.timeAlignment = options[newIndex]
 				end
 				break
 			end

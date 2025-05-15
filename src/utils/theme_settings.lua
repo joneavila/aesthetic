@@ -221,4 +221,31 @@ function themeSettings.applyStatusAlignmentSettings(schemeFilePath)
 	end)
 end
 
+-- Apply time alignment settings to a scheme file
+function themeSettings.applyTimeAlignmentSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Map time alignment values to numeric settings
+		local alignmentValue = 1 -- Default to Left (1)
+		if state.timeAlignment == "Auto" then
+			alignmentValue = 0
+		elseif state.timeAlignment == "Left" then
+			alignmentValue = 1
+		elseif state.timeAlignment == "Center" then
+			alignmentValue = 2
+		elseif state.timeAlignment == "Right" then
+			alignmentValue = 3
+		end
+
+		-- Replace time-align placeholder
+		local timeAlignCount
+		content, timeAlignCount = content:gsub("%%{%s*time%-align%s*}", tostring(alignmentValue))
+		if timeAlignCount == 0 then
+			errorHandler.setError("Failed to replace time alignment setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings

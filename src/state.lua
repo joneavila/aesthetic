@@ -76,6 +76,9 @@ local state = {
 	-- Box art settings
 	boxArtWidth = 0, -- Default box art width (0 means disabled)
 
+	-- Time alignment setting
+	timeAlignment = "Left", -- Default time alignment (Auto, Left, Center, Right)
+
 	-- RGB lighting related settings
 	rgbMode = "Solid", -- Default RGB lighting mode
 	rgbBrightness = 5, -- Default RGB brightness (1-10)
