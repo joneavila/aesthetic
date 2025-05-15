@@ -239,4 +239,8 @@ function list.getLastSelectedIndex()
 	return lastSelectedIndex
 end
 
+function list.setScrollPosition(pos)
+	lastScrollPosition = pos or 0
+end
+
 return list

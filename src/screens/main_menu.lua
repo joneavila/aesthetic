@@ -34,6 +34,7 @@ menu.IMAGE_FONT_SIZE = fonts.calculateFontSize(state.screenWidth, state.screenHe
 
 -- Button state
 menu.BUTTONS = {}
+menu.lastSelectedIndex = 1
 
 -- Add input cooldown to prevent immediate button press after screen transition
 menu.inputCooldownTimer = 0
@@ -42,7 +43,7 @@ menu.INPUT_COOLDOWN_DURATION = 0.3 -- seconds
 -- Function to build buttons list on enter
 local function buildButtonsList()
 	menu.BUTTONS = {
-		{ text = "Background Color", selected = true, colorKey = "background" },
+		{ text = "Background Color", selected = false, colorKey = "background" },
 		{ text = "Foreground Color", selected = false, colorKey = "foreground" },
 		{ text = "Font Family", selected = false, fontSelection = true },
 		{ text = "Font Size", selected = false, fontSizeToggle = true },
@@ -56,6 +57,15 @@ local function buildButtonsList()
 	-- Add RGB Lighting button only if supported
 	if state.hasRGBSupport then
 		table.insert(menu.BUTTONS, 3, { text = "RGB Lighting", selected = false, rgbLighting = true })
+	end
+
+	-- Restore selection
+	local idx = menu.lastSelectedIndex or 1
+	if idx < 1 or idx > #menu.BUTTONS then
+		idx = 1
+	end
+	for i, btn in ipairs(menu.BUTTONS) do
+		btn.selected = (i == idx)
 	end
 end
 
@@ -101,8 +111,6 @@ function menu.load()
 			buttonCount = buttonCount + 1
 		end
 	end
-
-	list.resetScrollPosition()
 end
 
 function menu.draw()
@@ -580,8 +588,9 @@ function menu.update(dt)
 
 	-- Handle select
 	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		for _, btn in ipairs(menu.BUTTONS) do
+		for i, btn in ipairs(menu.BUTTONS) do
 			if btn.selected then
+				menu.lastSelectedIndex = i
 				handleSelectedButton(btn)
 				break
 			end
@@ -614,7 +623,6 @@ end
 -- To perform when exiting the screen
 function menu.onExit()
 	themeCreator.cleanup()
-	list.resetScrollPosition()
 end
 
 function menu.updateFontName()
