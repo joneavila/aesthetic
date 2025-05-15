@@ -10,6 +10,7 @@ local list = require("ui.list")
 local modal = require("ui.modal")
 local button = require("ui.button")
 local logger = require("utils.logger")
+local manage_themes = require("screens.manage_themes")
 
 -- Screen module
 local settings = {}
@@ -20,7 +21,8 @@ local switchScreen = nil
 -- Button constants
 local BUTTONS = {
 	-- { text = "Save theme preset", selected = true }, -- Disabled until the feature is more complete
-	{ text = "Load theme preset", selected = true },
+	{ text = "Load Theme Preset", selected = true },
+	{ text = "Manage Themes", selected = false },
 	{ text = "About", selected = false },
 }
 
@@ -174,10 +176,14 @@ function settings.update(_dt)
 		for _, btn in ipairs(BUTTONS) do
 			if btn.selected then
 				-- "Save theme preset" button handler is disabled until the feature is more complete
-				if btn.text == "Load theme preset" then
+				if btn.text == "Load Theme Preset" then
 					-- Navigate to the load preset screen
 					if switchScreen then
 						switchScreen("load_preset")
+					end
+				elseif btn.text == "Manage Themes" then
+					if switchScreen then
+						switchScreen("manage_themes")
 					end
 				elseif btn.text == "About" then
 					-- Navigate to the about screen

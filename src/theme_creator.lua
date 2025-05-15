@@ -187,6 +187,20 @@ local function copySelectedFont()
 		return false
 	end
 
+	-- Print debug info for all font size options
+	for sizeOption, mappedBinSize in pairs(fonts.themeFontSizeOptions) do
+		local fontDir = selectedFontFile:gsub("%.bin$", "")
+		local binFile = "assets/fonts/" .. fontDir .. "/" .. fontDir .. "_" .. mappedBinSize .. ".bin"
+		logger.debug(
+			"Font size option: "
+				.. tostring(sizeOption)
+				.. ", mapped bin size: "
+				.. tostring(mappedBinSize)
+				.. ", bin file: "
+				.. binFile
+		)
+	end
+
 	-- Get the font size directory
 	local fontSizeDir
 	local existingFontSize, result = pcall(function()
@@ -208,6 +222,9 @@ local function copySelectedFont()
 		.. "_"
 		.. fontSizeDir
 		.. ".bin"
+	logger.debug(
+		"[FINAL] Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(state.fontSize)
+	)
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT_PATH) then
 		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false

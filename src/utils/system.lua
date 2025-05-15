@@ -436,4 +436,28 @@ function system.hasRGBSupport()
 	return true
 end
 
+-- List files in a directory matching a pattern (returns table of filenames, not full paths)
+function system.listFiles(dir, pattern)
+	if not dir or not pattern then
+		errorHandler.setError("Directory and pattern required for listFiles")
+		return {}
+	end
+	local cmd = string.format('ls "%s"/%s 2>/dev/null', dir, pattern)
+	local handle = io.popen(cmd)
+	if not handle then
+		errorHandler.setError("Failed to list files in directory: " .. dir)
+		return {}
+	end
+	local result = handle:read("*a")
+	handle:close()
+	local files = {}
+	for filename in string.gmatch(result, "[^\n]+") do
+		local name = filename:match("([^/]+)$")
+		if name then
+			table.insert(files, name)
+		end
+	end
+	return files
+end
+
 return system
