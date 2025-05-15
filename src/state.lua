@@ -69,6 +69,10 @@ local state = {
 	-- Set the alignment of the theme's bottom navigation icons and text
 	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
 
+	-- Set the alignment of the status bar
+	-- Default status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)
+	statusAlignment = "Right",
+
 	-- Box art settings
 	boxArtWidth = 0, -- Default box art width (0 means disabled)
 

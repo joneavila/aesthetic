@@ -367,6 +367,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's status alignment settings
+		logger.debug("Setting theme's status alignment settings")
+		if not themeSettings.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+			return false
+		end
+
 		-- Copy the selected font file
 		logger.debug("Copying selected font file")
 		if not copySelectedFont() then

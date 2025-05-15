@@ -50,6 +50,7 @@ local function buildButtonsList()
 		{ text = "Icons", selected = false, glyphsToggle = true },
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
+		{ text = "Status Alignment", selected = false, statusAlignToggle = true },
 		{ text = "Theme Name", selected = false, themeName = true },
 		{ text = "Create Theme", selected = false, isBottomButton = true },
 	}
@@ -149,6 +150,8 @@ function menu.draw()
 		elseif btn.themeName then
 			-- Truncate theme name for display if it is too long
 			btn.valueText = truncateThemeName(state.themeName)
+		elseif btn.statusAlignToggle then
+			btn.valueText = state.statusAlignment
 		end
 	end
 
@@ -220,6 +223,8 @@ function menu.draw()
 					state.screenWidth,
 					truncateThemeName(state.themeName)
 				)
+			elseif item.statusAlignToggle then
+				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.statusAlignment)
 			else
 				button.draw(item.text, 0, y, item.selected, state.screenWidth)
 			end
@@ -403,6 +408,8 @@ local function handleSelectedButton(btn)
 		state.glyphs_enabled = not state.glyphs_enabled
 	elseif btn.navAlignToggle then
 		-- Do nothing on button press, cycling handled by D-pad left/right
+	elseif btn.statusAlignToggle and switchScreen then
+		switchScreen("status_align")
 	elseif btn.rgbLighting and switchScreen then
 		-- RGB lighting screen
 		switchScreen("rgb")

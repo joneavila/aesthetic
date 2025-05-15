@@ -90,6 +90,9 @@ function settings.saveToFile()
 	-- Font size
 	file:write('  fontSize = "' .. state.fontSize .. '",\n')
 
+	-- Status alignment
+	file:write('  statusAlignment = "' .. state.statusAlignment .. '",\n')
+
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
@@ -175,6 +178,11 @@ function settings.loadFromFile()
 	-- Font size
 	if loadedSettings.fontSize then
 		state.fontSize = loadedSettings.fontSize
+	end
+
+	-- Status alignment
+	if loadedSettings.statusAlignment then
+		state.statusAlignment = loadedSettings.statusAlignment
 	end
 
 	-- Glyphs

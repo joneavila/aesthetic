@@ -192,4 +192,33 @@ function themeSettings.applyNavigationAlignmentSettings(schemeFilePath)
 	end)
 end
 
+-- Apply status alignment settings to a scheme file
+function themeSettings.applyStatusAlignmentSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Map status alignment values to numeric settings
+		local alignmentValue = 0 -- Default to Left (0)
+		if state.statusAlignment == "Right" then
+			alignmentValue = 1
+		elseif state.statusAlignment == "Center" then
+			alignmentValue = 2
+		elseif state.statusAlignment == "Space Evenly" then
+			alignmentValue = 3
+		elseif state.statusAlignment == "Equal Distribution" then
+			alignmentValue = 4
+		elseif state.statusAlignment == "Edge Anchored" then
+			alignmentValue = 5
+		end
+
+		-- Replace status-align placeholder
+		local statusAlignCount
+		content, statusAlignCount = content:gsub("%%{%s*status%-align%s*}", tostring(alignmentValue))
+		if statusAlignCount == 0 then
+			errorHandler.setError("Failed to replace status alignment setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings
