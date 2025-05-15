@@ -38,16 +38,32 @@ muxapp/scummvm, box
 muxapp/task, pocket-knife
 muxapp/terminal, square-terminal
 
-# muxapp - Applications
 # Community applications
+# Glyphs are for muxapp, muxtask, or both
 # Aesthetic – https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld/
 muxapp/aesthetic, moon-star
 # APlayer – https://community.muos.dev/t/aplayer-mp3-ogg-wav-flac/
 muxapp/aplayer, circle-play
 # App Downloader – https://community.muos.dev/t/app-downloader/
-muxapp/appdownloader, arrow-big-down-dash
-# Scrappy – (Missing muOS community forum thread)
+muxapp/appdownloader, shopping-bag
+# Bluetooth App - https://community.muos.dev/t/bluetooth-app/
+muxapp/bluetooth, bluetooth
+# CTupe - https://community.muos.dev/t/ctupe-watch-download-youtube-videos-on-muos/
+muxapp/CTupe, youtube
+muxtask/CTupe, youtube
+# Day/Night Temperature Toggle - https://community.muos.dev/t/day-night-temperature-toggle/
+muxtask/brightness, sun-moon
+# Play Time Tracker - https://community.muos.dev/t/play-time-tracker/
+muxtask/track, hourglass
+# Scrappy – https://community.muos.dev/t/scrappy-art-scraper-powered-by-skyscraper/
 muxapp/scrappy, image-down
+# Storage Info - https://community.muos.dev/t/storage-info/
+muxapp/storageinfo, hard-drive
+# TimeUtils - https://community.muos.dev/t/timeutils-clock-countdown-timer-stopwatch/
+muxapp/timeutils, timer-reset
+# Wi-Fi Hotspot - https://community.muos.dev/t/wifi-hotspot-for-muos/
+muxtask/Hotspot_Start, wifi
+muxtask/Hotspot_Stop, wifi
 
 # muxarchive – Applications > Archive Manager
 muxarchive/archive, package
