@@ -123,7 +123,7 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 	local imageData = canvas:newImageData()
 	local pngData = imageData:encode("png")
 
-	if not system.writeBinaryFile(pngPath, pngData:getString()) then
+	if not system.writeFile(pngPath, pngData:getString()) then
 		logger.error("Failed to write PNG file: " .. pngPath)
 		return false
 	end

@@ -250,7 +250,7 @@ function bmp.saveToFile(imageData, outputPath)
 
 	-- Write the BMP data to file with safety check
 	local writeStatus, writeResult = pcall(function()
-		return system.writeBinaryFile(outputPath, bmpData)
+		return system.writeFile(outputPath, bmpData)
 	end)
 
 	if not writeStatus then

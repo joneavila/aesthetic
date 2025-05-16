@@ -184,7 +184,7 @@ function imageGenerator.createIconImage(options)
 			return false
 		end
 
-		if not system.writeBinaryFile(outputPath, pngData:getString()) then
+		if not system.writeFile(outputPath, pngData:getString()) then
 			errorHandler.setError("Failed to write PNG")
 			return false
 		end
@@ -194,31 +194,16 @@ function imageGenerator.createIconImage(options)
 end
 
 -- Create a preview image for muOS theme selection
-function imageGenerator.createPreviewImage(outputPath, previewFonts)
+function imageGenerator.createPreviewImage(outputPath)
 	-- Set the preview image dimensions based on the screen resolution
 	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
 
 	-- Log dimensions for debugging
 	logger.debug("Creating preview image with dimensions: " .. screenWidth .. "x" .. screenHeight)
 
-	-- Define preview dimensions based on screen resolution
-	-- Default to the 640x480 ratio if no match is found
-	local previewImageWidth, previewImageHeight
-	if screenWidth == 640 and screenHeight == 480 then
-		previewImageWidth, previewImageHeight = 288, 216
-	elseif screenWidth == 720 and screenHeight == 480 then
-		previewImageWidth, previewImageHeight = 340, 227
-	elseif screenWidth == 720 and screenHeight == 756 then
-		previewImageWidth, previewImageHeight = 340, 272
-	elseif screenWidth == 720 and screenHeight == 720 then
-		previewImageWidth, previewImageHeight = 340, 340
-	elseif screenWidth == 1024 and screenHeight == 768 then
-		previewImageWidth, previewImageHeight = 484, 363
-	elseif screenWidth == 1280 and screenHeight == 720 then
-		previewImageWidth, previewImageHeight = 604, 340
-	else
-		previewImageWidth, previewImageHeight = 288, 216
-	end
+	-- See: https://muos.dev/themes/zipping.html#creating-a-preview-image
+	local previewImageWidth = 288
+	local previewImageHeight = 216
 
 	-- Get colors from state
 	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
@@ -227,24 +212,11 @@ function imageGenerator.createPreviewImage(outputPath, previewFonts)
 	-- Create canvas
 	local canvas, previousCanvas = imageGenerator.createCanvas(previewImageWidth, previewImageHeight, bgColor)
 
-	-- Save current blend mode
-	-- Important for proper alpha blending with LÖVE canvas rendering
-	-- See: https://www.love2d.org/wiki/Canvas
-	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
-
-	-- Set proper blend mode for text drawing
-	-- Using "alpha" blend mode when drawing TO the canvas
-	love.graphics.setBlendMode("alpha")
-
 	-- Set font and draw text
 	love.graphics.setColor(fgColor)
 	local selectedFontName = state.selectedFont
-	local fontMap = {
-		["Inter"] = previewFonts and previewFonts.body or state.fonts.body,
-		["Cascadia Code"] = previewFonts and previewFonts.monoBody or state.fonts.monoBody,
-		["Retro Pixel"] = previewFonts and previewFonts.retroPixel or state.fonts.retroPixel,
-	}
-	local font = fontMap[selectedFontName] or (previewFonts and previewFonts.nunito or state.fonts.nunito)
+
+	local font = fonts.getByName(selectedFontName)
 	love.graphics.setFont(font)
 
 	-- Center text
@@ -254,20 +226,11 @@ function imageGenerator.createPreviewImage(outputPath, previewFonts)
 	local textY = (previewImageHeight - textHeight) / 2
 	love.graphics.print(previewImageText, textX, textY)
 
-	-- Restore original blend mode
-	-- This ensures consistent rendering state after this operation
-	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
-
 	-- Finish canvas operations
 	imageGenerator.finishCanvas(previousCanvas)
 
 	-- Get image data and encode as PNG
 	local imageData = canvas:newImageData()
-	if not imageData then
-		errorHandler.setError("Failed to get image data from preview image canvas")
-		return false
-	end
-
 	local pngData = imageData:encode("png")
 	if not pngData then
 		errorHandler.setError("Failed to encode preview image to PNG")
@@ -275,7 +238,7 @@ function imageGenerator.createPreviewImage(outputPath, previewFonts)
 	end
 
 	-- Save to file
-	return system.writeBinaryFile(outputPath, pngData:getString())
+	return system.writeFile(outputPath, pngData:getString())
 end
 
 return imageGenerator

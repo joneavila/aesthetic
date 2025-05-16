@@ -138,7 +138,7 @@ end
 
 -- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage()
-	local result = imageGenerator.createPreviewImage(paths.getThemePreviewImagePath(), state.fonts)
+	local result = imageGenerator.createPreviewImage(paths.getThemePreviewImagePath())
 	resetGraphicsState()
 	return result
 end

@@ -352,7 +352,7 @@ function system.writeFile(filePath, content)
 		return false
 	end
 
-	local file, err = io.open(filePath, "w")
+	local file, err = io.open(filePath, "wb")
 	if not file then
 		errorHandler.setError("Failed to open file for writing (" .. filePath .. "): " .. err)
 		return false
@@ -363,33 +363,6 @@ function system.writeFile(filePath, content)
 
 	if not success then
 		errorHandler.setError("Failed to write content to file: " .. filePath)
-		return false
-	end
-
-	return true
-end
-
--- Write binary data to a file, creating directories if needed
-function system.writeBinaryFile(filePath, binaryData)
-	-- Ensure the directory exists
-	if not system.ensurePath(filePath) then
-		logger.error("Failed to create directory for file: " .. filePath)
-		return false
-	end
-
-	local file, err = io.open(filePath, "wb")
-	if not file then
-		logger.error("Failed to open file for binary writing (" .. filePath .. "): " .. err)
-		errorHandler.setError("Failed to open file for binary writing (" .. filePath .. "): " .. err)
-		return false
-	end
-
-	local success = file:write(binaryData)
-	file:close()
-
-	if not success then
-		logger.error("Failed to write binary data to file: " .. filePath)
-		errorHandler.setError("Failed to write binary data to file: " .. filePath)
 		return false
 	end
 
