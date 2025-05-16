@@ -28,8 +28,8 @@ muxapp/app, play
 muxapp/archive, archive
 muxapp/dingux, folder-search
 muxapp/flip, clock
-muxapp/moonlight, monitor-smartphone
-muxapp/music, boom-box
+muxapp/moonlight, tv-minimal-play
+muxapp/music, music
 muxapp/portmaster, ship
 muxapp/ppsspp, gamepad
 muxapp/retroarch, joystick
@@ -75,18 +75,17 @@ muxassign/default, star
 muxassign/system, gamepad
 
 # muxcollect – Collections
-muxcollect/collection, library-big
+muxcollect/collection, heart
 muxcollect/folder, folder
 
 # muxconfig – Configuration
-muxconfig/connect, wifi
-muxconfig/custom, user-round-cog
-muxconfig/general, settings-2
-muxconfig/interface, layout-panel-top
+muxconfig/connect, cable
+muxconfig/custom, sparkles
+muxconfig/general, wrench
+muxconfig/interface, panels-top-left
 muxconfig/language, languages
 muxconfig/power, zap
 muxconfig/storage, database
-muxconfig/theme, palette
 
 # muxconnect – Configuration > Connectivity
 muxconnect/bluetooth, bluetooth
@@ -128,7 +127,7 @@ muxhistory/history, file-check-2
 
 # muxinfo – Information
 muxinfo/credit, users-round
-muxinfo/screenshot, camera
+muxinfo/screenshot, images
 muxinfo/space, hard-drive
 muxinfo/system, text
 muxinfo/tester, circle-arrow-down
@@ -138,8 +137,8 @@ muxinfo/tracker, locate
 muxlanguage/language, languages
 
 # muxlaunch – (Home screen)
-muxlaunch/apps, layout-grid
-muxlaunch/collection, library-big
+muxlaunch/apps, box
+muxlaunch/collection, heart
 muxlaunch/config, settings
 muxlaunch/explore, compass
 muxlaunch/favourite, heart
@@ -181,7 +180,7 @@ muxpicker/folder, folder
 muxpicker/theme, palette
 
 # muxplore – Explore Content
-muxplore/collection, library-big
+muxplore/collection, heart
 muxplore/folder, folder
 muxplore/history, file-check-2
 muxplore/rom, file
@@ -209,7 +208,7 @@ muxsearch/local, search
 muxsearch/lookup, keyboard
 
 # muxshot - Information > Screenshots
-muxshot/screenshot, camera
+muxshot/screenshot, images
 
 # muxspace – Information > Storage Space
 muxspace/rfs, hard-drive
@@ -220,7 +219,7 @@ muxspace/usb, usb
 # muxstorage – Configuration > Storage
 muxstorage/bios, cuboid
 muxstorage/catalogue, tag
-muxstorage/collection, library-big
+muxstorage/collection, heart
 muxstorage/config, file-sliders
 muxstorage/content, star
 muxstorage/core, box
@@ -234,7 +233,7 @@ muxstorage/pack-catalogue, book-text
 muxstorage/pack-config, package
 muxstorage/retroarch, joystick
 muxstorage/save, save
-muxstorage/screenshot, camera
+muxstorage/screenshot, images
 muxstorage/syncthing, refresh-cw
 muxstorage/theme, palette
 muxstorage/userinit, file-code-2
@@ -292,7 +291,7 @@ muxtweakadv/volume, volume-2
 muxtweakadv/zramfile, repeat-2
 
 # muxtweakgen – Configuration > General Settings
-muxtweakgen/advanced, circle-ellipsis
+muxtweakgen/advanced, sliders-horizontal
 muxtweakgen/brightness, sun
 muxtweakgen/clock, clock
 muxtweakgen/colour, thermometer-sun

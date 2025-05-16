@@ -20,14 +20,7 @@ local BASE_SCREEN_WIDTH = 640
 local BASE_SCREEN_HEIGHT = 480
 local MIN_GLYPH_HEIGHT = 24
 local MAX_GLYPH_HEIGHT = 24
--- Always use 2px for stroke width
-local FIXED_STROKE_WIDTH = 2
-
--- Set the base stroke width (before scaling)
-function glyphs.setBaseStrokeWidth(width)
-	logger.warning("setBaseStrokeWidth is deprecated: stroke width is now always 2px.")
-	return false
-end
+local FIXED_STROKE_WIDTH = 1.5
 
 -- Read the glyph mapping file and return parsed mapping data
 function glyphs.readGlyphMap()
