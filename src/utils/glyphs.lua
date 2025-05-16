@@ -164,8 +164,6 @@ function glyphs.generateGlyphs(targetDir)
 
 		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor) then
 			logger.warning("Failed to convert glyph: " .. entry.inputFilename)
-		else
-			logger.debug("Generated glyph: " .. entry.outputPath)
 		end
 	end
 

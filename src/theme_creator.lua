@@ -304,14 +304,12 @@ function themeCreator.createTheme()
 		logger.debug("Creating preview image")
 		-- Ensure resolution directory exists before creating preview image
 		local resolutionDir = paths.getThemeResolutionDir()
-		logger.debug("Ensuring resolution directory exists: " .. resolutionDir)
 		if not system.ensurePath(resolutionDir) then
 			logger.error("Failed to create resolution directory: " .. resolutionDir)
 			return false
 		end
 		-- Ensure resolution image directory exists
 		local resolutionImageDir = paths.getThemeResolutionImageDir()
-		logger.debug("Ensuring resolution image directory exists: " .. resolutionImageDir)
 		if not system.ensurePath(resolutionImageDir) then
 			logger.error("Failed to create resolution image directory: " .. resolutionImageDir)
 			return false
@@ -320,15 +318,9 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Get hex colors from state (remove # prefix)
-		local colorReplacements = {
-			background = state.getColorValue("background"):gsub("^#", ""),
-			foreground = state.getColorValue("foreground"):gsub("^#", ""),
-		}
-
-		-- Replace colors and apply glyph settings to theme files
-		logger.debug("Replacing colors and applying glyph settings to theme files")
-		if not system.replaceColor(paths.THEME_SCHEME_GLOBAL_PATH, colorReplacements) then
+		-- Set theme's background settings with gradient support
+		logger.debug("Setting theme's background settings")
+		if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
 			return false
 		end
 
@@ -350,7 +342,8 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's content width settings for `muxplore.ini`		logger.debug("Setting theme's content width settings for `muxplore.ini`")
+		-- Set theme's content width settings for `muxplore.ini`
+		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
 			return false
 		end
@@ -445,6 +438,15 @@ function themeCreator.createTheme()
 
 		-- Final cleanup of graphics state
 		resetGraphicsState()
+
+		-- Print the contents of global.ini in the working theme directory for debugging
+		local globalIniPath = paths.THEME_SCHEME_GLOBAL_PATH
+		local globalIniContent = system.readFile(globalIniPath)
+		if globalIniContent then
+			logger.debug("Contents of global.ini after theme creation:\n" .. globalIniContent)
+		else
+			logger.error("Could not read global.ini at: " .. tostring(globalIniPath))
+		end
 
 		return outputThemePath
 	end, debug.traceback)

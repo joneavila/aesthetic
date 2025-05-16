@@ -61,6 +61,13 @@ function settings.saveToFile()
 	-- Background color
 	file:write("  background = {\n")
 	file:write('    value = "' .. state.getColorValue("background") .. '",\n')
+	file:write('    type = "' .. state.backgroundType .. '",\n')
+	file:write("  },\n")
+
+	-- Background gradient color
+	file:write("  backgroundGradient = {\n")
+	file:write('    value = "' .. state.getColorValue("backgroundGradient") .. '",\n')
+	file:write('    direction = "' .. (state.backgroundGradientDirection or "Vertical") .. '",\n')
 	file:write("  },\n")
 
 	-- Foreground color
@@ -149,8 +156,22 @@ function settings.loadFromFile()
 	end
 
 	-- Apply the loaded settings to the state
-	if loadedSettings.background and loadedSettings.background.value then
-		state.setColorValue("background", loadedSettings.background.value)
+	if loadedSettings.background then
+		if loadedSettings.background.value then
+			state.setColorValue("background", loadedSettings.background.value)
+		end
+
+		if loadedSettings.background.type then
+			state.backgroundType = loadedSettings.background.type
+		end
+	end
+
+	-- Background gradient color
+	if loadedSettings.backgroundGradient and loadedSettings.backgroundGradient.value then
+		state.setColorValue("backgroundGradient", loadedSettings.backgroundGradient.value)
+	end
+	if loadedSettings.backgroundGradient and loadedSettings.backgroundGradient.direction then
+		state.backgroundGradientDirection = loadedSettings.backgroundGradient.direction
 	end
 
 	-- Foreground color

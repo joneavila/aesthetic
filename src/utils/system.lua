@@ -219,7 +219,6 @@ function system.ensurePath(path)
 		errorHandler.setError("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		return false
 	end
-	logger.debug("Ensured directory exists: " .. dir)
 	return true
 end
 
@@ -343,7 +342,6 @@ function system.readFile(filePath)
 		return nil
 	end
 
-	logger.debug("Successfully read file: " .. filePath)
 	return content
 end
 
@@ -395,7 +393,6 @@ function system.writeBinaryFile(filePath, binaryData)
 		return false
 	end
 
-	logger.debug("Successfully wrote binary data to file: " .. filePath)
 	return true
 end
 

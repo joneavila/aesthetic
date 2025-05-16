@@ -466,8 +466,11 @@ local function handleSelectedButton(btn)
 			returnScreen = "main_menu",
 			title = "Theme Name",
 		})
+	elseif btn.colorKey and btn.text == "Background Color" and switchScreen then
+		-- Background color gets special handling for solid/gradient options
+		switchScreen("background_color")
 	elseif btn.colorKey and switchScreen then
-		-- Any color selection button
+		-- Any other color selection button
 		state.activeColorContext = btn.colorKey
 		state.previousScreen = "main_menu" -- Set previous screen to return to
 		switchScreen("color_picker")

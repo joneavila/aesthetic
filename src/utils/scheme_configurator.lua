@@ -6,6 +6,7 @@
 local system = require("utils.system")
 local state = require("state")
 local errorHandler = require("error_handler")
+local logger = require("utils.logger")
 
 local themeSettings = {}
 
@@ -283,6 +284,39 @@ function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
 			return content, false
 		end
 
+		return content, true
+	end)
+end
+
+-- Apply color settings to a scheme file (background, foreground, background-gradient, gradient-direction)
+function themeSettings.applyColorSettings(schemeFilePath)
+	local colorReplacements = {
+		background = state.getColorValue("background"):gsub("^#", ""),
+		foreground = state.getColorValue("foreground"):gsub("^#", ""),
+		["background-gradient"] = state.backgroundType == "Gradient" and state
+			.getColorValue("backgroundGradient")
+			:gsub("^#", "") or state.getColorValue("background"):gsub("^#", ""),
+	}
+
+	-- First, replace color placeholders
+	system.replaceColor(schemeFilePath, colorReplacements)
+
+	-- Now, handle gradient-direction
+	return system.modifyFile(schemeFilePath, function(content)
+		local directionValue = 0
+		if state.backgroundType == "Gradient" then
+			if state.backgroundGradientDirection == "Vertical" then
+				directionValue = 1
+			elseif state.backgroundGradientDirection == "Horizontal" then
+				directionValue = 2
+			end
+		end
+		local count
+		content, count = content:gsub("%%{%s*gradient%-direction%s*}", tostring(directionValue))
+		if count == 0 then
+			errorHandler.setError("Failed to replace gradient direction setting in template")
+			return content, false
+		end
 		return content, true
 	end)
 end

@@ -92,9 +92,13 @@ local state = {
 	activeColorContext = "background", -- Default active color context
 	colorContexts = { -- Stores theme's configurable colors
 		background = createColorContext("#1E40AF"), -- Default background color
+		backgroundGradient = createColorContext("#3B82F6"), -- Default background gradient stop color
 		foreground = createColorContext("#DBEAFE"), -- Default foreground color
 		rgb = createColorContext("#1E40AF"), -- Default RGB lighting color
 	},
+
+	backgroundType = "Solid", -- Default background type (Solid or Gradient)
+	backgroundGradientDirection = "Vertical", -- Default gradient direction
 
 	headerTextEnabled = "Disabled", -- Default value for header text (Enabled/Disabled)
 }
