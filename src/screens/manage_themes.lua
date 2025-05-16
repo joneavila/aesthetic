@@ -7,9 +7,11 @@ local paths = require("paths")
 local header = require("ui.header")
 local background = require("ui.background")
 local list_select = require("ui.list_select")
+local list = require("ui.list")
 local modal = require("ui.modal")
 local logger = require("utils.logger")
 local system = require("utils.system")
+local commands = require("utils.commands")
 
 local manage_themes = {}
 
@@ -91,11 +93,12 @@ function manage_themes.update(dt)
 				end
 				if #toDelete > 0 then
 					for _, fname in ipairs(toDelete) do
-						os.execute("rm '" .. paths.THEME_DIR .. "/" .. fname .. "'")
+						commands.executeCommand("rm '" .. paths.THEME_DIR .. "/" .. fname .. "'")
 					end
 					modalMode = "deleted"
 					modal.showModal("Selected themes deleted.", { { text = "Close", selected = true } })
 					scanThemes()
+					list.resetScrollPosition()
 				else
 					modalMode = "none"
 					modal.hideModal()
