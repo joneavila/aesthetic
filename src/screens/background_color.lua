@@ -7,6 +7,8 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local fonts = require("ui.fonts")
+local colorUtils = require("utils.color")
+local imageGenerator = require("utils.image_generator")
 
 local backgroundColor = {}
 
@@ -19,8 +21,23 @@ local buttons = {}
 local scrollPosition = 0
 local visibleButtonCount = 0
 
+-- Gradient preview mesh
+local gradientPreviewMesh = nil
+
 local function getDirectionText()
 	return state.backgroundGradientDirection or "Vertical"
+end
+
+-- Function to update gradient preview mesh
+local function updateGradientPreview()
+	if state.backgroundType == "Gradient" then
+		local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
+		local direction = state.backgroundGradientDirection or "Vertical"
+		gradientPreviewMesh = imageGenerator.createGradientMesh(direction, bgColor, gradientColor)
+	else
+		gradientPreviewMesh = nil
+	end
 end
 
 local function cycleDirection()
@@ -29,6 +46,8 @@ local function cycleDirection()
 	else
 		state.backgroundGradientDirection = "Vertical"
 	end
+	-- Update gradient preview when direction changes
+	updateGradientPreview()
 end
 
 -- Function to build buttons list
@@ -47,6 +66,8 @@ local function buildButtonsList()
 		table.insert(buttons, { text = "Color", selected = false, solidColor = true })
 	end
 	buttons[1].selected = true
+
+	updateGradientPreview()
 end
 
 function backgroundColor.load()
@@ -116,6 +137,49 @@ function backgroundColor.draw()
 		end,
 	})
 	visibleButtonCount = result.visibleCount
+
+	-- Draw gradient preview box if gradient mode is selected
+	if state.backgroundType == "Gradient" and gradientPreviewMesh then
+		-- Calculate position based on the header height, button height, and number of buttons
+		local buttonHeight = button.calculateHeight()
+		local contentEndY = headerHeight + (visibleButtonCount * buttonHeight)
+
+		-- Get control hint height to avoid overlapping with bottom controls
+		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+
+		-- Calculate available vertical space between content end and controls
+		local availableHeight = state.screenHeight - contentEndY - controlsHeight - 40 -- 40px for padding (20px top + 20px bottom)
+
+		-- Adjust preview dimensions to fit the available space
+		local maxPreviewHeight = math.min(120, availableHeight) -- Cap at 120px or available height, whichever is smaller
+		local previewWidth = 280
+		local previewHeight = maxPreviewHeight
+
+		-- Only draw preview if we have enough space
+		if previewHeight >= 40 then -- Minimum height threshold to make preview useful
+			local previewX = (state.screenWidth - previewWidth) / 2
+			local previewY = contentEndY + 20
+
+			-- Draw border
+			love.graphics.setColor(0.6, 0.6, 0.6, 1.0)
+			love.graphics.rectangle("line", previewX - 2, previewY - 2, previewWidth + 4, previewHeight + 4)
+
+			-- Draw gradient preview
+			love.graphics.setColor(1, 1, 1)
+			love.graphics.draw(gradientPreviewMesh, previewX, previewY, 0, previewWidth, previewHeight)
+
+			-- Draw preview label
+			love.graphics.setColor(require("colors").ui.foreground)
+			love.graphics.setFont(fonts.loaded.caption)
+			local labelText = "Preview"
+			local labelWidth = fonts.loaded.caption:getWidth(labelText)
+
+			-- Only draw label if we have room for it
+			if previewY + previewHeight + 30 < state.screenHeight - controlsHeight then
+				love.graphics.print(labelText, (state.screenWidth - labelWidth) / 2, previewY + previewHeight + 10)
+			end
+		end
+	end
 
 	-- Draw controls
 	controls.draw({

@@ -193,6 +193,46 @@ function imageGenerator.createIconImage(options)
 	return imageData
 end
 
+-- Create a gradient mesh usable for various UI elements
+function imageGenerator.createGradientMesh(direction, ...)
+	-- Check for direction
+	local isHorizontal = true
+	if direction == "Vertical" then
+		isHorizontal = false
+	elseif direction ~= "Horizontal" then
+		error("bad argument #1 to 'createGradientMesh' (invalid value)", 2)
+	end
+
+	-- Check for colors
+	local colorLen = select("#", ...)
+	if colorLen < 2 then
+		error("color list is less than two", 2)
+	end
+
+	-- Generate mesh
+	local meshData = {}
+	if isHorizontal then
+		for i = 1, colorLen do
+			local color = select(i, ...)
+			local x = (i - 1) / (colorLen - 1)
+
+			meshData[#meshData + 1] = { x, 1, x, 1, color[1], color[2], color[3], color[4] or 1 }
+			meshData[#meshData + 1] = { x, 0, x, 0, color[1], color[2], color[3], color[4] or 1 }
+		end
+	else
+		for i = 1, colorLen do
+			local color = select(i, ...)
+			local y = (i - 1) / (colorLen - 1)
+
+			meshData[#meshData + 1] = { 1, y, 1, y, color[1], color[2], color[3], color[4] or 1 }
+			meshData[#meshData + 1] = { 0, y, 0, y, color[1], color[2], color[3], color[4] or 1 }
+		end
+	end
+
+	-- Resulting Mesh has 1x1 image size
+	return love.graphics.newMesh(meshData, "strip", "static")
+end
+
 -- Create a preview image for muOS theme selection
 function imageGenerator.createPreviewImage(outputPath)
 	-- Set the preview image dimensions based on the screen resolution
@@ -210,7 +250,27 @@ function imageGenerator.createPreviewImage(outputPath)
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	-- Create canvas
-	local canvas, previousCanvas = imageGenerator.createCanvas(previewImageWidth, previewImageHeight, bgColor)
+	local canvas, previousCanvas = imageGenerator.createCanvas(previewImageWidth, previewImageHeight)
+
+	-- Clear canvas with transparent color (we'll draw background after)
+	love.graphics.clear(0, 0, 0, 0)
+
+	-- Apply background based on background type
+	if state.backgroundType == "Gradient" then
+		-- Create gradient using gradientMesh function
+		local gradientDirection = state.backgroundGradientDirection or "Vertical"
+		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
+
+		-- Create gradient mesh with background color and gradient color
+		local rainbow = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
+
+		-- Draw gradient filling the entire canvas
+		love.graphics.draw(rainbow, 0, 0, 0, previewImageWidth, previewImageHeight)
+	else
+		-- Solid background
+		love.graphics.setColor(bgColor)
+		love.graphics.rectangle("fill", 0, 0, previewImageWidth, previewImageHeight)
+	end
 
 	-- Set font and draw text
 	love.graphics.setColor(fgColor)
