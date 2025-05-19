@@ -46,10 +46,6 @@ list.DEFAULT_CONFIG = {
 	itemPadding = button.BUTTON.SPACING,
 }
 
---------------------------------------------------
--- CORE DRAWING FUNCTIONS
---------------------------------------------------
-
 -- Draw a scrollable list of items
 -- Returns a table with information about the list state
 function list.draw(params)
@@ -79,58 +75,31 @@ function list.draw(params)
 		itemHeight = button.getHeight()
 	end
 
-	-- Optional reserved space at bottom
-	local reservedBottom = params.reservedBottom or 0
+	local reservedBottomSpace = params.reservedBottom or 0
 
 	-- Save the current scroll position
 	lastScrollPosition = scrollPosition
 
 	-- Calculate the visible content area height
-	local contentAreaHeight = screenHeight - startY - reservedBottom
+	local contentAreaHeight = screenHeight - startY - reservedBottomSpace
 
 	-- Calculate how many full items can fit in the visible area
 	local visibleCount = math.floor(contentAreaHeight / (itemHeight + itemPadding))
-
-	-- Ensure maximum visibleCount is not larger than total items
 	visibleCount = math.min(visibleCount, itemCount)
 
 	-- Ensure scroll position doesn't exceed maximum valid position and is an integer
 	local maxScrollPosition = math.max(0, itemCount - visibleCount)
 	scrollPosition = math.floor(math.min(scrollPosition, maxScrollPosition))
 
-	-- Log current state for debugging
-	logger.debug(
-		"list.draw - itemCount: "
-			.. itemCount
-			.. ", visibleCount: "
-			.. visibleCount
-			.. ", scrollPosition: "
-			.. scrollPosition
-			.. ", selectedIndex: "
-			.. selectedIndex
-			.. ", maxScrollPosition: "
-			.. maxScrollPosition
-	)
-
-	-- Calculate if scrollbar is needed and get available width
 	local needsScrollBar, availableWidth
 
 	-- Calculate total content height (including padding)
 	-- Make sure we account for correct spacing between all items
 	local totalContentHeight = (itemCount * itemHeight) + ((itemCount - 1) * itemPadding)
 
-	-- Calculate visible area height - this needs to be exact
-	-- We want this to precisely match the space that visibleCount items would occupy
 	local viewportHeight = (visibleCount * itemHeight) + ((visibleCount - 1) * itemPadding)
 
-	-- Debug log the scrollable area boundaries
-	logger.debug("Scrollable area - startY: " .. startY .. ", endY: " .. (startY + viewportHeight))
-	logger.debug("Scrollable content - height: " .. totalContentHeight .. ", visible height: " .. viewportHeight)
-	logger.debug("Item dimensions - height: " .. itemHeight .. ", padding: " .. itemPadding)
-
-	-- Convert item-based scrollPosition to pixel-based
 	local pixelScrollPosition = scrollPosition * (itemHeight + itemPadding)
-	logger.debug("Pixel scroll position: " .. pixelScrollPosition)
 
 	-- Define a content drawing function for scrollable
 	local function drawContent()
@@ -149,62 +118,12 @@ function list.draw(params)
 			-- Calculate visible index without affecting positioning
 			local visibleIndex = i - math.floor(scrollPosition)
 
-			-- Log item positions for debugging
-			if i >= math.floor(scrollPosition) and i <= math.floor(scrollPosition) + visibleCount + 1 then
-				logger.debug(
-					"Item "
-						.. i
-						.. " - absolute Y: "
-						.. y
-						.. ", displayed Y: "
-						.. (y - pixelScrollPosition)
-						.. ", endY: "
-						.. itemEndY
-						.. ", visibleIndex: "
-						.. visibleIndex
-						.. ", selected: "
-						.. tostring(item.selected or false)
-				)
-			end
-
 			-- Only draw the item if it would be in the visible area after translation
-			-- We check if the item would be visible in the viewport after translation
+			-- Check if the item would be visible in the viewport after translation
 			if y + itemHeight > pixelScrollPosition and y < pixelScrollPosition + viewportHeight + 1 then
-				logger.debug(
-					"Drawing item "
-						.. i
-						.. " at visibleIndex "
-						.. visibleIndex
-						.. ", displayed Y: "
-						.. (y - pixelScrollPosition)
-						.. ", visibility check: bottom("
-						.. (y + itemHeight)
-						.. ") > top("
-						.. pixelScrollPosition
-						.. ") AND top("
-						.. y
-						.. ") < bottom("
-						.. (pixelScrollPosition + viewportHeight)
-						.. ")"
-				)
-				-- We need to pass the ACTUAL y value we're drawing at, not the absolute position
-				-- Since the scrollable container has already applied the translation
 				local displayY = y -- We don't subtract pixelScrollPosition here because scrollable.drawContent handles this
 				drawItemFunc(item, i, displayY, screenWidth, availableWidth)
 				table.insert(displayedItems, i)
-			else
-				logger.debug(
-					"SKIPPING item "
-						.. i
-						.. " - outside viewport - top: "
-						.. y
-						.. ", bottom: "
-						.. (y + itemHeight)
-						.. ", viewport top: "
-						.. pixelScrollPosition
-						.. ", viewport bottom: "
-						.. (pixelScrollPosition + viewportHeight)
-				)
 			end
 		end
 
@@ -218,7 +137,6 @@ function list.draw(params)
 					break
 				end
 			end
-
 			if not alreadyDisplayed then
 				logger.debug("HARDCODED FIX: Forcing display of last visible item: " .. expectedLastVisibleItem)
 				local y = startY + (expectedLastVisibleItem - 1) * (itemHeight + itemPadding)
@@ -255,9 +173,6 @@ function list.draw(params)
 	local firstVisibleItem = visibleItems[1] or math.floor(scrollPosition) + 1
 	local lastVisibleItem = visibleItems[#visibleItems] or math.min(firstVisibleItem + visibleCount - 1, itemCount)
 
-	logger.debug("Visible items calculation - actually drawn: " .. table.concat(visibleItems, ", "))
-	logger.debug("Visible items: " .. firstVisibleItem .. " to " .. lastVisibleItem)
-
 	-- Store the current visible range for navigation purposes
 	currentVisibleRange = {
 		first = firstVisibleItem,
@@ -273,10 +188,6 @@ function list.draw(params)
 		totalCount = itemCount,
 	}
 end
-
---------------------------------------------------
--- NAVIGATION AND SELECTION
---------------------------------------------------
 
 -- Adjust the scroll position to ensure the selected item is visible
 -- Uses fixed positioning to maintain the selected item at a consistent position
@@ -397,16 +308,13 @@ function list.navigate(items, direction)
 	return newIndex
 end
 
+-- TODO: Toggle of button should be `button.lua`
 -- Helper: toggle a boolean property on an item
 function list.toggleProperty(items, index, property)
 	if items[index] and property then
 		items[index][property] = not items[index][property]
 	end
 end
-
---------------------------------------------------
--- INPUT HANDLING
---------------------------------------------------
 
 -- Handle input for a list and return updated list state
 -- This is a new comprehensive function that screens can use
