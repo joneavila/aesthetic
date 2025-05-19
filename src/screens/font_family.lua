@@ -8,7 +8,7 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local controls = require("controls")
-local scrollView = require("ui.scroll_view")
+local scrollable = require("ui.scrollable")
 
 -- Module table to export public functions
 local font = {}
@@ -86,7 +86,6 @@ end
 local fontItems = {}
 local scrollPosition = 0
 local visibleCount = 0
-local scrollBarWidth = scrollView.SCROLL_BAR_WIDTH
 
 -- Initialize font items based on fonts.themeDefinitions
 local function initFontItems()
@@ -153,7 +152,6 @@ function font.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = previewY, -- Set the maximum height for the list
-		scrollBarWidth = scrollBarWidth,
 		drawItemFunc = function(item, _index, y)
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,
@@ -198,11 +196,13 @@ end
 
 function font.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
+	local scrollUpdated = false -- Flag to track if we need to update scroll position
 
 	-- Handle D-pad up/down navigation
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
 		-- Use the list navigation helper with negative direction for up
 		local selectedIndex = list.navigate(fontItems, -1)
+		scrollUpdated = true -- Mark for scroll update
 
 		-- Update scroll position
 		scrollPosition = list.adjustScrollPosition({
@@ -213,6 +213,7 @@ function font.update(_dt)
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 		-- Use the list navigation helper with positive direction for down
 		local selectedIndex = list.navigate(fontItems, 1)
+		scrollUpdated = true -- Mark for scroll update
 
 		-- Update scroll position
 		scrollPosition = list.adjustScrollPosition({
@@ -222,14 +223,20 @@ function font.update(_dt)
 		})
 	end
 
-	-- Always update scroll position based on current selection, not just after navigation
-	local selectedIndex = list.findSelectedIndex(fontItems)
-	if selectedIndex > 0 then
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
+	-- Only update scroll position if there was no explicit navigation but selection changed some other way
+	-- This would happen if selection changed through some other means outside dpup/dpdown
+	if not scrollUpdated then
+		local selectedIndex = list.getSelectedIndex()
+		local lastSelectedIndex = selectedIndex
+
+		-- Only adjust if the selection has changed from what we know
+		if selectedIndex > 0 and selectedIndex ~= lastSelectedIndex then
+			scrollPosition = list.adjustScrollPosition({
+				selectedIndex = selectedIndex,
+				scrollPosition = scrollPosition,
+				visibleCount = visibleCount,
+			})
+		end
 	end
 
 	-- Handle B button (Back to menu)

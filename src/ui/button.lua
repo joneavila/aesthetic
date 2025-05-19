@@ -26,10 +26,34 @@ local CHEVRON = {
 -- Icon size for button icons
 local ICON_SIZE = 14
 
+-- Default button height - can be set by other modules
+local DEFAULT_BUTTON_HEIGHT = nil
+
 -- Function to calculate button height based on current font
 local function calculateButtonHeight()
+	if DEFAULT_BUTTON_HEIGHT then
+		return DEFAULT_BUTTON_HEIGHT
+	end
+
 	local font = love.graphics.getFont()
 	return font:getHeight() + (BUTTON.VERTICAL_PADDING * 2)
+end
+
+-- Set a fixed button height to be used across the application
+function button.setDefaultHeight(height)
+	if type(height) == "number" and height > 0 then
+		DEFAULT_BUTTON_HEIGHT = height
+	end
+end
+
+-- Reset to automatic height calculation
+function button.resetDefaultHeight()
+	DEFAULT_BUTTON_HEIGHT = nil
+end
+
+-- Get the current button height
+function button.getHeight()
+	return calculateButtonHeight()
 end
 
 -- Internal helper functions for drawing button backgrounds and base text
@@ -37,7 +61,13 @@ local function drawButtonBackground(y, width, isSelected)
 	if isSelected then
 		love.graphics.setColor(colors.ui.surface)
 		local height = calculateButtonHeight()
+		-- Draw with consistent corner radius for better visual appearance
 		love.graphics.rectangle("fill", BUTTON.EDGE_MARGIN, y, width, height, BUTTON.CORNER_RADIUS)
+
+		-- Add a subtle highlight effect for selected buttons
+		love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.2)
+		love.graphics.setLineWidth(BUTTON.SELECTED_OUTLINE_WIDTH)
+		love.graphics.rectangle("line", BUTTON.EDGE_MARGIN - 1, y - 1, width + 2, height + 2, BUTTON.CORNER_RADIUS)
 	end
 end
 
@@ -52,21 +82,11 @@ end
 
 -- Function to calculate button dimensions and edges
 local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected)
-	-- Import scroll bar width once at the start since we need it for calculations
-	local scrollView = require("ui.scroll_view")
-
 	-- Default buttonWidth to screenWidth if not provided
 	buttonWidth = buttonWidth or screenWidth
 
 	-- Calculate available width (excluding margins)
-	local availableWidth
-	if buttonWidth >= screenWidth - (BUTTON.EDGE_MARGIN * 2) then
-		-- Full width case: screen width minus margins on both sides
-		availableWidth = screenWidth - (BUTTON.EDGE_MARGIN * 2)
-	else
-		-- Scrollbar case: screen width minus scrollbar, minus margins
-		availableWidth = screenWidth - scrollView.SCROLL_BAR_WIDTH - (BUTTON.EDGE_MARGIN * 2)
-	end
+	local availableWidth = buttonWidth
 
 	-- Determine if we're in full width mode
 	local hasFullWidth = buttonWidth >= availableWidth
@@ -74,7 +94,7 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	-- Calculate the right edge position for content
 	local rightEdge
 	if hasFullWidth then
-		rightEdge = screenWidth - BUTTON.EDGE_MARGIN - scrollView.SCROLL_BAR_WIDTH
+		rightEdge = screenWidth - BUTTON.EDGE_MARGIN
 	else
 		rightEdge = x + buttonWidth
 	end
@@ -82,11 +102,7 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	-- For selected buttons, determine draw width for background
 	local drawWidth
 	if isSelected then
-		if hasFullWidth then
-			drawWidth = screenWidth - scrollView.SCROLL_BAR_WIDTH - (BUTTON.EDGE_MARGIN * 2)
-		else
-			drawWidth = buttonWidth
-		end
+		drawWidth = buttonWidth
 	end
 
 	return {
@@ -257,7 +273,7 @@ end
 
 -- Export button constants and height calculation
 button.BUTTON = BUTTON
-button.calculateHeight = calculateButtonHeight
+button.calculateHeight = calculateButtonHeight -- Keep for backward compatibility
 
 -- Preload icons
 function button.load()

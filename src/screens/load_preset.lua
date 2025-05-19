@@ -8,7 +8,7 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
-local scrollView = require("ui.scroll_view")
+local scrollable = require("ui.scrollable")
 local logger = require("utils.logger")
 local paths = require("paths")
 

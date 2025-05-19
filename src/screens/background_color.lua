@@ -256,7 +256,7 @@ function backgroundColor.update(dt)
 	end
 
 	-- Update scroll position based on selected button
-	local selectedIndex = list.findSelectedIndex(buttons)
+	local selectedIndex = list.getSelectedIndex()
 	if selectedIndex > 0 then
 		scrollPosition = list.adjustScrollPosition({
 			selectedIndex = selectedIndex,

@@ -2,6 +2,7 @@
 --- This file contains code for drawing modal dialogs throughout the application
 local love = require("love")
 local colors = require("colors")
+local scrollable = require("ui.scrollable")
 
 -- Module table to export public functions
 local modal = {}
@@ -128,67 +129,27 @@ function modal.drawModal(screenWidth, screenHeight, font)
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], modalOpacity)
 
 	if isScrollableModal then
-		-- Set scissor to create scrollable area
-		love.graphics.push()
-		local scissorX = x + padding
-		local scissorY = y + padding
-		local scissorWidth = availableTextWidth
-		local scissorHeight = visibleHeight
+		-- Use the scrollable component to draw scrollable content
+		local drawContent = function()
+			love.graphics.printf(modalMessage, x + padding, y + padding, availableTextWidth, "left")
+		end
 
-		love.graphics.setScissor(scissorX, scissorY, scissorWidth, scissorHeight)
+		local metrics = scrollable.drawContent({
+			x = x + padding,
+			y = y + padding,
+			width = availableTextWidth,
+			height = visibleHeight,
+			scrollPosition = scrollPosition,
+			contentSize = contentHeight,
+			drawContent = drawContent,
+			opacity = modalOpacity,
+		})
 
-		-- Draw text with scroll offset
-		love.graphics.printf(modalMessage, x + padding, y + padding - scrollPosition, availableTextWidth, "left")
-
-		-- Calculate max scroll value (don't allow scrolling past content)
-		local maxScroll = math.max(0, contentHeight - visibleHeight)
+		-- Calculate max scroll position from metrics
+		local maxScroll = metrics.maxScrollPosition
 		if scrollPosition > maxScroll then
 			scrollPosition = maxScroll
 		end
-
-		-- Draw scroll indicators if content is scrollable
-		if contentHeight > visibleHeight then
-			-- Show up indicator if not at top
-			if scrollPosition > 0 then
-				love.graphics.setColor(
-					colors.ui.surface[1],
-					colors.ui.surface[2],
-					colors.ui.surface[3],
-					modalOpacity * 0.7
-				)
-				love.graphics.polygon(
-					"fill",
-					scissorX + scissorWidth / 2,
-					scissorY + 10,
-					scissorX + scissorWidth / 2 - 10,
-					scissorY + 20,
-					scissorX + scissorWidth / 2 + 10,
-					scissorY + 20
-				)
-			end
-
-			-- Show down indicator if not at bottom
-			if scrollPosition < maxScroll then
-				love.graphics.setColor(
-					colors.ui.surface[1],
-					colors.ui.surface[2],
-					colors.ui.surface[3],
-					modalOpacity * 0.7
-				)
-				love.graphics.polygon(
-					"fill",
-					scissorX + scissorWidth / 2,
-					scissorY + scissorHeight - 10,
-					scissorX + scissorWidth / 2 - 10,
-					scissorY + scissorHeight - 20,
-					scissorX + scissorWidth / 2 + 10,
-					scissorY + scissorHeight - 20
-				)
-			end
-		end
-
-		love.graphics.setScissor()
-		love.graphics.pop()
 	else
 		-- Regular non-scrolling text
 		local textY = y + padding
@@ -425,56 +386,61 @@ end
 -- Scroll the modal content
 function modal.scroll(amount)
 	if isScrollableModal then
-		scrollPosition = math.max(0, scrollPosition + amount)
-
-		-- Get current font
-		local font = customFont or love.graphics.getFont()
-
-		-- Get controls height to calculate available space
-		local controls = require("controls")
-		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
-
-		-- Get screen dimensions
-		local screenWidth = love.graphics.getWidth()
-		local screenHeight = love.graphics.getHeight()
-
-		-- Calculate text content height
-		local lineHeight = font:getHeight()
-		local availableTextWidth = screenWidth * 0.8 - 80 -- Approximate width (modal width - padding)
-		local _, lines = font:getWrap(modalMessage, availableTextWidth)
-		local contentHeight = #lines * lineHeight
-
-		-- Calculate max modal height available (accounting for controls)
-		local maxAvailableHeight = screenHeight - controlsHeight - 20 -- 20px extra padding
-
-		-- Calculate visible height for text (accounting for padding and buttons)
-		local padding = 40
-		local buttonHeight = 40
-		local buttonSpacing = 20
-		local buttonsExtraHeight = 0
-		if #modalButtons > 0 then
-			buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
-		end
-
-		-- First calculate the ideal visible height
-		local idealVisibleHeight = math.min(screenHeight * 0.6, contentHeight)
-
-		-- Then constrain it by available space
-		local modalHeight = idealVisibleHeight + (padding * 2) + buttonsExtraHeight
-		if modalHeight > maxAvailableHeight then
-			modalHeight = maxAvailableHeight
-			-- Recalculate visible height after constraint
-			idealVisibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
-		end
-
-		local visibleHeight = idealVisibleHeight
-
-		-- Don't allow scrolling past the end
-		local maxScroll = math.max(0, contentHeight - visibleHeight)
-		if scrollPosition > maxScroll then
-			scrollPosition = maxScroll
-		end
+		scrollPosition = scrollable.handleInput({
+			scrollPosition = scrollPosition,
+			contentSize = getModalContentHeight(),
+			viewportSize = getModalViewportHeight(),
+			scrollStep = amount,
+			input = { up = amount < 0, down = amount > 0 },
+		})
 	end
+end
+
+-- Helper function to get current modal content height
+function getModalContentHeight()
+	if not isScrollableModal then
+		return 0
+	end
+
+	local font = customFont or love.graphics.getFont()
+	local lineHeight = font:getHeight()
+	local screenWidth = love.graphics.getWidth()
+	local availableTextWidth = screenWidth * 0.8 - 80 -- Approximate width
+	local _, lines = font:getWrap(modalMessage, availableTextWidth)
+
+	return #lines * lineHeight
+end
+
+-- Helper function to get current modal viewport height
+function getModalViewportHeight()
+	if not isScrollableModal then
+		return 0
+	end
+
+	local screenHeight = love.graphics.getHeight()
+	local controls = require("controls")
+	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+	local padding = 40
+
+	-- Calculate the buttons height
+	local buttonHeight = 40
+	local buttonSpacing = 20
+	local buttonsExtraHeight = 0
+	if #modalButtons > 0 then
+		buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
+	end
+
+	-- Calculate maximum height and visible height
+	local maxAvailableHeight = screenHeight - controlsHeight - 20
+	local idealVisibleHeight = math.min(screenHeight * 0.6, getModalContentHeight())
+	local modalHeight = idealVisibleHeight + (padding * 2) + buttonsExtraHeight
+
+	if modalHeight > maxAvailableHeight then
+		modalHeight = maxAvailableHeight
+		idealVisibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
+	end
+
+	return idealVisibleHeight
 end
 
 -- Hide modal

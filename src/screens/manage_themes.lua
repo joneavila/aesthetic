@@ -136,7 +136,7 @@ function manage_themes.update(dt)
 
 	-- Select/deselect theme with A
 	if vjoy.isGamepadPressedWithDelay("a") then
-		local idx = list_select.findSelectedIndex(themeItems)
+		local idx = list.getSelectedIndex()
 		if idx > 0 then
 			list_select.toggleChecked(themeItems, idx)
 		end

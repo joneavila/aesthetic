@@ -11,7 +11,7 @@ local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fonts = require("ui.fonts")
 local list = require("ui.list")
-local scrollView = require("ui.scroll_view")
+local scrollable = require("ui.scrollable")
 local header = require("ui.header")
 
 local logger = require("utils.logger")
@@ -92,7 +92,6 @@ local modalState = "none" -- none, created, manual, automatic
 local scrollPosition = 0
 local visibleButtonCount = 0
 local buttonCount = 0
-local scrollBarWidth = scrollView.SCROLL_BAR_WIDTH
 
 -- IO operation states (operation states)
 local waitingState = "none" -- none, create_theme, install_theme
@@ -176,7 +175,6 @@ function menu.draw()
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = bottomY,
-		scrollBarWidth = scrollBarWidth,
 		drawItemFunc = function(item, _index, y)
 			-- Draw the button based on its type
 			if item.colorKey then
@@ -482,8 +480,10 @@ local function handleSelectedButton(btn)
 	end
 end
 
+-- Handle input
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
+	local logger = require("utils.logger")
 
 	-- Update modal animations
 	modal.update(dt)
@@ -539,6 +539,7 @@ function menu.update(dt)
 		return
 	end
 
+	-- Prepare buttons for navigation
 	local regularButtons = {}
 	local bottomButtons = {}
 	local navButtons = {}
@@ -559,94 +560,6 @@ function menu.update(dt)
 		table.insert(navButtons, btn)
 	end
 
-	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		list.navigate(navButtons, -1)
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		list.navigate(navButtons, 1)
-	end
-
-	-- Handle cycling through options
-	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
-	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
-
-	if pressedLeft or pressedRight then
-		logger.debug("dpleft or dpright")
-		local direction = pressedLeft and -1 or 1
-		logger.debug("direction: " .. direction)
-		for _, btn in ipairs(menu.BUTTONS) do
-			if btn.selected then
-				if btn.fontSizeToggle then
-					-- Font size cycles through three values
-					if direction > 0 then -- Right direction
-						if state.fontSize == "Default" then
-							state.fontSize = "Large"
-						elseif state.fontSize == "Large" then
-							state.fontSize = "Extra Large"
-						else
-							state.fontSize = "Default"
-						end
-					else -- Left direction
-						if state.fontSize == "Default" then
-							state.fontSize = "Extra Large"
-						elseif state.fontSize == "Extra Large" then
-							state.fontSize = "Large"
-						else
-							state.fontSize = "Default"
-						end
-					end
-				elseif btn.glyphsToggle then
-					-- Glyphs toggle doesn't need direction - it's just a boolean toggle
-					state.glyphs_enabled = not state.glyphs_enabled
-				elseif btn.headerTextToggle then
-					-- Header text toggle cycles between Enabled and Disabled
-					if state.headerTextEnabled == "Enabled" then
-						state.headerTextEnabled = "Disabled"
-					else
-						state.headerTextEnabled = "Enabled"
-					end
-				elseif btn.navAlignToggle then
-					-- Navigation alignment cycles through three values
-					if direction > 0 then -- Right direction
-						if state.navigationAlignment == "Left" then
-							state.navigationAlignment = "Center"
-						elseif state.navigationAlignment == "Center" then
-							state.navigationAlignment = "Right"
-						else
-							state.navigationAlignment = "Left"
-						end
-					else -- Left direction
-						if state.navigationAlignment == "Left" then
-							state.navigationAlignment = "Right"
-						elseif state.navigationAlignment == "Right" then
-							state.navigationAlignment = "Center"
-						else
-							state.navigationAlignment = "Left"
-						end
-					end
-				elseif btn.timeAlignToggle then
-					-- Time alignment cycles through four values: Auto, Left, Center, Right
-					local options = { "Auto", "Left", "Center", "Right" }
-					local currentIndex = 1
-					for i, v in ipairs(options) do
-						if state.timeAlignment == v then
-							currentIndex = i
-							break
-						end
-					end
-					local newIndex = currentIndex + direction
-					if newIndex < 1 then
-						newIndex = #options
-					elseif newIndex > #options then
-						newIndex = 1
-					end
-					state.timeAlignment = options[newIndex]
-				end
-				break
-			end
-		end
-	end
-
 	-- Handle exit
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		logger.debug("Main menu handling B button")
@@ -663,33 +576,109 @@ function menu.update(dt)
 		return
 	end
 
-	-- Handle select
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		for i, btn in ipairs(menu.BUTTONS) do
-			if btn.selected then
-				menu.lastSelectedIndex = i
-				handleSelectedButton(btn)
-				break
-			end
-		end
-	end
+	-- Use the enhanced list input handler for all navigation and selection
+	local result = list.handleInput({
+		items = navButtons,
+		scrollPosition = scrollPosition,
+		visibleCount = visibleButtonCount,
+		virtualJoystick = virtualJoystick,
 
-	-- Update scroll position based on selected button
-	local selectedIndex = list.findSelectedIndex(regularButtons)
-	if selectedIndex > 0 then
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleButtonCount,
-		})
-	else
-		-- When focus is on bottom button, use last selected index for proper positioning
-		local lastSelectedIndex = list.getLastSelectedIndex()
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = lastSelectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleButtonCount,
-		})
+		-- Handle button selection (A button)
+		handleItemSelect = function(btn)
+			menu.lastSelectedIndex = list.getSelectedIndex(navButtons)
+			handleSelectedButton(btn)
+		end,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			local changed = false
+
+			if btn.fontSizeToggle then
+				-- Font size cycles through three values
+				local options = { "Default", "Large", "Extra Large" }
+				changed = true
+
+				if direction > 0 then -- Right direction
+					if state.fontSize == "Default" then
+						state.fontSize = "Large"
+					elseif state.fontSize == "Large" then
+						state.fontSize = "Extra Large"
+					else
+						state.fontSize = "Default"
+					end
+				else -- Left direction
+					if state.fontSize == "Default" then
+						state.fontSize = "Extra Large"
+					elseif state.fontSize == "Extra Large" then
+						state.fontSize = "Large"
+					else
+						state.fontSize = "Default"
+					end
+				end
+			elseif btn.glyphsToggle then
+				-- Glyphs toggle doesn't need direction - it's just a boolean toggle
+				state.glyphs_enabled = not state.glyphs_enabled
+				changed = true
+			elseif btn.headerTextToggle then
+				-- Header text toggle cycles between Enabled and Disabled
+				if state.headerTextEnabled == "Enabled" then
+					state.headerTextEnabled = "Disabled"
+				else
+					state.headerTextEnabled = "Enabled"
+				end
+				changed = true
+			elseif btn.navAlignToggle then
+				-- Navigation alignment cycles through three values
+				local options = { "Left", "Center", "Right" }
+				local currentIndex = 1
+
+				for i, v in ipairs(options) do
+					if state.navigationAlignment == v then
+						currentIndex = i
+						break
+					end
+				end
+
+				local newIndex = currentIndex + direction
+				if newIndex < 1 then
+					newIndex = #options
+				elseif newIndex > #options then
+					newIndex = 1
+				end
+
+				state.navigationAlignment = options[newIndex]
+				changed = true
+			elseif btn.timeAlignToggle then
+				-- Time alignment cycles through four values: Auto, Left, Center, Right
+				local options = { "Auto", "Left", "Center", "Right" }
+				local currentIndex = 1
+
+				for i, v in ipairs(options) do
+					if state.timeAlignment == v then
+						currentIndex = i
+						break
+					end
+				end
+
+				local newIndex = currentIndex + direction
+				if newIndex < 1 then
+					newIndex = #options
+				elseif newIndex > #options then
+					newIndex = 1
+				end
+
+				state.timeAlignment = options[newIndex]
+				changed = true
+			end
+
+			return changed
+		end,
+	})
+
+	-- Update scroll position if changed
+	if result.scrollPositionChanged then
+		scrollPosition = result.scrollPosition
+		logger.debug("Updated scroll position to: " .. scrollPosition)
 	end
 end
 
@@ -740,6 +729,9 @@ function menu.onEnter(data)
 			end
 		end
 	end
+
+	-- Store the last selected index to restore it later when returning to this screen
+	menu.lastSelectedIndex = list.getSelectedIndex()
 end
 
 return menu

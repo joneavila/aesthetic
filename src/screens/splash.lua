@@ -44,7 +44,6 @@ function splash.load()
 	splash.centerX = math.floor(state.screenWidth / 2 - splash.textWidth / 2)
 	splash.centerY = math.floor(state.screenHeight / 2 - splash.textHeight / 2)
 
-	logger.debug("Splash text position: " .. splash.centerX .. "," .. splash.centerY)
 
 	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	splash.state = "waiting"
