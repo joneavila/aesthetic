@@ -9,6 +9,7 @@ local scrollable = {}
 
 -- Constants
 local SCROLL_BAR_WIDTH = 10
+local SCROLL_BAR_PADDING = 6 -- Padding between content and scrollbar
 local DEFAULT_SCROLL_STEP = 20
 
 --------------------------------------------------
@@ -57,24 +58,14 @@ function scrollable.drawScrollbar(params)
 	local position = params.position or 0
 	local size = params.size or 50
 	local opacity = params.opacity or 1
-	local horizontal = params.horizontal or false
 
 	-- Draw scrollbar background
 	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.3 * opacity)
+	love.graphics.rectangle("fill", x, y, width, height, 4)
 
-	if horizontal then
-		love.graphics.rectangle("fill", x, y, height, width, 4)
-
-		-- Draw scrollbar handle
-		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], opacity)
-		love.graphics.rectangle("fill", x + position, y, size, width, 4)
-	else
-		love.graphics.rectangle("fill", x, y, width, height, 4)
-
-		-- Draw scrollbar handle
-		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], opacity)
-		love.graphics.rectangle("fill", x, y + position, width, size, 4)
-	end
+	-- Draw scrollbar handle
+	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], opacity)
+	love.graphics.rectangle("fill", x, y + position, width, size, 4)
 end
 
 -- Handle scrolling input
@@ -85,39 +76,20 @@ function scrollable.handleInput(params)
 	local scrollStep = params.scrollStep or DEFAULT_SCROLL_STEP
 	local input = params.input or { up = false, down = false }
 
-	-- Calculate max scroll value
-	local maxScroll = math.max(0, contentSize - viewportSize)
+	local maxScrollVal = math.max(0, contentSize - viewportSize)
 
 	-- Adjust scroll position based on input
 	if input.up then
 		scrollPosition = math.max(0, scrollPosition - scrollStep)
 	elseif input.down then
-		scrollPosition = math.min(maxScroll, scrollPosition + scrollStep)
+		scrollPosition = math.min(maxScrollVal, scrollPosition + scrollStep)
 	end
 
 	-- Ensure scroll position is within valid range
-	scrollPosition = math.max(0, math.min(scrollPosition, maxScroll))
+	scrollPosition = math.max(0, math.min(scrollPosition, maxScrollVal))
 
 	return scrollPosition
 end
-
--- Calculate available content width based on whether scrollbar is present
-function scrollable.calculateContentWidth(params)
-	local screenWidth = params.screenWidth or love.graphics.getWidth()
-	local needsScrollBar = params.needsScrollBar or false
-	local edgeMargin = params.edgeMargin or 0
-
-	-- Calculate content width (excluding margins)
-	if needsScrollBar then
-		return screenWidth - (edgeMargin * 2) - SCROLL_BAR_WIDTH
-	else
-		return screenWidth - (edgeMargin * 2)
-	end
-end
-
---------------------------------------------------
--- PIXEL-BASED SCROLLING
---------------------------------------------------
 
 -- Draw content with pixel-based scrolling
 function scrollable.drawContent(params)
@@ -129,7 +101,6 @@ function scrollable.drawContent(params)
 	local drawContent = params.drawContent or function() end
 	local drawScrollbar = params.drawScrollbar ~= false
 	local contentSize = params.contentSize or 0
-	local horizontal = params.horizontal or false
 	local opacity = params.opacity or 1
 
 	-- Set scissor to clip content to viewport
@@ -137,11 +108,7 @@ function scrollable.drawContent(params)
 	love.graphics.setScissor(x, y, width, height)
 
 	-- Adjust drawing position based on scroll
-	if horizontal then
-		love.graphics.translate(-scrollPosition, 0)
-	else
-		love.graphics.translate(0, -scrollPosition)
-	end
+	love.graphics.translate(0, -scrollPosition)
 
 	-- Draw the actual content
 	drawContent()
@@ -153,20 +120,19 @@ function scrollable.drawContent(params)
 	-- Calculate scrollbar metrics
 	local metrics = scrollable.calculateMetrics({
 		contentSize = contentSize,
-		viewportSize = horizontal and width or height,
+		viewportSize = height,
 		scrollPosition = scrollPosition,
 	})
 
 	-- Draw scrollbar if needed and requested
 	if metrics.needsScrollBar and drawScrollbar then
 		scrollable.drawScrollbar({
-			x = horizontal and x or width - SCROLL_BAR_WIDTH,
-			y = horizontal and y - SCROLL_BAR_WIDTH or y,
+			x = width - SCROLL_BAR_WIDTH,
+			y = y,
 			width = SCROLL_BAR_WIDTH,
-			height = horizontal and width or height,
+			height = height,
 			position = metrics.scrollBarPosition,
 			size = metrics.scrollBarSize,
-			horizontal = horizontal,
 			opacity = opacity,
 		})
 	end
@@ -176,7 +142,7 @@ function scrollable.drawContent(params)
 		scrollBarSize = metrics.scrollBarSize,
 		scrollBarPosition = metrics.scrollBarPosition,
 		maxScrollPosition = metrics.maxScrollPosition,
-		contentWidth = width - (metrics.needsScrollBar and SCROLL_BAR_WIDTH or 0),
+		contentWidth = width - (metrics.needsScrollBar and (SCROLL_BAR_WIDTH + SCROLL_BAR_PADDING) or 0),
 	}
 end
 

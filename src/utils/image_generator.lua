@@ -84,8 +84,8 @@ function imageGenerator.createIconImage(options)
 		end
 	end
 
-	-- Create canvas
-	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, bgColor)
+	-- Create canvas with base background color
+	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, { 0, 0, 0, 0 })
 
 	-- Save current blend mode to restore later
 	-- This is crucial for proper alpha blending when drawing to canvas
@@ -93,6 +93,24 @@ function imageGenerator.createIconImage(options)
 	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
 
 	love.graphics.push()
+
+	-- Apply background based on background type
+	if state.backgroundType == "Gradient" then
+		-- Create gradient using our existing function
+		local gradientDirection = state.backgroundGradientDirection or "Vertical"
+		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
+
+		-- Create gradient mesh with background color and gradient color
+		local gradientMesh = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
+
+		-- Draw gradient filling the entire canvas
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.draw(gradientMesh, 0, 0, 0, width, height)
+	else
+		-- Solid background
+		love.graphics.setColor(bgColor)
+		love.graphics.rectangle("fill", 0, 0, width, height)
+	end
 
 	-- Special handling for boot image (BMP format)
 	if saveAsBmp then
