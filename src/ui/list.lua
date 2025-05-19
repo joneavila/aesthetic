@@ -103,9 +103,6 @@ function list.draw(params)
 
 	-- Define a content drawing function for scrollable
 	local function drawContent()
-		-- Log the coordinate system after translation for debugging
-		logger.debug("Drawing content after translation, effectively at Y offset: " .. -pixelScrollPosition)
-
 		-- Track the displayed items for our hardcoded fix
 		local displayedItems = {}
 
@@ -138,7 +135,6 @@ function list.draw(params)
 				end
 			end
 			if not alreadyDisplayed then
-				logger.debug("HARDCODED FIX: Forcing display of last visible item: " .. expectedLastVisibleItem)
 				local y = startY + (expectedLastVisibleItem - 1) * (itemHeight + itemPadding)
 				drawItemFunc(items[expectedLastVisibleItem], expectedLastVisibleItem, y, screenWidth, availableWidth)
 				table.insert(displayedItems, expectedLastVisibleItem)
