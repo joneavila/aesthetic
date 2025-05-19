@@ -63,11 +63,6 @@ local function drawButtonBackground(y, width, isSelected)
 		local height = calculateButtonHeight()
 		-- Draw with consistent corner radius for better visual appearance
 		love.graphics.rectangle("fill", BUTTON.EDGE_MARGIN, y, width, height, BUTTON.CORNER_RADIUS)
-
-		-- Add a subtle highlight effect for selected buttons
-		love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.2)
-		love.graphics.setLineWidth(BUTTON.SELECTED_OUTLINE_WIDTH)
-		love.graphics.rectangle("line", BUTTON.EDGE_MARGIN - 1, y - 1, width + 2, height + 2, BUTTON.CORNER_RADIUS)
 	end
 end
 
