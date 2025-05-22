@@ -65,7 +65,7 @@ function status_align.draw()
 	-- Draw controls
 	controls.draw({
 		{ button = "d_pad", text = "Change" },
-		{ button = "b", text = "Confirm" },
+		{ button = "b", text = "Save" },
 	})
 end
 

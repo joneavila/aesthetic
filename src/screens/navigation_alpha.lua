@@ -71,8 +71,7 @@ function navigation_alpha.draw()
 
 	-- Draw control hints
 	controls.draw({
-		{ button = "a", text = "Apply" },
-		{ button = "b", text = "Back" },
+		{ button = "b", text = "Save" },
 		{ button = "d_pad", text = "Adjust" },
 	})
 end
@@ -90,13 +89,8 @@ function navigation_alpha.update(dt)
 		state.navigationAlpha = alphaValues[currentValueIndex]
 	end
 
-	-- Handle back button
+	-- Handle save button
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen("main_menu")
-	end
-
-	-- Handle apply button (same as going back in this case)
-	if virtualJoystick.isGamepadPressedWithDelay("a") and switchScreen then
 		switchScreen("main_menu")
 	end
 end

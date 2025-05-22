@@ -148,11 +148,20 @@ function backgroundColor.draw()
 
 		-- Calculate available vertical space between list end and controls
 		local availableHeight = state.screenHeight - listEndY - controlsHeight - 20 -- 20px for padding
+		local availableWidth = state.screenWidth - 40 -- 20px padding on each side
 
-		-- Adjust preview dimensions to fit the available space
-		local maxPreviewHeight = math.min(120, availableHeight) -- Cap at 120px or available height, whichever is smaller
-		local previewWidth = 280
-		local previewHeight = maxPreviewHeight
+		-- Calculate dimensions maintaining 4:3 aspect ratio (640x480)
+		local previewWidth, previewHeight
+
+		-- Try to fit by height first
+		previewHeight = availableHeight -- Use all available height
+		previewWidth = previewHeight * 4 / 3 -- Maintain 4:3 aspect ratio
+
+		-- If width doesn't fit, recalculate based on width
+		if previewWidth > availableWidth then
+			previewWidth = availableWidth
+			previewHeight = previewWidth * 3 / 4 -- Maintain 4:3 aspect ratio
+		end
 
 		-- Only draw preview if we have enough space
 		if previewHeight >= 40 then -- Minimum height threshold to make preview useful
@@ -172,7 +181,7 @@ function backgroundColor.draw()
 	-- Draw controls
 	controls.draw({
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Back" },
+		{ button = "b", text = "Save" },
 	})
 end
 

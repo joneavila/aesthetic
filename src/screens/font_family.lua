@@ -192,7 +192,7 @@ function font.draw()
 	-- Draw controls
 	controls.draw({
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Back" },
+		{ button = "b", text = "Save" },
 	})
 end
 

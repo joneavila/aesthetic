@@ -181,7 +181,7 @@ function rgb.draw()
 	controls.draw({
 		{ button = "d_pad", text = "Change value" },
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Back" },
+		{ button = "b", text = "Save" },
 	})
 end
 
