@@ -144,7 +144,7 @@ muxlaunch/explore, compass
 muxlaunch/favourite, heart
 muxlaunch/history, history
 muxlaunch/info, info
-muxlaunch/reboot, rotate-ccw
+muxlaunch/reboot, refresh-cw
 muxlaunch/shutdown, power
 
 # muxnetprofile – Configuration > Wi-Fi Network > (Press Y)
