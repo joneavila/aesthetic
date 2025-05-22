@@ -20,11 +20,7 @@ local switchScreen = nil
 
 -- Preset items list
 local presetItems = {}
-local selectedIndex = 1
-
--- Scrolling
-local scrollPosition = 0
-local visibleItemCount = 0
+local lastSelectedIndex = 1
 
 -- Preview image
 local previewImage = nil
@@ -127,16 +123,6 @@ local function loadPresetsList()
 		})
 	end
 
-	-- Select the first preset if available
-	logger.debug("Setting initial selection")
-	if #presetItems > 0 then
-		logger.debug("Selecting first preset: " .. tostring(presetItems[1].name))
-		presetItems[1].selected = true
-		selectedIndex = 1
-		loadPreviewImage(presetItems[1].name)
-	else
-		logger.debug("No presets available to select")
-	end
 	logger.debug("Completed loadPresetsList()")
 end
 
@@ -173,7 +159,7 @@ function loadPreset.draw()
 		items = presetItems,
 		startY = header.getHeight(),
 		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
+		scrollPosition = list.getScrollPosition(), -- Get current scroll position from list module
 		screenWidth = state.screenWidth,
 		screenHeight = header.getHeight() + listHeight, -- Only use half the space for the list
 		drawItemFunc = function(item, _index, y)
@@ -190,8 +176,8 @@ function loadPreset.draw()
 		end,
 	})
 
-	-- Store the returned visibleCount for scroll calculations
-	visibleItemCount = result.visibleCount
+	-- Store visible count for use in update function
+	loadPreset.visibleItemCount = result.visibleCount
 
 	-- Draw the preview image if available
 	if previewImage then
@@ -241,54 +227,51 @@ end
 function loadPreset.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		selectedIndex = list.navigate(presetItems, -1)
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleItemCount,
-		})
-		-- Load preview image for the selected preset
-		if presetItems[selectedIndex] then
-			loadPreviewImage(presetItems[selectedIndex].name)
+	-- If no presets found, only handle back button
+	if #presetItems == 0 then
+		if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
+			switchScreen("settings")
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		selectedIndex = list.navigate(presetItems, 1)
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleItemCount,
-		})
-
-		-- Special case for the last item to ensure it's visible
-		if selectedIndex == #presetItems then
-			scrollPosition = #presetItems - visibleItemCount
-		end
-
-		-- Load preview image for the selected preset
-		if presetItems[selectedIndex] then
-			loadPreviewImage(presetItems[selectedIndex].name)
-		end
+		return
 	end
 
-	-- Handle A button (Select)
-	if virtualJoystick.isGamepadPressedWithDelay("a") and #presetItems > 0 then
-		local selectedPreset = presetItems[selectedIndex]
-		if selectedPreset.isValid then
-			-- Load the selected preset
-			local success = presets.loadPreset(selectedPreset.name)
-			if success then
-				-- Update RGB configuration immediately after loading preset
-				if state.hasRGBSupport then
-					rgbUtils.updateConfig()
-				end
+	-- Get current scroll position
+	local scrollPosition = list.getScrollPosition()
 
-				-- Return to main menu screen
-				if switchScreen then
-					switchScreen("main_menu")
+	-- Use the enhanced list input handler for navigation and selection
+	local result = list.handleInput({
+		items = presetItems,
+		virtualJoystick = virtualJoystick,
+		scrollPosition = scrollPosition,
+		visibleCount = loadPreset.visibleItemCount or 5, -- Use stored visibleCount or default to 5
+
+		-- Handle item selection (A button)
+		handleItemSelect = function(selectedItem, selectedIndex)
+			lastSelectedIndex = selectedIndex
+
+			if selectedItem.isValid then
+				-- Load the selected preset
+				local success = presets.loadPreset(selectedItem.name)
+				if success then
+					-- Update RGB configuration immediately after loading preset
+					if state.hasRGBSupport then
+						rgbUtils.updateConfig()
+					end
+
+					-- Return to main menu screen
+					if switchScreen then
+						switchScreen("main_menu")
+					end
 				end
 			end
+		end,
+	})
+
+	-- Update preview image when selection changes
+	if result and result.selectedIndexChanged then
+		local selectedItem = list.getSelectedItem()
+		if selectedItem then
+			loadPreviewImage(selectedItem.name)
 		end
 	end
 
@@ -305,12 +288,24 @@ end
 function loadPreset.onEnter()
 	logger.debug("loadPreset.onEnter() called")
 	loadPresetsList()
-	scrollPosition = 0
+
+	-- Initialize the list with proper state management
+	list.onScreenEnter("load_preset", presetItems, lastSelectedIndex)
+
+	-- Load preview for initially selected item
+	local selectedItem = list.getSelectedItem()
+	if selectedItem then
+		loadPreviewImage(selectedItem.name)
+	end
+
 	logger.debug("loadPreset.onEnter() completed")
 end
 
 -- Clean up resources when leaving the screen
 function loadPreset.onExit()
+	-- Store selected index before leaving
+	lastSelectedIndex = list.onScreenExit()
+
 	if previewImage then
 		previewImage:release()
 		previewImage = nil
