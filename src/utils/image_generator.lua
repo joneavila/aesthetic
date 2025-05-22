@@ -174,7 +174,7 @@ function imageGenerator.createIconImage(options)
 		-- Draw the text centered
 		local textWidth = largerFont:getWidth(text)
 		local textX = (width - textWidth) / 2
-		local textY = height / 2 + 50
+		local textY = height / 2 + 64
 		love.graphics.print(text, textX, textY)
 	end
 
