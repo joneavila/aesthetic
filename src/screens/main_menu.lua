@@ -415,8 +415,11 @@ local function handleModalNavigation(virtualJoystick, dt)
 		else
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
-				if btn.selected and btn.text == "Exit" or btn.text == "Close" then
-					love.event.quit()
+				if btn.selected then
+					if btn.text == "Exit" then
+						love.event.quit()
+					end
+					-- For Close button, just close the modal and continue
 				end
 			end
 			modal.hideModal()
