@@ -175,6 +175,9 @@ function list.draw(params)
 		last = lastVisibleItem,
 	}
 
+	-- Calculate the end Y position of the list
+	local endY = startY + viewportHeight
+
 	return {
 		needsScrollBar = needsScrollBar,
 		visibleCount = visibleCount,
@@ -182,6 +185,7 @@ function list.draw(params)
 		lastVisibleItem = lastVisibleItem,
 		availableWidth = availableWidth,
 		totalCount = itemCount,
+		endY = endY,
 	}
 end
 

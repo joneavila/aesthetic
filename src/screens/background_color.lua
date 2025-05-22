@@ -140,15 +140,14 @@ function backgroundColor.draw()
 
 	-- Draw gradient preview box if gradient mode is selected
 	if state.backgroundType == "Gradient" and gradientPreviewMesh then
-		-- Calculate position based on the header height, button height, and number of buttons
-		local buttonHeight = button.calculateHeight()
-		local contentEndY = headerHeight + (visibleButtonCount * buttonHeight)
+		-- Get the end Y position of the list
+		local listEndY = result.endY
 
 		-- Get control hint height to avoid overlapping with bottom controls
 		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 
-		-- Calculate available vertical space between content end and controls
-		local availableHeight = state.screenHeight - contentEndY - controlsHeight - 40 -- 40px for padding (20px top + 20px bottom)
+		-- Calculate available vertical space between list end and controls
+		local availableHeight = state.screenHeight - listEndY - controlsHeight - 20 -- 20px for padding
 
 		-- Adjust preview dimensions to fit the available space
 		local maxPreviewHeight = math.min(120, availableHeight) -- Cap at 120px or available height, whichever is smaller
@@ -158,7 +157,7 @@ function backgroundColor.draw()
 		-- Only draw preview if we have enough space
 		if previewHeight >= 40 then -- Minimum height threshold to make preview useful
 			local previewX = (state.screenWidth - previewWidth) / 2
-			local previewY = contentEndY + 20
+			local previewY = listEndY + 10 -- 10px padding after list
 
 			-- Draw border
 			love.graphics.setColor(0.6, 0.6, 0.6, 1.0)
@@ -167,17 +166,6 @@ function backgroundColor.draw()
 			-- Draw gradient preview
 			love.graphics.setColor(1, 1, 1)
 			love.graphics.draw(gradientPreviewMesh, previewX, previewY, 0, previewWidth, previewHeight)
-
-			-- Draw preview label
-			love.graphics.setColor(require("colors").ui.foreground)
-			love.graphics.setFont(fonts.loaded.caption)
-			local labelText = "Preview"
-			local labelWidth = fonts.loaded.caption:getWidth(labelText)
-
-			-- Only draw label if we have room for it
-			if previewY + previewHeight + 30 < state.screenHeight - controlsHeight then
-				love.graphics.print(labelText, (state.screenWidth - labelWidth) / 2, previewY + previewHeight + 10)
-			end
 		end
 	end
 
