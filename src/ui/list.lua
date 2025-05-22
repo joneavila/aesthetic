@@ -194,6 +194,8 @@ function list.adjustScrollPosition(params)
 	local totalCount = params.totalCount or #(params.items or {})
 	local visibleCount = params.visibleCount or 0
 	local oldScrollPosition = params.scrollPosition or 0
+	local direction = params.direction or 0 -- -1 for up, 1 for down, 0 for unknown
+	local isWrapping = params.isWrapping or false -- New parameter to indicate wrap-around
 
 	logger.debug(
 		"list.adjustScrollPosition - selectedIndex: "
@@ -202,6 +204,8 @@ function list.adjustScrollPosition(params)
 			.. visibleCount
 			.. ", totalCount: "
 			.. totalCount
+			.. ", direction: "
+			.. direction
 	)
 
 	-- If the list has fewer items than visible capacity, show from the beginning
@@ -209,8 +213,24 @@ function list.adjustScrollPosition(params)
 		return 0
 	end
 
+	-- When wrapping from last to first item, reset scroll position to 0
+	if direction == 1 and currSelectedIndex == 1 and oldScrollPosition > 0 then
+		logger.debug("Wrapping to top of list, resetting scroll position to 0")
+		return 0
+	end
+
 	-- Calculate the maximum valid scroll position
 	local maxScrollPosition = math.max(0, totalCount - visibleCount)
+
+	-- Calculate the current first visible item
+	local firstVisible = math.floor(oldScrollPosition) + 1
+
+	-- Special case for navigating up: if we're going from the first visible item to the
+	-- item just above it, we want to scroll exactly one item up
+	if direction == -1 and currSelectedIndex == firstVisible - 1 then
+		logger.debug("Special case: scrolling exactly one item up")
+		return math.max(0, oldScrollPosition - 1)
+	end
 
 	-- Early in the list: fixed positioning until we need to scroll
 	if currSelectedIndex <= visibleCount then
@@ -226,30 +246,31 @@ function list.adjustScrollPosition(params)
 		return maxScrollPosition
 	end
 
-	-- Calculate the current visible range based on old scroll position
-	local firstVisible = math.floor(oldScrollPosition) + 1
-	local lastVisible = firstVisible + visibleCount - 1
+	-- Middle of list: position the selected item correctly in the visible area
+	-- This fixes the jumping issue by using only the current selected index, not old scroll position
+	local newScrollPosition = currSelectedIndex - visibleCount
 
-	-- If the selected item is just one position below the last visible item,
-	-- scroll by exactly one position to reveal it, ensuring smooth scrolling
-	if currSelectedIndex == lastVisible + 1 then
-		logger.debug("Scrolling one item down from: " .. oldScrollPosition .. " to " .. (oldScrollPosition + 1))
-		return oldScrollPosition + 1
+	-- Use a smooth formula that ensures the selected item is always in the visible range
+	-- but prevents jumps when navigating linearly
+	if currSelectedIndex > visibleCount then
+		newScrollPosition = currSelectedIndex - visibleCount
 	end
 
-	-- Middle of list: maintain selected item at bottom of visible area
-	-- but ensure we're not jumping too far when scrolling down
-	local newScrollPosition = currSelectedIndex - visibleCount + 1
-	logger.debug("Middle of list, positioning item at bottom visible slot: " .. newScrollPosition)
+	logger.debug("Middle of list, positioning item: " .. newScrollPosition)
 
-	-- Ensure the new scroll position is within valid bounds
+	-- Ensure the new scroll position is within valid bounds and prevent excessive jumps
 	newScrollPosition = math.max(0, math.min(newScrollPosition, maxScrollPosition))
 
-	-- Prevent large jumps in scroll position when navigating down
-	-- Allow at most one item of scrolling at a time
+	-- Limit jump distance to at most one item when navigating down
 	if newScrollPosition > oldScrollPosition and newScrollPosition - oldScrollPosition > 1 then
 		newScrollPosition = oldScrollPosition + 1
-		logger.debug("Limited scroll jump to one item: " .. newScrollPosition)
+		logger.debug("Limited scroll jump to one item down: " .. newScrollPosition)
+	end
+
+	-- Limit jump distance to at most one item when navigating up
+	if newScrollPosition < oldScrollPosition and oldScrollPosition - newScrollPosition > 1 then
+		newScrollPosition = oldScrollPosition - 1
+		logger.debug("Limited scroll jump to one item up: " .. newScrollPosition)
 	end
 
 	-- Store the last selected index when explicit selectedIndex is provided
@@ -301,6 +322,19 @@ function list.navigate(items, direction)
 	selectedIndex = newIndex
 	logger.debug("Updated selectedIndex to: " .. newIndex)
 
+	-- Update the current visible range to reflect the new selection
+	-- This helps ensure that subsequent navigation will be based on correct values
+	-- First estimate what the visible range should be after this navigation
+	if direction > 0 and currentVisibleRange.last < newIndex then
+		-- Moving down past the last visible item
+		currentVisibleRange.first = currentVisibleRange.first + 1
+		currentVisibleRange.last = newIndex
+	elseif direction < 0 and currentVisibleRange.first > newIndex then
+		-- Moving up past the first visible item
+		currentVisibleRange.first = newIndex
+		currentVisibleRange.last = currentVisibleRange.last - 1
+	end
+
 	return newIndex
 end
 
@@ -332,21 +366,53 @@ function list.handleInput(params)
 		optionChanged = false,
 		scrollPosition = scrollPosition,
 		selectedIndex = selectedIndex,
+		direction = 0, -- Track navigation direction
 	}
+
+	-- Calculate current visible item range
+	local firstVisible = math.floor(scrollPosition) + 1
+	local lastVisible = firstVisible + visibleCount - 1
 
 	-- Handle D-pad up/down navigation
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
 		logger.debug("List handling dpup")
 		local oldIndex = result.selectedIndex
 		result.selectedIndex = list.navigate(items, -1)
+		result.direction = -1 -- Set direction to up
 		result.selectedIndexChanged = (oldIndex ~= result.selectedIndex)
-		result.scrollPositionChanged = true
+
+		-- Check for wrap-around when pressing up (going from first to last item)
+		local isWrappingToBottom = (oldIndex == 1 and result.selectedIndex == #items)
+
+		-- When navigating up, we need to scroll if:
+		-- 1. Moving to an item completely above the visible range, OR
+		-- 2. Wrapping around from the first item to the last item
+		if result.selectedIndex < firstVisible or isWrappingToBottom then
+			-- We need to scroll
+			result.scrollPositionChanged = true
+		else
+			-- We're navigating within the visible range, no need to scroll
+			result.scrollPositionChanged = false
+		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 		logger.debug("List handling dpdown")
 		local oldIndex = result.selectedIndex
 		result.selectedIndex = list.navigate(items, 1)
+		result.direction = 1 -- Set direction to down
 		result.selectedIndexChanged = (oldIndex ~= result.selectedIndex)
-		result.scrollPositionChanged = true
+
+		-- Check for wrap-around when pressing down (going from last to first item)
+		local isWrappingToTop = (oldIndex == #items and result.selectedIndex == 1)
+
+		-- Only update scroll position if:
+		-- 1. New selection is below visible range, OR
+		-- 2. Wrapping around from the last item to the first item
+		if result.selectedIndex > lastVisible or isWrappingToTop then
+			result.scrollPositionChanged = true
+		else
+			-- We're navigating within the visible range, no need to scroll
+			result.scrollPositionChanged = false
+		end
 	end
 
 	-- Handle left/right for option cycling
@@ -364,27 +430,31 @@ function list.handleInput(params)
 		handleItemSelect(selectedItem, selectedIndex)
 	end
 
-	-- Update scroll position if navigation occurred
+	-- Update scroll position if navigation occurred and selection is outside visible range
 	if result.scrollPositionChanged then
-		-- Calculate the current visible range
-		local firstVisible = math.floor(scrollPosition) + 1
-		local lastVisible = firstVisible + visibleCount - 1
-
 		logger.debug(
-			"Before scroll adjustment - firstVisible: "
+			"Need to scroll - firstVisible: "
 				.. firstVisible
 				.. ", lastVisible: "
 				.. lastVisible
 				.. ", selectedIndex: "
 				.. result.selectedIndex
+				.. ", direction: "
+				.. result.direction
 		)
 
-		-- Get the new scroll position
+		-- Check if we're wrapping around (for dpdown only, dpup is already handled correctly)
+		local isWrapping = (result.direction == 1 and result.selectedIndex == 1 and oldIndex == #items)
+
+		-- Get the new scroll position - pass total item count to ensure proper calculation
 		local newScrollPosition = list.adjustScrollPosition({
 			selectedIndex = result.selectedIndex,
 			scrollPosition = scrollPosition,
 			visibleCount = visibleCount,
 			totalCount = #items,
+			items = items, -- Pass items to ensure proper count
+			direction = result.direction, -- Pass the direction
+			isWrapping = isWrapping, -- Pass wrapping info
 		})
 
 		-- Ensure the new scroll position is an integer
@@ -439,6 +509,7 @@ function list.resetScrollPosition()
 	lastScrollPosition = 0
 	selectedIndex = 1
 	selectedItem = nil
+	currentVisibleRange = { first = 1, last = 1 }
 end
 
 -- Get the current scroll position
@@ -481,6 +552,33 @@ end
 -- Get the current visible range (useful for navigation)
 function list.getVisibleRange()
 	return currentVisibleRange
+end
+
+-- Handle screen entrance - centralizes list reset logic
+-- Call this when entering a screen that uses a list
+-- Parameters:
+--   items: the list items to use
+--   savedIndex: (optional) previously saved selection index to restore
+function list.onScreenEnter(items, savedIndex)
+	-- Reset list state
+	list.resetScrollPosition()
+
+	-- Restore selected index if provided
+	if savedIndex and savedIndex > 0 and items and #items >= savedIndex then
+		list.setSelectedIndex(savedIndex, items)
+	else
+		-- Otherwise select the first item
+		list.setSelectedIndex(1, items)
+	end
+
+	return 0 -- Return initial scroll position
+end
+
+-- Handle screen exit - saves list state
+-- Call this when exiting a screen that uses a list
+-- Returns: the current selected index that can be stored and passed to onScreenEnter later
+function list.onScreenExit()
+	return list.getSelectedIndex()
 end
 
 return list

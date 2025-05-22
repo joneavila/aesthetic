@@ -688,6 +688,8 @@ end
 
 -- To perform when exiting the screen
 function menu.onExit()
+	-- Store the current selected index before leaving using the centralized function
+	menu.lastSelectedIndex = list.onScreenExit()
 	themeCreator.cleanup()
 end
 
@@ -705,6 +707,9 @@ end
 
 function menu.onEnter(data)
 	buildButtonsList()
+
+	-- Reset list state and restore selection using the centralized function
+	scrollPosition = list.onScreenEnter(menu.BUTTONS, menu.lastSelectedIndex)
 
 	-- Set input cooldown when entering screen
 	if data and type(data) == "table" and data.preventImmediateInput then
@@ -729,9 +734,6 @@ function menu.onEnter(data)
 			end
 		end
 	end
-
-	-- Store the last selected index to restore it later when returning to this screen
-	menu.lastSelectedIndex = list.getSelectedIndex()
 end
 
 return menu

@@ -4,6 +4,11 @@ return {
 	displayName = "Terminal",
 	background = {
 		value = "#000000",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#000000",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#00FF00",

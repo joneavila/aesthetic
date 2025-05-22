@@ -4,6 +4,11 @@ return {
 	displayName = "Vaporwave",
 	background = {
 		value = "#FFC1CC",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#FFC1CC",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#007F7F",

@@ -4,6 +4,11 @@ return {
 	displayName = "Orange Cream",
 	background = {
 		value = "#FF5A1F",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#FF5A1F",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#FFFFFF",

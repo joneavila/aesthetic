@@ -81,7 +81,7 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	buttonWidth = buttonWidth or screenWidth
 
 	-- Calculate available width (excluding margins)
-	local availableWidth = buttonWidth
+	local availableWidth = screenWidth - (BUTTON.EDGE_MARGIN * 2)
 
 	-- Determine if we're in full width mode
 	local hasFullWidth = buttonWidth >= availableWidth
@@ -91,19 +91,24 @@ local function calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected
 	if hasFullWidth then
 		rightEdge = screenWidth - BUTTON.EDGE_MARGIN
 	else
-		rightEdge = x + buttonWidth
+		rightEdge = x + buttonWidth - BUTTON.EDGE_MARGIN
 	end
 
 	-- For selected buttons, determine draw width for background
 	local drawWidth
 	if isSelected then
-		drawWidth = buttonWidth
+		if hasFullWidth then
+			drawWidth = availableWidth
+		else
+			drawWidth = buttonWidth - BUTTON.EDGE_MARGIN
+		end
 	end
 
 	return {
 		drawWidth = drawWidth,
 		rightEdge = rightEdge,
 		hasFullWidth = hasFullWidth,
+		availableWidth = availableWidth,
 	}
 end
 

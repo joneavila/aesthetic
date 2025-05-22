@@ -4,6 +4,11 @@ return {
 	displayName = "Bumblebee",
 	background = {
 		value = "#FFD900",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#FFD900",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#3E2723",

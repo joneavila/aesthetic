@@ -4,6 +4,11 @@ return {
 	displayName = "DMG",
 	background = {
 		value = "#9BBC0F",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#9BBC0F",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#0F380F",

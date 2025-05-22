@@ -35,6 +35,7 @@ local tweenObj = { leftWidth = 0, rightWidth = 0 }
 
 -- List handling variables
 local scrollPosition = 0
+local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Buttons in this screen
 local BUTTONS = {
@@ -307,6 +308,14 @@ function box_art.onEnter()
 		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
 		BUTTONS[1].currentOption = 1
 	end
+
+	-- Reset list state and restore selection
+	scrollPosition = list.onScreenEnter(BUTTONS, savedSelectedIndex)
+end
+
+function box_art.onExit()
+	-- Save the current selected index
+	savedSelectedIndex = list.onScreenExit()
 end
 
 return box_art

@@ -31,6 +31,7 @@ local RGB_MODES = {
 -- List handling variables
 local scrollPosition = 0
 local visibleCount = 0
+local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Buttons in this screen
 local BUTTONS = {
@@ -305,6 +306,9 @@ function rgb.onEnter()
 	-- Update button states based on current settings
 	updateButtonStates()
 
+	-- Reset list state and restore selection
+	scrollPosition = list.onScreenEnter(BUTTONS, savedSelectedIndex)
+
 	-- Apply RGB settings in case they were changed in the color picker
 	if state.hasRGBSupport then
 		rgbUtils.updateConfig()
@@ -312,7 +316,9 @@ function rgb.onEnter()
 end
 
 function rgb.onExit()
-	-- Called when leaving this screen
+	-- Save the current selected index
+	savedSelectedIndex = list.onScreenExit()
+
 	-- No need to restore RGB settings here - let them persist while previewing
 end
 

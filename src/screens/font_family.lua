@@ -31,6 +31,12 @@ local previewFontCache = {}
 -- Store the maximum preview height once calculated
 local maxPreviewHeight = nil
 
+-- Font items with their selected state
+local fontItems = {}
+local scrollPosition = 0
+local visibleCount = 0
+local savedSelectedIndex = 1 -- Track the last selected index
+
 -- Helper function to get a consistent preview font
 local function getPreviewFont(fontName)
 	-- Check if we already have this font in our cache
@@ -81,11 +87,6 @@ local function calculateMaxPreviewHeight()
 	maxPreviewHeight = maxHeight
 	return maxHeight
 end
-
--- Font items with their selected state
-local fontItems = {}
-local scrollPosition = 0
-local visibleCount = 0
 
 -- Initialize font items based on fonts.themeDefinitions
 local function initFontItems()
@@ -263,23 +264,20 @@ function font.update(_dt)
 	end
 end
 
+function font.onEnter()
+	initFontItems()
+
+	-- Reset list state and restore selection
+	scrollPosition = list.onScreenEnter(fontItems, savedSelectedIndex)
+end
+
+function font.onExit()
+	-- Save the current selected index
+	savedSelectedIndex = list.onScreenExit()
+end
+
 function font.setScreenSwitcher(switchFunc)
 	switchScreen = switchFunc
-end
-
--- Function called when entering this screen
-function font.onEnter()
-	-- Reinitialize font items to ensure they match the current state
-	initFontItems()
-	scrollPosition = 0
-end
-
--- Function called when exiting this screen
-function font.onExit()
-	-- Clear the font cache and preview height cache to free memory
-	previewFontCache = {}
-	maxPreviewHeight = nil
-	list.resetScrollPosition()
 end
 
 return font

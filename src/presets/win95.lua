@@ -4,6 +4,11 @@ return {
 	displayName = "Win95",
 	background = {
 		value = "#008080",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#008080",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#FFFFFF",

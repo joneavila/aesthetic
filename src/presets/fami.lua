@@ -4,6 +4,11 @@ return {
 	displayName = "Fami",
 	background = {
 		value = "#FAF3DD",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#FAF3DD",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#7C0A02",

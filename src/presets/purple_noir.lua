@@ -4,6 +4,11 @@ return {
 	displayName = "Purple Noir",
 	background = {
 		value = "#1C1B29",
+		type = "Solid",
+	},
+	backgroundGradient = {
+		value = "#1C1B29",
+		direction = "Vertical",
 	},
 	foreground = {
 		value = "#D0A9F5",
