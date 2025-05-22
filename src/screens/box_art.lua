@@ -310,7 +310,7 @@ function box_art.onEnter()
 	end
 
 	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter(BUTTONS, savedSelectedIndex)
+	scrollPosition = list.onScreenEnter("box_art", BUTTONS, savedSelectedIndex)
 end
 
 function box_art.onExit()

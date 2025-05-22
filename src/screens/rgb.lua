@@ -307,7 +307,7 @@ function rgb.onEnter()
 	updateButtonStates()
 
 	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter(BUTTONS, savedSelectedIndex)
+	scrollPosition = list.onScreenEnter("rgb", BUTTONS, savedSelectedIndex)
 
 	-- Apply RGB settings in case they were changed in the color picker
 	if state.hasRGBSupport then

@@ -9,6 +9,7 @@ local list = require("ui.list")
 local button = require("ui.button")
 local controls = require("controls")
 local scrollable = require("ui.scrollable")
+local logger = require("utils.logger")
 
 -- Module table to export public functions
 local font = {}
@@ -197,48 +198,7 @@ end
 
 function font.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
-	local scrollUpdated = false -- Flag to track if we need to update scroll position
-
-	-- Handle D-pad up/down navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		-- Use the list navigation helper with negative direction for up
-		local selectedIndex = list.navigate(fontItems, -1)
-		scrollUpdated = true -- Mark for scroll update
-
-		-- Update scroll position
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		-- Use the list navigation helper with positive direction for down
-		local selectedIndex = list.navigate(fontItems, 1)
-		scrollUpdated = true -- Mark for scroll update
-
-		-- Update scroll position
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	end
-
-	-- Only update scroll position if there was no explicit navigation but selection changed some other way
-	-- This would happen if selection changed through some other means outside dpup/dpdown
-	if not scrollUpdated then
-		local selectedIndex = list.getSelectedIndex()
-		local lastSelectedIndex = selectedIndex
-
-		-- Only adjust if the selection has changed from what we know
-		if selectedIndex > 0 and selectedIndex ~= lastSelectedIndex then
-			scrollPosition = list.adjustScrollPosition({
-				selectedIndex = selectedIndex,
-				scrollPosition = scrollPosition,
-				visibleCount = visibleCount,
-			})
-		end
-	end
+	local logger = require("utils.logger")
 
 	-- Handle B button (Back to menu)
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
@@ -246,29 +206,38 @@ function font.update(_dt)
 		return
 	end
 
-	-- Handle A button (Select font)
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		-- Find which font is selected
-		for _, item in ipairs(fontItems) do
-			if item.selected then
-				-- Update the selected font in state
-				state.selectedFont = item.text
+	-- Use the enhanced list input handler for navigation and selection
+	local result = list.handleInput({
+		items = fontItems,
+		scrollPosition = scrollPosition,
+		visibleCount = visibleCount,
+		virtualJoystick = virtualJoystick,
 
-				-- Return to menu
-				if switchScreen then
-					switchScreen("main_menu")
-				end
-				break
+		-- Handle item selection (A button)
+		handleItemSelect = function(item)
+			-- Update the selected font in state
+			state.selectedFont = item.text
+
+			-- Return to menu
+			if switchScreen then
+				switchScreen("main_menu")
 			end
-		end
+		end,
+	})
+
+	-- Update scroll position if changed
+	if result.scrollPositionChanged then
+		scrollPosition = result.scrollPosition
+		logger.debug("Updated font family scroll position to: " .. scrollPosition)
 	end
 end
 
-function font.onEnter()
+function font.onEnter(data)
 	initFontItems()
 
 	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter(fontItems, savedSelectedIndex)
+	scrollPosition = list.onScreenEnter("font_family", fontItems, savedSelectedIndex)
+	logger.debug("Font family screen entered with scroll position: " .. scrollPosition)
 end
 
 function font.onExit()

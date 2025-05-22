@@ -585,7 +585,7 @@ function menu.update(dt)
 
 		-- Handle button selection (A button)
 		handleItemSelect = function(btn)
-			menu.lastSelectedIndex = list.getSelectedIndex(navButtons)
+			menu.lastSelectedIndex = list.getSelectedIndex()
 			handleSelectedButton(btn)
 		end,
 
@@ -596,79 +596,27 @@ function menu.update(dt)
 			if btn.fontSizeToggle then
 				-- Font size cycles through three values
 				local options = { "Default", "Large", "Extra Large" }
-				changed = true
-
-				if direction > 0 then -- Right direction
-					if state.fontSize == "Default" then
-						state.fontSize = "Large"
-					elseif state.fontSize == "Large" then
-						state.fontSize = "Extra Large"
-					else
-						state.fontSize = "Default"
-					end
-				else -- Left direction
-					if state.fontSize == "Default" then
-						state.fontSize = "Extra Large"
-					elseif state.fontSize == "Extra Large" then
-						state.fontSize = "Large"
-					else
-						state.fontSize = "Default"
-					end
-				end
+				changed = list.cycleItemOption(btn, direction, "valueText", options)
+				state.fontSize = btn.valueText
 			elseif btn.glyphsToggle then
 				-- Glyphs toggle doesn't need direction - it's just a boolean toggle
 				state.glyphs_enabled = not state.glyphs_enabled
 				changed = true
 			elseif btn.headerTextToggle then
 				-- Header text toggle cycles between Enabled and Disabled
-				if state.headerTextEnabled == "Enabled" then
-					state.headerTextEnabled = "Disabled"
-				else
-					state.headerTextEnabled = "Enabled"
-				end
-				changed = true
+				local options = { "Enabled", "Disabled" }
+				changed = list.cycleItemOption(btn, direction, "valueText", options)
+				state.headerTextEnabled = btn.valueText
 			elseif btn.navAlignToggle then
 				-- Navigation alignment cycles through three values
 				local options = { "Left", "Center", "Right" }
-				local currentIndex = 1
-
-				for i, v in ipairs(options) do
-					if state.navigationAlignment == v then
-						currentIndex = i
-						break
-					end
-				end
-
-				local newIndex = currentIndex + direction
-				if newIndex < 1 then
-					newIndex = #options
-				elseif newIndex > #options then
-					newIndex = 1
-				end
-
-				state.navigationAlignment = options[newIndex]
-				changed = true
+				changed = list.cycleItemOption(btn, direction, "valueText", options)
+				state.navigationAlignment = btn.valueText
 			elseif btn.timeAlignToggle then
-				-- Time alignment cycles through four values: Auto, Left, Center, Right
+				-- Time alignment cycles through four values
 				local options = { "Auto", "Left", "Center", "Right" }
-				local currentIndex = 1
-
-				for i, v in ipairs(options) do
-					if state.timeAlignment == v then
-						currentIndex = i
-						break
-					end
-				end
-
-				local newIndex = currentIndex + direction
-				if newIndex < 1 then
-					newIndex = #options
-				elseif newIndex > #options then
-					newIndex = 1
-				end
-
-				state.timeAlignment = options[newIndex]
-				changed = true
+				changed = list.cycleItemOption(btn, direction, "valueText", options)
+				state.timeAlignment = btn.valueText
 			end
 
 			return changed
@@ -709,7 +657,7 @@ function menu.onEnter(data)
 	buildButtonsList()
 
 	-- Reset list state and restore selection using the centralized function
-	scrollPosition = list.onScreenEnter(menu.BUTTONS, menu.lastSelectedIndex)
+	scrollPosition = list.onScreenEnter("main_menu", menu.BUTTONS, menu.lastSelectedIndex)
 
 	-- Set input cooldown when entering screen
 	if data and type(data) == "table" and data.preventImmediateInput then

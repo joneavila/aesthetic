@@ -21,6 +21,7 @@ local actionButtons = nil -- No action buttons now
 local scrollPosition = 0
 local visibleCount = 0
 local modalMode = "none" -- none, confirm_delete, error, deleted
+local savedSelectedIndex = 1 -- Track the last selected index for screen transitions
 
 -- Helper to scan for .muxthm files in paths.THEME_DIR
 local function scanThemes()
@@ -81,6 +82,7 @@ function manage_themes.update(dt)
 	modal.update(dt)
 
 	local vjoy = input.virtualJoystick
+
 	if modal.isModalVisible() then
 		if vjoy.isGamepadPressedWithDelay("a") then
 			if modalMode == "confirm_delete" then
@@ -98,7 +100,6 @@ function manage_themes.update(dt)
 					modalMode = "deleted"
 					modal.showModal("Selected themes deleted.", { { text = "Close", selected = true } })
 					scanThemes()
-					list.resetScrollPosition()
 				else
 					modalMode = "none"
 					modal.hideModal()
@@ -117,30 +118,25 @@ function manage_themes.update(dt)
 		return
 	end
 
-	-- D-pad up/down navigates theme list
-	if vjoy.isGamepadPressedWithDelay("dpup") then
-		local idx = list_select.navigate(themeItems, -1)
-		scrollPosition = list_select.adjustScrollPosition({
-			selectedIndex = idx,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	elseif vjoy.isGamepadPressedWithDelay("dpdown") then
-		local idx = list_select.navigate(themeItems, 1)
-		scrollPosition = list_select.adjustScrollPosition({
-			selectedIndex = idx,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
+	-- Use the enhanced list input handler for navigation and selection
+	local result = list.handleInput({
+		items = themeItems,
+		scrollPosition = scrollPosition,
+		visibleCount = visibleCount,
+		virtualJoystick = vjoy,
+
+		-- Handle item selection (A button)
+		handleItemSelect = function(item, idx)
+			list_select.toggleChecked(themeItems, idx)
+		end,
+	})
+
+	-- Update scroll position if changed
+	if result.scrollPositionChanged then
+		scrollPosition = result.scrollPosition
+		logger.debug("Updated manage themes scroll position to: " .. scrollPosition)
 	end
 
-	-- Select/deselect theme with A
-	if vjoy.isGamepadPressedWithDelay("a") then
-		local idx = list.getSelectedIndex()
-		if idx > 0 then
-			list_select.toggleChecked(themeItems, idx)
-		end
-	end
 	-- Delete action with X button
 	if vjoy.isGamepadPressedWithDelay("x") then
 		local anyChecked = false
@@ -162,6 +158,7 @@ function manage_themes.update(dt)
 		end
 		return
 	end
+
 	-- Back to settings
 	if vjoy.isGamepadPressedWithDelay("b") then
 		if switchScreen then
@@ -171,10 +168,20 @@ function manage_themes.update(dt)
 	end
 end
 
+function manage_themes.onEnter(data)
+	scanThemes()
+
+	-- Reset list state and restore selection
+	scrollPosition = list.onScreenEnter("manage_themes", themeItems, savedSelectedIndex)
+	logger.debug("Manage themes screen entered with scroll position: " .. scrollPosition)
+end
+
 function manage_themes.onExit()
 	modal.hideModal()
 	modalMode = "none"
-	scrollPosition = 0
+
+	-- Save the current selected index
+	savedSelectedIndex = list.onScreenExit()
 end
 
 return manage_themes

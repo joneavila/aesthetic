@@ -24,21 +24,47 @@ local list = {}
 -- STATE TRACKING
 --------------------------------------------------
 
--- Store the last scroll position to prevent jumps when moving focus out of the list
-local lastScrollPosition = 0
+-- Store state for each screen to remember position between screen transitions
+local screenStates = {}
 
--- Track the selected item index
-local selectedIndex = 1
+-- The current active screen ID
+local currentScreenId = nil
 
--- Track the selected item itself
-local selectedItem = nil
+-- Set the current active screen ID
+local function setCurrentScreen(screenId)
+	if not screenId then
+		return
+	end
 
--- Store the currently visible range to help with navigation
-local currentVisibleRange = { first = 1, last = 1 }
+	-- Convert screenId to string to ensure it can be used as a table key
+	local screenIdKey = tostring(screenId)
+	currentScreenId = screenIdKey
 
---------------------------------------------------
--- CONFIG CONSTANTS
---------------------------------------------------
+	-- Initialize screen state if it doesn't exist
+	if not screenStates[screenIdKey] then
+		screenStates[screenIdKey] = {
+			scrollPosition = 0,
+			selectedIndex = 1,
+			selectedItem = nil,
+			visibleRange = { first = 1, last = 1 },
+		}
+	end
+end
+
+-- Get the current screen state
+local function getCurrentState()
+	if not currentScreenId then
+		-- Return a default state if no screen is set
+		return {
+			scrollPosition = 0,
+			selectedIndex = 1,
+			selectedItem = nil,
+			visibleRange = { first = 1, last = 1 },
+		}
+	end
+
+	return screenStates[currentScreenId]
+end
 
 -- Default configuration values that can be overridden by params
 list.DEFAULT_CONFIG = {
@@ -52,18 +78,21 @@ function list.draw(params)
 	local items = params.items or {}
 	local startY = params.startY or list.DEFAULT_CONFIG.startY
 	local itemHeight = params.itemHeight
-	local scrollPosition = params.scrollPosition or lastScrollPosition
 	local screenWidth = params.screenWidth or love.graphics.getWidth()
 	local screenHeight = params.screenHeight or love.graphics.getHeight()
 	local itemCount = #items
 	local itemPadding = params.itemPadding or list.DEFAULT_CONFIG.itemPadding
 	local edgeMargin = button.BUTTON.EDGE_MARGIN
-	local logger = require("utils.logger")
 	local drawItemFunc = params.drawItemFunc
+
+	-- Get current screen state
+	local state = getCurrentState()
+
+	-- Use provided scroll position or the saved one
+	local scrollPosition = params.scrollPosition or state.scrollPosition
 
 	-- Check if drawItemFunc is provided
 	if not drawItemFunc then
-		logger.error("list.draw: drawItemFunc is required")
 		return {}
 	end
 
@@ -77,8 +106,8 @@ function list.draw(params)
 
 	local reservedBottomSpace = params.reservedBottom or 0
 
-	-- Save the current scroll position
-	lastScrollPosition = scrollPosition
+	-- Save the current scroll position to screen state
+	state.scrollPosition = scrollPosition
 
 	-- Calculate the visible content area height
 	local contentAreaHeight = screenHeight - startY - reservedBottomSpace
@@ -170,7 +199,7 @@ function list.draw(params)
 	local lastVisibleItem = visibleItems[#visibleItems] or math.min(firstVisibleItem + visibleCount - 1, itemCount)
 
 	-- Store the current visible range for navigation purposes
-	currentVisibleRange = {
+	state.visibleRange = {
 		first = firstVisibleItem,
 		last = lastVisibleItem,
 	}
@@ -192,25 +221,15 @@ end
 -- Adjust the scroll position to ensure the selected item is visible
 -- Uses fixed positioning to maintain the selected item at a consistent position
 function list.adjustScrollPosition(params)
-	local logger = require("utils.logger")
+	-- Get current screen state
+	local state = getCurrentState()
 
-	local currSelectedIndex = params.selectedIndex > 0 and params.selectedIndex or selectedIndex
-	local totalCount = params.totalCount or #(params.items or {})
+	local currSelectedIndex = params.selectedIndex > 0 and params.selectedIndex or state.selectedIndex
+	local items = params.items or {}
+	local totalCount = params.totalCount or #items
 	local visibleCount = params.visibleCount or 0
-	local oldScrollPosition = params.scrollPosition or 0
+	local oldScrollPosition = params.scrollPosition or state.scrollPosition
 	local direction = params.direction or 0 -- -1 for up, 1 for down, 0 for unknown
-	local isWrapping = params.isWrapping or false -- New parameter to indicate wrap-around
-
-	logger.debug(
-		"list.adjustScrollPosition - selectedIndex: "
-			.. currSelectedIndex
-			.. ", visibleCount: "
-			.. visibleCount
-			.. ", totalCount: "
-			.. totalCount
-			.. ", direction: "
-			.. direction
-	)
 
 	-- If the list has fewer items than visible capacity, show from the beginning
 	if totalCount <= visibleCount then
@@ -219,7 +238,6 @@ function list.adjustScrollPosition(params)
 
 	-- When wrapping from last to first item, reset scroll position to 0
 	if direction == 1 and currSelectedIndex == 1 and oldScrollPosition > 0 then
-		logger.debug("Wrapping to top of list, resetting scroll position to 0")
 		return 0
 	end
 
@@ -232,13 +250,11 @@ function list.adjustScrollPosition(params)
 	-- Special case for navigating up: if we're going from the first visible item to the
 	-- item just above it, we want to scroll exactly one item up
 	if direction == -1 and currSelectedIndex == firstVisible - 1 then
-		logger.debug("Special case: scrolling exactly one item up")
 		return math.max(0, oldScrollPosition - 1)
 	end
 
 	-- Early in the list: fixed positioning until we need to scroll
 	if currSelectedIndex <= visibleCount then
-		logger.debug("Early in list, showing from beginning")
 		return 0
 	end
 
@@ -246,7 +262,6 @@ function list.adjustScrollPosition(params)
 	-- This condition ensures we switch to end-of-list mode when the selected item
 	-- would be in the last visible set of items
 	if currSelectedIndex > totalCount - visibleCount and currSelectedIndex == totalCount then
-		logger.debug("At end of list, showing last section: " .. maxScrollPosition)
 		return maxScrollPosition
 	end
 
@@ -260,26 +275,22 @@ function list.adjustScrollPosition(params)
 		newScrollPosition = currSelectedIndex - visibleCount
 	end
 
-	logger.debug("Middle of list, positioning item: " .. newScrollPosition)
-
 	-- Ensure the new scroll position is within valid bounds and prevent excessive jumps
 	newScrollPosition = math.max(0, math.min(newScrollPosition, maxScrollPosition))
 
 	-- Limit jump distance to at most one item when navigating down
 	if newScrollPosition > oldScrollPosition and newScrollPosition - oldScrollPosition > 1 then
 		newScrollPosition = oldScrollPosition + 1
-		logger.debug("Limited scroll jump to one item down: " .. newScrollPosition)
 	end
 
 	-- Limit jump distance to at most one item when navigating up
 	if newScrollPosition < oldScrollPosition and oldScrollPosition - newScrollPosition > 1 then
 		newScrollPosition = oldScrollPosition - 1
-		logger.debug("Limited scroll jump to one item up: " .. newScrollPosition)
 	end
 
 	-- Store the last selected index when explicit selectedIndex is provided
 	if params.selectedIndex > 0 then
-		selectedIndex = params.selectedIndex
+		state.selectedIndex = params.selectedIndex
 	end
 
 	return math.floor(newScrollPosition)
@@ -287,22 +298,17 @@ end
 
 -- Helper function to navigate between items
 function list.navigate(items, direction)
-	local logger = require("utils.logger")
-
-	logger.debug(
-		"list.navigate - currentIndex: " .. selectedIndex .. ", direction: " .. direction .. ", items count: " .. #items
-	)
+	-- Get current screen state
+	local state = getCurrentState()
 
 	-- Calculate new index
-	local newIndex = selectedIndex + direction
+	local newIndex = state.selectedIndex + direction
 
 	-- Wrap around if needed
 	if newIndex < 1 then
 		newIndex = #items
-		logger.debug("Wrapping to bottom: " .. newIndex)
 	elseif newIndex > #items then
 		newIndex = 1
-		logger.debug("Wrapping to top: " .. newIndex)
 	end
 
 	-- Update selection state for all items
@@ -310,39 +316,31 @@ function list.navigate(items, direction)
 		local wasSelected = item.selected
 		item.selected = (i == newIndex)
 
-		if wasSelected ~= item.selected then
-			logger.debug(
-				"Selection changed for item " .. i .. ": " .. tostring(wasSelected) .. " -> " .. tostring(item.selected)
-			)
-		end
-
 		-- Store reference to the selected item
 		if item.selected then
-			selectedItem = item
+			state.selectedItem = item
 		end
 	end
 
-	-- Update the selected index
-	selectedIndex = newIndex
-	logger.debug("Updated selectedIndex to: " .. newIndex)
+	-- Update the selected index in the screen state
+	state.selectedIndex = newIndex
 
 	-- Update the current visible range to reflect the new selection
 	-- This helps ensure that subsequent navigation will be based on correct values
 	-- First estimate what the visible range should be after this navigation
-	if direction > 0 and currentVisibleRange.last < newIndex then
+	if direction > 0 and state.visibleRange.last < newIndex then
 		-- Moving down past the last visible item
-		currentVisibleRange.first = currentVisibleRange.first + 1
-		currentVisibleRange.last = newIndex
-	elseif direction < 0 and currentVisibleRange.first > newIndex then
+		state.visibleRange.first = state.visibleRange.first + 1
+		state.visibleRange.last = newIndex
+	elseif direction < 0 and state.visibleRange.first > newIndex then
 		-- Moving up past the first visible item
-		currentVisibleRange.first = newIndex
-		currentVisibleRange.last = currentVisibleRange.last - 1
+		state.visibleRange.first = newIndex
+		state.visibleRange.last = state.visibleRange.last - 1
 	end
 
 	return newIndex
 end
 
--- TODO: Toggle of button should be `button.lua`
 -- Helper: toggle a boolean property on an item
 function list.toggleProperty(items, index, property)
 	if items[index] and property then
@@ -350,16 +348,19 @@ function list.toggleProperty(items, index, property)
 	end
 end
 
--- Handle input for a list and return updated list state
--- This is a new comprehensive function that screens can use
+-- Enhanced handle input function that combines navigation, selection and option cycling
 function list.handleInput(params)
 	local items = params.items or {}
-	local scrollPosition = params.scrollPosition or lastScrollPosition
-	local visibleCount = params.visibleCount or 0
 	local virtualJoystick = params.virtualJoystick or require("input").virtualJoystick
 	local handleItemSelect = params.handleItemSelect -- Callback for A button
 	local handleItemOption = params.handleItemOption -- Callback for left/right
-	local logger = require("utils.logger")
+
+	-- Get current screen state
+	local state = getCurrentState()
+
+	-- Use provided scroll position or the saved one
+	local scrollPosition = params.scrollPosition or state.scrollPosition
+	local visibleCount = params.visibleCount or 0
 
 	-- Ensure scroll position is an integer
 	scrollPosition = math.floor(scrollPosition)
@@ -369,7 +370,7 @@ function list.handleInput(params)
 		selectedIndexChanged = false,
 		optionChanged = false,
 		scrollPosition = scrollPosition,
-		selectedIndex = selectedIndex,
+		selectedIndex = state.selectedIndex,
 		direction = 0, -- Track navigation direction
 	}
 
@@ -377,9 +378,15 @@ function list.handleInput(params)
 	local firstVisible = math.floor(scrollPosition) + 1
 	local lastVisible = firstVisible + visibleCount - 1
 
+	-- Check if the currently selected item is not visible and force scroll update if needed
+	local currentVisible = (state.selectedIndex >= firstVisible and state.selectedIndex <= lastVisible)
+	if not currentVisible then
+		result.scrollPositionChanged = true
+		result.direction = (state.selectedIndex < firstVisible) and -1 or 1
+	end
+
 	-- Handle D-pad up/down navigation
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		logger.debug("List handling dpup")
 		local oldIndex = result.selectedIndex
 		result.selectedIndex = list.navigate(items, -1)
 		result.direction = -1 -- Set direction to up
@@ -394,12 +401,8 @@ function list.handleInput(params)
 		if result.selectedIndex < firstVisible or isWrappingToBottom then
 			-- We need to scroll
 			result.scrollPositionChanged = true
-		else
-			-- We're navigating within the visible range, no need to scroll
-			result.scrollPositionChanged = false
 		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		logger.debug("List handling dpdown")
 		local oldIndex = result.selectedIndex
 		result.selectedIndex = list.navigate(items, 1)
 		result.direction = 1 -- Set direction to down
@@ -413,9 +416,6 @@ function list.handleInput(params)
 		-- 2. Wrapping around from the last item to the first item
 		if result.selectedIndex > lastVisible or isWrappingToTop then
 			result.scrollPositionChanged = true
-		else
-			-- We're navigating within the visible range, no need to scroll
-			result.scrollPositionChanged = false
 		end
 	end
 
@@ -423,33 +423,20 @@ function list.handleInput(params)
 	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
 	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
 
-	if (pressedLeft or pressedRight) and handleItemOption and selectedItem then
+	if (pressedLeft or pressedRight) and handleItemOption and state.selectedItem then
 		local direction = pressedLeft and -1 or 1
-		local changed = handleItemOption(selectedItem, direction)
+		local changed = handleItemOption(state.selectedItem, direction)
 		result.optionChanged = changed or false
 	end
 
 	-- Handle A button for selection
-	if virtualJoystick.isGamepadPressedWithDelay("a") and handleItemSelect and selectedItem then
-		handleItemSelect(selectedItem, selectedIndex)
+	if virtualJoystick.isGamepadPressedWithDelay("a") and handleItemSelect and state.selectedItem then
+		handleItemSelect(state.selectedItem, state.selectedIndex)
 	end
 
 	-- Update scroll position if navigation occurred and selection is outside visible range
+	-- or if we detected that the selected item is not visible
 	if result.scrollPositionChanged then
-		logger.debug(
-			"Need to scroll - firstVisible: "
-				.. firstVisible
-				.. ", lastVisible: "
-				.. lastVisible
-				.. ", selectedIndex: "
-				.. result.selectedIndex
-				.. ", direction: "
-				.. result.direction
-		)
-
-		-- Check if we're wrapping around (for dpdown only, dpup is already handled correctly)
-		local isWrapping = (result.direction == 1 and result.selectedIndex == 1 and oldIndex == #items)
-
 		-- Get the new scroll position - pass total item count to ensure proper calculation
 		local newScrollPosition = list.adjustScrollPosition({
 			selectedIndex = result.selectedIndex,
@@ -458,7 +445,6 @@ function list.handleInput(params)
 			totalCount = #items,
 			items = items, -- Pass items to ensure proper count
 			direction = result.direction, -- Pass the direction
-			isWrapping = isWrapping, -- Pass wrapping info
 		})
 
 		-- Ensure the new scroll position is an integer
@@ -467,7 +453,14 @@ function list.handleInput(params)
 		-- Update result with the new scroll position
 		result.scrollPosition = newScrollPosition
 
-		logger.debug("After scroll adjustment - new scrollPosition: " .. result.scrollPosition)
+		-- Update the state
+		state.scrollPosition = newScrollPosition
+	end
+
+	-- Even if no navigation occurred, make sure to save the current scroll position
+	-- This ensures it's remembered between screen transitions
+	if not result.scrollPositionChanged then
+		state.scrollPosition = scrollPosition
 	end
 
 	return result
@@ -508,81 +501,107 @@ end
 -- STATE MANAGEMENT
 --------------------------------------------------
 
--- Reset the stored scroll position (useful when switching screens)
+-- Reset the stored scroll position for the current screen
 function list.resetScrollPosition()
-	lastScrollPosition = 0
-	selectedIndex = 1
-	selectedItem = nil
-	currentVisibleRange = { first = 1, last = 1 }
+	local state = getCurrentState()
+	state.scrollPosition = 0
+	state.selectedIndex = 1
+	state.selectedItem = nil
+	state.visibleRange = { first = 1, last = 1 }
 end
 
--- Get the current scroll position
+-- Get the current scroll position for the current screen
 function list.getScrollPosition()
-	return lastScrollPosition
+	return getCurrentState().scrollPosition
 end
 
--- Get the selected index
+-- Get the selected index for the current screen
 function list.getSelectedIndex()
-	return selectedIndex
+	return getCurrentState().selectedIndex
 end
 
--- Get the selected item
+-- Get the selected item for the current screen
 function list.getSelectedItem()
-	return selectedItem
+	return getCurrentState().selectedItem
 end
 
--- Set the scroll position to a specific value
+-- Set the scroll position to a specific value for the current screen
 function list.setScrollPosition(pos)
-	lastScrollPosition = pos or 0
+	getCurrentState().scrollPosition = pos or 0
 end
 
--- Set the selected index to a specific value
+-- Set the selected index to a specific value for the current screen
 function list.setSelectedIndex(index, items)
+	local state = getCurrentState()
+
 	if items and index >= 1 and index <= #items then
 		-- Update previous selections
 		for i, item in ipairs(items) do
 			item.selected = (i == index)
 			if item.selected then
-				selectedItem = item
+				state.selectedItem = item
 			end
 		end
-		selectedIndex = index
+		state.selectedIndex = index
 	elseif not items then
 		-- Just update the index without modifying items
-		selectedIndex = index
+		state.selectedIndex = index
 	end
 end
 
--- Get the current visible range (useful for navigation)
+-- Get the current visible range for the current screen
 function list.getVisibleRange()
-	return currentVisibleRange
+	return getCurrentState().visibleRange
 end
 
 -- Handle screen entrance - centralizes list reset logic
 -- Call this when entering a screen that uses a list
 -- Parameters:
+--   screenId: unique identifier for the screen
 --   items: the list items to use
 --   savedIndex: (optional) previously saved selection index to restore
-function list.onScreenEnter(items, savedIndex)
-	-- Reset list state
-	list.resetScrollPosition()
+function list.onScreenEnter(screenId, items, savedIndex)
+	-- Set the current screen to ensure state is associated with it
+	setCurrentScreen(screenId)
 
-	-- Restore selected index if provided
-	if savedIndex and savedIndex > 0 and items and #items >= savedIndex then
-		list.setSelectedIndex(savedIndex, items)
-	else
-		-- Otherwise select the first item
-		list.setSelectedIndex(1, items)
+	local state = getCurrentState()
+	local itemCount = #items
+
+	-- Restore selected index if provided, otherwise use the saved one
+	local indexToUse = savedIndex or state.selectedIndex
+
+	-- Ensure index is valid
+	if indexToUse < 1 or indexToUse > itemCount then
+		indexToUse = 1
 	end
 
-	return 0 -- Return initial scroll position
+	-- Set the selected index in items
+	list.setSelectedIndex(indexToUse, items)
+
+	-- Always ensure the selected item will be visible
+	-- Calculate a reasonable estimate for visible count if not known yet
+	local visibleCount = math.min(itemCount, 10)
+
+	-- First visible item should be at most the selected index - 1
+	-- This places the selected item as the second item when possible
+	local targetScrollPosition = math.max(0, indexToUse - 2)
+
+	-- But don't scroll past the end
+	local maxScrollPosition = math.max(0, itemCount - visibleCount)
+	targetScrollPosition = math.min(targetScrollPosition, maxScrollPosition)
+
+	-- Update the state
+	state.scrollPosition = targetScrollPosition
+
+	return targetScrollPosition
 end
 
 -- Handle screen exit - saves list state
 -- Call this when exiting a screen that uses a list
--- Returns: the current selected index that can be stored and passed to onScreenEnter later
 function list.onScreenExit()
-	return list.getSelectedIndex()
+	-- No need to do anything special on exit with per-screen state
+	-- State is already saved in the screenStates table
+	return getCurrentState().selectedIndex
 end
 
 return list
