@@ -73,7 +73,7 @@ local function createRebootImage()
 		iconSize = 50,
 		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
 		backgroundLogoSize = 180,
-		text = "REBOOTING",
+		text = "Rebooting",
 		outputPath = paths.THEME_REBOOT_IMAGE_PATH,
 		saveAsBmp = false,
 	}
@@ -97,7 +97,7 @@ local function createShutdownImage()
 		iconSize = 50,
 		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
 		backgroundLogoSize = 180,
-		text = "SHUTTING DOWN",
+		text = "Shutting down",
 		outputPath = paths.THEME_SHUTDOWN_IMAGE_PATH,
 		saveAsBmp = false,
 	}
@@ -121,7 +121,7 @@ local function createChargeImage()
 		iconSize = 50,
 		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
 		backgroundLogoSize = 180,
-		text = "CHARGING",
+		text = "Charging",
 		outputPath = paths.THEME_CHARGE_IMAGE_PATH,
 		saveAsBmp = false,
 	}
