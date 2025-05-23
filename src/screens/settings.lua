@@ -26,9 +26,8 @@ local BUTTONS = {
 	{ text = "About", selected = false },
 }
 
--- Scrolling variables
-local scrollPosition = 0
-local visibleCount = 0
+-- Last selected index for persistence
+local lastSelectedIndex = 1
 
 -- Modal state tracking
 local modalMode = "none" -- none, save_success, load_success, error, save_input
@@ -43,7 +42,6 @@ end
 
 function settings.load()
 	-- Reset scroll position
-	scrollPosition = 0
 	list.resetScrollPosition()
 
 	-- Ensure initial button selection state
@@ -70,11 +68,11 @@ function settings.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Draw the buttons using our list component
-	local result = list.draw({
+	list.draw({
 		items = BUTTONS,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
+		scrollPosition = list.getScrollPosition(),
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,
 		drawItemFunc = function(item, _index, y)
@@ -82,9 +80,6 @@ function settings.draw()
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,
 	})
-
-	-- Store the visible count for navigation
-	visibleCount = result.visibleCount
 
 	-- Draw modal if visible (now handled by modal component)
 	if modal.isModalVisible() then
@@ -148,55 +143,6 @@ function settings.update(_dt)
 		return -- Don't process other inputs while modal is visible
 	end
 
-	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		-- Use list navigation helper for up direction
-		local selectedIndex = list.navigate(BUTTONS, -1)
-
-		-- Update scroll position based on the new selected index
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		-- Use list navigation helper for down direction
-		local selectedIndex = list.navigate(BUTTONS, 1)
-
-		-- Update scroll position based on the new selected index
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	end
-
-	-- Handle button selection (A button)
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		for _, btn in ipairs(BUTTONS) do
-			if btn.selected then
-				-- "Save theme preset" button handler is disabled until the feature is more complete
-				if btn.text == "Load Theme Preset" then
-					-- Navigate to the load preset screen
-					if switchScreen then
-						switchScreen("load_preset")
-					end
-				elseif btn.text == "Manage Themes" then
-					if switchScreen then
-						switchScreen("manage_themes")
-					end
-				elseif btn.text == "About" then
-					-- Navigate to the about screen
-					if switchScreen then
-						switchScreen("about")
-					end
-				end
-				break
-			end
-		end
-		return
-	end
-
 	-- Return to menu with B button
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		if switchScreen then
@@ -204,6 +150,43 @@ function settings.update(_dt)
 		end
 		return
 	end
+
+	-- Use the enhanced list input handler for navigation and selection
+	local result = list.handleInput({
+		items = BUTTONS,
+		virtualJoystick = virtualJoystick,
+
+		-- Handle button selection (A button)
+		handleItemSelect = function(btn)
+			lastSelectedIndex = list.getSelectedIndex()
+
+			if btn.text == "Load Theme Preset" then
+				-- Navigate to the load preset screen
+				if switchScreen then
+					switchScreen("load_preset")
+				end
+			elseif btn.text == "Manage Themes" then
+				if switchScreen then
+					switchScreen("manage_themes")
+				end
+			elseif btn.text == "About" then
+				-- Navigate to the about screen
+				if switchScreen then
+					switchScreen("about")
+				end
+			end
+		end,
+	})
+end
+
+-- Handle entry to this screen
+function settings.onEnter()
+	-- Reset modal state
+	modal.hideModal()
+	modalMode = "none"
+
+	-- Reset list state and restore selection
+	list.onScreenEnter("settings", BUTTONS, lastSelectedIndex)
 end
 
 -- Handle cleanup when leaving this screen
@@ -211,8 +194,9 @@ function settings.onExit()
 	-- Reset modal state
 	modal.hideModal()
 	modalMode = "none"
-	scrollPosition = 0
-	list.resetScrollPosition()
+
+	-- Save the current selected index
+	lastSelectedIndex = list.onScreenExit()
 end
 
 return settings

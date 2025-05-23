@@ -34,8 +34,6 @@ local maxPreviewHeight = nil
 
 -- Font items with their selected state
 local fontItems = {}
-local scrollPosition = 0
-local visibleCount = 0
 local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Helper function to get a consistent preview font
@@ -146,6 +144,9 @@ function font.draw()
 		end
 	end
 
+	-- Get current scroll position from list module
+	local scrollPosition = list.getScrollPosition()
+
 	-- Draw the list using our list component
 	local result = list.draw({
 		items = fontItems,
@@ -158,8 +159,6 @@ function font.draw()
 			button.draw(item.text, 0, y, item.selected, state.screenWidth)
 		end,
 	})
-
-	visibleCount = result.visibleCount
 
 	-- Draw rounded background for preview text
 	love.graphics.setColor(colors.ui.background_dim)
@@ -209,12 +208,12 @@ function font.update(_dt)
 	-- Use the enhanced list input handler for navigation and selection
 	local result = list.handleInput({
 		items = fontItems,
-		scrollPosition = scrollPosition,
-		visibleCount = visibleCount,
 		virtualJoystick = virtualJoystick,
 
 		-- Handle item selection (A button)
 		handleItemSelect = function(item)
+			savedSelectedIndex = list.getSelectedIndex()
+
 			-- Update the selected font in state
 			state.selectedFont = item.text
 
@@ -224,20 +223,14 @@ function font.update(_dt)
 			end
 		end,
 	})
-
-	-- Update scroll position if changed
-	if result.scrollPositionChanged then
-		scrollPosition = result.scrollPosition
-		logger.debug("Updated font family scroll position to: " .. scrollPosition)
-	end
 end
 
 function font.onEnter(data)
 	initFontItems()
 
 	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter("font_family", fontItems, savedSelectedIndex)
-	logger.debug("Font family screen entered with scroll position: " .. scrollPosition)
+	list.onScreenEnter("font_family", fontItems, savedSelectedIndex)
+	logger.debug("Font family screen entered")
 end
 
 function font.onExit()

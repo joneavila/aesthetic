@@ -5,6 +5,7 @@ local button = require("ui.button")
 local controls = require("controls")
 local background = require("ui.background")
 local colors = require("colors")
+local list = require("ui.list")
 
 local status_align = {}
 
@@ -26,7 +27,15 @@ local DESCRIPTIONS = {
 	"First icon is aligned left, last icon is aligned right, all other icons are evenly distributed.",
 }
 
-local selectedIndex = 1
+-- Create a single button that will be managed with list.handleInput
+local BUTTONS = {
+	{
+		text = "Status Alignment",
+		selected = true,
+		options = OPTIONS,
+		currentOption = 1, -- Will be updated in onEnter
+	},
+}
 
 local function getCurrentIndex()
 	for i, v in ipairs(OPTIONS) do
@@ -38,7 +47,7 @@ local function getCurrentIndex()
 end
 
 function status_align.onEnter()
-	selectedIndex = getCurrentIndex()
+	BUTTONS[1].currentOption = getCurrentIndex()
 end
 
 function status_align.draw()
@@ -50,10 +59,10 @@ function status_align.draw()
 	love.graphics.setFont(font)
 
 	-- Draw the button with indicators
-	button.drawWithIndicators("Status Alignment", 0, y, true, false, screenWidth, OPTIONS[selectedIndex])
+	button.drawWithIndicators("Status Alignment", 0, y, true, false, screenWidth, OPTIONS[BUTTONS[1].currentOption])
 
 	-- Draw the description below the button
-	local desc = DESCRIPTIONS[selectedIndex]
+	local desc = DESCRIPTIONS[BUTTONS[1].currentOption]
 	local descY = y + button.calculateHeight() + 24
 	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.setFont(font)
@@ -71,28 +80,43 @@ end
 
 function status_align.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
-	local changed = false
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") then
-		selectedIndex = selectedIndex - 1
-		if selectedIndex < 1 then
-			selectedIndex = #OPTIONS
-		end
-		changed = true
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		selectedIndex = selectedIndex + 1
-		if selectedIndex > #OPTIONS then
-			selectedIndex = 1
-		end
-		changed = true
-	end
-	if changed then
-		state.statusAlignment = OPTIONS[selectedIndex]
-	end
+
+	-- Handle B button to return to menu
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		if status_align.switchScreen then
 			status_align.switchScreen("main_menu")
 		end
+		return
 	end
+
+	-- Use the enhanced list input handler for option cycling
+	local result = list.handleInput({
+		items = BUTTONS,
+		virtualJoystick = virtualJoystick,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			local changed = false
+
+			-- Calculate new option index
+			local newIndex = btn.currentOption + direction
+
+			-- Wrap around if needed
+			if newIndex < 1 then
+				newIndex = #btn.options
+			elseif newIndex > #btn.options then
+				newIndex = 1
+			end
+
+			-- Update current option
+			btn.currentOption = newIndex
+
+			-- Update state with selected option
+			state.statusAlignment = btn.options[newIndex]
+
+			return true
+		end,
+	})
 end
 
 function status_align.setScreenSwitcher(switchFunc)

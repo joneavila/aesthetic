@@ -9,6 +9,7 @@ local header = require("ui.header")
 local controls = require("controls")
 local slider = require("ui.slider")
 local input = require("input")
+local list = require("ui.list")
 
 -- Screen switching
 local switchScreen = nil
@@ -19,8 +20,17 @@ local navigation_alpha = {}
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 
--- Current selected value index
-local currentValueIndex = 11 -- Default to 100%
+-- Create a button that represents slider for list.handleInput
+local BUTTONS = {
+	{
+		text = "Transparency",
+		selected = true,
+		min = 1,
+		max = #alphaValues,
+		value = 11, -- Default to 100%
+		step = 1,
+	},
+}
 
 -- Set the screen switcher function
 function navigation_alpha.setScreenSwitcher(switcher)
@@ -43,7 +53,7 @@ function navigation_alpha.draw()
 
 	-- Draw slider
 	local sliderY = startY + 40
-	slider.draw(40, sliderY, state.screenWidth - 80, alphaValues, currentValueIndex, "Transparency")
+	slider.draw(40, sliderY, state.screenWidth - 80, alphaValues, BUTTONS[1].value, "Transparency")
 
 	-- Draw preview area
 	local previewY = sliderY + 120
@@ -58,7 +68,7 @@ function navigation_alpha.draw()
 	local previewWidth = state.screenWidth - 80
 
 	-- Calculate alpha from current value (0-100 to 0-1)
-	local alpha = alphaValues[currentValueIndex] / 100
+	local alpha = alphaValues[BUTTONS[1].value] / 100
 
 	-- Draw preview rectangle with selected alpha
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], alpha)
@@ -80,19 +90,39 @@ end
 function navigation_alpha.update(dt)
 	local virtualJoystick = input.virtualJoystick
 
-	-- Handle left/right to adjust the slider
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") then
-		currentValueIndex = slider.updateValue(currentValueIndex, -1, alphaValues)
-		state.navigationAlpha = alphaValues[currentValueIndex]
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		currentValueIndex = slider.updateValue(currentValueIndex, 1, alphaValues)
-		state.navigationAlpha = alphaValues[currentValueIndex]
-	end
-
 	-- Handle save button
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen("main_menu")
+		return
 	end
+
+	-- Use the enhanced list input handler for option cycling
+	local result = list.handleInput({
+		items = BUTTONS,
+		virtualJoystick = virtualJoystick,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			-- Calculate new value with bounds checking
+			local newValue = btn.value + direction
+
+			-- Clamp to min/max
+			if newValue < btn.min then
+				newValue = btn.min
+			elseif newValue > btn.max then
+				newValue = btn.max
+			end
+
+			-- Only update if changed
+			if newValue ~= btn.value then
+				btn.value = newValue
+				state.navigationAlpha = alphaValues[btn.value]
+				return true
+			end
+
+			return false
+		end,
+	})
 end
 
 -- Called when entering the screen
@@ -112,10 +142,10 @@ function navigation_alpha.onEnter()
 		end
 	end
 
-	currentValueIndex = closestIndex
+	BUTTONS[1].value = closestIndex
 
 	-- Make sure state has the value set
-	state.navigationAlpha = alphaValues[currentValueIndex]
+	state.navigationAlpha = alphaValues[BUTTONS[1].value]
 end
 
 return navigation_alpha

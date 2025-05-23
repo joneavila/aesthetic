@@ -120,6 +120,9 @@ function box_art.draw()
 	-- Calculate start Y position for the list
 	local startY = header.getHeight()
 
+	-- Get current scroll position from list module
+	local scrollPosition = list.getScrollPosition()
+
 	-- Draw the list using our list component
 	list.draw({
 		items = BUTTONS,
@@ -239,50 +242,62 @@ function box_art.update(dt)
 		animatedRightWidth = tweenObj.rightWidth
 	end
 
-	-- Handle left/right to change box art width value
-	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
-	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
-
-	if pressedLeft or pressedRight then
-		local direction = pressedLeft and -1 or 1
-		local btn = BUTTONS[1]
-
-		-- Calculate new option index
-		local newIndex = btn.currentOption + direction
-
-		-- Wrap around if needed
-		if newIndex < 1 then
-			newIndex = #btn.options
-		elseif newIndex > #btn.options then
-			newIndex = 1
-		end
-
-		-- Update current option
-		btn.currentOption = newIndex
-
-		-- Update state with selected option
-		state.boxArtWidth = btn.options[btn.currentOption]
-
-		-- Create animation tween for the transition
-		local boxArtWidth = state.boxArtWidth
-		local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
-		local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
-		local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
-
-		-- Target object for the animation
-		local target = {
-			leftWidth = targetLeftWidth,
-			rightWidth = targetRightWidth,
-		}
-
-		-- Create tween with current values as starting point - using inOutQuad for ease in ease out
-		currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
-	end
-
 	-- Handle B button to return to menu
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen(MENU_SCREEN)
+		return
 	end
+
+	-- Use the enhanced list input handler for navigation and option cycling
+	local result = list.handleInput({
+		items = BUTTONS,
+		virtualJoystick = virtualJoystick,
+
+		-- Nothing special happens on select for this screen
+		handleItemSelect = function(item)
+			savedSelectedIndex = list.getSelectedIndex()
+		end,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			if btn.options then
+				-- Calculate new option index
+				local newIndex = btn.currentOption + direction
+
+				-- Wrap around if needed
+				if newIndex < 1 then
+					newIndex = #btn.options
+				elseif newIndex > #btn.options then
+					newIndex = 1
+				end
+
+				-- Update current option
+				btn.currentOption = newIndex
+
+				-- Update state with selected option
+				state.boxArtWidth = btn.options[btn.currentOption]
+
+				-- Create animation tween for the transition
+				local boxArtWidth = state.boxArtWidth
+				local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+				local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+				local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
+
+				-- Target object for the animation
+				local target = {
+					leftWidth = targetLeftWidth,
+					rightWidth = targetRightWidth,
+				}
+
+				-- Create tween with current values as starting point - using inOutQuad for ease in ease out
+				currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
+
+				return true
+			end
+
+			return false
+		end,
+	})
 end
 
 function box_art.setScreenSwitcher(switchFunc)

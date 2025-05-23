@@ -28,10 +28,11 @@ local RGB_MODES = {
 	"Off",
 }
 
--- List handling variables
+-- Store the last selected index for persistence
+local savedSelectedIndex = 1
+
 local scrollPosition = 0
 local visibleCount = 0
-local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Buttons in this screen
 local BUTTONS = {
@@ -122,7 +123,8 @@ function rgb.draw()
 	-- Calculate start Y position for the list
 	local startY = header.getHeight()
 
-	-- Draw the list using our list component
+	local scrollPosition = list.getScrollPosition()
+
 	local result = list.draw({
 		items = BUTTONS,
 		startY = startY,
@@ -175,8 +177,6 @@ function rgb.draw()
 		end,
 	})
 
-	visibleCount = result.visibleCount
-
 	-- Draw controls
 	controls.draw({
 		{ button = "d_pad", text = "Change value" },
@@ -188,114 +188,91 @@ end
 function rgb.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	-- Handle navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		local direction = -1
-
-		-- Use list navigation helper
-		local selectedIndex = list.navigate(BUTTONS, direction)
-
-		-- Update scroll position
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		local direction = 1
-
-		-- Use list navigation helper
-		local selectedIndex = list.navigate(BUTTONS, direction)
-
-		-- Update scroll position
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleCount,
-		})
-	end
-
-	-- Handle left/right to change option values
-	local pressedLeft = virtualJoystick.isGamepadPressedWithDelay("dpleft")
-	local pressedRight = virtualJoystick.isGamepadPressedWithDelay("dpright")
-
-	if pressedLeft or pressedRight then
-		local direction = pressedLeft and -1 or 1
-
-		for _, btn in ipairs(BUTTONS) do
-			if btn.selected then
-				if btn.options and not btn.disabled then
-					-- Calculate new option index
-					local newIndex = btn.currentOption + direction
-
-					-- Wrap around if needed
-					if newIndex < 1 then
-						newIndex = #btn.options
-					elseif newIndex > #btn.options then
-						newIndex = 1
-					end
-
-					-- Update current option
-					btn.currentOption = newIndex
-
-					-- Update state with selected option
-					state.rgbMode = btn.options[btn.currentOption]
-
-					-- Update disabled states based on new mode
-					updateButtonStates()
-
-					-- Apply RGB settings immediately
-					if state.hasRGBSupport then
-						rgbUtils.updateConfig()
-					end
-				elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
-					-- Handle brightness or speed adjustment
-					local isSpeed = btn.text == "Speed"
-
-					local newValue = btn.value + (direction * btn.step)
-
-					-- Clamp to min/max
-					if newValue < btn.min then
-						newValue = btn.min
-					elseif newValue > btn.max then
-						newValue = btn.max
-					end
-
-					-- Update button value
-					btn.value = newValue
-
-					-- Update state
-					if isSpeed then
-						state.rgbSpeed = newValue
-					else
-						state.rgbBrightness = newValue
-					end
-
-					-- Apply RGB settings immediately
-					if state.hasRGBSupport then
-						rgbUtils.updateConfig()
-					end
-				end
-			end
-		end
-	end
-
 	-- Handle B button to return to menu
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
 		switchScreen(MENU_SCREEN)
+		return
 	end
 
-	-- Handle A button to go to color picker for RGB color
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		for _, btn in ipairs(BUTTONS) do
-			if btn.selected and btn.colorKey and switchScreen and not btn.disabled then
+	-- Use the enhanced list input handler for navigation and selection
+	local result = list.handleInput({
+		items = BUTTONS,
+		virtualJoystick = virtualJoystick,
+
+		-- Handle button selection (A button)
+		handleItemSelect = function(btn)
+			savedSelectedIndex = list.getSelectedIndex()
+
+			if btn.colorKey and not btn.disabled and switchScreen then
 				-- Open color picker for this color
 				state.activeColorContext = btn.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
 				switchScreen(COLOR_PICKER_SCREEN)
 			end
-		end
-	end
+		end,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			local changed = false
+
+			if btn.options and not btn.disabled then
+				-- Calculate new option index
+				local newIndex = btn.currentOption + direction
+
+				-- Wrap around if needed
+				if newIndex < 1 then
+					newIndex = #btn.options
+				elseif newIndex > #btn.options then
+					newIndex = 1
+				end
+
+				-- Update current option
+				btn.currentOption = newIndex
+
+				-- Update state with selected option
+				state.rgbMode = btn.options[btn.currentOption]
+
+				-- Update disabled states based on new mode
+				updateButtonStates()
+
+				-- Apply RGB settings immediately
+				if state.hasRGBSupport then
+					rgbUtils.updateConfig()
+				end
+				changed = true
+			elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
+				-- Handle brightness or speed adjustment
+				local isSpeed = btn.text == "Speed"
+
+				local newValue = btn.value + (direction * btn.step)
+
+				-- Clamp to min/max
+				if newValue < btn.min then
+					newValue = btn.min
+				elseif newValue > btn.max then
+					newValue = btn.max
+				end
+
+				-- Update button value
+				btn.value = newValue
+
+				-- Update state
+				if isSpeed then
+					state.rgbSpeed = newValue
+				else
+					state.rgbBrightness = newValue
+				end
+
+				-- Apply RGB settings immediately
+				if state.hasRGBSupport then
+					rgbUtils.updateConfig()
+				end
+				changed = true
+			end
+
+			return changed
+		end,
+	})
 end
 
 function rgb.setScreenSwitcher(switchFunc)

@@ -17,9 +17,8 @@ local switchScreen = nil
 
 -- List of buttons
 local buttons = {}
--- Scrolling
-local scrollPosition = 0
-local visibleButtonCount = 0
+-- Last selected button index for persistence
+local lastSelectedIndex = 1
 
 -- Gradient preview mesh
 local gradientPreviewMesh = nil
@@ -65,7 +64,6 @@ local function buildButtonsList()
 	else
 		table.insert(buttons, { text = "Color", selected = false, solidColor = true })
 	end
-	buttons[1].selected = true
 
 	updateGradientPreview()
 end
@@ -84,6 +82,7 @@ function backgroundColor.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	local headerHeight = header.getHeight()
+	local scrollPosition = list.getScrollPosition()
 
 	-- Draw list of buttons
 	local result = list.draw({
@@ -136,7 +135,6 @@ function backgroundColor.draw()
 			end
 		end,
 	})
-	visibleButtonCount = result.visibleCount
 
 	-- Draw gradient preview box if gradient mode is selected
 	if state.backgroundType == "Gradient" and gradientPreviewMesh then
@@ -196,17 +194,41 @@ function backgroundColor.update(dt)
 		return
 	end
 
-	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-		list.navigate(buttons, -1)
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		list.navigate(buttons, 1)
-	end
+	-- Use the enhanced list input handler for all navigation and selection
+	local result = list.handleInput({
+		items = buttons,
+		virtualJoystick = virtualJoystick,
 
-	-- Handle cycling through options with left/right for the type and direction selectors
-	if virtualJoystick.isGamepadPressedWithDelay("dpleft") or virtualJoystick.isGamepadPressedWithDelay("dpright") then
-		for _, btn in ipairs(buttons) do
-			if btn.selected and btn.typeToggle then
+		-- Handle button selection (A button)
+		handleItemSelect = function(btn)
+			lastSelectedIndex = list.getSelectedIndex()
+
+			if btn.solidColor then
+				state.activeColorContext = "background"
+				state.previousScreen = "background_color"
+				if switchScreen then
+					switchScreen("color_picker")
+				end
+			elseif btn.gradientStart then
+				state.activeColorContext = "background"
+				state.previousScreen = "background_color"
+				if switchScreen then
+					switchScreen("color_picker")
+				end
+			elseif btn.gradientStop then
+				state.activeColorContext = "backgroundGradient"
+				state.previousScreen = "background_color"
+				if switchScreen then
+					switchScreen("color_picker")
+				end
+			end
+		end,
+
+		-- Handle option cycling (left/right d-pad)
+		handleItemOption = function(btn, direction)
+			local changed = false
+
+			if btn.typeToggle then
 				if btn.valueText == "Solid" then
 					btn.valueText = "Gradient"
 					state.backgroundType = "Gradient"
@@ -215,52 +237,16 @@ function backgroundColor.update(dt)
 					state.backgroundType = "Solid"
 				end
 				buildButtonsList()
-				break
-			elseif btn.selected and btn.directionToggle then
+				changed = true
+			elseif btn.directionToggle then
 				cycleDirection()
 				btn.valueText = getDirectionText()
-				break
+				changed = true
 			end
-		end
-	end
 
-	-- Handle button selection (A button)
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
-		for _, btn in ipairs(buttons) do
-			if btn.selected then
-				if btn.solidColor then
-					state.activeColorContext = "background"
-					state.previousScreen = "background_color"
-					if switchScreen then
-						switchScreen("color_picker")
-					end
-				elseif btn.gradientStart then
-					state.activeColorContext = "background"
-					state.previousScreen = "background_color"
-					if switchScreen then
-						switchScreen("color_picker")
-					end
-				elseif btn.gradientStop then
-					state.activeColorContext = "backgroundGradient"
-					state.previousScreen = "background_color"
-					if switchScreen then
-						switchScreen("color_picker")
-					end
-				end
-				break
-			end
-		end
-	end
-
-	-- Update scroll position based on selected button
-	local selectedIndex = list.getSelectedIndex()
-	if selectedIndex > 0 then
-		scrollPosition = list.adjustScrollPosition({
-			selectedIndex = selectedIndex,
-			scrollPosition = scrollPosition,
-			visibleCount = visibleButtonCount,
-		})
-	end
+			return changed
+		end,
+	})
 end
 
 function backgroundColor.setScreenSwitcher(switchFunc)
@@ -269,6 +255,14 @@ end
 
 function backgroundColor.onEnter()
 	buildButtonsList()
+
+	-- Use the centralized list state management for screen entry
+	list.onScreenEnter("background_color", buttons, lastSelectedIndex)
+end
+
+function backgroundColor.onExit()
+	-- Store the current selected index before leaving
+	lastSelectedIndex = list.onScreenExit()
 end
 
 return backgroundColor
