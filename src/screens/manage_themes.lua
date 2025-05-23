@@ -44,7 +44,7 @@ end
 
 function manage_themes.draw()
 	background.draw()
-	header.draw("MANAGE THEMES")
+	header.draw("manage themes")
 	local startY = header.getHeight()
 	love.graphics.setFont(state.fonts.body)
 	local selectedCount = 0

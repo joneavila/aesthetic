@@ -43,7 +43,7 @@ function navigation_alpha.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("NAVIGATION ALPHA")
+	header.draw("navigation alpha")
 
 	-- Set font
 	love.graphics.setFont(state.fonts.body)

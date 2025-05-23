@@ -120,7 +120,7 @@ function menu.draw()
 	local startY = header.getHeight()
 
 	background.draw()
-	header.draw("MAIN MENU")
+	header.draw("main menu")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(state.fonts.body)

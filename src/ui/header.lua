@@ -23,6 +23,8 @@ end
 -- Draw a standard header with title
 -- @param title The title text to display in the header
 function header.draw(title)
+	title = title:upper()
+
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), header.getHeight() - header.BOTTOM_MARGIN)

@@ -133,7 +133,7 @@ function loadPreset.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("LOAD THEME PRESET")
+	header.draw("load theme preset")
 
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(state.fonts.body)

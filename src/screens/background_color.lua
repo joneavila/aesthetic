@@ -77,7 +77,7 @@ function backgroundColor.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("BACKGROUND COLOR")
+	header.draw("background color")
 
 	love.graphics.setFont(state.fonts.body)
 

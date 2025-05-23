@@ -59,7 +59,7 @@ function settings.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("SETTINGS")
+	header.draw("settings")
 
 	-- Calculate start Y position for the list
 	local startY = header.getHeight()

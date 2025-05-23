@@ -112,7 +112,7 @@ function box_art.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("BOX ART WIDTH")
+	header.draw("box art width")
 
 	-- Set font
 	love.graphics.setFont(state.fonts.body)
