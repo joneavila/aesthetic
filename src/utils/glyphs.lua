@@ -131,6 +131,67 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 	return true
 end
 
+-- Copy header icons directory
+function glyphs.copyHeaderIcons(sourceDir, targetDir)
+	logger.debug("Copy header icons from: " .. sourceDir .. " to target dir: " .. targetDir)
+
+	-- Ensure the target directory exists (header directory should be at same level as other category dirs)
+	local headerDir = targetDir .. "/header"
+	if not system.ensurePath(headerDir) then
+		logger.error("Failed to create header directory: " .. headerDir)
+		return false
+	end
+
+	logger.debug("Created header directory: " .. headerDir)
+
+	-- Use system.copyDir for direct directory copy if available
+	if system.copyDir then
+		local success = system.copyDir(sourceDir, headerDir)
+		if success then
+			logger.debug("Successfully copied header directory using system.copyDir")
+			return true
+		else
+			logger.warning("Failed to copy header directory using system.copyDir, falling back to file-by-file copy")
+		end
+	end
+
+	-- Get list of files in the source directory
+	local files = system.listFiles(sourceDir, "*")
+	if not files or #files == 0 then
+		logger.error("Failed to read source directory or no files found: " .. sourceDir)
+		return false
+	end
+
+	logger.debug("Found " .. #files .. " files to copy")
+
+	-- Copy each file from source to target
+	local successCount = 0
+	for _, filename in ipairs(files) do
+		local sourcePath = sourceDir .. "/" .. filename
+		local targetPath = headerDir .. "/" .. filename
+
+		logger.debug("Copying file: " .. filename)
+
+		-- Read source file
+		local fileData = system.readFile(sourcePath)
+		if not fileData then
+			logger.warning("Failed to read header icon: " .. sourcePath)
+		else
+			-- Write to target path
+			if not system.writeFile(targetPath, fileData) then
+				logger.warning("Failed to write header icon: " .. targetPath)
+			else
+				successCount = successCount + 1
+			end
+		end
+	end
+
+	logger.debug(
+		"Copied " .. successCount .. " of " .. #files .. " header icons from " .. sourceDir .. " to " .. headerDir
+	)
+	return successCount > 0
+end
+
 -- Generate all glyphs based on glyph map
 function glyphs.generateGlyphs(targetDir)
 	local glyphMap = glyphs.readGlyphMap()
@@ -159,6 +220,11 @@ function glyphs.generateGlyphs(targetDir)
 			logger.warning("Failed to convert glyph: " .. entry.inputFilename)
 		end
 	end
+
+	-- Copy header icons directly
+	local headerSourceDir = paths.ROOT_DIR .. "/assets/icons/glyph/header"
+	logger.debug("Copying header icons from: " .. headerSourceDir)
+	glyphs.copyHeaderIcons(headerSourceDir, baseOutputDir)
 
 	return true
 end
