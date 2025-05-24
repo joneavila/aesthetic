@@ -35,7 +35,7 @@ local scrollPosition = 0
 local visibleCount = 0
 
 -- Buttons in this screen
-local BUTTONS = {
+local ALL_BUTTONS = {
 	{
 		text = "Mode",
 		selected = true,
@@ -65,46 +65,72 @@ local BUTTONS = {
 	},
 }
 
--- Helper function to check if RGB color should be disabled based on mode
-local function isColorDisabled()
+-- Filtered list of visible buttons
+local visibleButtons = {}
+
+-- Helper function to check if RGB color should be visible based on mode
+local function isColorVisible()
 	local currentMode = state.rgbMode
-	return currentMode == "Off" or currentMode == "Multi Rainbow" or currentMode == "Mono Rainbow"
+	return currentMode ~= "Off" and currentMode ~= "Multi Rainbow" and currentMode ~= "Mono Rainbow"
 end
 
--- Helper function to check if RGB speed should be disabled based on mode
-local function isSpeedDisabled()
+-- Helper function to check if RGB speed should be visible based on mode
+local function isSpeedVisible()
 	local currentMode = state.rgbMode
-	return currentMode == "Off"
-		or currentMode == "Solid"
-		or currentMode == "Fast Breathing"
-		or currentMode == "Medium Breathing"
-		or currentMode == "Slow Breathing"
+	return currentMode ~= "Off"
+		and currentMode ~= "Solid"
+		and currentMode ~= "Fast Breathing"
+		and currentMode ~= "Medium Breathing"
+		and currentMode ~= "Slow Breathing"
 end
 
--- Helper function to check if RGB brightness should be disabled based on mode
-local function isBrightnessDisabled()
+-- Helper function to check if RGB brightness should be visible based on mode
+local function isBrightnessVisible()
 	local currentMode = state.rgbMode
-	return currentMode == "Off"
+	return currentMode ~= "Off"
 end
 
--- Update UI state based on current state values
+-- Update UI state based on current state values and filter visible buttons
 local function updateButtonStates()
 	-- Set the correct current option index based on state.rgbMode
 	for i, option in ipairs(RGB_MODES) do
 		if option == state.rgbMode then
-			BUTTONS[1].currentOption = i
+			ALL_BUTTONS[1].currentOption = i
 			break
 		end
 	end
 
 	-- Update brightness and speed values
-	BUTTONS[3].value = state.rgbBrightness
-	BUTTONS[4].value = state.rgbSpeed
+	ALL_BUTTONS[3].value = state.rgbBrightness
+	ALL_BUTTONS[4].value = state.rgbSpeed
 
-	-- Update disabled states
-	BUTTONS[2].disabled = isColorDisabled()
-	BUTTONS[3].disabled = isBrightnessDisabled()
-	BUTTONS[4].disabled = isSpeedDisabled()
+	-- Clear visible buttons
+	visibleButtons = {}
+
+	-- Always add the Mode button
+	table.insert(visibleButtons, ALL_BUTTONS[1])
+	visibleButtons[1].selected = true
+
+	-- Add Brightness second if it should be visible
+	if isBrightnessVisible() then
+		local brightnessBtn = ALL_BUTTONS[3]
+		brightnessBtn.selected = false
+		table.insert(visibleButtons, brightnessBtn)
+	end
+
+	-- Add Color third if it should be visible
+	if isColorVisible() then
+		local colorBtn = ALL_BUTTONS[2]
+		colorBtn.selected = false
+		table.insert(visibleButtons, colorBtn)
+	end
+
+	-- Add Speed last if it should be visible
+	if isSpeedVisible() then
+		local speedBtn = ALL_BUTTONS[4]
+		speedBtn.selected = false
+		table.insert(visibleButtons, speedBtn)
+	end
 end
 
 function rgb.load()
@@ -126,7 +152,7 @@ function rgb.draw()
 	local scrollPosition = list.getScrollPosition()
 
 	local result = list.draw({
-		items = BUTTONS,
+		items = visibleButtons,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
 		scrollPosition = scrollPosition,
@@ -142,21 +168,13 @@ function rgb.draw()
 					y,
 					state.screenWidth,
 					colorValue,
-					item.disabled,
+					false,
 					fonts.loaded.monoBody
 				)
 			elseif item.options then
 				-- For items with multiple options
 				local currentValue = item.options[item.currentOption]
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					currentValue
-				)
+				button.drawWithIndicators(item.text, 0, y, item.selected, false, state.screenWidth, currentValue)
 			elseif item.min ~= nil and item.max ~= nil then
 				-- For numeric ranges
 				local currentValue = item.value or item.min
@@ -165,7 +183,7 @@ function rgb.draw()
 					0,
 					y,
 					item.selected,
-					item.disabled,
+					false,
 					state.screenWidth,
 					tostring(currentValue)
 				)
@@ -196,14 +214,14 @@ function rgb.update(_dt)
 
 	-- Use the enhanced list input handler for navigation and selection
 	local result = list.handleInput({
-		items = BUTTONS,
+		items = visibleButtons,
 		virtualJoystick = virtualJoystick,
 
 		-- Handle button selection (A button)
 		handleItemSelect = function(btn)
 			savedSelectedIndex = list.getSelectedIndex()
 
-			if btn.colorKey and not btn.disabled and switchScreen then
+			if btn.colorKey and switchScreen then
 				-- Open color picker for this color
 				state.activeColorContext = btn.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
@@ -215,7 +233,7 @@ function rgb.update(_dt)
 		handleItemOption = function(btn, direction)
 			local changed = false
 
-			if btn.options and not btn.disabled then
+			if btn.options then
 				-- Calculate new option index
 				local newIndex = btn.currentOption + direction
 
@@ -232,7 +250,7 @@ function rgb.update(_dt)
 				-- Update state with selected option
 				state.rgbMode = btn.options[btn.currentOption]
 
-				-- Update disabled states based on new mode
+				-- Update visible buttons based on new mode
 				updateButtonStates()
 
 				-- Apply RGB settings immediately
@@ -240,7 +258,7 @@ function rgb.update(_dt)
 					rgbUtils.updateConfig()
 				end
 				changed = true
-			elseif btn.min ~= nil and btn.max ~= nil and not btn.disabled then
+			elseif btn.min ~= nil and btn.max ~= nil then
 				-- Handle brightness or speed adjustment
 				local isSpeed = btn.text == "Speed"
 
@@ -284,7 +302,7 @@ function rgb.onEnter()
 	updateButtonStates()
 
 	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter("rgb", BUTTONS, savedSelectedIndex)
+	scrollPosition = list.onScreenEnter("rgb", visibleButtons, savedSelectedIndex)
 
 	-- Apply RGB settings in case they were changed in the color picker
 	if state.hasRGBSupport then
