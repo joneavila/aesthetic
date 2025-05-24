@@ -182,7 +182,39 @@ function menu.draw()
 		screenHeight = bottomY,
 		drawItemFunc = function(item, _index, y)
 			-- Draw the button based on its type
-			if item.colorKey then
+			if item.colorKey and item.colorKey == "background" then
+				-- Special handling for background color to show gradient preview if needed
+				if state.backgroundType == "Gradient" then
+					local startColor = state.getColorValue("background")
+					local stopColor = state.getColorValue("backgroundGradient")
+					local direction = state.backgroundGradientDirection or "Vertical"
+					button.drawWithGradientPreview(
+						item.text,
+						item.selected,
+						0,
+						y,
+						state.screenWidth,
+						startColor,
+						stopColor,
+						direction,
+						item.disabled,
+						fonts.loaded.monoBody
+					)
+				else
+					-- Use regular color preview for solid background
+					local colorValue = state.getColorValue(item.colorKey)
+					button.drawWithColorPreview(
+						item.text,
+						item.selected,
+						0,
+						y,
+						state.screenWidth,
+						colorValue,
+						item.disabled,
+						fonts.loaded.monoBody
+					)
+				end
+			elseif item.colorKey then
 				local colorValue = state.getColorValue(item.colorKey)
 				button.drawWithColorPreview(
 					item.text,

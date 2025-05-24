@@ -4,6 +4,7 @@ local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
 local svg = require("utils.svg")
+local gradientPreview = require("ui.gradient_preview")
 
 -- Button constants
 local BUTTON = {
@@ -223,6 +224,60 @@ function button.drawWithColorPreview(text, isSelected, x, y, screenWidth, hexCol
 		love.graphics.print(
 			hexCode,
 			colorX - hexWidth - 10,
+			y + (buttonHeight - love.graphics.getFont():getHeight()) / 2
+		)
+
+		-- Reset to original font
+		love.graphics.setFont(originalFont)
+	end
+end
+
+-- Function to draw a button with gradient preview
+function button.drawWithGradientPreview(
+	text,
+	isSelected,
+	x,
+	y,
+	screenWidth,
+	startColor,
+	stopColor,
+	direction,
+	isDisabled,
+	monoFont,
+	buttonWidth
+)
+	local COLOR_DISPLAY_SIZE = 30
+	local dimensions = calculateButtonDimensions(x, buttonWidth, screenWidth, isSelected)
+	drawButtonBackground(y, dimensions.drawWidth, isSelected)
+	drawButtonText(text, x, y, isDisabled)
+
+	-- Only draw gradient preview if we have valid colors
+	if startColor and stopColor then
+		-- Draw gradient square
+		local buttonHeight = calculateButtonHeight()
+		local colorX = dimensions.rightEdge - COLOR_DISPLAY_SIZE - BUTTON.HORIZONTAL_PADDING
+		local colorY = y + (buttonHeight - COLOR_DISPLAY_SIZE) / 2
+		local opacity = isDisabled and 0.5 or 1
+
+		-- Draw gradient preview square with rounded corners
+		local cornerRadius = BUTTON.CORNER_RADIUS / 2 -- Using half the button corner radius for consistency
+		gradientPreview.drawSquare(colorX, colorY, COLOR_DISPLAY_SIZE, startColor, stopColor, direction, cornerRadius)
+
+		-- Draw gradient text representation (startColor → stopColor)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+
+		-- Use monospace font for hex codes if provided
+		local originalFont = love.graphics.getFont()
+		if monoFont then
+			love.graphics.setFont(monoFont)
+		end
+
+		-- Format as startColor → stopColor
+		local gradientText = startColor .. " → " .. stopColor
+		local textWidth = love.graphics.getFont():getWidth(gradientText)
+		love.graphics.print(
+			gradientText,
+			colorX - textWidth - 10,
 			y + (buttonHeight - love.graphics.getFont():getHeight()) / 2
 		)
 

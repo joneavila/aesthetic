@@ -9,6 +9,7 @@ local list = require("ui.list")
 local fonts = require("ui.fonts")
 local colorUtils = require("utils.color")
 local imageGenerator = require("utils.image_generator")
+local gradientPreview = require("ui.gradient_preview")
 
 local backgroundColor = {}
 
@@ -20,9 +21,6 @@ local buttons = {}
 -- Last selected button index for persistence
 local lastSelectedIndex = 1
 
--- Gradient preview mesh
-local gradientPreviewMesh = nil
-
 local function getDirectionText()
 	return state.backgroundGradientDirection or "Vertical"
 end
@@ -30,12 +28,10 @@ end
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
 	if state.backgroundType == "Gradient" then
-		local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
-		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
+		local bgColor = state.getColorValue("background")
+		local gradientColor = state.getColorValue("backgroundGradient")
 		local direction = state.backgroundGradientDirection or "Vertical"
-		gradientPreviewMesh = imageGenerator.createGradientMesh(direction, bgColor, gradientColor)
-	else
-		gradientPreviewMesh = nil
+		gradientPreview.updateMesh(bgColor, gradientColor, direction)
 	end
 end
 
@@ -137,7 +133,7 @@ function backgroundColor.draw()
 	})
 
 	-- Draw gradient preview box if gradient mode is selected
-	if state.backgroundType == "Gradient" and gradientPreviewMesh then
+	if state.backgroundType == "Gradient" then
 		-- Get the end Y position of the list
 		local listEndY = result.endY
 
@@ -166,13 +162,18 @@ function backgroundColor.draw()
 			local previewX = (state.screenWidth - previewWidth) / 2
 			local previewY = listEndY + 10 -- 10px padding after list
 
-			-- Draw border
-			love.graphics.setColor(0.6, 0.6, 0.6, 1.0)
-			love.graphics.rectangle("line", previewX - 2, previewY - 2, previewWidth + 4, previewHeight + 4)
-
-			-- Draw gradient preview
-			love.graphics.setColor(1, 1, 1)
-			love.graphics.draw(gradientPreviewMesh, previewX, previewY, 0, previewWidth, previewHeight)
+			-- Draw gradient preview using new component with rounded corners
+			local cornerRadius = button.BUTTON.CORNER_RADIUS / 2 -- Match the corner radius in button.drawWithColorPreview
+			gradientPreview.draw(
+				previewX,
+				previewY,
+				previewWidth,
+				previewHeight,
+				state.getColorValue("background"),
+				state.getColorValue("backgroundGradient"),
+				state.backgroundGradientDirection,
+				cornerRadius
+			)
 		end
 	end
 

@@ -144,6 +144,9 @@ function navigation_alpha.onEnter()
 
 	BUTTONS[1].value = closestIndex
 
+	-- Initialize the list UI state with the selected item
+	list.setSelectedIndex(1, BUTTONS)
+
 	-- Make sure state has the value set
 	state.navigationAlpha = alphaValues[BUTTONS[1].value]
 end
