@@ -285,6 +285,24 @@ function themeSettings.applyHeaderTextAlpha(schemeFilePath)
 	end)
 end
 
+-- Apply header text alignment settings to a scheme file
+function themeSettings.applyHeaderTextAlignmentSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Use the header text alignment value directly
+		local alignmentValue = state.headerTextAlignment
+
+		-- Replace header text alignment placeholder
+		local headerTextAlignCount
+		content, headerTextAlignCount = content:gsub("%%{%s*header%-text%-align%s*}", tostring(alignmentValue))
+		if headerTextAlignCount == 0 then
+			errorHandler.setError("Failed to replace header text alignment setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 -- Apply navigation alpha settings to a scheme file
 function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)

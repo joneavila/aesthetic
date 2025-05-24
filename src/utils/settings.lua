@@ -109,6 +109,9 @@ function settings.saveToFile()
 	-- Time alignment
 	file:write('  timeAlignment = "' .. state.timeAlignment .. '",\n')
 
+	-- Header text alignment
+	file:write("  headerTextAlignment = " .. state.headerTextAlignment .. ",\n")
+
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
@@ -231,6 +234,11 @@ function settings.loadFromFile()
 	-- Time alignment
 	if loadedSettings.timeAlignment then
 		state.timeAlignment = loadedSettings.timeAlignment
+	end
+
+	-- Header text alignment
+	if loadedSettings.headerTextAlignment then
+		state.headerTextAlignment = loadedSettings.headerTextAlignment
 	end
 
 	-- Glyphs

@@ -372,6 +372,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's header text alignment settings
+		logger.debug("Setting theme's header text alignment settings")
+		if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+			return false
+		end
+
 		-- Set theme's time alignment settings
 		logger.debug("Setting theme's time alignment settings")
 		if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then

@@ -49,6 +49,7 @@ local function buildButtonsList()
 		{ text = "Font Size", selected = false, fontSizeToggle = true },
 		{ text = "Icons", selected = false, glyphsToggle = true },
 		{ text = "Headers", selected = false, headerTextToggle = true },
+		{ text = "Header Alignment", selected = false, headerAlignToggle = true },
 		{ text = "Box Art Width", selected = false, boxArt = true },
 		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
 		{ text = "Navigation Alpha", selected = false, navAlpha = true },
@@ -146,6 +147,10 @@ function menu.draw()
 			btn.valueText = state.glyphs_enabled and "Enabled" or "Disabled"
 		elseif btn.headerTextToggle then
 			btn.valueText = state.headerTextEnabled
+		elseif btn.headerAlignToggle then
+			-- Map header alignment numeric value to display text
+			local headerAlignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+			btn.valueText = headerAlignmentMap[state.headerTextAlignment] or "Center"
 		elseif btn.boxArt then
 			-- Box art width should be displayed with special handling for 0
 			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
@@ -214,6 +219,11 @@ function menu.draw()
 					state.screenWidth,
 					state.headerTextEnabled
 				)
+			elseif item.headerAlignToggle then
+				-- Map header alignment numeric value to display text
+				local headerAlignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+				local displayText = headerAlignmentMap[state.headerTextAlignment] or "Center"
+				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
 			elseif item.boxArt then
 				local boxArtText = state.boxArtWidth
 				if boxArtText == 0 then
@@ -447,6 +457,8 @@ local function handleSelectedButton(btn)
 		else
 			state.headerTextEnabled = "Enabled"
 		end
+	elseif btn.headerAlignToggle then
+		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.navAlignToggle then
 		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.navAlpha and switchScreen then
@@ -610,6 +622,13 @@ function menu.update(dt)
 				local options = { "Enabled", "Disabled" }
 				changed = list.cycleItemOption(btn, direction, "valueText", options)
 				state.headerTextEnabled = btn.valueText
+			elseif btn.headerAlignToggle then
+				-- Header alignment cycles through four values
+				local options = { "Auto", "Left", "Center", "Right" }
+				changed = list.cycleItemOption(btn, direction, "valueText", options)
+				-- Convert display text back to numeric value
+				local headerAlignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
+				state.headerTextAlignment = headerAlignmentMap[btn.valueText] or 2
 			elseif btn.navAlignToggle then
 				-- Navigation alignment cycles through three values
 				local options = { "Left", "Center", "Right" }

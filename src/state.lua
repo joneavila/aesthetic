@@ -80,6 +80,9 @@ local state = {
 	-- Time alignment setting
 	timeAlignment = "Left", -- Default time alignment (Auto, Left, Center, Right)
 
+	-- Header text alignment setting
+	headerTextAlignment = 2, -- Default header text alignment (0-Auto, 1-Left, 2-Center, 3-Right)
+
 	-- RGB lighting related settings
 	rgbMode = "Solid", -- Default RGB lighting mode
 	rgbBrightness = 5, -- Default RGB brightness (1-10)
