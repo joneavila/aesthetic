@@ -62,7 +62,7 @@ function settings.draw()
 	header.draw("settings")
 
 	-- Calculate start Y position for the list
-	local startY = header.getHeight()
+	local startY = header.getContentStartY()
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(state.fonts.body)

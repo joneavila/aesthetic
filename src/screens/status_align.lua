@@ -54,7 +54,7 @@ function status_align.draw()
 	background.draw()
 	header.draw("status alignment")
 	local screenWidth = state.screenWidth
-	local y = header.getHeight() + 30
+	local y = header.getContentStartY() + 30
 	local font = state.fonts.body
 	love.graphics.setFont(font)
 

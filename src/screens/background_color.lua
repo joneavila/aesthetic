@@ -77,7 +77,7 @@ function backgroundColor.draw()
 
 	love.graphics.setFont(state.fonts.body)
 
-	local headerHeight = header.getHeight()
+	local headerHeight = header.getContentStartY()
 	local scrollPosition = list.getScrollPosition()
 
 	-- Draw list of buttons

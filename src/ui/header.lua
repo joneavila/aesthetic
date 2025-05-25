@@ -14,10 +14,14 @@ header.HORIZONTAL_PADDING = 18
 header.VERTICAL_PADDING = 10
 header.BOTTOM_MARGIN = 14
 
--- Calculate the total header height based on font height plus vertical padding
--- @return number The total height of the header in pixels
+-- Calculate the visible header height (background area)
 function header.getHeight()
-	return fonts.loaded.header:getHeight() + (header.VERTICAL_PADDING * 2) + header.BOTTOM_MARGIN
+	return fonts.loaded.header:getHeight() + (header.VERTICAL_PADDING * 2)
+end
+
+-- Get the Y position where content should start (enforces bottom margin)
+function header.getContentStartY()
+	return header.getHeight() + header.BOTTOM_MARGIN
 end
 
 -- Draw a standard header with title
@@ -27,7 +31,7 @@ function header.draw(title)
 
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
-	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), header.getHeight() - header.BOTTOM_MARGIN)
+	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), header.getHeight())
 
 	-- Draw header title
 	love.graphics.setColor(colors.ui.subtext)

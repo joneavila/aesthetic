@@ -25,7 +25,7 @@ function screen_setup.setup(params)
 	end
 
 	-- Calculate start Y position for the content
-	local startY = params.startY or header.getHeight()
+	local startY = params.startY or header.getContentStartY()
 
 	return startY
 end

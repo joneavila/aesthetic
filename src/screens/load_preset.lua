@@ -157,7 +157,7 @@ function loadPreset.draw()
 	-- Draw the list of presets using the list component
 	local result = list.draw({
 		items = presetItems,
-		startY = header.getHeight(),
+		startY = header.getContentStartY(),
 		itemHeight = button.calculateHeight(),
 		scrollPosition = list.getScrollPosition(), -- Get current scroll position from list module
 		screenWidth = state.screenWidth,

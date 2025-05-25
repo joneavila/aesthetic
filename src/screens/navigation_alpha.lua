@@ -49,7 +49,7 @@ function navigation_alpha.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate position
-	local startY = header.getHeight() + 60
+	local startY = header.getContentStartY() + 60
 
 	-- Draw slider
 	local sliderY = startY + 40

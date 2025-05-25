@@ -42,7 +42,7 @@ function debug.draw()
 	local joysticks = love.joystick.getJoysticks()
 
 	-- Draw joystick diagnostic info
-	local textY = header.getHeight()
+	local textY = header.getContentStartY()
 	love.graphics.setColor(colors.ui.foreground)
 
 	-- Get the physical joystick

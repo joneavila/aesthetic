@@ -118,7 +118,7 @@ function menu.load()
 end
 
 function menu.draw()
-	local startY = header.getHeight()
+	local startY = header.getContentStartY()
 
 	background.draw()
 	header.draw("main menu")

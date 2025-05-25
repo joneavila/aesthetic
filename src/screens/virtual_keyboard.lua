@@ -114,7 +114,7 @@ local function initializeKeyboard()
 	keyboardX = screenPadding
 
 	-- Position keyboard below input field
-	keyboardY = header.getHeight() + inputFieldHeight + 30
+	keyboardY = header.getContentStartY() + inputFieldHeight + 30
 end
 
 -- Store the screen switcher function
@@ -296,7 +296,7 @@ function virtual_keyboard.draw()
 
 	-- Draw input field
 	love.graphics.setColor(colors.ui.surface)
-	local inputFieldY = header.getHeight() + 10
+	local inputFieldY = header.getContentStartY() + 10
 	love.graphics.rectangle("fill", 40, inputFieldY, state.screenWidth - 80, inputFieldHeight, 5, 5)
 
 	-- Draw input text

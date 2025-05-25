@@ -147,7 +147,7 @@ function rgb.draw()
 	love.graphics.setFont(state.fonts.body)
 
 	-- Calculate start Y position for the list
-	local startY = header.getHeight()
+	local startY = header.getContentStartY()
 
 	local scrollPosition = list.getScrollPosition()
 

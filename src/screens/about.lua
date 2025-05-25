@@ -41,7 +41,7 @@ function about.draw()
 
 	-- Draw header using header module
 	header.draw(state.applicationName .. " " .. version.getVersionString())
-	local headerHeight = header.getHeight()
+	local headerHeight = header.getContentStartY()
 
 	-- Calculate Y positions for text
 	local bodyY = headerHeight + PADDING
