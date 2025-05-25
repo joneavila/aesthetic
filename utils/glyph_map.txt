@@ -80,7 +80,7 @@ muxcollect/folder, folder
 
 # muxconfig – Configuration
 muxconfig/connect, cable
-muxconfig/custom, sparkles
+muxconfig/custom, paint-roller
 muxconfig/general, wrench
 muxconfig/interface, panels-top-left
 muxconfig/language, languages
