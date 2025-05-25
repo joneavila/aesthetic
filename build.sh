@@ -60,7 +60,7 @@ verifyConnection() {
             echo "  ssh-copy-id -i ${PRIVATE_KEY_PATH}.pub root@${HANDHELD_IP}"
         elif [[ "$SSH_OUTPUT" == *"Connection refused"* ]]; then
             echo "Your handheld may not be connected to the network, or SSH may not be enabled."
-            echo "If SSH is disabled, you can enable it in mUOS settings (Configuration > Connectivity > Web Services)."
+            echo "If SSH is disabled, you can enable it in muOS settings (Configuration > Connectivity > Web Services)."
             echo "If you just powered on your handheld, it may need some time to connect to the network."
         elif [[ "$SSH_OUTPUT" == *"Connection timed out"* ]]; then
             echo "Check that your handheld is powered on and connected to your network."
