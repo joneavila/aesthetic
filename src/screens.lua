@@ -23,6 +23,10 @@ function screens.register(screenName, screenModule)
 
 	registeredScreens[screenName] = screenModule
 
+	-- Debug log: print screen name and filename
+	local logger = require("utils.logger")
+	logger.debug("Registered screen: " .. tostring(screenName) .. " (screens/" .. tostring(screenName) .. ".lua)")
+
 	-- Initialize screen switcher function
 	if screenModule.setScreenSwitcher then
 		screenModule.setScreenSwitcher(function(targetScreen, tabName, returnVal)
@@ -99,7 +103,11 @@ function screens.load()
 	end
 
 	-- Load all registered screens
-	for _, module in pairs(registeredScreens) do
+	for screenName, module in pairs(registeredScreens) do
+		local logger = require("utils.logger")
+		logger.debug(
+			"Calling load() for screen: " .. tostring(screenName) .. " (screens/" .. tostring(screenName) .. ".lua)"
+		)
 		if module.load then
 			module.load()
 		end

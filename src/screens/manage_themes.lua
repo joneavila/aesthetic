@@ -34,8 +34,9 @@ local function scanThemes()
 end
 
 function manage_themes.load()
-	scanThemes()
-	scrollPosition = 0
+	-- TODO: Fix crash on TrimUI Brick GOOSE
+	-- scanThemes()
+	-- scrollPosition = 0
 end
 
 function manage_themes.setScreenSwitcher(switchFunc)
