@@ -18,7 +18,7 @@ local menu = {}
 
 -- Function to truncate long theme names for display
 local function truncateThemeName(name)
-	local MAX_NAME_LENGTH = 20 -- Adjust this value as needed
+	local MAX_NAME_LENGTH = 20
 	if #name > MAX_NAME_LENGTH then
 		return string.sub(name, 1, MAX_NAME_LENGTH - 3) .. "..."
 	end
@@ -33,11 +33,6 @@ menu.lastSelectedIndex = 1
 local buttonBottomMargin = 6
 menu.BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + button.getHeight() + buttonBottomMargin
 
--- Screen switching
-local switchScreen = nil
-local createdThemePath = nil
-local modalState = "none" -- none, created, manual, automatic
-
 -- Scrolling
 local scrollPosition = 0
 local visibleButtonCount = 0
@@ -47,40 +42,9 @@ local buttonCount = 0
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 
--- ============================================================================
--- BUTTON CONFIGURATION
--- ============================================================================
-
---- Get current value for a button based on state
---- @param buttonType string Button identifier
---- @return string Current value
-local function getCurrentValue(buttonType)
-	if buttonType == "fontSize" then
-		return state.fontSize
-	elseif buttonType == "glyphs" then
-		return state.glyphs_enabled and "Enabled" or "Disabled"
-	elseif buttonType == "headerText" then
-		return state.headerTextEnabled
-	elseif buttonType == "headerAlign" then
-		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-		return alignmentMap[state.headerTextAlignment] or "Center"
-	elseif buttonType == "boxArt" then
-		return state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
-	elseif buttonType == "navAlign" then
-		return state.navigationAlignment
-	elseif buttonType == "navAlpha" then
-		return state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
-	elseif buttonType == "statusAlign" then
-		return state.statusAlignment
-	elseif buttonType == "timeAlign" then
-		return state.timeAlignment
-	elseif buttonType == "themeName" then
-		return truncateThemeName(state.themeName)
-	elseif buttonType == "rgbMode" then
-		return state.rgbMode
-	end
-	return ""
-end
+local switchScreen = nil
+local createdThemePath = nil
+local modalState = "none" -- none, created, manual, automatic
 
 --- Build the buttons configuration
 --- @return table Array of button configurations
@@ -156,7 +120,7 @@ local function buildButtonsConfig()
 		{
 			text = "Box Art Width",
 			type = button.TYPES.TEXT_PREVIEW,
-			previewText = getCurrentValue("boxArt"),
+			previewText = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth),
 			action = function()
 				if switchScreen then
 					switchScreen("box_art")
@@ -173,7 +137,7 @@ local function buildButtonsConfig()
 		{
 			text = "Navigation Alpha",
 			type = button.TYPES.TEXT_PREVIEW,
-			previewText = getCurrentValue("navAlpha"),
+			previewText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%",
 			action = function()
 				if switchScreen then
 					switchScreen("navigation_alpha")
@@ -198,7 +162,7 @@ local function buildButtonsConfig()
 		{
 			text = "Theme Name",
 			type = button.TYPES.TEXT_PREVIEW,
-			previewText = getCurrentValue("themeName"),
+			previewText = truncateThemeName(state.themeName),
 			action = function()
 				if switchScreen then
 					switchScreen("virtual_keyboard", {
