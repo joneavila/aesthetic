@@ -1,6 +1,5 @@
 --- LÖVE configuration file
 local love = require("love")
-local logger = require("utils.logger")
 
 function love.conf(t)
 	-- Check for width and height from environment variables

@@ -87,7 +87,7 @@ function navigation_alpha.draw()
 end
 
 -- Update function to handle input
-function navigation_alpha.update(dt)
+function navigation_alpha.update(_dt)
 	local virtualJoystick = input.virtualJoystick
 
 	-- Handle save button
@@ -97,7 +97,7 @@ function navigation_alpha.update(dt)
 	end
 
 	-- Use the enhanced list input handler for option cycling
-	local result = list.handleInput({
+	list.handleInput({
 		items = BUTTONS,
 		virtualJoystick = virtualJoystick,
 

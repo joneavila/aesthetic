@@ -27,7 +27,6 @@ local headerTitle = "Input"
 local selectedX = 1
 local selectedY = 1
 local returnScreen = nil
-local callback = nil
 local lastRow4X = nil -- Track the last X position in Row 4
 local currentLayer = 1 -- Track current keyboard layer (1, 2, or 3)
 

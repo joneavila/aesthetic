@@ -8,7 +8,6 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local controls = require("controls")
-local scrollable = require("ui.scrollable")
 local logger = require("utils.logger")
 
 -- Module table to export public functions
@@ -148,7 +147,7 @@ function font.draw()
 	local scrollPosition = list.getScrollPosition()
 
 	-- Draw the list using our list component
-	local result = list.draw({
+	list.draw({
 		items = fontItems,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
@@ -197,7 +196,6 @@ end
 
 function font.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
-	local logger = require("utils.logger")
 
 	-- Handle B button (Back to menu)
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
@@ -206,7 +204,7 @@ function font.update(_dt)
 	end
 
 	-- Use the enhanced list input handler for navigation and selection
-	local result = list.handleInput({
+	list.handleInput({
 		items = fontItems,
 		virtualJoystick = virtualJoystick,
 

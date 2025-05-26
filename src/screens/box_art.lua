@@ -24,7 +24,6 @@ local EDGE_PADDING = 10
 -- This value should match padding applied in `scheme_configurator.lua`, `applyContentWidth` function
 local RECTANGLE_SPACING = 20
 local CORNER_RADIUS = 12
-local PREVIEW_BOTTOM_PADDING = 15
 
 -- Animation variables
 local animatedLeftWidth = 0
@@ -34,7 +33,6 @@ local ANIMATION_DURATION = 0.25
 local tweenObj = { leftWidth = 0, rightWidth = 0 }
 
 -- List handling variables
-local scrollPosition = 0
 local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Buttons in this screen
@@ -249,7 +247,7 @@ function box_art.update(dt)
 	end
 
 	-- Use the enhanced list input handler for navigation and option cycling
-	local result = list.handleInput({
+	list.handleInput({
 		items = BUTTONS,
 		virtualJoystick = virtualJoystick,
 

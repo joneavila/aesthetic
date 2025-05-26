@@ -9,8 +9,6 @@ local background = require("ui.background")
 local list = require("ui.list")
 local modal = require("ui.modal")
 local button = require("ui.button")
-local logger = require("utils.logger")
-local manage_themes = require("screens.manage_themes")
 
 -- Screen module
 local settings = {}
@@ -152,7 +150,7 @@ function settings.update(_dt)
 	end
 
 	-- Use the enhanced list input handler for navigation and selection
-	local result = list.handleInput({
+	list.handleInput({
 		items = BUTTONS,
 		virtualJoystick = virtualJoystick,
 

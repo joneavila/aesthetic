@@ -152,7 +152,6 @@ function scrollable.adjustScrollPosition(params)
 	local scrollPosition = params.scrollPosition or 0
 	local viewportSize = params.viewportSize or 0
 	local itemSize = params.itemSize or 0
-	local itemCount = params.itemCount or 0
 	local itemSpacing = params.itemSpacing or 0
 
 	-- Calculate item positions

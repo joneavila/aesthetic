@@ -82,7 +82,6 @@ function list.draw(params)
 	local screenHeight = params.screenHeight or love.graphics.getHeight()
 	local itemCount = #items
 	local itemPadding = params.itemPadding or list.DEFAULT_CONFIG.itemPadding
-	local edgeMargin = button.BUTTON.EDGE_MARGIN
 	local drawItemFunc = params.drawItemFunc
 
 	-- Get current screen state
@@ -139,10 +138,6 @@ function list.draw(params)
 			-- We're no longer accounting for scroll position in the Y calculation because
 			-- the scrollable container already applied the translation via pixelScrollPosition
 			local y = startY + (i - 1) * (itemHeight + itemPadding)
-			local itemEndY = y + itemHeight
-
-			-- Calculate visible index without affecting positioning
-			local visibleIndex = i - math.floor(scrollPosition)
 
 			-- Only draw the item if it would be in the visible area after translation
 			-- Check if the item would be visible in the viewport after translation
@@ -313,7 +308,6 @@ function list.navigate(items, direction)
 
 	-- Update selection state for all items
 	for i, item in ipairs(items) do
-		local wasSelected = item.selected
 		item.selected = (i == newIndex)
 
 		-- Store reference to the selected item

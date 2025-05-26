@@ -7,8 +7,6 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local fonts = require("ui.fonts")
-local colorUtils = require("utils.color")
-local imageGenerator = require("utils.image_generator")
 local gradientPreview = require("ui.gradient_preview")
 
 local backgroundColor = {}
@@ -184,7 +182,7 @@ function backgroundColor.draw()
 	})
 end
 
-function backgroundColor.update(dt)
+function backgroundColor.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle back button
@@ -196,7 +194,7 @@ function backgroundColor.update(dt)
 	end
 
 	-- Use the enhanced list input handler for all navigation and selection
-	local result = list.handleInput({
+	list.handleInput({
 		items = buttons,
 		virtualJoystick = virtualJoystick,
 
@@ -226,7 +224,7 @@ function backgroundColor.update(dt)
 		end,
 
 		-- Handle option cycling (left/right d-pad)
-		handleItemOption = function(btn, direction)
+		handleItemOption = function(btn)
 			local changed = false
 
 			if btn.typeToggle then

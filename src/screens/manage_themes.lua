@@ -17,7 +17,6 @@ local manage_themes = {}
 
 local switchScreen = nil
 local themeItems = {}
-local actionButtons = nil -- No action buttons now
 local scrollPosition = 0
 local visibleCount = 0
 local modalMode = "none" -- none, confirm_delete, error, deleted

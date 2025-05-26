@@ -557,8 +557,6 @@ function hsv.update(dt)
 			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 				hueY = baseY,
 			}, "outQuad")
-
-			moved = true
 		end
 
 		-- Left joystick Y-axis controls for hue
@@ -587,8 +585,6 @@ function hsv.update(dt)
 			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 				hueY = baseY,
 			}, "outQuad")
-
-			moved = true
 		end
 	end
 

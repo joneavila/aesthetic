@@ -31,9 +31,6 @@ local RGB_MODES = {
 -- Store the last selected index for persistence
 local savedSelectedIndex = 1
 
-local scrollPosition = 0
-local visibleCount = 0
-
 -- Buttons in this screen
 local ALL_BUTTONS = {
 	{
@@ -151,7 +148,7 @@ function rgb.draw()
 
 	local scrollPosition = list.getScrollPosition()
 
-	local result = list.draw({
+	list.draw({
 		items = visibleButtons,
 		startY = startY,
 		itemHeight = button.calculateHeight(),
@@ -213,7 +210,7 @@ function rgb.update(_dt)
 	end
 
 	-- Use the enhanced list input handler for navigation and selection
-	local result = list.handleInput({
+	list.handleInput({
 		items = visibleButtons,
 		virtualJoystick = virtualJoystick,
 

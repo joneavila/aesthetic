@@ -2,7 +2,6 @@ local love = require("love")
 local state = require("state")
 local colors = require("colors")
 local controls = require("controls")
-local input = require("input")
 local version = require("version")
 local background = require("ui.background")
 local virtualJoystick = require("input").virtualJoystick

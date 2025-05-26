@@ -1,6 +1,5 @@
 --[[
    Screen manager module
-   
    This module manages application screens, handling screen registration, switching, and lifecycle methods
    (load, enter, exit, update, draw). It automatically loads screens from the `screens` directory and
    supports returning value passing between screens.

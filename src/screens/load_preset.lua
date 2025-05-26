@@ -8,7 +8,6 @@ local header = require("ui.header")
 local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
-local scrollable = require("ui.scrollable")
 local logger = require("utils.logger")
 local paths = require("paths")
 
@@ -224,7 +223,7 @@ function loadPreset.draw()
 	})
 end
 
-function loadPreset.update(dt)
+function loadPreset.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- If no presets found, only handle back button

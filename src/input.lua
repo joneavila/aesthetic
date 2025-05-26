@@ -4,7 +4,6 @@
 --- to ensure consistent input handling across all screens. Use this function for all navigation and action input
 --- checks. To override, pass a custom delay as the second argument.
 local love = require("love")
-local logger = require("utils.logger")
 
 local input = {}
 
@@ -141,7 +140,7 @@ function input.load()
 	end
 end
 
-function input.update(dt)
+function input.update(_dt)
 	-- Check for global exit shortcut using button combination
 	if virtualJoystick.isButtonCombinationPressed({ "leftshoulder", "rightshoulder" }) then
 		love.event.quit()

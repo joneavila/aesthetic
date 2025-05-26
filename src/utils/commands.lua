@@ -1,6 +1,5 @@
 --- Executes a command and sets an error message if the command fails
 
-local errorHandler = require("error_handler")
 local logger = require("utils.logger")
 
 local commands = {}

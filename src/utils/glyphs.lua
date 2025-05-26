@@ -9,7 +9,6 @@
 local love = require("love")
 local system = require("utils.system")
 local paths = require("paths")
-local svg = require("utils.svg")
 local colorUtils = require("utils.color")
 local state = require("state")
 local logger = require("utils.logger")

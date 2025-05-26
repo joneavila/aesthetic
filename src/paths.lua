@@ -120,7 +120,8 @@ paths.THEME_PREVIEW_IMAGE_PATH = paths.THEME_RESOLUTION_DIR .. "/preview.png" --
 paths.THEME_RESOLUTION_IMAGE_DIR = paths.THEME_RESOLUTION_DIR .. "/image" -- Will be replaced by function call
 paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
-paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp" -- Will be replaced by function call
+-- Will be replaced by function call
+paths.THEME_BOOTLOGO_IMAGE_PATH = paths.THEME_RESOLUTION_IMAGE_DIR .. "/bootlogo.bmp"
 
 -- `image`
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"

@@ -3,7 +3,6 @@
 
 local love = require("love")
 local button = require("ui.button")
-local scrollable = require("ui.scrollable")
 local list = require("ui.list")
 local svg = require("utils.svg")
 local controls = require("controls")

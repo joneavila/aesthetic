@@ -11,10 +11,7 @@ local modal = require("ui.modal")
 local themeCreator = require("theme_creator")
 local fonts = require("ui.fonts")
 local list = require("ui.list")
-local scrollable = require("ui.scrollable")
 local header = require("ui.header")
-
-local logger = require("utils.logger")
 
 -- Module table to export public functions
 local menu = {}
@@ -99,8 +96,6 @@ local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 
 function menu.load()
-	logger.debug("Main menu load started")
-
 	buildButtonsList()
 
 	-- Count regular buttons
@@ -338,13 +333,11 @@ end
 
 -- Handle theme creation process
 local function handleThemeCreation()
-	logger.debug("Handling theme creation")
 	-- Create the theme after showing the modal
 	createdThemePath = themeCreator.createTheme()
 
 	-- Show success/error modal after theme is created
 	if createdThemePath then
-		logger.debug("Theme created successfully at: " .. createdThemePath)
 		modalState = "created"
 		-- Replace the process modal with success modal
 		modal.replaceModal("Created theme successfully.", {
@@ -352,7 +345,6 @@ local function handleThemeCreation()
 			{ text = "Apply theme now", selected = true },
 		})
 	else
-		logger.error("Theme creation failed")
 		errorHandler.showErrorModal("Error creating theme")
 	end
 
@@ -361,9 +353,7 @@ end
 
 -- Handle theme installation process
 local function handleThemeInstallation()
-	local waitingThemeName = waitingThemePath and string.match(waitingThemePath, "([^/]+)%.muxthm$")
-	logger.debug("Installing theme: " .. (waitingThemeName or "nil"))
-	local success = themeCreator.installTheme(waitingThemeName)
+	local success = themeCreator.installTheme(waitingThemePath)
 
 	waitingThemePath = nil
 
@@ -450,8 +440,6 @@ local function handleSelectedButton(btn)
 		if switchScreen then
 			switchScreen("font_family")
 		end
-	elseif btn.fontSizeToggle then
-		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.glyphsToggle then
 		-- Toggle glyphs enabled state
 		state.glyphs_enabled = not state.glyphs_enabled
@@ -462,10 +450,6 @@ local function handleSelectedButton(btn)
 		else
 			state.headerTextEnabled = "Enabled"
 		end
-	elseif btn.headerAlignToggle then
-		-- Do nothing on button press, cycling handled by D-pad left/right
-	elseif btn.navAlignToggle then
-		-- Do nothing on button press, cycling handled by D-pad left/right
 	elseif btn.navAlpha and switchScreen then
 		-- Navigation alpha screen
 		switchScreen("navigation_alpha")
@@ -503,7 +487,6 @@ end
 -- Handle input
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
-	local logger = require("utils.logger")
 
 	-- Update cooldown timer
 	if menu.inputCooldownTimer > 0 then
@@ -522,7 +505,6 @@ function menu.update(dt)
 		if modal.isModalVisible() then
 			waitingState = "none"
 			handleThemeInstallation()
-			logger.debug("Main menu handled theme installation")
 		end
 		return
 	end
@@ -540,30 +522,13 @@ function menu.update(dt)
 
 		controls.draw(controlsToShow)
 
-		-- Reset first input flag when buttons are released
-		-- This logic was previously inside handleModalNavigation but applies generally to modal input
-		if
-			not (
-				virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown")
-			)
-		then
-			-- handleModalNavigation will handle 'a' button reset if applicable
-			-- For scroll-only input, this reset is sufficient
-			if #modal.getModalButtons() == 0 then -- Only reset here if no buttons, otherwise handleModalNavigation does it
-				-- Need to access internal modal state or adjust modal.scroll to handle this
-				-- Reverting for now, let's keep scroll handling and input state together
-				-- The current modal.scroll doesn't need external input state tracking
-			end
-		end
-
 		handleModalNavigation(virtualJoystick, dt)
 		return
 	end
 
 	-- Handle debug screen
 	if virtualJoystick.isButtonCombinationPressed({ "guide", "y" }) and switchScreen then
-		-- switchScreen("debug") -- Original debug screen
-		switchScreen("virtual_keyboard", { returnScreen = "main_menu", title = "Keyboard Test" }) -- Temporary for keyboard testing
+		switchScreen("debug")
 		return
 	end
 
@@ -590,7 +555,6 @@ function menu.update(dt)
 
 	-- Handle exit
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		logger.debug("Main menu handling B button")
 		if not state.themeApplied then
 			rgbUtils.restoreConfig()
 		end
@@ -661,7 +625,6 @@ function menu.update(dt)
 	-- Update scroll position if changed
 	if result.scrollPositionChanged then
 		scrollPosition = result.scrollPosition
-		logger.debug("Updated scroll position to: " .. scrollPosition)
 	end
 end
 

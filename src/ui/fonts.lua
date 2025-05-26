@@ -15,8 +15,8 @@ fonts.nameToKey = {}
 -- Available font sizes for selection
 local BIN_FONT_SIZES = { 24, 28, 32 }
 
---- Calculates a scaled font size for UI or image text, based on display diagonal, a given base font size, and min/max clamping.
---- Used for both UI font scaling and image font scaling (e.g., pass 28 as baseFontSize for image font size).
+--- Calculates a scaled font size for UI or image text, based on display diagonal, a given base font size, and min/max
+--- clamping. Used for both UI font scaling and image font scaling (e.g., pass 28 as baseFontSize for image font size).
 fonts.calculateFontSize = function(displayWidth, displayHeight, baseFontSize, minFontSize, maxFontSize)
 	local displayDiagonal = math.sqrt(displayWidth ^ 2 + displayHeight ^ 2)
 	local baseDisplayDiagonal = math.sqrt(640 ^ 2 + 480 ^ 2) -- ≈ 800

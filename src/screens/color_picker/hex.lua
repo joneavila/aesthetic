@@ -5,7 +5,6 @@ local state = require("state")
 local controls = require("controls")
 local colorUtils = require("utils.color")
 local constants = require("screens.color_picker.constants")
-local errorHandler = require("error_handler")
 local svg = require("utils.svg")
 
 local hex = {}

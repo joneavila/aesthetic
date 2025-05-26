@@ -249,7 +249,6 @@ function palette.update(dt)
 	end
 
 	local virtualJoystick = require("input").virtualJoystick
-	local moved = false
 	local currentState = getCurrentPaletteState()
 	local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 

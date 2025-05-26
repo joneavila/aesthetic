@@ -78,7 +78,7 @@ function status_align.draw()
 	})
 end
 
-function status_align.update(dt)
+function status_align.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle B button to return to menu
@@ -90,14 +90,12 @@ function status_align.update(dt)
 	end
 
 	-- Use the enhanced list input handler for option cycling
-	local result = list.handleInput({
+	list.handleInput({
 		items = BUTTONS,
 		virtualJoystick = virtualJoystick,
 
 		-- Handle option cycling (left/right d-pad)
 		handleItemOption = function(btn, direction)
-			local changed = false
-
 			-- Calculate new option index
 			local newIndex = btn.currentOption + direction
 
