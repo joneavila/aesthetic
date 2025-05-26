@@ -12,9 +12,27 @@ local themeCreator = require("theme_creator")
 local fonts = require("ui.fonts")
 local list = require("ui.list")
 local header = require("ui.header")
+local logger = require("utils.logger")
 
--- Module table to export public functions
-local menu = {}
+-- Button state
+local BUTTONS = {}
+local lastSelectedIndex = 1
+
+-- Calculate margin dynamically
+local buttonBottomMargin = 6
+local BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + button.getHeight() + buttonBottomMargin
+
+-- Scrolling
+local scrollPosition = 0
+local visibleButtonCount = 0
+
+-- IO operation states (operation states)
+local waitingState = "none" -- none, create_theme, install_theme
+local waitingThemePath = nil
+
+local switchScreen = nil
+local createdThemePath = nil
+local modalState = "none" -- none, created, manual, automatic
 
 -- Function to truncate long theme names for display
 local function truncateThemeName(name)
@@ -25,30 +43,8 @@ local function truncateThemeName(name)
 	return name
 end
 
--- Button state
-menu.BUTTONS = {}
-menu.lastSelectedIndex = 1
-
--- Calculate margin dynamically
-local buttonBottomMargin = 6
-menu.BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + button.getHeight() + buttonBottomMargin
-
--- Scrolling
-local scrollPosition = 0
-local visibleButtonCount = 0
-local buttonCount = 0
-
--- IO operation states (operation states)
-local waitingState = "none" -- none, create_theme, install_theme
-local waitingThemePath = nil
-
-local switchScreen = nil
-local createdThemePath = nil
-local modalState = "none" -- none, created, manual, automatic
-
---- Build the buttons configuration
---- @return table Array of button configurations
-local function buildButtonsConfig()
+--- Create buttons from configuration
+local function buildButtonsList()
 	local configs = {
 		{
 			text = "Background Color",
@@ -172,10 +168,10 @@ local function buildButtonsConfig()
 				end
 			end,
 		},
+		-- This is the only bottom button
 		{
 			text = "Create Theme",
 			type = button.TYPES.ACCENTED,
-			isBottomButton = true,
 			action = function()
 				modal.showModal("Creating theme...")
 				waitingState = "create_theme"
@@ -197,40 +193,22 @@ local function buildButtonsConfig()
 		})
 	end
 
-	return configs
-end
-
---- Create buttons from configuration
-local function buildButtonsList()
-	local configs = buildButtonsConfig()
-	menu.BUTTONS = button.createList(configs)
+	BUTTONS = button.createList(configs)
 
 	-- Add screen width to all buttons
-	for _, btn in ipairs(menu.BUTTONS) do
+	for _, btn in ipairs(BUTTONS) do
 		btn.screenWidth = state.screenWidth
 	end
 
 	-- Restore selection
-	local idx = menu.lastSelectedIndex or 1
-	if idx < 1 or idx > #menu.BUTTONS then
+	local idx = lastSelectedIndex or 1
+	if idx < 1 or idx > #BUTTONS then
 		idx = 1
 	end
-	for i, btn in ipairs(menu.BUTTONS) do
+	for i, btn in ipairs(BUTTONS) do
 		button.setSelected(btn, i == idx)
 	end
-
-	-- Count regular buttons
-	buttonCount = 0
-	for _, btn in ipairs(menu.BUTTONS) do
-		if not btn.isBottomButton then
-			buttonCount = buttonCount + 1
-		end
-	end
 end
-
--- ============================================================================
--- BUTTON ACTION HANDLERS
--- ============================================================================
 
 --- Handle cycling options for buttons with multiple values
 --- @param btn table Button object
@@ -270,10 +248,6 @@ local function handleButtonOptionCycle(btn, direction)
 	return changed
 end
 
--- ============================================================================
--- SCREEN FUNCTIONS
--- ============================================================================
-
 function menu.load()
 	button.load()
 	buildButtonsList()
@@ -288,20 +262,21 @@ function menu.draw()
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(state.fonts.body)
 
-	-- Separate regular buttons from bottom buttons
+	-- Find the single bottom button
+	local actionButton = nil
 	local regularButtons = {}
-	local bottomButtons = {}
 
-	for _, btn in ipairs(menu.BUTTONS) do
-		if btn.isBottomButton then
-			table.insert(bottomButtons, btn)
+	for _, btn in ipairs(BUTTONS) do
+		-- Check if this is the 'Create Theme' button based on its text
+		if btn.text == "Create Theme" and btn.type == button.TYPES.ACCENTED then
+			actionButton = btn
 		else
 			table.insert(regularButtons, btn)
 		end
 	end
 
-	-- Calculate the maximum available height for the list (space above the "Create Theme" button)
-	local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
+	-- Calculate the maximum available height for the list (space above the bottom button)
+	local bottomY = state.screenHeight - BUTTON_BOTTOM_MARGIN
 
 	-- Draw regular buttons with list component
 	local result = list.draw({
@@ -321,12 +296,9 @@ function menu.draw()
 	-- Store the visibleCount from the result for use in scroll calculations
 	visibleButtonCount = result.visibleCount
 
-	-- Draw the bottom buttons separately
-	for _, btn in ipairs(bottomButtons) do
-		-- Set the y position for bottom buttons
-		btn.y = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
-		button.draw(btn)
-	end
+	-- Draw the bottom button separately
+	actionButton.y = state.screenHeight - BUTTON_BOTTOM_MARGIN
+	button.draw(actionButton)
 
 	-- Draw modal if active
 	if modal.isModalVisible() then
@@ -342,49 +314,35 @@ end
 
 -- Handle theme creation process
 local function handleThemeCreation()
-	-- Create the theme after showing the modal
 	createdThemePath = themeCreator.createTheme()
 
 	-- Show success/error modal after theme is created
 	if createdThemePath then
 		modalState = "created"
-		-- Replace the process modal with success modal
-		modal.replaceModal("Created theme successfully.", {
+		modal.showModal("Created theme successfully.", {
 			{ text = "Apply theme later", selected = false },
 			{ text = "Apply theme now", selected = true },
 		})
 	else
-		errorHandler.showErrorModal("Error creating theme")
+		local errorMessage = errorHandler.getErrorMessage()
+		local modalText = "Error creating theme: " .. (errorMessage or "Unknown error")
+		logger.error("Showing error modal: " .. modalText)
+		modal.showModal(modalText, { { text = "Exit", selected = true } })
 	end
-
-	return true -- Skip the rest of the update
 end
 
 -- Handle theme installation process
 local function handleThemeInstallation()
 	local success = themeCreator.installTheme(waitingThemePath)
-
 	waitingThemePath = nil
-
 	rgbUtils.installFromTheme()
-
-	-- Set flag to indicate theme was applied
 	state.themeApplied = true
 
-	-- Replace the process modal with success/failure modal
-	modal.replaceModal(
+	-- Replace modal with success/failure modal
+	modal.showModal(
 		success and "Applied theme successfully." or "Failed to apply theme.",
 		{ { text = "Close", selected = true } }
 	)
-
-	return true -- Skip the rest of the update
-end
-
--- Toggle the selection state of modal buttons
-local function toggleModalButtonSelection(modalButtons)
-	for _, btn in ipairs(modalButtons) do
-		btn.selected = not btn.selected
-	end
 end
 
 -- Handle modal navigation and selection
@@ -397,7 +355,9 @@ local function handleModalNavigation(virtualJoystick, dt)
 	-- Handle navigation for modal buttons
 	-- Toggle selection on D-pad up/down press when there are buttons
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-		toggleModalButtonSelection(modalButtons)
+		for _, btn in ipairs(modalButtons) do
+			btn.selected = not btn.selected
+		end
 	end
 
 	-- Handle selection in modals (A button)
@@ -405,19 +365,17 @@ local function handleModalNavigation(virtualJoystick, dt)
 		if modalState == "created" then
 			for i, btn in ipairs(modalButtons) do
 				if btn.selected then
-					if i == 1 then -- Apply theme later button
+					if i == 1 then -- "Apply theme later" button
 						modal.hideModal()
 						modalState = "none"
-					else -- Apply theme now button
+					else -- "Apply theme now" button
 						-- Set the theme path for installation
 						waitingThemePath = createdThemePath
 
-						-- Replace current modal with "Applying theme..." modal for smooth transition
-						modal.replaceModal("Applying theme...")
+						-- Replace current modal with "Applying theme..." modal
+						modal.showModal("Applying theme...")
 
 						modalState = "none"
-
-						-- Set waiting state to install theme after modal transitions
 						waitingState = "install_theme"
 						return
 					end
@@ -446,54 +404,32 @@ end
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	-- Handle IO operations only when modal has fully faded in
+	-- Handle IO operations
 	if waitingState == "create_theme" then
-		if modal.isModalVisible() then
-			waitingState = "none"
-			handleThemeCreation()
-		end
+		waitingState = "none"
+		handleThemeCreation()
 		return
 	elseif waitingState == "install_theme" then
-		if modal.isModalVisible() then
-			waitingState = "none"
-			handleThemeInstallation()
-		end
+		waitingState = "none"
+		handleThemeInstallation()
 		return
 	end
 
+	-- Handle modal input if it is visible
 	if modal.isModalVisible() then
-		-- Determine controls to draw based on modal state
-		local controlsToShow = {}
-
-		-- If there are buttons, always show select
-		if #modal.getModalButtons() > 0 then
-			table.insert(controlsToShow, { button = "a", text = "Select" })
-		end
-
-		table.insert(controlsToShow, { button = "d_pad", text = "Scroll" })
-
-		controls.draw(controlsToShow)
-
 		handleModalNavigation(virtualJoystick, dt)
 		return
 	end
 
-	-- Handle debug screen
-	if virtualJoystick.isButtonCombinationPressed({ "guide", "y" }) and switchScreen then
-		switchScreen("debug")
-		return
-	end
-
-	-- Use the enhanced list input handler for all navigation and selection
 	local result = list.handleInput({
-		items = menu.BUTTONS, -- Use the created button objects directly
+		items = BUTTONS,
 		scrollPosition = scrollPosition,
 		visibleCount = visibleButtonCount,
 		virtualJoystick = virtualJoystick,
 
 		-- Handle button selection (A button)
 		handleItemSelect = function(btn)
-			menu.lastSelectedIndex = list.getSelectedIndex()
+			lastSelectedIndex = list.getSelectedIndex()
 			if btn.action then
 				btn.action(btn) -- Call the action function defined in the button config
 			end
@@ -517,7 +453,7 @@ end
 
 -- To perform when exiting the screen
 function menu.onExit()
-	menu.lastSelectedIndex = list.onScreenExit()
+	lastSelectedIndex = list.onScreenExit()
 	themeCreator.cleanup()
 end
 
@@ -537,32 +473,23 @@ function menu.onEnter(data)
 	buildButtonsList()
 
 	-- Reset list state and restore selection using the centralized function
-	scrollPosition = list.onScreenEnter("main_menu", menu.BUTTONS, menu.lastSelectedIndex)
+	scrollPosition = list.onScreenEnter("main_menu", BUTTONS, lastSelectedIndex)
 
 	-- Check for returned data from virtual_keyboard
 	if data and type(data) == "table" and data.inputValue then
 		-- When returning from theme name input
 		if data.returnScreen == "main_menu" and data.title == "Theme Name" then
-			-- Trim whitespace
-			local trimmedName = data.inputValue:gsub("^%s*(.-)%s*$", "%1")
-			-- Only update if not empty
-			if trimmedName ~= "" then
-				state.themeName = trimmedName
-				-- Find the theme name button and update its preview text
-				for _, btn in ipairs(menu.BUTTONS) do
-					if btn.context == "themeName" then
-						button.setValueText(btn, truncateThemeName(state.themeName))
-						break
-					end
-				end
-			else
-				state.themeName = "Aesthetic" -- Reset to default
-				-- Find the theme name button and update its preview text
-				for _, btn in ipairs(menu.BUTTONS) do
-					if btn.context == "themeName" then
-						button.setValueText(btn, truncateThemeName(state.themeName))
-						break
-					end
+			local cleanThemeName = data.inputValue:gsub("^%s*(.-)%s*$", "%1")
+			-- Update theme name if not empty, else resets to default
+			state.themeName = "Aesthetic"
+			if cleanThemeName ~= "" then
+				state.themeName = cleanThemeName
+			end
+			-- Find the theme name button and update its preview text
+			for _, btn in ipairs(BUTTONS) do
+				if btn.context == "themeName" then
+					button.setValueText(btn, truncateThemeName(state.themeName))
+					break
 				end
 			end
 		end

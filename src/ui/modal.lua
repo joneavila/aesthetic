@@ -185,16 +185,6 @@ function modal.showModal(message, buttons)
 	scrollPosition = 0
 end
 
--- Replace current modal with a new one
-function modal.replaceModal(message, buttons)
-	-- Directly update the modal content
-	modalMessage = message
-	modalButtons = buttons or {}
-	scrollPosition = 0
-	-- If modal was not shown, it will be shown by drawModal in the next frame
-	showModal = true
-end
-
 -- Scroll the modal content
 function modal.scroll(amount)
 	-- Determine scrollability dynamically

@@ -77,7 +77,6 @@ function button.create(config)
 		currentOptionIndex = config.currentOptionIndex or 1,
 
 		-- Metadata
-		isBottomButton = config.isBottomButton or false,
 		context = config.context, -- Additional context data
 	}
 

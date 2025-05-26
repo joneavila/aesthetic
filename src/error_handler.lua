@@ -15,14 +15,9 @@ function errorHandler.setError(message)
 	errorMessage = message
 end
 
--- Function to show error modal
-function errorHandler.showErrorModal(prefix)
-	local message = errorMessage or "Unknown error"
-	if prefix then
-		message = prefix .. ": " .. message
-	end
-	logger.error("Showing error modal: " .. message)
-	modal.showModal(message, { { text = "Exit", selected = true } })
+-- Function to get error message
+function errorHandler.getErrorMessage()
+	return errorMessage
 end
 
 function errorHandler.update(_dt)
