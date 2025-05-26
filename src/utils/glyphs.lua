@@ -14,13 +14,11 @@ local errorHandler = require("error_handler")
 
 local glyphs = {}
 
--- Reference glyph height for 640x480
-local BASE_GLYPH_HEIGHT = 24
-local BASE_SCREEN_WIDTH = 640
-local BASE_SCREEN_HEIGHT = 480
-local MIN_GLYPH_HEIGHT = 24
-local MAX_GLYPH_HEIGHT = 24
+local GLYPH_HEIGHT = 24
 local FIXED_STROKE_WIDTH = 1.5
+
+-- TrimUI Brick GOOSE default theme has average glyph width of 43px and height of 41px.
+-- RG35XXSP has the same glyph dimensions.
 
 -- Read the glyph mapping file and return parsed mapping data
 function glyphs.readGlyphMap()
@@ -53,17 +51,6 @@ function glyphs.readGlyphMap()
 	end
 
 	return glyphMap
-end
-
--- Calculate the appropriate glyph height based on screen dimensions (diagonal scaling, like fonts.lua)
-function glyphs.calculateGlyphHeight(width, height)
-	-- For 640x480, use 24px. For other resolutions, scale proportionally by diagonal, clamp to [24, 36].
-	local baseDiagonal = math.sqrt(BASE_SCREEN_WIDTH ^ 2 + BASE_SCREEN_HEIGHT ^ 2)
-	local currentDiagonal = math.sqrt(width ^ 2 + height ^ 2)
-	local scalingFactor = currentDiagonal / baseDiagonal
-	local scaledHeight = BASE_GLYPH_HEIGHT * scalingFactor
-	local clampedHeight = math.max(MIN_GLYPH_HEIGHT, math.min(math.floor(scaledHeight + 0.5), MAX_GLYPH_HEIGHT))
-	return clampedHeight
 end
 
 -- Utility to override stroke-width in SVG XML string
@@ -202,8 +189,7 @@ function glyphs.generateGlyphs(targetDir)
 	local svgBaseDir = paths.ROOT_DIR .. "/assets/icons/lucide/glyph"
 	local baseOutputDir = targetDir
 
-	-- Calculate glyph height based on current screen dimensions
-	local glyphHeight = glyphs.calculateGlyphHeight(state.screenWidth, state.screenHeight)
+	local glyphHeight = GLYPH_HEIGHT
 
 	-- Get foreground color for icons
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
