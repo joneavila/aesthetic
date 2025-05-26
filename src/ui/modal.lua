@@ -7,20 +7,10 @@ local scrollable = require("ui.scrollable")
 -- Module table to export public functions
 local modal = {}
 
--- Animation durations
-modal.FADE_IN_DURATION = 0.4 -- Time to fade in completely (seconds)
-modal.FADE_OUT_DURATION = 0.4 -- Time to fade out completely (seconds)
-modal.BG_FADE_DURATION = 0.4 -- Background fade duration (seconds)
-
 -- Modal state variables
 local showModal = false
 local modalMessage = ""
 local modalButtons = {}
-local modalOpacity = 0 -- For fade animation
-local targetOpacity = 1 -- Target opacity for animation
-local isFadingOut = false -- Track if modal is currently fading out
-local nextModalInfo = nil -- Store next modal info for transitions
-local backgroundOpacity = 0 -- Separate opacity for background dimming (elements behind the modal)
 local isProcessModal = false -- Flag for process modals that should be dismissed manually
 local isScrollableModal = false -- Flag for scrollable modals
 local scrollPosition = 0 -- Current scroll position for scrollable modals
@@ -28,16 +18,13 @@ local customFont = nil -- Custom font for the modal
 
 -- Modal drawing function
 function modal.drawModal(screenWidth, screenHeight, font)
-	-- Apply current opacity to the background with separate opacity control
-	-- This ensures background stays dimmed during modal transitions
-	backgroundOpacity = showModal and 0.9 or backgroundOpacity
-
-	-- If we have a next modal queued, don't fade out background
-	if nextModalInfo then
-		backgroundOpacity = 0.9
-	end
-
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], backgroundOpacity)
+	-- Apply background dimming when the modal is shown
+	love.graphics.setColor(
+		colors.ui.background[1],
+		colors.ui.background[2],
+		colors.ui.background[3],
+		showModal and 0.9 or 0
+	)
 	love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
 
 	-- Get controls height to avoid overlapping with control hints
@@ -97,7 +84,7 @@ function modal.drawModal(screenWidth, screenHeight, font)
 	if isScrollableModal then
 		modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
 	else
-		modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight)
+		modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight) -- Ensure minimum height
 	end
 
 	-- Calculate maximum available height to avoid overlapping controls area
@@ -116,271 +103,149 @@ function modal.drawModal(screenWidth, screenHeight, font)
 	local x = (screenWidth - modalWidth) / 2
 	local y = (screenHeight - modalHeight - controlsHeight) / 2 -- Center in available space
 
-	-- Draw modal background with current opacity
-	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], modalOpacity)
-	love.graphics.rectangle("fill", x, y, modalWidth, modalHeight, 10)
+	-- Only draw the modal content if it is visible
+	if showModal then
+		-- Draw modal background
+		love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
+		love.graphics.rectangle("fill", x, y, modalWidth, modalHeight, 10)
 
-	-- Draw modal border with current opacity
-	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], modalOpacity)
-	love.graphics.setLineWidth(2)
-	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
+		-- Draw modal border
+		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+		love.graphics.setLineWidth(2)
+		love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
 
-	-- Draw message with wrapping, handling scrolling if needed
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], modalOpacity)
-
-	if isScrollableModal then
-		-- Use the scrollable component to draw scrollable content
-		local drawContent = function()
-			love.graphics.printf(modalMessage, x + padding, y + padding, availableTextWidth, "left")
-		end
-
-		local metrics = scrollable.drawContent({
-			x = x + padding,
-			y = y + padding,
-			width = availableTextWidth,
-			height = visibleHeight,
-			scrollPosition = scrollPosition,
-			contentSize = contentHeight,
-			drawContent = drawContent,
-			opacity = modalOpacity,
-		})
-
-		-- Calculate max scroll position from metrics
-		local maxScroll = metrics.maxScrollPosition
-		if scrollPosition > maxScroll then
-			scrollPosition = maxScroll
-		end
-	else
-		-- Regular non-scrolling text
-		local textY = y + padding
-		love.graphics.printf(modalMessage, x + padding, textY, availableTextWidth, "center")
-	end
-
-	-- Only draw buttons if there are any
-	if #modalButtons > 0 then
-		-- Draw buttons (always vertically stacked)
-		local buttonWidth = 300
-		local buttonX = (screenWidth - buttonWidth) / 2
-		local startButtonY
+		-- Draw message with wrapping, handling scrolling if needed
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 
 		if isScrollableModal then
-			startButtonY = y + padding + visibleHeight + padding
+			-- Use the scrollable component to draw scrollable content
+			local drawContent = function()
+				love.graphics.printf(modalMessage, x + padding, y + padding, availableTextWidth, "left")
+			end
+
+			local metrics = scrollable.drawContent({
+				x = x + padding,
+				y = y + padding,
+				width = availableTextWidth,
+				height = visibleHeight,
+				scrollPosition = scrollPosition,
+				contentSize = contentHeight,
+				drawContent = drawContent,
+				opacity = 1,
+			})
+
+			-- Calculate max scroll position from metrics
+			local maxScroll = metrics.maxScrollPosition
+			if scrollPosition > maxScroll then
+				scrollPosition = maxScroll
+			end
 		else
-			startButtonY = y + padding + textHeight + padding
+			-- Regular non-scrolling text
+			local textY = y + padding
+			love.graphics.printf(modalMessage, x + padding, textY, availableTextWidth, "center")
 		end
 
-		for i, button in ipairs(modalButtons) do
-			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
-			local isSelected = button.selected
+		-- Only draw buttons if there are any
+		if #modalButtons > 0 then
+			-- Draw buttons (always vertically stacked)
+			local buttonWidth = 300
+			local buttonX = (screenWidth - buttonWidth) / 2
+			local startButtonY
 
-			-- Draw button background
-			if isSelected then
-				love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], modalOpacity)
+			if isScrollableModal then
+				startButtonY = y + padding + visibleHeight + padding
 			else
-				love.graphics.setColor(
-					colors.ui.background[1],
-					colors.ui.background[2],
-					colors.ui.background[3],
-					modalOpacity
+				startButtonY = y + padding + textHeight + padding
+			end
+
+			for i, button in ipairs(modalButtons) do
+				local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
+				local isSelected = button.selected
+
+				-- Draw button background
+				if isSelected then
+					love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+				else
+					love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
+				end
+				love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+				-- Draw button outline
+				love.graphics.setLineWidth(isSelected and 4 or 2)
+				love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+				love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+
+				-- Draw button text
+				love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+				love.graphics.printf(
+					button.text,
+					buttonX,
+					buttonY + (buttonHeight - currentFont:getHeight()) / 2,
+					buttonWidth,
+					"center"
 				)
 			end
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-
-			-- Draw button outline
-			love.graphics.setLineWidth(isSelected and 4 or 2)
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], modalOpacity)
-			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-
-			-- Draw button text
-			love.graphics.setColor(
-				colors.ui.foreground[1],
-				colors.ui.foreground[2],
-				colors.ui.foreground[3],
-				modalOpacity
-			)
-			love.graphics.printf(
-				button.text,
-				buttonX,
-				buttonY + (buttonHeight - currentFont:getHeight()) / 2,
-				buttonWidth,
-				"center"
-			)
 		end
-	end
-end
-
--- Update function for animations
-function modal.update(dt)
-	-- Update background opacity smoothly in both directions
-	local targetBgOpacity = showModal and 0.9 or 0
-	local bgFadeSpeed = 1 / modal.BG_FADE_DURATION
-
-	if backgroundOpacity < targetBgOpacity then
-		backgroundOpacity = math.min(backgroundOpacity + dt * bgFadeSpeed, targetBgOpacity)
-	elseif backgroundOpacity > targetBgOpacity then
-		backgroundOpacity = math.max(backgroundOpacity - dt * bgFadeSpeed, targetBgOpacity)
-	end
-
-	if showModal then
-		-- Handle fade in
-		if modalOpacity < targetOpacity and not isFadingOut then
-			local fadeInSpeed = 1 / modal.FADE_IN_DURATION
-			modalOpacity = math.min(modalOpacity + dt * fadeInSpeed, targetOpacity) -- Fade in animation
-		end
-
-		-- Handle fade out and cleanup when fully transparent
-		if isFadingOut then
-			local fadeOutSpeed = 1 / modal.FADE_OUT_DURATION
-			modalOpacity = math.max(modalOpacity - dt * fadeOutSpeed, 0) -- Fade out animation
-			if modalOpacity <= 0 then
-				-- Just hide this modal
-				showModal = false
-				isProcessModal = false
-				isScrollableModal = false
-				isFadingOut = false
-				customFont = nil
-				scrollPosition = 0
-			end
-		end
-	else
-		-- Reset opacity when modal is hidden
-		modalOpacity = 0
-		targetOpacity = 1
-		isFadingOut = false
-
-		-- Fade out background when modal is hidden
-		local bgFadeSpeed = 1 / modal.BG_FADE_DURATION
-		backgroundOpacity = math.max(backgroundOpacity - dt * bgFadeSpeed, 0)
 	end
 end
 
 -- Show modal with message and buttons
 function modal.showModal(message, buttons)
-	-- If a modal is already showing and fading out, queue this modal to show after it's gone
-	if showModal and isFadingOut then
-		nextModalInfo = {
-			message = message,
-			buttons = buttons or {},
-			isProcessModal = false,
-			isScrollableModal = false,
-			customFont = nil,
-		}
-		return
-	end
-
-	-- Otherwise, show the modal immediately
 	showModal = true
 	modalMessage = message
 	modalButtons = buttons or {}
-	modalOpacity = 0 -- Start fully transparent
-	targetOpacity = 1 -- Target fully opaque
 	isProcessModal = false
 	isScrollableModal = false
 	customFont = nil
 	scrollPosition = 0
-	isFadingOut = false
 end
 
 -- Show a scrollable modal with custom font
 function modal.showScrollableModal(message, buttons, font)
-	-- If a modal is already showing and fading out, queue this modal to show after it's gone
-	if showModal and isFadingOut then
-		nextModalInfo = {
-			message = message,
-			buttons = buttons or {},
-			isProcessModal = false,
-			isScrollableModal = true,
-			customFont = font,
-		}
-		return
-	end
-
-	-- Otherwise, show the modal immediately
 	showModal = true
 	modalMessage = message
 	modalButtons = buttons or {}
-	modalOpacity = 0 -- Start fully transparent
-	targetOpacity = 1 -- Target fully opaque
 	isProcessModal = false
 	isScrollableModal = true
 	customFont = font
 	scrollPosition = 0
-	isFadingOut = false
 end
 
 -- Show a process modal that remains visible until manually dismissed
 function modal.showProcessModal(message)
-	-- If a modal is already showing and fading out, queue this modal to show after it's gone
-	if showModal and isFadingOut then
-		nextModalInfo = {
-			message = message,
-			buttons = {},
-			isProcessModal = true,
-			isScrollableModal = false,
-			customFont = nil,
-		}
-		return
-	end
-
-	-- Otherwise, show the modal immediately
 	showModal = true
 	modalMessage = message
 	modalButtons = {}
-	modalOpacity = 0 -- Start fully transparent
-	targetOpacity = 1 -- Target fully opaque
 	isProcessModal = true
 	isScrollableModal = false
 	customFont = nil
 	scrollPosition = 0
-	isFadingOut = false
 end
 
--- Smoothly replace current modal with a new one
+-- Replace current modal with a new one
 function modal.replaceModal(message, buttons)
-	-- If there's a current modal, replace it instantly
-	if showModal then
-		-- Directly update the modal content without animation
-		modalMessage = message
-		modalButtons = buttons or {}
-		isProcessModal = false
-		isScrollableModal = false
-		customFont = nil
-		scrollPosition = 0
-
-		-- Keep the opacity at full to avoid flicker
-		modalOpacity = targetOpacity
-		isFadingOut = false
-
-		-- Clear any queued modals
-		nextModalInfo = nil
-	else
-		-- No current modal, show with normal fade in
-		modal.showModal(message, buttons)
-	end
+	-- Directly update the modal content
+	modalMessage = message
+	modalButtons = buttons or {}
+	isProcessModal = false
+	isScrollableModal = false
+	customFont = nil
+	scrollPosition = 0
+	-- If modal was not shown, it will be shown by drawModal in the next frame
+	showModal = true
 end
 
 -- Replace with a process modal
 function modal.replaceWithProcessModal(message)
-	-- If there's a current modal, replace it instantly
-	if showModal then
-		-- Directly update the modal content without animation
-		modalMessage = message
-		modalButtons = {}
-		isProcessModal = true
-		isScrollableModal = false
-		customFont = nil
-		scrollPosition = 0
-
-		-- Keep the opacity at full to avoid flicker
-		modalOpacity = targetOpacity
-		isFadingOut = false
-
-		-- Clear any queued modals
-		nextModalInfo = nil
-	else
-		-- No current modal, show with normal fade in
-		modal.showProcessModal(message)
-	end
+	-- Directly update the modal content
+	modalMessage = message
+	modalButtons = {}
+	isProcessModal = true
+	isScrollableModal = false
+	customFont = nil
+	scrollPosition = 0
+	-- If modal was not shown, it will be shown by drawModal in the next frame
+	showModal = true
 end
 
 -- Scroll the modal content
@@ -445,23 +310,16 @@ end
 
 -- Hide modal
 function modal.hideModal()
-	-- Start fade out
-	if showModal then
-		isFadingOut = true
-		targetOpacity = 0
-	end
+	showModal = false -- Hide instantly
 end
 
 -- Force hide modal immediately (no animation)
 function modal.forceHideModal()
 	showModal = false
-	modalOpacity = 0
-	targetOpacity = 1
 	isProcessModal = false
 	isScrollableModal = false
 	customFont = nil
 	scrollPosition = 0
-	isFadingOut = false
 end
 
 -- Check if modal is visible
@@ -497,11 +355,6 @@ end
 -- Update message of current modal
 function modal.updateMessage(message)
 	modalMessage = message
-end
-
--- Check if the current modal has fully faded in
-function modal.isFullyFadedIn()
-	return showModal and not isFadingOut and modalOpacity >= targetOpacity
 end
 
 return modal

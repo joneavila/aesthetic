@@ -532,9 +532,6 @@ function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 	local logger = require("utils.logger")
 
-	-- Update modal animations
-	modal.update(dt)
-
 	-- Update cooldown timer
 	if menu.inputCooldownTimer > 0 then
 		menu.inputCooldownTimer = menu.inputCooldownTimer - dt
@@ -543,13 +540,13 @@ function menu.update(dt)
 
 	-- Handle IO operations only when modal has fully faded in
 	if waitingState == "create_theme" then
-		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
+		if modal.isModalVisible() and modal.isProcessModal() then
 			waitingState = "none"
 			handleThemeCreation()
 		end
 		return
 	elseif waitingState == "install_theme" then
-		if modal.isModalVisible() and modal.isProcessModal() and modal.isFullyFadedIn() then
+		if modal.isModalVisible() and modal.isProcessModal() then
 			waitingState = "none"
 			handleThemeInstallation()
 			logger.debug("Main menu handled theme installation")
