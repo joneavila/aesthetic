@@ -154,11 +154,6 @@ function state.setColorValue(contextKey, colorValue)
 	return normalizedColor
 end
 
---- Helper function to get a font by name (delegated to fonts)
-function state.getFontByName(fontName)
-	return fonts.getByName(fontName)
-end
-
 --- Helper function to set the default font (delegated to fonts)
 function state.setDefaultFont()
 	fonts.setDefault()

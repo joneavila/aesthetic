@@ -57,7 +57,7 @@ local function getPreviewFont(fontName)
 		previewFont = love.graphics.newFont(fontInfo.path, FONT_PREVIEW.FONT_SIZE)
 	else
 		-- Fallback to the state's font loading for unknown fonts
-		previewFont = state.getFontByName(fontName)
+		previewFont = fonts.getByName(fontName)
 	end
 
 	-- Cache the font for future use

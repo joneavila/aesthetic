@@ -12,38 +12,6 @@ fonts.loaded = {}
 -- Font name to font key mapping for easy lookup
 fonts.nameToKey = {}
 
--- Available font sizes for selection
-local BIN_FONT_SIZES = { 24, 28, 32 }
-
---- Calculates a scaled font size for UI or image text, based on display diagonal, a given base font size, and min/max
---- clamping. Used for both UI font scaling and image font scaling (e.g., pass 28 as baseFontSize for image font size).
-fonts.calculateFontSize = function(displayWidth, displayHeight, baseFontSize, minFontSize, maxFontSize)
-	local displayDiagonal = math.sqrt(displayWidth ^ 2 + displayHeight ^ 2)
-	local baseDisplayDiagonal = math.sqrt(640 ^ 2 + 480 ^ 2) -- ≈ 800
-	local scalingPower = 0.75 -- Sublinear scaling: tweak this value as needed
-	local scalingFactor = (displayDiagonal / baseDisplayDiagonal) ^ scalingPower
-	local scaledFontSize = baseFontSize * scalingFactor
-	local clampedFontSize = math.max(minFontSize, math.min(scaledFontSize, maxFontSize))
-	local roundedFontSize = math.floor(clampedFontSize + 0.5)
-	return roundedFontSize
-end
-
---- Returns the closest available bin font size (as a string) to the desired size.
---- Used to map calculated sizes to available font asset directories.
-fonts.getClosestBinFontSize = function(desiredSize)
-	local closestSize = BIN_FONT_SIZES[1]
-	local minDifference = math.abs(desiredSize - closestSize)
-	for _, size in ipairs(BIN_FONT_SIZES) do
-		local difference = math.abs(desiredSize - size)
-		if difference < minDifference then
-			minDifference = difference
-			closestSize = size
-		end
-	end
-	logger.debug("Desired font size: %d, Selected font size: %d", desiredSize, closestSize)
-	return tostring(closestSize)
-end
-
 -- Font available choices
 fonts.themeDefinitions = {
 	{
@@ -110,26 +78,13 @@ end
 fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
 -- Function to set fonts based on screen dimensions
-fonts.initializeFonts = function(screenWidth, screenHeight)
+fonts.initializeFonts = function()
 	logger.debug("Initializing fonts")
 
-	-- Base font sizes for 640x480 display
-	local defaultBaseSize = 24
-	local largeBaseSize = 28
-	local extraLargeBaseSize = 32
-
-	local minFontSize = 16
-	local maxFontSize = 40
-
-	local defaultSize = fonts.calculateFontSize(screenWidth, screenHeight, defaultBaseSize, minFontSize, maxFontSize)
-	local largeSize = fonts.calculateFontSize(screenWidth, screenHeight, largeBaseSize, minFontSize, maxFontSize)
-	local extraLargeSize =
-		fonts.calculateFontSize(screenWidth, screenHeight, extraLargeBaseSize, minFontSize, maxFontSize)
-
 	fonts.themeFontSizeOptions = {
-		["Default"] = fonts.getClosestBinFontSize(defaultSize),
-		["Large"] = fonts.getClosestBinFontSize(largeSize),
-		["Extra Large"] = fonts.getClosestBinFontSize(extraLargeSize),
+		["Default"] = 24,
+		["Large"] = 28,
+		["Extra Large"] = 32,
 	}
 
 	for key, def in pairs(fonts.uiDefinitions) do
@@ -151,11 +106,18 @@ end
 -- Helper function to get a font by name
 fonts.getByName = function(fontName)
 	local fontKey = fonts.nameToKey[fontName]
-	if fontKey and fonts.loaded[fontKey] then
-		return fonts.loaded[fontKey]
+	local font = nil
+	if fontKey then
+		font = fonts.loaded[fontKey]
 	end
-	local defaultFont = fonts.loaded.body
-	return defaultFont
+
+	if font then
+		return font
+	else
+		-- Fallback to the default body font if the requested font is not found
+		logger.warn("Font '" .. tostring(fontName) .. "' not found, using default body font.")
+		return fonts.loaded.body
+	end
 end
 
 -- Helper function to set the default font

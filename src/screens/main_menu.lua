@@ -27,7 +27,7 @@ end
 
 -- Image font size based on screen dimensions using fonts.calculateFontSize (base 28, min 16, max 60) for image font
 -- scaling
-menu.IMAGE_FONT_SIZE = fonts.calculateFontSize(state.screenWidth, state.screenHeight, 28, 16, 60)
+menu.IMAGE_FONT_SIZE = 28
 
 -- Button state
 menu.BUTTONS = {}
