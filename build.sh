@@ -213,6 +213,7 @@ rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/sounds/" || 
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/presets"
 rsync -aq assets/images/presets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/presets/" || { echoError "Failed to copy presets"; exit 1; }
 
+# Application glyph
 rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to copy aesthetic.png"; exit 1; }
 
 echoHeader "Creating archive"
