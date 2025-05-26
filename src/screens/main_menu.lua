@@ -643,7 +643,7 @@ function menu.updateFontName()
 	-- Display the selected font name
 	local fontFamily = ""
 	for _, font in ipairs(fonts.themeDefinitions) do
-		if fonts.isSelected(font.name, state.selectedFont) then
+		if font.name == state.selectedFont then
 			fontFamily = font.name
 			break
 		end

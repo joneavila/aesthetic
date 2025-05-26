@@ -177,7 +177,7 @@ local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
 	for _, font in ipairs(fonts.themeDefinitions) do
-		if fonts.isSelected(font.name, state.selectedFont) then
+		if font.name == state.selectedFont then
 			selectedFontFile = font.file
 			break
 		end

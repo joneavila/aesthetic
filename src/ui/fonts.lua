@@ -130,9 +130,4 @@ fonts.setDefault = function()
 	end
 end
 
--- Helper function to check if a font is selected
-fonts.isSelected = function(fontName, selectedFont)
-	return fontName == selectedFont
-end
-
 return fonts
