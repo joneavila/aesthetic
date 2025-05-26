@@ -1,3 +1,6 @@
+--- TODO: Address glyph sizing discrepancy between sips and TÖVE/LÖVE rendering at a fixed pixel height.
+--- TODO: Re-implement glyph height calculation to ensure consistent visual size across different screen resolutions.
+
 --- Glyph generation utilities
 --
 -- This module dynamically converts SVG icons to PNG format based on the mapping in glyph_map.txt
