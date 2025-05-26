@@ -148,10 +148,8 @@ paths.getFontSizeDir = function(displayWidth, displayHeight)
 	return fonts.getFontSizeDir(displayWidth, displayHeight)
 end
 
---- Returns the scaled image font size for the given display dimensions, using diagonal scaling from a base of 28 for
---- 640x480. Uses fonts.calculateFontSize with baseFontSize=28, minFontSize=16, maxFontSize=60.
 paths.getImageFontSize = function(displayWidth, displayHeight)
-	return fonts.calculateFontSize(displayWidth, displayHeight, 28, 16, 60)
+	return 28
 end
 
 return paths

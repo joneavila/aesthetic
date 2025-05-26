@@ -29,7 +29,7 @@ function errorHandler.showErrorModal(prefix)
 	logger.error("Showing error modal: " .. message)
 
 	-- Use scrollable modal with error font
-	modal.showScrollableModal(message, { { text = "Exit", selected = true } }, fonts.loaded.error)
+	modal.showModal(message, { { text = "Exit", selected = true } })
 end
 
 function errorHandler.update(_dt)
