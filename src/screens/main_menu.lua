@@ -37,49 +37,9 @@ menu.lastSelectedIndex = 1
 menu.inputCooldownTimer = 0
 menu.INPUT_COOLDOWN_DURATION = 0.3 -- seconds
 
--- Function to build buttons list on enter
-local function buildButtonsList()
-	menu.BUTTONS = {
-		{ text = "Background Color", selected = false, colorKey = "background" },
-		{ text = "Foreground Color", selected = false, colorKey = "foreground" },
-		{ text = "Font Family", selected = false, fontSelection = true },
-		{ text = "Font Size", selected = false, fontSizeToggle = true },
-		{ text = "Icons", selected = false, glyphsToggle = true },
-		{ text = "Headers", selected = false, headerTextToggle = true },
-		{ text = "Header Alignment", selected = false, headerAlignToggle = true },
-		{ text = "Box Art Width", selected = false, boxArt = true },
-		{ text = "Navigation Alignment", selected = false, navAlignToggle = true },
-		{ text = "Navigation Alpha", selected = false, navAlpha = true },
-		{ text = "Status Alignment", selected = false, statusAlignToggle = true },
-		{ text = "Time Alignment", selected = false, timeAlignToggle = true },
-		{ text = "Theme Name", selected = false, themeName = true },
-		{ text = "Create Theme", selected = false, isBottomButton = true },
-	}
-
-	-- Add RGB Lighting button only if supported
-	if state.hasRGBSupport then
-		table.insert(menu.BUTTONS, 3, { text = "RGB Lighting", selected = false, rgbLighting = true })
-	end
-
-	-- Restore selection
-	local idx = menu.lastSelectedIndex or 1
-	if idx < 1 or idx > #menu.BUTTONS then
-		idx = 1
-	end
-	for i, btn in ipairs(menu.BUTTONS) do
-		btn.selected = (i == idx)
-	end
-end
-
--- Function to calculate button height
-local function calculateButtonHeight()
-	local font = love.graphics.getFont()
-	return font:getHeight() + (button.BUTTON and button.BUTTON.VERTICAL_PADDING * 2)
-end
-
--- Calculate margin dynamically based on button height plus initial fixed margin
+-- Calculate margin dynamically
 local buttonBottomMargin = 6
-menu.BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + calculateButtonHeight() + buttonBottomMargin
+menu.BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + button.getHeight() + buttonBottomMargin
 
 -- Screen switching
 local switchScreen = nil
@@ -95,8 +55,213 @@ local buttonCount = 0
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 
-function menu.load()
-	buildButtonsList()
+-- ============================================================================
+-- BUTTON CONFIGURATION
+-- ============================================================================
+
+--- Get current value for a button based on state
+--- @param buttonType string Button identifier
+--- @return string Current value
+local function getCurrentValue(buttonType)
+	if buttonType == "fontSize" then
+		return state.fontSize
+	elseif buttonType == "glyphs" then
+		return state.glyphs_enabled and "Enabled" or "Disabled"
+	elseif buttonType == "headerText" then
+		return state.headerTextEnabled
+	elseif buttonType == "headerAlign" then
+		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+		return alignmentMap[state.headerTextAlignment] or "Center"
+	elseif buttonType == "boxArt" then
+		return state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
+	elseif buttonType == "navAlign" then
+		return state.navigationAlignment
+	elseif buttonType == "navAlpha" then
+		return state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
+	elseif buttonType == "statusAlign" then
+		return state.statusAlignment
+	elseif buttonType == "timeAlign" then
+		return state.timeAlignment
+	elseif buttonType == "themeName" then
+		return truncateThemeName(state.themeName)
+	elseif buttonType == "rgbMode" then
+		return state.rgbMode
+	end
+	return ""
+end
+
+--- Build the buttons configuration
+--- @return table Array of button configurations
+local function buildButtonsConfig()
+	local configs = {
+		{
+			text = "Background Color",
+			type = state.backgroundType == "Gradient" and button.TYPES.GRADIENT or button.TYPES.COLOR,
+			colorKey = "background",
+			hexColor = state.backgroundType ~= "Gradient" and state.getColorValue("background") or nil,
+			startColor = state.backgroundType == "Gradient" and state.getColorValue("background") or nil,
+			stopColor = state.backgroundType == "Gradient" and state.getColorValue("backgroundGradient") or nil,
+			direction = state.backgroundGradientDirection or "Vertical",
+			monoFont = fonts.loaded.monoBody,
+			action = function()
+				if switchScreen then
+					switchScreen("background_color")
+				end
+			end,
+		},
+		{
+			text = "Foreground Color",
+			type = button.TYPES.COLOR,
+			colorKey = "foreground",
+			hexColor = state.getColorValue("foreground"),
+			monoFont = fonts.loaded.monoBody,
+			action = function()
+				if switchScreen then
+					state.activeColorContext = "foreground"
+					state.previousScreen = "main_menu"
+					switchScreen("color_picker")
+				end
+			end,
+		},
+		{
+			text = "Font Family",
+			type = button.TYPES.TEXT_PREVIEW,
+			previewText = state.selectedFont,
+			action = function()
+				if switchScreen then
+					switchScreen("font_family")
+				end
+			end,
+		},
+		{
+			text = "Font Size",
+			type = button.TYPES.INDICATORS,
+			options = { "Default", "Large", "Extra Large" },
+			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[state.fontSize] or 1,
+			context = "fontSize",
+		},
+		{
+			text = "Icons",
+			type = button.TYPES.INDICATORS,
+			options = { "Disabled", "Enabled" },
+			currentOptionIndex = state.glyphs_enabled and 2 or 1,
+			context = "glyphs",
+		},
+		{
+			text = "Headers",
+			type = button.TYPES.INDICATORS,
+			options = { "Disabled", "Enabled" },
+			currentOptionIndex = state.headerTextEnabled == "Enabled" and 2 or 1,
+			context = "headerText",
+		},
+		{
+			text = "Header Alignment",
+			type = button.TYPES.INDICATORS,
+			options = { "Auto", "Left", "Center", "Right" },
+			currentOptionIndex = (state.headerTextAlignment or 0) + 1,
+			context = "headerAlign",
+		},
+		{
+			text = "Box Art Width",
+			type = button.TYPES.TEXT_PREVIEW,
+			previewText = getCurrentValue("boxArt"),
+			action = function()
+				if switchScreen then
+					switchScreen("box_art")
+				end
+			end,
+		},
+		{
+			text = "Navigation Alignment",
+			type = button.TYPES.INDICATORS,
+			options = { "Left", "Center", "Right" },
+			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2,
+			context = "navAlign",
+		},
+		{
+			text = "Navigation Alpha",
+			type = button.TYPES.TEXT_PREVIEW,
+			previewText = getCurrentValue("navAlpha"),
+			action = function()
+				if switchScreen then
+					switchScreen("navigation_alpha")
+				end
+			end,
+		},
+		{
+			text = "Status Alignment",
+			type = button.TYPES.INDICATORS,
+			options = { "Left", "Center", "Right" },
+			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.statusAlignment] or 1,
+			context = "statusAlign",
+		},
+		{
+			text = "Time Alignment",
+			type = button.TYPES.INDICATORS,
+			options = { "Auto", "Left", "Center", "Right" },
+			currentOptionIndex = ({ ["Auto"] = 1, ["Left"] = 2, ["Center"] = 3, ["Right"] = 4 })[state.timeAlignment]
+				or 1,
+			context = "timeAlign",
+		},
+		{
+			text = "Theme Name",
+			type = button.TYPES.TEXT_PREVIEW,
+			previewText = getCurrentValue("themeName"),
+			action = function()
+				if switchScreen then
+					switchScreen("virtual_keyboard", {
+						returnScreen = "main_menu",
+						title = "Theme Name",
+					})
+				end
+			end,
+		},
+		{
+			text = "Create Theme",
+			type = button.TYPES.ACCENTED,
+			isBottomButton = true,
+			action = function()
+				modal.showModal("Creating theme...")
+				waitingState = "create_theme"
+			end,
+		},
+	}
+
+	-- Add RGB Lighting button only if supported
+	if state.hasRGBSupport then
+		table.insert(configs, 3, {
+			text = "RGB Lighting",
+			type = button.TYPES.TEXT_PREVIEW,
+			previewText = state.rgbMode,
+			action = function()
+				if switchScreen then
+					switchScreen("rgb")
+				end
+			end,
+		})
+	end
+
+	return configs
+end
+
+--- Create buttons from configuration
+local function buildButtonsList()
+	local configs = buildButtonsConfig()
+	menu.BUTTONS = button.createList(configs)
+
+	-- Add screen width to all buttons
+	for _, btn in ipairs(menu.BUTTONS) do
+		btn.screenWidth = state.screenWidth
+	end
+
+	-- Restore selection
+	local idx = menu.lastSelectedIndex or 1
+	if idx < 1 or idx > #menu.BUTTONS then
+		idx = 1
+	end
+	for i, btn in ipairs(menu.BUTTONS) do
+		button.setSelected(btn, i == idx)
+	end
 
 	-- Count regular buttons
 	buttonCount = 0
@@ -105,6 +270,57 @@ function menu.load()
 			buttonCount = buttonCount + 1
 		end
 	end
+end
+
+-- ============================================================================
+-- BUTTON ACTION HANDLERS
+-- ============================================================================
+
+--- Handle cycling options for buttons with multiple values
+--- @param btn table Button object
+--- @param direction number 1 for next, -1 for previous
+--- @return boolean True if value changed
+local function handleButtonOptionCycle(btn, direction)
+	if not btn.context then
+		return false
+	end
+
+	local changed = button.cycleOption(btn, direction)
+	if not changed then
+		return false
+	end
+
+	local newValue = button.getCurrentOption(btn)
+
+	-- Update state based on button context
+	if btn.context == "fontSize" then
+		state.fontSize = newValue
+	elseif btn.context == "glyphs" then
+		state.glyphs_enabled = (newValue == "Enabled")
+	elseif btn.context == "headerText" then
+		state.headerTextEnabled = newValue
+	elseif btn.context == "headerAlign" then
+		local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
+		state.headerTextAlignment = alignmentMap[newValue] or 2
+	elseif btn.context == "navAlign" then
+		state.navigationAlignment = newValue
+	elseif btn.context == "statusAlign" then
+		state.statusAlignment = newValue
+	elseif btn.context == "timeAlign" then
+		local alignmentMap = { ["Auto"] = 1, ["Left"] = 2, ["Center"] = 3, ["Right"] = 4 }
+		state.timeAlignment = newValue
+	end
+
+	return changed
+end
+
+-- ============================================================================
+-- SCREEN FUNCTIONS
+-- ============================================================================
+
+function menu.load()
+	button.load()
+	buildButtonsList()
 end
 
 function menu.draw()
@@ -128,37 +344,6 @@ function menu.draw()
 		end
 	end
 
-	-- Process buttons before drawing to add display values
-	for _, btn in ipairs(regularButtons) do
-		-- Add display values for buttons that need them
-		if btn.fontSizeToggle then
-			btn.valueText = state.fontSize
-		elseif btn.glyphsToggle then
-			btn.valueText = state.glyphs_enabled and "Enabled" or "Disabled"
-		elseif btn.headerTextToggle then
-			btn.valueText = state.headerTextEnabled
-		elseif btn.headerAlignToggle then
-			-- Map header alignment numeric value to display text
-			local headerAlignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-			btn.valueText = headerAlignmentMap[state.headerTextAlignment] or "Center"
-		elseif btn.boxArt then
-			-- Box art width should be displayed with special handling for 0
-			btn.value = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth)
-		elseif btn.navAlignToggle then
-			btn.valueText = state.navigationAlignment
-		elseif btn.navAlpha then
-			-- Navigation alpha displays the percentage
-			btn.valueText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
-		elseif btn.themeName then
-			-- Truncate theme name for display if it is too long
-			btn.valueText = truncateThemeName(state.themeName)
-		elseif btn.statusAlignToggle then
-			btn.valueText = state.statusAlignment
-		elseif btn.timeAlignToggle then
-			btn.valueText = state.timeAlignment
-		end
-	end
-
 	-- Calculate the maximum available height for the list (space above the "Create Theme" button)
 	local bottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
 
@@ -166,157 +351,25 @@ function menu.draw()
 	local result = list.draw({
 		items = regularButtons,
 		startY = startY,
-		itemHeight = button.calculateHeight(),
+		itemHeight = button.getHeight(),
 		scrollPosition = scrollPosition,
 		screenWidth = state.screenWidth,
 		screenHeight = bottomY,
 		drawItemFunc = function(item, _index, y)
-			-- Draw the button based on its type
-			if item.colorKey and item.colorKey == "background" then
-				-- Special handling for background color to show gradient preview if needed
-				if state.backgroundType == "Gradient" then
-					local startColor = state.getColorValue("background")
-					local stopColor = state.getColorValue("backgroundGradient")
-					local direction = state.backgroundGradientDirection or "Vertical"
-					button.drawWithGradientPreview(
-						item.text,
-						item.selected,
-						0,
-						y,
-						state.screenWidth,
-						startColor,
-						stopColor,
-						direction,
-						item.disabled,
-						fonts.loaded.monoBody
-					)
-				else
-					-- Use regular color preview for solid background
-					local colorValue = state.getColorValue(item.colorKey)
-					button.drawWithColorPreview(
-						item.text,
-						item.selected,
-						0,
-						y,
-						state.screenWidth,
-						colorValue,
-						item.disabled,
-						fonts.loaded.monoBody
-					)
-				end
-			elseif item.colorKey then
-				local colorValue = state.getColorValue(item.colorKey)
-				button.drawWithColorPreview(
-					item.text,
-					item.selected,
-					0,
-					y,
-					state.screenWidth,
-					colorValue,
-					item.disabled,
-					fonts.loaded.monoBody
-				)
-			elseif item.fontSelection then
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.selectedFont)
-			elseif item.fontSizeToggle then
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					state.fontSize
-				)
-			elseif item.glyphsToggle then
-				local displayText = state.glyphs_enabled and "Enabled" or "Disabled"
-				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
-			elseif item.headerTextToggle then
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					state.headerTextEnabled
-				)
-			elseif item.headerAlignToggle then
-				-- Map header alignment numeric value to display text
-				local headerAlignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-				local displayText = headerAlignmentMap[state.headerTextAlignment] or "Center"
-				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
-			elseif item.boxArt then
-				local boxArtText = state.boxArtWidth
-				if boxArtText == 0 then
-					boxArtText = "Disabled"
-				end
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, boxArtText)
-			elseif item.rgbLighting then
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.rgbMode)
-			elseif item.navAlignToggle then
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					state.navigationAlignment
-				)
-			elseif item.navAlpha then
-				local alphaText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%"
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, alphaText)
-			elseif item.themeName then
-				button.drawWithTextPreview(
-					item.text,
-					0,
-					y,
-					item.selected,
-					state.screenWidth,
-					truncateThemeName(state.themeName)
-				)
-			elseif item.statusAlignToggle then
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.statusAlignment)
-			elseif item.timeAlignToggle then
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					item.disabled,
-					state.screenWidth,
-					state.timeAlignment
-				)
-			else
-				button.draw(item.text, 0, y, item.selected, state.screenWidth)
-			end
+			-- Set button's y position for drawing in the list context
+			item.listY = y
+			button.draw(item)
 		end,
 	})
 
 	-- Store the visibleCount from the result for use in scroll calculations
 	visibleButtonCount = result.visibleCount
 
-	-- Draw the "Create Theme" button separately with accented style
-	-- Find the "Create Theme" button
-	local createThemeButton = nil
+	-- Draw the bottom buttons separately
 	for _, btn in ipairs(bottomButtons) do
-		if btn.text == "Create Theme" then
-			createThemeButton = btn
-			break
-		end
-	end
-
-	if createThemeButton then
-		local newBottomY = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
-		local buttonWidth = state.screenWidth - 34
-		button.drawAccented(
-			createThemeButton.text,
-			createThemeButton.selected,
-			newBottomY,
-			state.screenWidth,
-			buttonWidth
-		)
+		-- Set the y position for bottom buttons
+		btn.y = state.screenHeight - menu.BUTTON_BOTTOM_MARGIN
+		button.draw(btn)
 	end
 
 	-- Draw modal if active
@@ -433,57 +486,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 	end
 end
 
--- Handle selection of a button
-local function handleSelectedButton(btn)
-	if btn.fontSelection then
-		-- Redirect to font selection screen
-		if switchScreen then
-			switchScreen("font_family")
-		end
-	elseif btn.glyphsToggle then
-		-- Toggle glyphs enabled state
-		state.glyphs_enabled = not state.glyphs_enabled
-	elseif btn.headerTextToggle then
-		-- Header text toggle cycles between Enabled and Disabled
-		if state.headerTextEnabled == "Enabled" then
-			state.headerTextEnabled = "Disabled"
-		else
-			state.headerTextEnabled = "Enabled"
-		end
-	elseif btn.navAlpha and switchScreen then
-		-- Navigation alpha screen
-		switchScreen("navigation_alpha")
-	elseif btn.statusAlignToggle and switchScreen then
-		switchScreen("status_align")
-	elseif btn.rgbLighting and switchScreen then
-		-- RGB lighting screen
-		switchScreen("rgb")
-	elseif btn.boxArt and switchScreen then
-		-- Box art settings screen
-		switchScreen("box_art")
-	elseif btn.themeName and switchScreen then
-		-- Theme name setting screen
-		-- The value is not pre-populated, i.e. begin with empty value
-		switchScreen("virtual_keyboard", {
-			returnScreen = "main_menu",
-			title = "Theme Name",
-		})
-	elseif btn.colorKey and btn.text == "Background Color" and switchScreen then
-		-- Background color gets special handling for solid/gradient options
-		switchScreen("background_color")
-	elseif btn.colorKey and switchScreen then
-		-- Any other color selection button
-		state.activeColorContext = btn.colorKey
-		state.previousScreen = "main_menu" -- Set previous screen to return to
-		switchScreen("color_picker")
-	elseif btn.text == "Create Theme" then
-		-- Show the process modal first
-		modal.showModal("Creating theme...")
-		-- Set waiting state to create theme after modal fades in
-		waitingState = "create_theme"
-	end
-end
-
 -- Handle input
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
@@ -532,45 +534,9 @@ function menu.update(dt)
 		return
 	end
 
-	-- Prepare buttons for navigation
-	local regularButtons = {}
-	local bottomButtons = {}
-	local navButtons = {}
-
-	for _, btn in ipairs(menu.BUTTONS) do
-		if btn.isBottomButton then
-			table.insert(bottomButtons, btn)
-		else
-			table.insert(regularButtons, btn)
-		end
-	end
-
-	-- Build the navigation order (regular buttons first, then bottom buttons)
-	for _, btn in ipairs(regularButtons) do
-		table.insert(navButtons, btn)
-	end
-	for _, btn in ipairs(bottomButtons) do
-		table.insert(navButtons, btn)
-	end
-
-	-- Handle exit
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if not state.themeApplied then
-			rgbUtils.restoreConfig()
-		end
-		love.event.quit()
-		return
-	end
-
-	-- Handle settings screen
-	if virtualJoystick.isGamepadPressedWithDelay("start") and switchScreen then
-		switchScreen("settings")
-		return
-	end
-
 	-- Use the enhanced list input handler for all navigation and selection
 	local result = list.handleInput({
-		items = navButtons,
+		items = menu.BUTTONS, -- Use the created button objects directly
 		scrollPosition = scrollPosition,
 		visibleCount = visibleButtonCount,
 		virtualJoystick = virtualJoystick,
@@ -578,47 +544,14 @@ function menu.update(dt)
 		-- Handle button selection (A button)
 		handleItemSelect = function(btn)
 			menu.lastSelectedIndex = list.getSelectedIndex()
-			handleSelectedButton(btn)
+			if btn.action then
+				btn.action(btn) -- Call the action function defined in the button config
+			end
 		end,
 
 		-- Handle option cycling (left/right d-pad)
 		handleItemOption = function(btn, direction)
-			local changed = false
-
-			if btn.fontSizeToggle then
-				-- Font size cycles through three values
-				local options = { "Default", "Large", "Extra Large" }
-				changed = list.cycleItemOption(btn, direction, "valueText", options)
-				state.fontSize = btn.valueText
-			elseif btn.glyphsToggle then
-				-- Glyphs toggle doesn't need direction - it's just a boolean toggle
-				state.glyphs_enabled = not state.glyphs_enabled
-				changed = true
-			elseif btn.headerTextToggle then
-				-- Header text toggle cycles between Enabled and Disabled
-				local options = { "Enabled", "Disabled" }
-				changed = list.cycleItemOption(btn, direction, "valueText", options)
-				state.headerTextEnabled = btn.valueText
-			elseif btn.headerAlignToggle then
-				-- Header alignment cycles through four values
-				local options = { "Auto", "Left", "Center", "Right" }
-				changed = list.cycleItemOption(btn, direction, "valueText", options)
-				-- Convert display text back to numeric value
-				local headerAlignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
-				state.headerTextAlignment = headerAlignmentMap[btn.valueText] or 2
-			elseif btn.navAlignToggle then
-				-- Navigation alignment cycles through three values
-				local options = { "Left", "Center", "Right" }
-				changed = list.cycleItemOption(btn, direction, "valueText", options)
-				state.navigationAlignment = btn.valueText
-			elseif btn.timeAlignToggle then
-				-- Time alignment cycles through four values
-				local options = { "Auto", "Left", "Center", "Right" }
-				changed = list.cycleItemOption(btn, direction, "valueText", options)
-				state.timeAlignment = btn.valueText
-			end
-
-			return changed
+			return handleButtonOptionCycle(btn, direction) -- Use the new handler
 		end,
 	})
 
@@ -634,7 +567,6 @@ end
 
 -- To perform when exiting the screen
 function menu.onExit()
-	-- Store the current selected index before leaving using the centralized function
 	menu.lastSelectedIndex = list.onScreenExit()
 	themeCreator.cleanup()
 end
@@ -675,8 +607,22 @@ function menu.onEnter(data)
 			-- Only update if not empty
 			if trimmedName ~= "" then
 				state.themeName = trimmedName
+				-- Find the theme name button and update its preview text
+				for _, btn in ipairs(menu.BUTTONS) do
+					if btn.context == "themeName" then
+						button.setValueText(btn, truncateThemeName(state.themeName))
+						break
+					end
+				end
 			else
 				state.themeName = "Aesthetic" -- Reset to default
+				-- Find the theme name button and update its preview text
+				for _, btn in ipairs(menu.BUTTONS) do
+					if btn.context == "themeName" then
+						button.setValueText(btn, truncateThemeName(state.themeName))
+						break
+					end
+				end
 			end
 		end
 	end
