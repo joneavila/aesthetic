@@ -25,17 +25,9 @@ local function truncateThemeName(name)
 	return name
 end
 
--- Image font size based on screen dimensions using fonts.calculateFontSize (base 28, min 16, max 60) for image font
--- scaling
-menu.IMAGE_FONT_SIZE = 28
-
 -- Button state
 menu.BUTTONS = {}
 menu.lastSelectedIndex = 1
-
--- Add input cooldown to prevent immediate button press after screen transition
-menu.inputCooldownTimer = 0
-menu.INPUT_COOLDOWN_DURATION = 0.3 -- seconds
 
 -- Calculate margin dynamically
 local buttonBottomMargin = 6
@@ -490,12 +482,6 @@ end
 function menu.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
-	-- Update cooldown timer
-	if menu.inputCooldownTimer > 0 then
-		menu.inputCooldownTimer = menu.inputCooldownTimer - dt
-		return -- Skip input handling during cooldown
-	end
-
 	-- Handle IO operations only when modal has fully faded in
 	if waitingState == "create_theme" then
 		if modal.isModalVisible() then
@@ -588,15 +574,6 @@ function menu.onEnter(data)
 
 	-- Reset list state and restore selection using the centralized function
 	scrollPosition = list.onScreenEnter("main_menu", menu.BUTTONS, menu.lastSelectedIndex)
-
-	-- Set input cooldown when entering screen
-	if data and type(data) == "table" and data.preventImmediateInput then
-		-- Longer cooldown when explicitly requested
-		menu.inputCooldownTimer = menu.INPUT_COOLDOWN_DURATION * 1.5
-	else
-		-- Regular cooldown on normal entry
-		menu.inputCooldownTimer = menu.INPUT_COOLDOWN_DURATION
-	end
 
 	-- Check for returned data from virtual_keyboard
 	if data and type(data) == "table" and data.inputValue then
