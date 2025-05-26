@@ -11,10 +11,7 @@ local modal = {}
 local showModal = false
 local modalMessage = ""
 local modalButtons = {}
-local isProcessModal = false -- Flag for process modals that should be dismissed manually
-local isScrollableModal = false -- Flag for scrollable modals
 local scrollPosition = 0 -- Current scroll position for scrollable modals
-local customFont = nil -- Custom font for the modal
 
 -- Modal drawing function
 function modal.drawModal(screenWidth, screenHeight, font)
@@ -36,37 +33,35 @@ function modal.drawModal(screenWidth, screenHeight, font)
 	local maxWidth = screenWidth * 0.9 -- Maximum width is 90% of screen width
 
 	-- Set font for text measurement
-	local currentFont = customFont or font
+	local currentFont = font
 	love.graphics.setFont(currentFont)
 
-	-- For process modals without buttons, use a smaller layout
-	local minWidth, minHeight
-	if isProcessModal or (#modalButtons == 0 and not isScrollableModal) then
-		-- Calculate text dimensions more precisely for modals without buttons
-		local availTextWidth = maxWidth - (padding * 2)
-		local _, lines = currentFont:getWrap(modalMessage, availTextWidth)
-		local textHeight = #lines * currentFont:getHeight()
+	-- Calculate available height for text
+	local maxTextHeight = screenHeight * 0.6
 
-		-- Use fixed padding but adapt to text size
+	-- Calculate estimated text height for initial layout
+	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
+	local _, estimatedLines = currentFont:getWrap(modalMessage, estimatedTextWidth)
+	local estimatedTextHeight = #estimatedLines * currentFont:getHeight()
+
+	local isScrollable = estimatedTextHeight > maxTextHeight
+
+	local minWidth = math.min(screenWidth * 0.8, maxWidth)
+
+	if #modalButtons == 0 and not isScrollable then
 		minWidth = math.min(currentFont:getWidth(modalMessage) + (padding * 2), maxWidth)
-		minHeight = textHeight + (padding * 2)
-	else
-		-- Standard modal with buttons or scrollable content
-		minWidth = math.min(screenWidth * 0.8, maxWidth)
-		minHeight = screenHeight * 0.3
 	end
 
-	-- Calculate available width for text
+	-- Calculate available width and heights
 	local availableTextWidth = minWidth - (padding * 2)
-
-	-- Get wrapped text info for correct line calculation
 	local _, lines = currentFont:getWrap(modalMessage, availableTextWidth)
 	local lineHeight = currentFont:getHeight()
-	local textHeight = #lines * lineHeight
+	local textHeight = #lines * lineHeight -- Actual height if not wrapped
 
-	-- For scrollable modals, limit the display height but allow content to be larger
-	local contentHeight = textHeight
-	local visibleHeight = math.min(screenHeight * 0.6, textHeight)
+	local contentHeight = textHeight -- Total height of the text content
+	local visibleHeight = math.min(screenHeight * 0.6, contentHeight) -- Max height for the text area
+
+	isScrollable = contentHeight > visibleHeight
 
 	-- Calculate final modal dimensions
 	local modalWidth = minWidth
@@ -79,13 +74,8 @@ function modal.drawModal(screenWidth, screenHeight, font)
 		buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
 	end
 
-	-- For scrollable modals, use the visible height plus button area
-	local modalHeight
-	if isScrollableModal then
-		modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
-	else
-		modalHeight = math.max(minHeight, textHeight + (padding * 2) + buttonsExtraHeight) -- Ensure minimum height
-	end
+	-- Calculate final modal height
+	local modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
 
 	-- Calculate maximum available height to avoid overlapping controls area
 	local maxAvailableHeight = screenHeight - controlsHeight - 20 -- 20px extra padding
@@ -95,9 +85,7 @@ function modal.drawModal(screenWidth, screenHeight, font)
 		modalHeight = maxAvailableHeight
 
 		-- Also adjust visibleHeight for scrollable modals
-		if isScrollableModal then
-			visibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
-		end
+		visibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
 	end
 
 	local x = (screenWidth - modalWidth) / 2
@@ -117,7 +105,7 @@ function modal.drawModal(screenWidth, screenHeight, font)
 		-- Draw message with wrapping, handling scrolling if needed
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 
-		if isScrollableModal then
+		if isScrollable then
 			-- Use the scrollable component to draw scrollable content
 			local drawContent = function()
 				love.graphics.printf(modalMessage, x + padding, y + padding, availableTextWidth, "left")
@@ -152,7 +140,7 @@ function modal.drawModal(screenWidth, screenHeight, font)
 			local buttonX = (screenWidth - buttonWidth) / 2
 			local startButtonY
 
-			if isScrollableModal then
+			if isScrollable then
 				startButtonY = y + padding + visibleHeight + padding
 			else
 				startButtonY = y + padding + textHeight + padding
@@ -194,31 +182,6 @@ function modal.showModal(message, buttons)
 	showModal = true
 	modalMessage = message
 	modalButtons = buttons or {}
-	isProcessModal = false
-	isScrollableModal = false
-	customFont = nil
-	scrollPosition = 0
-end
-
--- Show a scrollable modal with custom font
-function modal.showScrollableModal(message, buttons, font)
-	showModal = true
-	modalMessage = message
-	modalButtons = buttons or {}
-	isProcessModal = false
-	isScrollableModal = true
-	customFont = font
-	scrollPosition = 0
-end
-
--- Show a process modal that remains visible until manually dismissed
-function modal.showProcessModal(message)
-	showModal = true
-	modalMessage = message
-	modalButtons = {}
-	isProcessModal = true
-	isScrollableModal = false
-	customFont = nil
 	scrollPosition = 0
 end
 
@@ -227,22 +190,6 @@ function modal.replaceModal(message, buttons)
 	-- Directly update the modal content
 	modalMessage = message
 	modalButtons = buttons or {}
-	isProcessModal = false
-	isScrollableModal = false
-	customFont = nil
-	scrollPosition = 0
-	-- If modal was not shown, it will be shown by drawModal in the next frame
-	showModal = true
-end
-
--- Replace with a process modal
-function modal.replaceWithProcessModal(message)
-	-- Directly update the modal content
-	modalMessage = message
-	modalButtons = {}
-	isProcessModal = true
-	isScrollableModal = false
-	customFont = nil
 	scrollPosition = 0
 	-- If modal was not shown, it will be shown by drawModal in the next frame
 	showModal = true
@@ -250,44 +197,11 @@ end
 
 -- Scroll the modal content
 function modal.scroll(amount)
-	if isScrollableModal then
-		scrollPosition = scrollable.handleInput({
-			scrollPosition = scrollPosition,
-			contentSize = getModalContentHeight(),
-			viewportSize = getModalViewportHeight(),
-			scrollStep = amount,
-			input = { up = amount < 0, down = amount > 0 },
-		})
-	end
-end
-
--- Helper function to get current modal content height
-function getModalContentHeight()
-	if not isScrollableModal then
-		return 0
-	end
-
-	local font = customFont or love.graphics.getFont()
-	local lineHeight = font:getHeight()
-	local screenWidth = love.graphics.getWidth()
-	local availableTextWidth = screenWidth * 0.8 - 80 -- Approximate width
-	local _, lines = font:getWrap(modalMessage, availableTextWidth)
-
-	return #lines * lineHeight
-end
-
--- Helper function to get current modal viewport height
-function getModalViewportHeight()
-	if not isScrollableModal then
-		return 0
-	end
-
+	-- Determine scrollability dynamically
 	local screenHeight = love.graphics.getHeight()
 	local controls = require("controls")
 	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 	local padding = 40
-
-	-- Calculate the buttons height
 	local buttonHeight = 40
 	local buttonSpacing = 20
 	local buttonsExtraHeight = 0
@@ -295,17 +209,32 @@ function getModalViewportHeight()
 		buttonsExtraHeight = (#modalButtons * buttonHeight) + ((#modalButtons - 1) * buttonSpacing) + padding
 	end
 
-	-- Calculate maximum height and visible height
 	local maxAvailableHeight = screenHeight - controlsHeight - 20
-	local idealVisibleHeight = math.min(screenHeight * 0.6, getModalContentHeight())
-	local modalHeight = idealVisibleHeight + (padding * 2) + buttonsExtraHeight
+
+	local currentFont = love.graphics.getFont()
+	local availableTextWidth = (love.graphics.getWidth() * 0.8) - (padding * 2) -- Approximate width
+	local _, lines = currentFont:getWrap(modalMessage, availableTextWidth)
+	local contentHeight = #lines * currentFont:getHeight()
+	local visibleHeight = math.min(screenHeight * 0.6, contentHeight)
+
+	local modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
 
 	if modalHeight > maxAvailableHeight then
 		modalHeight = maxAvailableHeight
-		idealVisibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
+		visibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
 	end
 
-	return idealVisibleHeight
+	local isScrollable = contentHeight > visibleHeight
+
+	if isScrollable then
+		scrollPosition = scrollable.handleInput({
+			scrollPosition = scrollPosition,
+			contentSize = contentHeight,
+			viewportSize = visibleHeight,
+			scrollStep = amount,
+			input = { up = amount < 0, down = amount > 0 },
+		})
+	end
 end
 
 -- Hide modal
@@ -316,25 +245,12 @@ end
 -- Force hide modal immediately (no animation)
 function modal.forceHideModal()
 	showModal = false
-	isProcessModal = false
-	isScrollableModal = false
-	customFont = nil
 	scrollPosition = 0
 end
 
 -- Check if modal is visible
 function modal.isModalVisible()
 	return showModal
-end
-
--- Check if the currently visible modal is a process modal
-function modal.isProcessModal()
-	return isProcessModal
-end
-
--- Check if the currently visible modal is scrollable
-function modal.isScrollableModal()
-	return isScrollableModal
 end
 
 -- Get modal message

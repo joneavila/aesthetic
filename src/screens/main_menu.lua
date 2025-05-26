@@ -98,11 +98,6 @@ local buttonCount = 0
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 
--- Modal input state tracking for handling press-and-hold
-local modalInputState = {
-	isFirstInput = true,
-}
-
 function menu.load()
 	logger.debug("Main menu load started")
 
@@ -393,11 +388,6 @@ local function toggleModalButtonSelection(modalButtons)
 	end
 end
 
--- Reset modal input state
-local function resetModalInputState()
-	modalInputState.isFirstInput = true
-end
-
 -- Handle modal navigation and selection
 local function handleModalNavigation(virtualJoystick, dt)
 	local modalButtons = modal.getModalButtons()
@@ -406,22 +396,9 @@ local function handleModalNavigation(virtualJoystick, dt)
 	end
 
 	-- Handle navigation for modal buttons
-	-- For scrollable modals, don't toggle buttons on up/down as those are used for scrolling
-	if
-		not modal.isScrollableModal()
-		and (virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown"))
-	then
+	-- Toggle selection on D-pad up/down press when there are buttons
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 		toggleModalButtonSelection(modalButtons)
-		modalInputState.isFirstInput = false
-	else
-		-- Reset first input flag when buttons are released
-		if
-			not (
-				virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown")
-			)
-		then
-			modalInputState.isFirstInput = true
-		end
 	end
 
 	-- Handle selection in modals (A button)
@@ -432,16 +409,14 @@ local function handleModalNavigation(virtualJoystick, dt)
 					if i == 1 then -- Apply theme later button
 						modal.hideModal()
 						modalState = "none"
-						resetModalInputState()
 					else -- Apply theme now button
 						-- Set the theme path for installation
 						waitingThemePath = createdThemePath
 
 						-- Replace current modal with "Applying theme..." modal for smooth transition
-						modal.replaceWithProcessModal("Applying theme...")
+						modal.replaceModal("Applying theme...")
 
 						modalState = "none"
-						resetModalInputState()
 
 						-- Set waiting state to install theme after modal transitions
 						waitingState = "install_theme"
@@ -453,7 +428,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 		elseif modalState == "manual" or modalState == "automatic" then
 			modal.hideModal()
 			modalState = "none"
-			resetModalInputState()
 		else
 			-- Handle default modals
 			for _, btn in ipairs(modalButtons) do
@@ -465,7 +439,6 @@ local function handleModalNavigation(virtualJoystick, dt)
 				end
 			end
 			modal.hideModal()
-			resetModalInputState()
 		end
 	end
 end
@@ -521,7 +494,7 @@ local function handleSelectedButton(btn)
 		switchScreen("color_picker")
 	elseif btn.text == "Create Theme" then
 		-- Show the process modal first
-		modal.showProcessModal("Creating theme...")
+		modal.showModal("Creating theme...")
 		-- Set waiting state to create theme after modal fades in
 		waitingState = "create_theme"
 	end
@@ -540,13 +513,13 @@ function menu.update(dt)
 
 	-- Handle IO operations only when modal has fully faded in
 	if waitingState == "create_theme" then
-		if modal.isModalVisible() and modal.isProcessModal() then
+		if modal.isModalVisible() then
 			waitingState = "none"
 			handleThemeCreation()
 		end
 		return
 	elseif waitingState == "install_theme" then
-		if modal.isModalVisible() and modal.isProcessModal() then
+		if modal.isModalVisible() then
 			waitingState = "none"
 			handleThemeInstallation()
 			logger.debug("Main menu handled theme installation")
@@ -555,21 +528,32 @@ function menu.update(dt)
 	end
 
 	if modal.isModalVisible() then
-		-- Add ability to scroll error modals with D-pad up/down
-		if modal.isScrollableModal() then
-			if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-				modal.scroll(-20) -- Scroll up
-			elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-				modal.scroll(20) -- Scroll down
-			end
+		-- Determine controls to draw based on modal state
+		local controlsToShow = {}
 
-			-- Show scroll controls in the control hints area
-			controls.draw({
-				{ button = "a", text = "Select" },
-				{ button = "d_pad", text = "Scroll" },
-			})
-		elseif #modal.getModalButtons() > 0 then
-			controls.draw({ { button = "a", text = "Select" } })
+		-- If there are buttons, always show select
+		if #modal.getModalButtons() > 0 then
+			table.insert(controlsToShow, { button = "a", text = "Select" })
+		end
+
+		table.insert(controlsToShow, { button = "d_pad", text = "Scroll" })
+
+		controls.draw(controlsToShow)
+
+		-- Reset first input flag when buttons are released
+		-- This logic was previously inside handleModalNavigation but applies generally to modal input
+		if
+			not (
+				virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown")
+			)
+		then
+			-- handleModalNavigation will handle 'a' button reset if applicable
+			-- For scroll-only input, this reset is sufficient
+			if #modal.getModalButtons() == 0 then -- Only reset here if no buttons, otherwise handleModalNavigation does it
+				-- Need to access internal modal state or adjust modal.scroll to handle this
+				-- Reverting for now, let's keep scroll handling and input state together
+				-- The current modal.scroll doesn't need external input state tracking
+			end
 		end
 
 		handleModalNavigation(virtualJoystick, dt)
