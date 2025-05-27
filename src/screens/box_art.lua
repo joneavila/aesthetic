@@ -8,12 +8,12 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local tween = require("tween")
+local screens = require("screens")
 
 -- Module table to export public functions
 local box_art = {}
 
 -- Screen switching
-local switchScreen = nil
 local MENU_SCREEN = "main_menu"
 
 -- Box art width options will be generated dynamically in load()
@@ -241,8 +241,8 @@ function box_art.update(dt)
 	end
 
 	-- Handle B button to return to menu
-	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen(MENU_SCREEN)
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		screens.switchTo(MENU_SCREEN)
 		return
 	end
 
@@ -296,10 +296,6 @@ function box_art.update(dt)
 			return false
 		end,
 	})
-end
-
-function box_art.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function box_art.onEnter()

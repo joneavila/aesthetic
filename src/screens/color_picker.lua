@@ -11,6 +11,7 @@ local tween = require("tween")
 local paletteScreen = require("screens.color_picker.palette")
 local hsvScreen = require("screens.color_picker.hsv")
 local hexScreen = require("screens.color_picker.hex")
+local screens = require("screens")
 
 -- Module table to export public functions
 local colorPicker = {}
@@ -41,9 +42,6 @@ local tabIndicator = {
 
 -- Animation for text colors
 local tabTextColors = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- Helper function to get active tab
 local function getActiveTab()
@@ -168,26 +166,6 @@ function colorPicker.load()
 			tab.screen.load()
 		end
 
-		-- Set screen switcher for each sub-screen
-		if tab.screen.setScreenSwitcher then
-			tab.screen.setScreenSwitcher(function(targetScreen, tabName)
-				if targetScreen == "color_picker" then
-					-- If a tab name is provided, switch to that tab
-					if tabName then
-						switchToTab(tabName)
-					end
-					-- Otherwise just stay on current tab
-				else
-					-- Switch to another main screen
-					if switchScreen then
-						switchScreen(targetScreen)
-					else
-						errorHandler.setError("Failed to switch screen: switchScreen function not set")
-					end
-				end
-			end)
-		end
-
 		-- Initialize onEnter for palette screen
 		if tab.name == "Palette" and tab.screen.onEnter then
 			tab.screen.onEnter()
@@ -276,9 +254,7 @@ function colorPicker.update(dt)
 
 	-- Handle B button (return to menu screen)
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if switchScreen then
-			switchScreen(state.previousScreen)
-		end
+		screens.switchTo(state.previousScreen)
 	end
 
 	-- Handle tab switching with shoulder buttons
@@ -319,10 +295,6 @@ function colorPicker.update(dt)
 			tabs[newIndex].screen.onEnter()
 		end
 	end
-end
-
-function colorPicker.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 -- Function called when entering this screen

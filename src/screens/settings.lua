@@ -9,12 +9,10 @@ local background = require("ui.background")
 local list = require("ui.list")
 local modal = require("ui.modal")
 local button = require("ui.button")
+local screens = require("screens")
 
 -- Screen module
 local settings = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- Button constants
 local BUTTONS = {
@@ -46,10 +44,6 @@ function settings.load()
 	for i, btn in ipairs(BUTTONS) do
 		btn.selected = (i == 1)
 	end
-end
-
-function settings.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function settings.draw()
@@ -150,9 +144,7 @@ function settings.update(_dt)
 
 	-- Return to menu with B button
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if switchScreen then
-			switchScreen("main_menu")
-		end
+		screens.switchTo("main_menu")
 		return
 	end
 
@@ -167,18 +159,12 @@ function settings.update(_dt)
 
 			if btn.text == "Load Theme Preset" then
 				-- Navigate to the load preset screen
-				if switchScreen then
-					switchScreen("load_preset")
-				end
+				screens.switchTo("load_preset")
 			elseif btn.text == "Manage Themes" then
-				if switchScreen then
-					switchScreen("manage_themes")
-				end
+				screens.switchTo("manage_themes")
 			elseif btn.text == "About" then
 				-- Navigate to the about screen
-				if switchScreen then
-					switchScreen("about")
-				end
+				screens.switchTo("about")
 			end
 		end,
 	})

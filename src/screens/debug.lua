@@ -6,12 +6,10 @@ local header = require("ui.header")
 local input = require("input")
 local logger = require("utils.logger")
 local colors = require("colors")
+local screens = require("screens")
 
 -- Module table to export public functions
 local debug = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)
@@ -169,13 +167,9 @@ function debug.update(_dt)
 	local virtualJoystick = input.virtualJoystick
 
 	-- Return to main menu with the button combination
-	if isDebugComboPressed(virtualJoystick) and switchScreen then
-		switchScreen("main_menu")
+	if isDebugComboPressed(virtualJoystick) then
+		screens.switchTo("main_menu")
 	end
-end
-
-function debug.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function debug.onEnter()

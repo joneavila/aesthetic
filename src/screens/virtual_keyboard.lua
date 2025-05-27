@@ -5,6 +5,7 @@ local header = require("ui.header")
 local controls = require("controls")
 local background = require("ui.background")
 local input = require("input")
+local screens = require("screens")
 
 -- Virtual keyboard screen module
 -- Its layout closely follows muOS's virtual keyboard layout
@@ -116,11 +117,6 @@ local function initializeKeyboard()
 	keyboardY = header.getContentStartY() + inputFieldHeight + 30
 end
 
--- Store the screen switcher function
-function virtual_keyboard.setScreenSwitcher(switcher)
-	virtual_keyboard.switchScreen = switcher
-end
-
 -- Load resources
 function virtual_keyboard.load()
 	-- Initialize keyboard positioning
@@ -167,18 +163,14 @@ local function handleKeySelection()
 	local selectedKey = keyboard[selectedY][selectedX]
 
 	if selectedKey == "OK" then
-		-- Return to previous screen with the input value
-		if returnScreen and virtual_keyboard.switchScreen then
-			print("Returning to " .. returnScreen .. " with value `" .. inputValue .. "`")
 
-			-- Pass the necessary data: preventImmediateInput, inputValue, title, and returnScreen
-			virtual_keyboard.switchScreen(returnScreen, {
-				preventImmediateInput = true,
-				inputValue = inputValue,
-				title = headerTitle,
-				returnScreen = returnScreen,
-			})
-		end
+		-- Pass the necessary data: preventImmediateInput, inputValue, title, and returnScreen
+		screens.switchTo(returnScreen, {
+			preventImmediateInput = true,
+			inputValue = inputValue,
+			title = headerTitle,
+			returnScreen = returnScreen,
+		})
 	elseif selectedKey == "" then
 		-- Space key (empty text)
 		inputValue = inputValue .. " "
@@ -272,8 +264,8 @@ function virtual_keyboard.update(dt)
 
 	-- B button - go back
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if returnScreen and virtual_keyboard.switchScreen then
-			virtual_keyboard.switchScreen(returnScreen)
+		if returnScreen then
+			screens.switchTo(returnScreen)
 		end
 	end
 

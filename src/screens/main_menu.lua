@@ -13,6 +13,7 @@ local fonts = require("ui.fonts")
 local list = require("ui.list")
 local header = require("ui.header")
 local logger = require("utils.logger")
+local screens = require("screens")
 
 local menu = {}
 
@@ -32,7 +33,6 @@ local visibleButtonCount = 0
 local waitingState = "none" -- none, create_theme, install_theme
 local waitingThemePath = nil
 
-local switchScreen = nil
 local createdThemePath = nil
 local modalState = "none" -- none, created, manual, automatic
 
@@ -58,9 +58,7 @@ local function buildButtonsList()
 			direction = state.backgroundGradientDirection or "Vertical",
 			monoFont = fonts.loaded.monoBody,
 			action = function()
-				if switchScreen then
-					switchScreen("background_color")
-				end
+				screens.switchTo("background_color")
 			end,
 		},
 		{
@@ -70,11 +68,9 @@ local function buildButtonsList()
 			hexColor = state.getColorValue("foreground"),
 			monoFont = fonts.loaded.monoBody,
 			action = function()
-				if switchScreen then
-					state.activeColorContext = "foreground"
-					state.previousScreen = "main_menu"
-					switchScreen("color_picker")
-				end
+				state.activeColorContext = "foreground"
+				state.previousScreen = "main_menu"
+				screens.switchTo("color_picker")
 			end,
 		},
 		{
@@ -82,9 +78,7 @@ local function buildButtonsList()
 			type = button.TYPES.TEXT_PREVIEW,
 			previewText = state.selectedFont,
 			action = function()
-				if switchScreen then
-					switchScreen("font_family")
-				end
+				screens.switchTo("font_family")
 			end,
 		},
 		{
@@ -120,9 +114,7 @@ local function buildButtonsList()
 			type = button.TYPES.TEXT_PREVIEW,
 			previewText = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth),
 			action = function()
-				if switchScreen then
-					switchScreen("box_art")
-				end
+				screens.switchTo("box_art")
 			end,
 		},
 		{
@@ -137,9 +129,7 @@ local function buildButtonsList()
 			type = button.TYPES.TEXT_PREVIEW,
 			previewText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%",
 			action = function()
-				if switchScreen then
-					switchScreen("navigation_alpha")
-				end
+				screens.switchTo("navigation_alpha")
 			end,
 		},
 		{
@@ -162,12 +152,10 @@ local function buildButtonsList()
 			type = button.TYPES.TEXT_PREVIEW,
 			previewText = truncateThemeName(state.themeName),
 			action = function()
-				if switchScreen then
-					switchScreen("virtual_keyboard", {
-						returnScreen = "main_menu",
-						title = "Theme Name",
-					})
-				end
+				screens.switchTo("virtual_keyboard", {
+					returnScreen = "main_menu",
+					title = "Theme Name",
+				})
 			end,
 		},
 		-- This is the only bottom button
@@ -188,9 +176,7 @@ local function buildButtonsList()
 			type = button.TYPES.TEXT_PREVIEW,
 			previewText = state.rgbMode,
 			action = function()
-				if switchScreen then
-					switchScreen("rgb")
-				end
+				screens.switchTo("rgb")
 			end,
 		})
 	end
@@ -452,19 +438,13 @@ function menu.update(dt)
 
 	-- Handle Start button press for settings
 	if virtualJoystick.isGamepadPressedWithDelay("start") and not modal.isModalVisible() then
-		if switchScreen then
-			switchScreen("settings")
-		end
+		screens.switchTo("settings")
 	end
 
 	-- Update scroll position if changed
 	if result.scrollPositionChanged then
 		scrollPosition = result.scrollPosition
 	end
-end
-
-function menu.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 -- To perform when exiting the screen

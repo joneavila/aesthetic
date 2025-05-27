@@ -12,10 +12,10 @@ local modal = require("ui.modal")
 local logger = require("utils.logger")
 local system = require("utils.system")
 local commands = require("utils.commands")
+local screens = require("screens")
 
 local manage_themes = {}
 
-local switchScreen = nil
 local themeItems = {}
 local scrollPosition = 0
 local visibleCount = 0
@@ -36,10 +36,6 @@ function manage_themes.load()
 	-- TODO: Fix crash on TrimUI Brick GOOSE
 	-- scanThemes()
 	-- scrollPosition = 0
-end
-
-function manage_themes.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function manage_themes.draw()
@@ -158,9 +154,7 @@ function manage_themes.update(dt)
 
 	-- Back to settings
 	if vjoy.isGamepadPressedWithDelay("b") then
-		if switchScreen then
-			switchScreen("settings")
-		end
+		screens.switchTo("settings")
 		return
 	end
 end

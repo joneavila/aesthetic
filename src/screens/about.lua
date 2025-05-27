@@ -7,6 +7,7 @@ local background = require("ui.background")
 local virtualJoystick = require("input").virtualJoystick
 local paths = require("paths")
 local header = require("ui.header")
+local screens = require("screens")
 
 local about = {}
 
@@ -23,7 +24,6 @@ Contact:
 local KOFI_TEXT = "Support the project, donate via Ko-Fi"
 
 -- Store screen switching function
-local switchScreen = nil
 local qrCodeImage = nil
 
 function about.load()
@@ -93,14 +93,8 @@ end
 
 function about.update(_dt)
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if switchScreen then
-			switchScreen(MENU_SCREEN)
-		end
+		screens.switchTo(MENU_SCREEN)
 	end
-end
-
-function about.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 return about

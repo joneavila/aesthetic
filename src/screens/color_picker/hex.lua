@@ -6,11 +6,9 @@ local controls = require("controls")
 local colorUtils = require("utils.color")
 local constants = require("screens.color_picker.constants")
 local svg = require("utils.svg")
+local screens = require("screens")
 
 local hex = {}
-
--- Store screen switching function
-local switchScreen = nil
 
 -- Constants
 local EDGE_PADDING = 20
@@ -363,7 +361,7 @@ function hex.update(_dt)
 			currentState.input = ""
 		elseif selectedButton == "CONFIRM" then
 			-- Confirm - only if input is valid
-			if isValidHex(currentState.input) and switchScreen then
+			if isValidHex(currentState.input) then
 				-- Create hex code
 				local hexCode = "#" .. currentState.input:upper()
 
@@ -372,10 +370,8 @@ function hex.update(_dt)
 				context.currentColor = hexCode
 
 				-- Return to menu and apply the color
-				if switchScreen then
-					switchScreen(state.previousScreen)
-					state.setColorValue(state.activeColorContext, hexCode)
-				end
+				screens.switchTo(state.previousScreen)
+				state.setColorValue(state.activeColorContext, hexCode)
 			end
 		else
 			-- Add character if not at max length
@@ -384,10 +380,6 @@ function hex.update(_dt)
 			end
 		end
 	end
-end
-
-function hex.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 -- Function to be called when entering this screen

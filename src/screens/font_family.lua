@@ -9,12 +9,10 @@ local list = require("ui.list")
 local button = require("ui.button")
 local controls = require("controls")
 local logger = require("utils.logger")
+local screens = require("screens")
 
 -- Module table to export public functions
 local font = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- Constants specific to the font preview
 local FONT_PREVIEW = {
@@ -198,8 +196,8 @@ function font.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle B button (Back to menu)
-	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen("main_menu")
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		screens.switchTo("main_menu")
 		return
 	end
 
@@ -216,9 +214,7 @@ function font.update(_dt)
 			state.selectedFont = item.text
 
 			-- Return to menu
-			if switchScreen then
-				switchScreen("main_menu")
-			end
+			screens.switchTo("main_menu")
 		end,
 	})
 end
@@ -234,10 +230,6 @@ end
 function font.onExit()
 	-- Save the current selected index
 	savedSelectedIndex = list.onScreenExit()
-end
-
-function font.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 return font

@@ -29,13 +29,6 @@ function screens.register(screenName, screenModule)
 	-- Debug log: print screen name and filename
 	local logger = require("utils.logger")
 	logger.debug("Registered screen: " .. tostring(screenName) .. " (screens/" .. tostring(screenName) .. ".lua)")
-
-	-- Initialize screen switcher function
-	if screenModule.setScreenSwitcher then
-		screenModule.setScreenSwitcher(function(targetScreen, tabName, returnVal)
-			return screens.switchTo(targetScreen, tabName, returnVal)
-		end)
-	end
 end
 
 function screens.getCurrentScreen()

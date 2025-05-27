@@ -10,9 +10,9 @@ local controls = require("controls")
 local slider = require("ui.slider")
 local input = require("input")
 local list = require("ui.list")
+local screens = require("screens")
 
 -- Screen switching
-local switchScreen = nil
 local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
 
 -- Module table to export public functions
@@ -36,11 +36,6 @@ local BUTTONS = {
 -- Animated slider state managed by slider.lua
 local alphaSliderState = nil
 local ANIMATION_DURATION = 0.25 -- Define animation duration locally
-
--- Set the screen switcher function
-function navigation_alpha.setScreenSwitcher(switcher)
-	switchScreen = switcher
-end
 
 -- Function to get display text for an alpha value
 local function getDisplayText(alpha)
@@ -114,8 +109,8 @@ function navigation_alpha.update(dt)
 	local virtualJoystick = input.virtualJoystick
 
 	-- Handle save button
-	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen(MENU_SCREEN)
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		screens.switchTo(MENU_SCREEN)
 		return
 	end
 

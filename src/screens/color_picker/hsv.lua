@@ -6,6 +6,7 @@ local tween = require("tween")
 local colorUtils = require("utils.color")
 local controls = require("controls")
 local constants = require("screens.color_picker.constants")
+local screens = require("screens")
 
 local hsv = {}
 
@@ -55,9 +56,6 @@ local pickerState = {
 		lastFocusSquare = false, -- Track previous focus state
 	},
 }
-
--- Store screen switching function and target screen
-local switchScreen = nil
 
 -- Helper function to get current HSV state from central state manager
 local function getCurrentHsvState()
@@ -445,6 +443,9 @@ local function updateWiggleAnimation(dt)
 end
 
 function hsv.update(dt)
+	-- Get current color type state
+	local currentState = getCurrentHsvState()
+
 	-- Update tweens
 	updateTweens(dt)
 
@@ -453,9 +454,6 @@ function hsv.update(dt)
 
 	local virtualJoystick = require("input").virtualJoystick
 	local moved = false
-
-	-- Get current color type state
-	local currentState = getCurrentHsvState()
 
 	-- Handle Y button for cursor swapping
 	if virtualJoystick.isGamepadPressedWithDelay("y") then
@@ -602,18 +600,10 @@ function hsv.update(dt)
 		-- Set the color value in state
 		state.setColorValue(state.activeColorContext, hexCode)
 
-		-- Switch back to menu
-		if switchScreen then
-			switchScreen(state.previousScreen)
-		end
+		screens.switchTo(state.previousScreen)
 	end
 end
 
-function hsv.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
-end
-
--- Function to be called when entering this screen
 function hsv.onEnter()
 	-- Get current color type state
 	local currentState = getCurrentHsvState()

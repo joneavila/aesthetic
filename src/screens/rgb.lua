@@ -8,12 +8,12 @@ local background = require("ui.background")
 local list = require("ui.list")
 local button = require("ui.button")
 local fonts = require("ui.fonts")
+local screens = require("screens")
 
 -- Module table to export public functions
 local rgb = {}
 
 -- Screen switching
-local switchScreen = nil
 local MENU_SCREEN = "main_menu"
 local COLOR_PICKER_SCREEN = "color_picker"
 
@@ -204,8 +204,8 @@ function rgb.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle B button to return to menu
-	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen(MENU_SCREEN)
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		screens.switchTo(MENU_SCREEN)
 		return
 	end
 
@@ -218,11 +218,11 @@ function rgb.update(_dt)
 		handleItemSelect = function(btn)
 			savedSelectedIndex = list.getSelectedIndex()
 
-			if btn.colorKey and switchScreen then
+			if btn.colorKey then
 				-- Open color picker for this color
 				state.activeColorContext = btn.colorKey
 				state.previousScreen = "rgb" -- Set previous screen to return to
-				switchScreen(COLOR_PICKER_SCREEN)
+				screens.switchTo(COLOR_PICKER_SCREEN)
 			end
 		end,
 
@@ -288,10 +288,6 @@ function rgb.update(_dt)
 			return changed
 		end,
 	})
-end
-
-function rgb.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function rgb.onEnter()

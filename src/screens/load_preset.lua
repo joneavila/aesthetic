@@ -10,12 +10,10 @@ local list = require("ui.list")
 local button = require("ui.button")
 local logger = require("utils.logger")
 local paths = require("paths")
+local screens = require("screens")
 
 -- Module table to export public functions
 local loadPreset = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- Preset items list
 local presetItems = {}
@@ -228,8 +226,8 @@ function loadPreset.update(_dt)
 
 	-- If no presets found, only handle back button
 	if #presetItems == 0 then
-		if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-			switchScreen("settings")
+		if virtualJoystick.isGamepadPressedWithDelay("b") then
+			screens.switchTo("settings")
 		end
 		return
 	end
@@ -252,16 +250,23 @@ function loadPreset.update(_dt)
 				-- Load the selected preset
 				local success = presets.loadPreset(selectedItem.name)
 				if success then
-					-- Update RGB configuration immediately after loading preset
-					if state.hasRGBSupport then
-						rgbUtils.updateConfig()
-					end
-
-					-- Return to main menu screen
-					if switchScreen then
-						switchScreen("main_menu")
-					end
+					screens.switchTo("settings")
+				else
+					-- Handle error loading preset
+					logger.error("Failed to load preset: " .. selectedItem.name)
+					-- Optionally show an error message modal
 				end
+			else
+				-- Handle invalid preset selection
+				logger.warn("Attempted to load invalid preset: " .. selectedItem.name)
+				-- Optionally show a message indicating it's invalid
+			end
+		end,
+
+		-- Handle item focus change (for preview image)
+		handleItemFocus = function(focusedItem, focusedIndex)
+			if focusedItem then
+				loadPreviewImage(focusedItem.name)
 			end
 		end,
 	})
@@ -275,13 +280,9 @@ function loadPreset.update(_dt)
 	end
 
 	-- Handle B button (Back)
-	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen("settings")
+	if virtualJoystick.isGamepadPressedWithDelay("b") then
+		screens.switchTo("settings")
 	end
-end
-
-function loadPreset.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function loadPreset.onEnter()

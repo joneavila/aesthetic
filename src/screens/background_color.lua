@@ -8,11 +8,9 @@ local background = require("ui.background")
 local list = require("ui.list")
 local fonts = require("ui.fonts")
 local gradientPreview = require("ui.gradient_preview")
+local screens = require("screens")
 
 local backgroundColor = {}
-
--- Screen switching
-local switchScreen = nil
 
 -- List of buttons
 local buttons = {}
@@ -187,9 +185,7 @@ function backgroundColor.update(_dt)
 
 	-- Handle back button
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if switchScreen then
-			switchScreen("main_menu")
-		end
+		screens.switchTo("main_menu")
 		return
 	end
 
@@ -205,21 +201,15 @@ function backgroundColor.update(_dt)
 			if btn.solidColor then
 				state.activeColorContext = "background"
 				state.previousScreen = "background_color"
-				if switchScreen then
-					switchScreen("color_picker")
-				end
+				screens.switchTo("color_picker")
 			elseif btn.gradientStart then
 				state.activeColorContext = "background"
 				state.previousScreen = "background_color"
-				if switchScreen then
-					switchScreen("color_picker")
-				end
+				screens.switchTo("color_picker")
 			elseif btn.gradientStop then
 				state.activeColorContext = "backgroundGradient"
 				state.previousScreen = "background_color"
-				if switchScreen then
-					switchScreen("color_picker")
-				end
+				screens.switchTo("color_picker")
 			end
 		end,
 
@@ -246,10 +236,6 @@ function backgroundColor.update(_dt)
 			return changed
 		end,
 	})
-end
-
-function backgroundColor.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 function backgroundColor.onEnter()

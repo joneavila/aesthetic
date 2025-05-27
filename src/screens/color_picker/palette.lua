@@ -6,10 +6,9 @@ local tween = require("tween")
 local controls = require("controls")
 local constants = require("screens.color_picker.constants")
 local colorUtils = require("utils.color")
+local screens = require("screens")
 
 local palette = {}
-
-local switchScreen = nil
 
 -- Constants
 local PADDING = 20
@@ -320,16 +319,10 @@ function palette.update(dt)
 				local context = state.getColorContext(state.activeColorContext)
 				context.currentColor = hexCode
 				state.setColorValue(state.activeColorContext, hexCode)
-				if switchScreen then
-					switchScreen(state.previousScreen)
-				end
+				screens.switchTo(state.previousScreen)
 			end
 		end
 	end
-end
-
-function palette.setScreenSwitcher(switchFunc)
-	switchScreen = switchFunc
 end
 
 -- Helper function to find the closest color in the palette to a given hex value

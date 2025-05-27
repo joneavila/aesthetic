@@ -4,13 +4,7 @@ local splash = {}
 local colors = require("colors")
 local state = require("state")
 local logger = require("utils.logger")
-
--- Screen switching function set by the screens manager
-local switchScreen = nil
-
-function splash.setScreenSwitcher(switcher)
-	switchScreen = switcher
-end
+local screens = require("screens")
 
 function splash.load()
 	logger.debug("Splash screen load started")
@@ -42,7 +36,6 @@ function splash.load()
 	-- Calculate the fixed center position (ensure pixel-perfect alignment)
 	splash.centerX = math.floor(state.screenWidth / 2 - splash.textWidth / 2)
 	splash.centerY = math.floor(state.screenHeight / 2 - splash.textHeight / 2)
-
 
 	-- State machine: controls the animation phase (waiting, typing, holding, fading, done)
 	splash.state = "waiting"
@@ -151,15 +144,12 @@ function splash.update(dt)
 			logger.debug("Splash state changing: fading -> done")
 			splash.state = "done"
 			-- When done, switch to the menu screen
-			if switchScreen then
-				logger.debug("Splash completed, switching to main_menu")
-				-- Initialize the fade effect before switching
-				state.fading = true
-				state.fadeTimer = 0
-				switchScreen("main_menu")
-			else
-				logger.error("switchScreen function is nil, cannot transition from splash screen")
-			end
+			logger.debug("Splash completed, switching to main_menu")
+			-- Initialize the fade effect before switching
+			state.fading = true
+			state.fadeTimer = 0
+
+			screens.switchTo("main_menu")
 		end
 	end
 end

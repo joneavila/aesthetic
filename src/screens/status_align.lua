@@ -6,6 +6,7 @@ local controls = require("controls")
 local background = require("ui.background")
 local colors = require("colors")
 local list = require("ui.list")
+local screens = require("screens")
 
 local status_align = {}
 
@@ -83,9 +84,7 @@ function status_align.update(_dt)
 
 	-- Handle B button to return to menu
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		if status_align.switchScreen then
-			status_align.switchScreen("main_menu")
-		end
+		screens.switchTo("main_menu")
 		return
 	end
 
@@ -115,10 +114,6 @@ function status_align.update(_dt)
 			return true
 		end,
 	})
-end
-
-function status_align.setScreenSwitcher(switchFunc)
-	status_align.switchScreen = switchFunc
 end
 
 return status_align
