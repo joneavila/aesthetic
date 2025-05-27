@@ -348,6 +348,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's footer and header height settings
+		logger.debug("Setting theme's footer and header height settings")
+		if not schemeConfigurator.applyFooterHeaderHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
+			return false
+		end
+
 		-- Set theme's antialiasing settings
 		logger.debug("Setting theme's antialiasing settings")
 		if not schemeConfigurator.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL) then

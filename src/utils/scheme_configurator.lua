@@ -320,6 +320,32 @@ function themeSettings.applyHeaderTextAlignmentSettings(schemeFilePath)
 	end)
 end
 
+-- Apply footer and header height settings based on screen height
+function themeSettings.applyFooterHeaderHeightSettings(schemeFilePath, screenHeight)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Determine height based on screen height using a lookup table
+		local heightLookup = {
+			["480"] = 42,
+			["576"] = 42,
+			["720"] = 50,
+			["768"] = 42,
+		}
+
+		-- Use screenHeight as the key for lookup. Use 42 as fallback.
+		local heightValue = heightLookup[tostring(screenHeight)] or 42
+
+		-- Replace footer-header-height placeholder
+		local heightCount
+		content, heightCount = content:gsub("%%{%s*footer%-header%-height%s*}", tostring(heightValue))
+		if heightCount == 0 then
+			errorHandler.setError("Failed to replace footer-header-height setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 -- Apply navigation alpha settings to a scheme file
 function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
