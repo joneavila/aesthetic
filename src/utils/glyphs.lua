@@ -21,9 +21,6 @@ local FIXED_STROKE_WIDTH = 1.5
 local GLYPH_MAPPINGS_DIR = paths.ROOT_DIR .. "/utils/glyph_mappings"
 local BASE_VERSION = "PIXIE"
 
--- TrimUI Brick GOOSE default theme has average glyph width of 43px and height of 41px.
--- RG35XXSP has the same glyph dimensions.
-
 -- Helper function to load and parse a single glyph map file
 local function loadMapFile(mapFilePath)
 	logger.debug("Attempting to load glyph map file: " .. mapFilePath)
@@ -177,7 +174,9 @@ local function overrideStrokeWidth(svgContent, strokeWidth)
 end
 
 -- Convert a single SVG icon to PNG with fixed stroke width, using TÖVE's prescale for sharpness
-function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
+-- Optionally accepts a padding value to use instead of the fixed stroke width for canvas size.
+-- The glyphHeight parameter should be the size the glyph itself is rendered at *before* padding.
+function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, padding)
 	logger.debug(string.format("Attempting to convert SVG %s to PNG %s", svgPath, pngPath))
 
 	-- Ensure parent directory exists
@@ -194,15 +193,19 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 	end
 
 	-- Override stroke-width in SVG XML
+	-- Always use the FIXED_STROOKE_WIDTH for the SVG stroke itself
 	svgContent = overrideStrokeWidth(svgContent, FIXED_STROKE_WIDTH)
 
-	-- Add padding for stroke width to prevent clipping
-	local pad = FIXED_STROKE_WIDTH
-	local canvasSize = glyphHeight + pad
+	-- Use provided padding or default to FIXED_STROKE_WIDTH for canvas size
+	local effectivePad = padding or FIXED_STROKE_WIDTH
+	-- The canvas size is the render height plus padding
+	local canvasSize = glyphRenderHeight + effectivePad
 
-	-- Use TÖVE's prescale parameter to rasterize at the target size
+	-- Use TÖVE's prescale parameter to rasterize at the target render size
 	local tove = require("tove")
-	local graphics = tove.newGraphics(svgContent, glyphHeight)
+	-- tove.newGraphics scales to the provided glyphRenderHeight based on the SVG's viewbox/size
+	local graphics = tove.newGraphics(svgContent, glyphRenderHeight)
+	-- Keep the line width consistent with the override performed above
 	graphics:setLineWidth(FIXED_STROKE_WIDTH)
 
 	-- Create a canvas for drawing at the correct size (with padding)
@@ -216,8 +219,9 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 	love.graphics.setColor(fgColor)
 	love.graphics.setBlendMode("alpha")
 	-- Draw the SVG centered, accounting for padding
-	love.graphics.translate(pad / 2, pad / 2)
-	graphics:draw(glyphHeight / 2, glyphHeight / 2)
+	love.graphics.translate(effectivePad / 2, effectivePad / 2)
+	-- Draw the graphic scaled to fit the glyphRenderHeight within the padded canvas
+	graphics:draw(glyphRenderHeight / 2, glyphRenderHeight / 2)
 	love.graphics.pop()
 
 	love.graphics.setCanvas(prevCanvas)
@@ -230,8 +234,6 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 		logger.error("Failed to write PNG file: " .. pngPath)
 		return false
 	end
-
-	logger.debug("Successfully converted " .. svgPath .. " to " .. pngPath)
 
 	return true
 end
@@ -320,6 +322,8 @@ function glyphs.generateGlyphs(targetDir)
 		local svgPath = svgBaseDir .. "/" .. entry.inputFilename .. ".svg"
 		local pngPath = baseOutputDir .. "/" .. entry.outputPath .. ".png"
 
+		-- Call convertSvgToPng, letting it default padding to FIXED_STROKE_WIDTH.
+		-- The render height is the target height.
 		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor) then
 			logger.warning("Failed to convert glyph: " .. entry.inputFilename)
 		end
@@ -337,7 +341,7 @@ end
 --- It reads the full glyph map but filters for entries with an outputPath that starts with `muxlaunch/`.
 --- These filtered icons are then converted from their SVG source to PNG format.
 --- The generated PNGs are saved to the directory specified by `paths.THEME_GRID_MUXLAUNCH`.
---- Icons are resized to a fixed height of 120px while maintaining their aspect ratio.
+--- Icons are rendered at a specific height such that when 8px padding is added, the final image is 120x120px.
 function glyphs.generateMuxLaunchGlyphs()
 	logger.debug("Starting muxlaunch glyph generation process.")
 
@@ -357,17 +361,22 @@ function glyphs.generateMuxLaunchGlyphs()
 	local svgBaseDir = paths.ROOT_DIR .. "/assets/icons/lucide/glyph"
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
-	local glyphHeight = 120 -- Specific height requested for muxlaunch glyphs
+	local targetCanvasSize = 120 -- Desired final image size (with padding)
+	local muxLaunchPadding = 8 -- Specific padding requested for muxlaunch glyphs
+	-- Calculate the render height needed for the glyph itself
+	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 
 	-- Get foreground color for icons
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	logger.debug(
 		string.format(
-			"Generating %d muxlaunch glyphs with height: %dpx and stroke width: %fpx",
+			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: %fpx, padding: %dpx)",
 			#muxLaunchGlyphMap,
-			glyphHeight,
-			FIXED_STROKE_WIDTH
+			targetCanvasSize,
+			glyphRenderHeight,
+			FIXED_STROKE_WIDTH,
+			muxLaunchPadding
 		)
 	)
 
@@ -378,7 +387,8 @@ function glyphs.generateMuxLaunchGlyphs()
 		local cleanOutputPath = entry.outputPath:gsub("^muxlaunch/", "")
 		local pngPath = baseOutputDir .. "/" .. cleanOutputPath .. ".png"
 
-		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor) then
+		-- Call convertSvgToPng with the calculated render height and specific padding
+		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, muxLaunchPadding) then
 			logger.warning("Failed to convert muxlaunch glyph: " .. entry.inputFilename)
 		else
 			successCount = successCount + 1
