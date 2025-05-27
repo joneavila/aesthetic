@@ -326,6 +326,13 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Generate muxlaunch glyphs for the grid view
+		logger.debug("Generating muxlaunch glyphs")
+		if not glyphs.generateMuxLaunchGlyphs() then
+			logger.error("Failed to generate muxlaunch glyphs")
+			return false
+		end
+
 		-- Create theme's boot image
 		logger.debug("Creating boot image")
 		if not createBootImage() then

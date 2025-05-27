@@ -31,6 +31,8 @@ paths.THEME_VERSION = paths.THEME_DIR .. "/version.txt"
 
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
+
+
 -- `rgb` directory and files
 paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
 paths.ACTIVE_RGB_CONF = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
@@ -112,6 +114,7 @@ paths.THEME_SHUTDOWN_IMAGE = paths.THEME_IMAGE_DIR .. "/shutdown.png"
 paths.THEME_SHUTDOWN_ICON_SOURCE = "assets/icons/lucide/ui/power.svg"
 paths.THEME_CHARGE_IMAGE = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
 paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
+paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
 
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"

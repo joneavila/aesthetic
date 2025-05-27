@@ -333,4 +333,63 @@ function glyphs.generateGlyphs(targetDir)
 	return true
 end
 
+--- Generates PNG files for icons specifically used in the muxlaunch grid view.
+--- It reads the full glyph map but filters for entries with an outputPath that starts with `muxlaunch/`.
+--- These filtered icons are then converted from their SVG source to PNG format.
+--- The generated PNGs are saved to the directory specified by `paths.THEME_GRID_MUXLAUNCH`.
+--- Icons are resized to a fixed height of 120px while maintaining their aspect ratio.
+function glyphs.generateMuxLaunchGlyphs()
+	logger.debug("Starting muxlaunch glyph generation process.")
+
+	local glyphMap = glyphs.readGlyphMap()
+	if not glyphMap then
+		logger.error("Failed to read glyph map for muxlaunch glyph generation.")
+		return false
+	end
+
+	local muxLaunchGlyphMap = {}
+	for _, entry in ipairs(glyphMap) do
+		if entry.outputPath:match("^muxlaunch/") then
+			table.insert(muxLaunchGlyphMap, entry)
+		end
+	end
+
+	local svgBaseDir = paths.ROOT_DIR .. "/assets/icons/lucide/glyph"
+	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
+
+	local glyphHeight = 120 -- Specific height requested for muxlaunch glyphs
+
+	-- Get foreground color for icons
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
+
+	logger.debug(
+		string.format(
+			"Generating %d muxlaunch glyphs with height: %dpx and stroke width: %fpx",
+			#muxLaunchGlyphMap,
+			glyphHeight,
+			FIXED_STROKE_WIDTH
+		)
+	)
+
+	local successCount = 0
+	for _, entry in ipairs(muxLaunchGlyphMap) do
+		local svgPath = svgBaseDir .. "/" .. entry.inputFilename .. ".svg"
+		-- Remove the "muxlaunch/" prefix from the outputPath before joining
+		local cleanOutputPath = entry.outputPath:gsub("^muxlaunch/", "")
+		local pngPath = baseOutputDir .. "/" .. cleanOutputPath .. ".png"
+
+		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor) then
+			logger.warning("Failed to convert muxlaunch glyph: " .. entry.inputFilename)
+		else
+			successCount = successCount + 1
+		end
+	end
+
+	logger.debug(string.format("Generated %d of %d muxlaunch glyphs.", successCount, #muxLaunchGlyphMap))
+
+	-- Muxlaunch icons don't have a separate header category to copy directly
+
+	return successCount > 0
+end
+
 return glyphs
