@@ -234,16 +234,14 @@ function themeCreator.createTheme()
 			end
 		end
 
-		-- Now handle the contents of the scheme directory, copying them to workingSchemeDir
-		local schemeSourceDir = paths.TEMPLATE_DIR .. "/scheme"
-		local schemeItems = system.listDir(schemeSourceDir)
+		-- Now handle the contents of the scheme directory, copying them to the working theme directory
+		local schemeItems = system.listDir(paths.THEME_SCHEME_SOURCE_DIR)
 		if not schemeItems then
 			return false
 		end
-
 		for _, item in ipairs(schemeItems) do
-			local sourcePath = schemeSourceDir .. "/" .. item
-			local destPath = workingSchemeDir .. "/" .. item
+			local sourcePath = paths.THEME_SCHEME_SOURCE_DIR .. "/" .. item
+			local destPath = paths.THEME_SCHEME_DIR .. "/" .. item
 			if system.isDir(sourcePath) then
 				-- If it's a directory, use copyDir
 				if not system.copyDir(sourcePath, destPath) then
