@@ -89,24 +89,6 @@ function themeSettings.applyContentWidth(schemeFilePath)
 	end)
 end
 
--- Apply bar Y position settings to a scheme file
-function themeSettings.applyBarYPosition(schemeFilePath, screenHeight)
-	return system.modifyFile(schemeFilePath, function(content)
-		-- Calculate bar Y position (screen height minus 96)
-		local barYPos = screenHeight - 96
-
-		-- Replace bar-y-pos placeholder
-		local barYPosCount
-		content, barYPosCount = content:gsub("%%{%s*bar%-y%-pos%s*}", tostring(barYPos))
-		if barYPosCount == 0 then
-			errorHandler.setError("Failed to replace bar Y position setting in template")
-			return content, false
-		end
-
-		return content, true
-	end)
-end
-
 -- Apply navigation alignment settings to a scheme file
 function themeSettings.applyNavigationAlignmentSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)

@@ -423,12 +423,6 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's bar Y position settings
-		logger.debug("Setting theme's bar Y position settings")
-		if not schemeConfigurator.applyBarYPosition(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
-			return false
-		end
-
 		-- Set theme's navigation alpha settings
 		logger.debug("Setting theme's navigation alpha settings")
 		if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then
