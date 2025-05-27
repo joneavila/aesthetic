@@ -111,21 +111,21 @@ function themeSettings.applyContentHeightSettings(schemeFilePath, screenHeight)
 		end
 
 		-- Determine content item count based on display height
-		local contentItemCount = 9 -- Default value for 480px height
-		if screenHeight == 576 then
-			contentItemCount = 11
-		elseif screenHeight == 720 or screenHeight == 768 then
-			contentItemCount = 13
-		end
+		-- local contentItemCount = 9 -- Default value for 480px height
+		-- if screenHeight == 576 then
+		-- 	contentItemCount = 11
+		-- elseif screenHeight == 720 or screenHeight == 768 then
+		-- 	contentItemCount = 13
+		-- end
 
 		-- Replace content-item-count placeholder
-		local contentItemCountReplaceCount
-		content, contentItemCountReplaceCount =
-			content:gsub("%%{%s*content%-item%-count%s*}", tostring(contentItemCount))
-		if contentItemCountReplaceCount == 0 then
-			errorHandler.setError("Failed to replace content item count settings in template")
-			return content, false
-		end
+		-- local contentItemCountReplaceCount
+		-- content, contentItemCountReplaceCount =
+		-- 	content:gsub("%%{%s*content%-item%-count%s*}", tostring(contentItemCount))
+		-- if contentItemCountReplaceCount == 0 then
+		-- 	errorHandler.setError("Failed to replace content item count settings in template")
+		-- 	return content, false
+		-- end
 
 		return content, true
 	end)
