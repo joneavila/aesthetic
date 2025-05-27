@@ -252,6 +252,7 @@ function system.getEnvironmentVariable(name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end
+	logger.debug("Read environment variable " .. name .. " with value: " .. value)
 	return value
 end
 
@@ -428,6 +429,21 @@ function system.listFiles(dir, pattern)
 		end
 	end
 	return files
+end
+
+-- Read the system version from the MUOS version file
+function system.getSystemVersion()
+	local paths = require("paths")
+	local versionFilePath = paths.MUOS_VERSION
+	local content = system.readFile(versionFilePath)
+	if content == nil then
+		logger.error("Failed to read system version from " .. versionFilePath)
+		return "Unknown"
+	end
+	-- Trim leading/trailing whitespace
+	local cleanedVersion = content:gsub("^%s*(.-)%s*$", "%1")
+	logger.debug("Read version: " .. cleanedVersion)
+	return cleanedVersion
 end
 
 return system

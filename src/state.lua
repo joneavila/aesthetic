@@ -104,6 +104,9 @@ local state = {
 	backgroundGradientDirection = "Vertical", -- Default gradient direction
 
 	headerTextEnabled = "Disabled", -- Default value for header text (Enabled/Disabled)
+
+	-- System information
+	systemVersion = "Unknown", -- Initialize with a default value
 }
 
 logger.debug("State initialized with dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)

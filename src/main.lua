@@ -43,10 +43,11 @@ function love.load()
 		rgbUtils.updateConfig()
 	end
 
+	-- Initialize system version state
+	state.systemVersion = system.getSystemVersion()
+
 	-- Load UI components that require initialization
-	-- local button = require("ui.button")
 	screens = require("screens")
-	-- button.load()
 	screens.load()
 
 	-- Start with the splash screen
@@ -85,7 +86,7 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.origin() -- Reset coordinate system to default
+	love.graphics.origin() -- TODO: Reset coordinate system to default does not fix TrimUI Brick GOOSE bug
 	screens.draw()
 
 	-- Debug: Draw a red square at 0,0
