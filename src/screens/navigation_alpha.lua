@@ -13,6 +13,7 @@ local list = require("ui.list")
 
 -- Screen switching
 local switchScreen = nil
+local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
 
 -- Module table to export public functions
 local navigation_alpha = {}
@@ -32,9 +33,18 @@ local BUTTONS = {
 	},
 }
 
+-- Animated slider state managed by slider.lua
+local alphaSliderState = nil
+local ANIMATION_DURATION = 0.25 -- Define animation duration locally
+
 -- Set the screen switcher function
 function navigation_alpha.setScreenSwitcher(switcher)
 	switchScreen = switcher
+end
+
+-- Function to get display text for an alpha value
+local function getDisplayText(alpha)
+	return tostring(alpha) .. "%"
 end
 
 -- Draw the screen
@@ -53,7 +63,16 @@ function navigation_alpha.draw()
 
 	-- Draw slider
 	local sliderY = startY + 40
-	slider.draw(40, sliderY, state.screenWidth - 80, alphaValues, BUTTONS[1].value, "Transparency")
+	-- Use the animated value from the state table for drawing the handle position
+	slider.draw(
+		40, -- x
+		sliderY, -- y
+		state.screenWidth - 80, -- width
+		alphaValues, -- values
+		alphaSliderState.animatedValue, -- animatedIndex (use tweenTarget.value for smooth drawing)
+		BUTTONS[1].value, -- currentIndex (for displaying value text)
+		"Transparency"
+	)
 
 	-- Draw preview area
 	local previewY = sliderY + 120
@@ -68,6 +87,7 @@ function navigation_alpha.draw()
 	local previewWidth = state.screenWidth - 80
 
 	-- Calculate alpha from current value (0-100 to 0-1)
+	-- Use the actual BUTTONS value, not the animated value, for the preview transparency
 	local alpha = alphaValues[BUTTONS[1].value] / 100
 
 	-- Draw preview rectangle with selected alpha
@@ -87,12 +107,15 @@ function navigation_alpha.draw()
 end
 
 -- Update function to handle input
-function navigation_alpha.update(_dt)
+function navigation_alpha.update(dt)
+	-- Update the animated slider state
+	slider.updateAnimatedSliderState(alphaSliderState, dt)
+
 	local virtualJoystick = input.virtualJoystick
 
 	-- Handle save button
 	if virtualJoystick.isGamepadPressedWithDelay("b") and switchScreen then
-		switchScreen("main_menu")
+		switchScreen(MENU_SCREEN)
 		return
 	end
 
@@ -116,7 +139,11 @@ function navigation_alpha.update(_dt)
 			-- Only update if changed
 			if newValue ~= btn.value then
 				btn.value = newValue
-				state.navigationAlpha = alphaValues[btn.value]
+				state.navigationAlpha = alphaValues[btn.value] -- Update application state
+
+				-- Start the animation in the slider component
+				slider.setAnimatedSliderValue(alphaSliderState, newValue, ANIMATION_DURATION)
+
 				return true
 			end
 
@@ -144,11 +171,11 @@ function navigation_alpha.onEnter()
 
 	BUTTONS[1].value = closestIndex
 
+	-- Initialize the animated slider state
+	alphaSliderState = slider.createAnimatedSliderState(BUTTONS[1].value)
+
 	-- Initialize the list UI state with the selected item
 	list.setSelectedIndex(1, BUTTONS)
-
-	-- Make sure state has the value set
-	state.navigationAlpha = alphaValues[BUTTONS[1].value]
 end
 
 return navigation_alpha

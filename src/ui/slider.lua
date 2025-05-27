@@ -1,6 +1,7 @@
 --- Slider UI component
 local love = require("love")
 local colors = require("colors")
+local tween = require("tween") -- Add tween require
 
 -- Module table to export public functions
 local slider = {}
@@ -16,20 +17,58 @@ slider.TICK_HEIGHT = 10
 slider.TICK_WIDTH = 2
 slider.LABEL_OFFSET_Y = 30 -- Distance from slider to label text
 
+-- Create a state table for an animated slider
+function slider.createAnimatedSliderState(initialIndex)
+	local state = {
+		animatedValue = initialIndex,
+		currentTween = nil,
+	}
+	return state
+end
+
+-- Update the animation state
+function slider.updateAnimatedSliderState(state, dt)
+	if state.currentTween then
+		local completed = state.currentTween:update(dt)
+		if completed then
+			state.currentTween = nil
+		end
+	end
+end
+
+-- Start an animation to a new target index
+function slider.setAnimatedSliderValue(state, targetIndex, duration)
+	-- Only animate if the target is different from the current animated value (approximately)
+	-- This check prevents starting a new tween if the value is already close to the target
+	-- Use state.animatedValue here as it reflects the current position.
+	if math.abs(state.animatedValue - targetIndex) > 0.01 then
+		-- Create tween from current animated value to the new target value
+		-- The new tween will replace the old one if one exists.
+		-- The tween will directly update state.animatedValue
+		local newTween = tween.new(duration, state, { animatedValue = targetIndex }, "inOutQuad")
+		if newTween then -- Ensure a valid tween object was created
+			state.currentTween = newTween
+		end
+	end
+end
+
 -- Draw a slider with the given parameters
 -- @param x The x coordinate of the slider
 -- @param y The y coordinate of the slider
 -- @param width The width of the slider
 -- @param values The array of values that the slider can snap to
--- @param currentIndex The index of the currently selected value
+-- @param animatedIndex The current interpolated index for drawing the handle
+-- @param currentIndex The actual current index for displaying the value text
 -- @param label (optional) A label to display above the slider
-function slider.draw(x, y, width, values, currentIndex, label)
+function slider.draw(x, y, width, values, animatedIndex, currentIndex, label)
 	if not values or #values == 0 then
 		return
 	end
 
-	-- Ensure currentIndex is valid
-	currentIndex = math.max(1, math.min(currentIndex, #values))
+	-- Ensure indices are valid for accessing values array
+	-- animatedIndex is already the interpolated value from the tween
+	local clampedAnimatedIndex = math.max(1, math.min(animatedIndex, #values))
+	local clampedCurrentIndex = math.max(1, math.min(currentIndex, #values))
 
 	-- Calculate track metrics
 	local trackX = x + slider.PADDING
@@ -48,14 +87,17 @@ function slider.draw(x, y, width, values, currentIndex, label)
 		love.graphics.rectangle("fill", tickX, tickY, slider.TICK_WIDTH, slider.TICK_HEIGHT, 1)
 	end
 
-	-- Draw filled portion of track
-	local percent = (currentIndex - 1) / (#values - 1)
+	-- Draw filled portion of track based on animated index
+	local rawPercent = (animatedIndex - 1) / math.max(1, #values - 1) -- Calculate percent first
+	local percent = math.max(0, math.min(1, rawPercent)) -- Clamp the percentage
 	local fillWidth = trackWidth * percent
 	love.graphics.setColor(colors.ui.accent)
 	love.graphics.rectangle("fill", trackX, trackY, fillWidth, slider.TRACK_HEIGHT, slider.TRACK_HEIGHT / 2)
 
-	-- Draw handle
-	local handleX = trackX + fillWidth - (slider.HANDLE_WIDTH / 2)
+	-- Draw handle based on animated index
+	local handlePercent = (animatedIndex - 1) / math.max(1, #values - 1) -- Use raw percent for handle position
+	local clampedHandlePercent = math.max(0, math.min(1, handlePercent))
+	local handleX = trackX + trackWidth * clampedHandlePercent - (slider.HANDLE_WIDTH / 2)
 	local handleY = y + (slider.HEIGHT / 2) - (slider.HANDLE_HEIGHT / 2)
 
 	-- Draw handle shadow
@@ -76,17 +118,17 @@ function slider.draw(x, y, width, values, currentIndex, label)
 	-- Draw label if provided
 	if label then
 		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(label, x + slider.PADDING, y - slider.LABEL_OFFSET_Y)
+		love.graphics.print(label, x + slider.PADDING, y - slider.LABEL_OFFSET_Y) -- Assuming font is already set
 	end
 
-	-- Draw current value
-	local currentValue = values[currentIndex]
+	-- Draw current value (use the actual current index)
+	local currentValue = values[clampedCurrentIndex]
 	local valueText = tostring(currentValue)
-	local font = love.graphics.getFont()
+	local font = love.graphics.getFont() -- Get current font
 	local textWidth = font:getWidth(valueText)
 
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(valueText, x + width - slider.PADDING - textWidth, y - slider.LABEL_OFFSET_Y)
+	love.graphics.print(valueText, x + width - slider.PADDING - textWidth, y - slider.LABEL_OFFSET_Y) -- Assuming font is already set
 end
 
 -- Helper function to get the next snapping value based on a relative position
