@@ -78,42 +78,6 @@ local function writeLog(level, message)
 	end
 end
 
--- Function to log variable values with type information
-function logger.debugValue(name, value)
-	local valueType = type(value)
-	local valueStr
-
-	if valueType == "table" then
-		-- Simple table inspection (single level)
-		local elements = {}
-		local count = 0
-		for k, v in pairs(value) do
-			count = count + 1
-			if count <= 5 then -- Limit to 5 items to avoid huge logs
-				table.insert(elements, tostring(k) .. "=" .. tostring(v))
-			else
-				table.insert(elements, "...")
-				break
-			end
-		end
-		valueStr = "{" .. table.concat(elements, ", ") .. "}"
-	elseif valueType == "function" then
-		valueStr = "function"
-	elseif valueType == "userdata" then
-		-- Try to get more info about LÖVE userdata objects
-		local success, metatable = pcall(getmetatable, value)
-		if success and metatable and metatable.__tostring then
-			valueStr = tostring(value)
-		else
-			valueStr = "userdata"
-		end
-	else
-		valueStr = tostring(value)
-	end
-
-	writeLog(LOG_LEVELS.DEBUG, name .. " = " .. valueStr .. " (" .. valueType .. ")")
-end
-
 -- Public logging function
 -- Each level in the LOG_LEVELS table is a public function in the logger module, e.g. logger.debug
 for level, levelStr in pairs(LOG_LEVELS) do
