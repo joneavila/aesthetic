@@ -142,8 +142,4 @@ paths.getFontSizeDir = function(displayWidth, displayHeight)
 	return fonts.getFontSizeDir(displayWidth, displayHeight)
 end
 
-paths.getImageFontSize = function(displayWidth, displayHeight)
-	return 28
-end
-
 return paths
