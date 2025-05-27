@@ -19,7 +19,7 @@ function system.fileExists(path)
 		file:close()
 		return true
 	end
-	logger.debug("File does not exist: " .. path)
+	logger.warning("File does not exist: " .. path)
 	errorHandler.setError("File does not exist: " .. path)
 	return false
 end

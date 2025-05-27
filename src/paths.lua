@@ -31,8 +31,6 @@ paths.THEME_VERSION = paths.THEME_DIR .. "/version.txt"
 
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
-
-
 -- `rgb` directory and files
 paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
 paths.ACTIVE_RGB_CONF = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
@@ -52,6 +50,8 @@ paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR .. "/led_control.sh"
 -- muOS version file path (contains version info)
 local muosConfigDir = deviceScriptDir:gsub("/device/current/script", "/config")
 paths.MUOS_VERSION = muosConfigDir .. "/version.txt"
+
+paths.THEME_INSTALL_SCRIPT = "/opt/muos/script/package/theme.sh"
 
 -- Assets used by the UI
 paths.THEME_FONT_SOURCE_DIR = paths.ROOT_DIR .. "/assets/fonts"

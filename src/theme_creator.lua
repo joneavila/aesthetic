@@ -15,12 +15,10 @@ local love = require("love")
 local themeCreator = {}
 
 -- Helper function to reset graphics state between image generation calls
+-- Sets blend mode to default, clears any active canvas, and sets color to default
 local function resetGraphicsState()
-	-- Reset blend mode to default
 	love.graphics.setBlendMode("alpha")
-	-- Clear any active canvas
 	love.graphics.setCanvas()
-	-- Reset color to default
 	love.graphics.setColor(1, 1, 1, 1)
 end
 
@@ -35,13 +33,6 @@ end
 -- Function to create boot logo image shown during boot
 local function createBootImage()
 	if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE) then
-		return false
-	end
-
-	-- Ensure resolution image directory exists before creating the boot image
-	local resolutionImageDir = paths.getThemeResolutionImageDir()
-	if not system.ensurePath(resolutionImageDir) then
-		logger.error("Failed to create resolution image directory: " .. resolutionImageDir)
 		return false
 	end
 
@@ -150,26 +141,20 @@ local function createCreditsFile()
 end
 
 -- Function to create `version.txt` file containing the compatible muOS version
+-- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
 	-- Read the content from the source file
 	local content = system.readFile(paths.MUOS_VERSION)
 	local versionNumber = system.getEnvironmentVariable("MUOS_VERSION")
 
-	if content then
-		-- Extract just the version number using pattern matching
-		-- Pattern matches: digits with zero or more periods followed by underscore
-		local parsedVersion = content:match("(%d[%d%.]+)_")
-
-		if parsedVersion then
-			versionNumber = parsedVersion
-		else
-			logger.debug("Could not parse version number from muOS version file, using default")
-		end
-	else
-		logger.debug("Could not read muOS version file, using default version")
+	-- Extract just the version number using pattern matching (digits with zero or more periods followed by underscore)
+	local parsedVersion = content:match("(%d[%d%.]+)_")
+	if not parsedVersion then
+		errorHandler.setError("muOS version could not be parsed from version file")
+		return false
 	end
 
-	return system.createTextFile(paths.THEME_VERSION, versionNumber)
+	return system.createTextFile(paths.THEME_VERSION, parsedVersion)
 end
 
 -- Function to find and copy the selected font file to theme directory based on screen height
@@ -187,29 +172,13 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Print debug info for all font size options
-	for sizeOption, mappedBinSize in pairs(fonts.themeFontSizeOptions) do
-		local fontDir = selectedFontFile:gsub("%.bin$", "")
-		local binFile = "assets/fonts/" .. fontDir .. "/" .. fontDir .. "_" .. mappedBinSize .. ".bin"
-		logger.debug(
-			"Font size option: "
-				.. tostring(sizeOption)
-				.. ", mapped bin size: "
-				.. tostring(mappedBinSize)
-				.. ", bin file: "
-				.. binFile
-		)
-	end
-
 	-- Get the font size directory
 	local fontSizeDir
 	local existingFontSize, result = pcall(function()
 		return fonts.themeFontSizeOptions[state.fontSize]
 	end)
 	if not existingFontSize or not result then
-		local errorMsg = "Failed to get font size: " .. tostring(state.fontSize)
-		logger.error(errorMsg)
-		errorHandler.setError(errorMsg)
+		errorHandler.setError("Failed to get font size: " .. tostring(state.fontSize))
 		return false
 	end
 	fontSizeDir = result
@@ -222,11 +191,8 @@ local function copySelectedFont()
 		.. "_"
 		.. fontSizeDir
 		.. ".bin"
-	logger.debug(
-		"[FINAL] Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(state.fontSize)
-	)
+	logger.debug("Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(state.fontSize))
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
-		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false
 	end
 
@@ -241,27 +207,12 @@ end
 -- Main function to create theme
 function themeCreator.createTheme()
 	local status, err = xpcall(function()
-		-- Log theme name and screen dimensions for debugging
-		logger.debug("Creating theme with name: " .. state.themeName)
-		logger.debug("Screen dimensions when creating theme: " .. state.screenWidth .. "x" .. state.screenHeight)
-
-		-- Clean up and prepare working directory
-		logger.debug("Cleaning working directory")
+		-- Clean up old theme files
 		system.removeDir(paths.WORKING_THEME_DIR)
-		system.ensurePath(paths.WORKING_THEME_DIR)
 
 		-- Copy template directory contents to working directory, handling scheme/global.ini specifically
-		logger.debug("Copying template directory contents to working directory")
 		local templateItems = system.listDir(paths.TEMPLATE_DIR)
 		if not templateItems then
-			logger.error("Failed to list contents of template directory: " .. paths.TEMPLATE_DIR)
-			return false
-		end
-
-		-- Ensure the scheme directory exists in the working theme directory
-		local workingSchemeDir = paths.WORKING_THEME_DIR .. "/scheme"
-		if not system.ensurePath(workingSchemeDir) then
-			logger.error("Failed to create working scheme directory: " .. workingSchemeDir)
 			return false
 		end
 
@@ -269,22 +220,14 @@ function themeCreator.createTheme()
 			local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
 			local destPath = paths.WORKING_THEME_DIR .. "/" .. item
 
-			if item == "scheme" then
-				-- Handle scheme directory contents separately later
-				logger.debug("Skipping scheme directory for now: " .. sourcePath)
-			else
+			if item ~= "scheme" then
 				-- Copy other files and directories directly to the working theme directory
-				logger.debug("Copying template item: " .. sourcePath .. " to " .. destPath)
 				if system.isDir(sourcePath) then
-					-- If it's a directory, use copyDir
 					if not system.copyDir(sourcePath, destPath) then
-						logger.error("Failed to copy template directory: " .. sourcePath)
 						return false
 					end
 				else
-					-- If it's a file, use copyFile
 					if not system.copyFile(sourcePath, destPath) then
-						logger.error("Failed to copy template file: " .. sourcePath)
 						return false
 					end
 				end
@@ -295,59 +238,47 @@ function themeCreator.createTheme()
 		local schemeSourceDir = paths.TEMPLATE_DIR .. "/scheme"
 		local schemeItems = system.listDir(schemeSourceDir)
 		if not schemeItems then
-			logger.error("Failed to list contents of scheme template directory: " .. schemeSourceDir)
 			return false
 		end
 
 		for _, item in ipairs(schemeItems) do
 			local sourcePath = schemeSourceDir .. "/" .. item
 			local destPath = workingSchemeDir .. "/" .. item
-			logger.debug("Copying scheme item: " .. sourcePath .. " to " .. destPath)
 			if system.isDir(sourcePath) then
 				-- If it's a directory, use copyDir
 				if not system.copyDir(sourcePath, destPath) then
-					logger.error("Failed to copy scheme directory: " .. sourcePath)
 					return false
 				end
 			else
 				-- If it's a file, use copyFile
 				if not system.copyFile(sourcePath, destPath) then
-					logger.error("Failed to copy scheme file: " .. sourcePath)
 					return false
 				end
 			end
 		end
 
 		-- Generate glyphs dynamically from SVG sources
-		logger.debug("Generating glyphs dynamically")
 		local glyphs = require("utils.glyphs")
 		if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
-			logger.error("Failed to generate glyphs")
 			return false
 		end
 
 		-- Generate muxlaunch glyphs for the grid view
-		logger.debug("Generating muxlaunch glyphs")
 		if not glyphs.generateMuxLaunchGlyphs() then
-			logger.error("Failed to generate muxlaunch glyphs")
 			return false
 		end
 
 		-- Create theme's boot image
-		logger.debug("Creating boot image")
 		if not createBootImage() then
-			logger.error("Failed to create boot image")
 			return false
 		end
 
 		-- Create theme's shutdown image
-		logger.debug("Creating shutdown image")
 		if not createShutdownImage() then
 			return false
 		end
 
 		-- Create theme's charge image
-		logger.debug("Creating charge image")
 		if not createChargeImage() then
 			return false
 		end
@@ -356,7 +287,6 @@ function themeCreator.createTheme()
 		resetGraphicsState()
 
 		-- Create theme's reboot image
-		logger.debug("Creating reboot image")
 		if not createRebootImage() then
 			return false
 		end
@@ -364,141 +294,80 @@ function themeCreator.createTheme()
 		-- Reset graphics state after all image generation
 		resetGraphicsState()
 
-		-- Create theme's preview image
-		logger.debug("Creating preview image")
-		-- Ensure resolution directory exists before creating preview image
-		local resolutionDir = paths.getThemeResolutionDir()
-		if not system.ensurePath(resolutionDir) then
-			logger.error("Failed to create resolution directory: " .. resolutionDir)
-			return false
-		end
-		-- Ensure resolution image directory exists
-		local resolutionImageDir = paths.getThemeResolutionImageDir()
-		if not system.ensurePath(resolutionImageDir) then
-			logger.error("Failed to create resolution image directory: " .. resolutionImageDir)
-			return false
-		end
 		if not createPreviewImage() then
 			return false
 		end
 
-		-- Set theme's background settings with gradient support
-		logger.debug("Setting theme's background settings")
 		if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's glyph settings
-		logger.debug("Setting theme's glyph settings")
 		if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's screen width settings
-		logger.debug("Setting theme's screen width settings")
 		if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 			return false
 		end
 
-		-- Set theme's content width settings for `muxplore.ini`
-		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
 			return false
 		end
 
-		-- Set theme's navigation alignment settings
-		logger.debug("Setting theme's navigation alignment settings")
 		if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's status alignment settings
-		logger.debug("Setting theme's status alignment settings")
 		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's header text alignment settings
-		logger.debug("Setting theme's header text alignment settings")
 		if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's time alignment settings
-		logger.debug("Setting theme's time alignment settings")
 		if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Set theme's navigation alpha settings
-		logger.debug("Setting theme's navigation alpha settings")
 		if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
-		-- Copy the selected font file
-		logger.debug("Copying selected font file")
 		if not copySelectedFont() then
 			return false
 		end
 
-		-- Create theme's `credits.txt` file
-		logger.debug("Creating theme's `credits.txt` file")
 		if not createCreditsFile() then
 			return false
 		end
 
-		-- Create theme's `version.txt` file
-		logger.debug("Creating theme's `version.txt` file")
 		if not createVersionFile() then
 			return false
 		end
 
-		-- Create theme's `name.txt` file
-		logger.debug("Creating theme's `name.txt` file")
 		if not createNameFile() then
 			return false
 		end
 
-		-- Create theme's RGB configuration file
 		if state.hasRGBSupport then
-			logger.debug("Creating theme's RGB configuration file")
 			if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF) then
 				return false
 			end
-		else
-			logger.debug(
-				"Skip: Creating theme's RGB configuration file (hasRGBSupport: " .. tostring(state.hasRGBSupport) .. ")"
-			)
 		end
 
-		-- Copy sound files to the theme
-		logger.debug("Copying sound files to the theme")
 		if not copySoundFiles() then
 			return false
 		end
 
-		-- Create the ZIP archive
-		logger.debug("Creating archive for theme: " .. state.themeName)
 		local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 		if not outputThemePath then
 			return false
 		end
 
-		-- Call sync to make the theme available
 		commands.executeCommand("sync")
 
-		-- Final cleanup of graphics state
 		resetGraphicsState()
-
-		-- Print the contents of global.ini in the working theme directory for debugging
-		local globalIniPath = paths.THEME_SCHEME_GLOBAL
-		local globalIniContent = system.readFile(globalIniPath)
-		if globalIniContent then
-			logger.debug("Contents of global.ini after theme creation:\n" .. globalIniContent)
-		else
-			logger.error("Could not read global.ini at: " .. tostring(globalIniPath))
-		end
 
 		return outputThemePath
 	end, debug.traceback)
@@ -519,31 +388,22 @@ end
 function themeCreator.installTheme(themeName)
 	logger.debug("Installing theme: " .. themeName)
 	local status, err = xpcall(function()
-		-- Check if we're in development environment
 		if state.isDevelopment then
 			logger.info("Skipping theme installation: Running in development environment")
 			return true -- Return success but don't actually install
 		end
 
-		-- Script path for production environment
-		local scriptPath = "/opt/muos/script/package/theme.sh"
-
-		-- Additional safety check - verify script exists
-		if not system.fileExists(scriptPath) then
-			logger.warning("Theme installation script not found at: " .. scriptPath)
+		if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
 			return true -- Return success but don't actually install
 		end
 
 		-- If script exists, proceed with installation
-		local cmd = string.format('%s install "%s"', scriptPath, themeName)
-		logger.debug("Executing install command: " .. cmd)
+		local cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
 		local result = commands.executeCommand(cmd)
-		logger.debug("Install theme result: " .. tostring(result))
 		return result == 0
 	end, debug.traceback)
 
 	if not status then
-		logger.error("Error during installation: " .. tostring(err))
 		errorHandler.setError("Error during installation: " .. tostring(err))
 		return false
 	end
