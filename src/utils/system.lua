@@ -244,6 +244,17 @@ function system.copyFile(sourcePath, destinationPath)
 	return commands.executeCommand(cmd)
 end
 
+-- Function to check if a path is a directory
+function system.isDir(path)
+	if not path then
+		return false -- Not a valid path
+	end
+	-- Use 'test -d' to check if path is a directory
+	local cmd = string.format('test -d "%s"', path)
+	-- os.execute returns 0 for success, non-zero for failure
+	return os.execute(cmd) == 0
+end
+
 -- Get environment variable, setting error if not found
 function system.getEnvironmentVariable(name)
 	local value = os.getenv(name)
@@ -444,6 +455,52 @@ function system.getSystemVersion()
 	local cleanedVersion = content:gsub("^%s*(.-)%s*$", "%1")
 	logger.debug("Read version: " .. cleanedVersion)
 	return cleanedVersion
+end
+
+-- Function to list contents of a directory
+function system.listDir(dir)
+	if not dir then
+		errorHandler.setError("No directory path provided to listDir")
+		return nil
+	end
+
+	-- Check if directory exists before listing
+	local checkCmd = string.format('test -d "%s"', dir)
+	if commands.executeCommand(checkCmd) ~= 0 then
+		logger.warning("Directory does not exist for listing: " .. dir)
+		-- Return an empty table if the directory doesn't exist (graceful handling)
+		return {}
+	end
+
+	-- Use ls -a1 to list all entries (including hidden) one per line
+	local cmd = string.format('ls -a1 "%s"', dir)
+	logger.debug("Listing directory command: " .. cmd)
+
+	local handle = io.popen(cmd .. " 2>&1")
+	if not handle then
+		logger.error("Failed to execute list directory command")
+		errorHandler.setError("Failed to execute list directory command")
+		return nil
+	end
+
+	local result = handle:read("*a")
+	local success = handle:close()
+
+	if not success then
+		logger.error("List directory command failed: " .. result)
+		errorHandler.setError("List directory command failed: " .. result)
+		return nil
+	end
+
+	local items = {}
+	-- Split output into lines and add to table, excluding '.' and '..'
+	for item in result:gmatch("[^\n]+") do
+		if item ~= "." and item ~= ".." then
+			table.insert(items, item)
+		end
+	end
+
+	return items
 end
 
 return system

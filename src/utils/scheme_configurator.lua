@@ -111,40 +111,6 @@ function themeSettings.applyContentHeightSettings(schemeFilePath, screenHeight)
 			return content, false
 		end
 
-		-- Determine content item count based on display height using a lookup table
-		-- These valus are sourced from 2502.0 GOOSE (456e98d8) default theme
-		-- (`global.ini` and resolution-specific `default.ini`)
-		local itemCountLookup = {
-			["640x480"] = 9,
-			["720x480"] = 9,
-			["720x576"] = 11,
-			["720x720"] = 13,
-			["1024x768"] = 9,
-			["1280x720"] = 13,
-		}
-
-		local screenDimensionsKey = state.screenWidth .. "x" .. screenHeight
-		local contentItemCount = itemCountLookup[screenDimensionsKey]
-
-		if contentItemCount == nil then
-			-- Dimensions not found, log a warning and use the default
-			logger.warning(
-				'Unknown screen dimensions "'
-					.. screenDimensionsKey
-					.. '" for content item count lookup. Falling back to default.'
-			)
-			contentItemCount = 9 -- Fallback default
-		end
-
-		-- Replace content-item-count placeholder
-		local contentItemCountReplaceCount
-		content, contentItemCountReplaceCount =
-			content:gsub("%%{%s*content%-item%-count%s*}", tostring(contentItemCount))
-		if contentItemCountReplaceCount == 0 then
-			errorHandler.setError("Failed to replace content item count settings in template")
-			return content, false
-		end
-
 		return content, true
 	end)
 end
@@ -171,21 +137,6 @@ function themeSettings.applyContentWidth(schemeFilePath)
 			return content, false
 		end
 
-		return content, true
-	end)
-end
-
--- Apply antialiasing settings to a scheme file
-function themeSettings.applyAntialiasingSettings(schemeFilePath)
-	return system.modifyFile(schemeFilePath, function(content)
-		-- Modified: Always use antialiasing
-		local antialiasingValue = 1
-		local antialiasingCount
-		content, antialiasingCount = content:gsub("%%{%s*antialiasing%s*}", tostring(antialiasingValue))
-		if antialiasingCount == 0 then
-			errorHandler.setError("Failed to replace antialiasing setting in template")
-			return content, false
-		end
 		return content, true
 	end)
 end
@@ -313,32 +264,6 @@ function themeSettings.applyHeaderTextAlignmentSettings(schemeFilePath)
 		content, headerTextAlignCount = content:gsub("%%{%s*header%-text%-align%s*}", tostring(alignmentValue))
 		if headerTextAlignCount == 0 then
 			errorHandler.setError("Failed to replace header text alignment setting in template")
-			return content, false
-		end
-
-		return content, true
-	end)
-end
-
--- Apply footer and header height settings based on screen height
-function themeSettings.applyFooterHeaderHeightSettings(schemeFilePath, screenHeight)
-	return system.modifyFile(schemeFilePath, function(content)
-		-- Determine height based on screen height using a lookup table
-		local heightLookup = {
-			["480"] = 42,
-			["576"] = 42,
-			["720"] = 50,
-			["768"] = 70,
-		}
-
-		-- Use screenHeight as the key for lookup. Use 42 as fallback.
-		local heightValue = heightLookup[tostring(screenHeight)] or 42
-
-		-- Replace footer-header-height placeholder
-		local heightCount
-		content, heightCount = content:gsub("%%{%s*footer%-header%-height%s*}", tostring(heightValue))
-		if heightCount == 0 then
-			errorHandler.setError("Failed to replace footer-header-height setting in template")
 			return content, false
 		end
 

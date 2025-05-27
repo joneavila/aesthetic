@@ -250,22 +250,79 @@ function themeCreator.createTheme()
 		system.removeDir(paths.WORKING_THEME_DIR)
 		system.ensurePath(paths.WORKING_THEME_DIR)
 
+		-- Copy template directory contents to working directory, handling scheme/global.ini specifically
+		logger.debug("Copying template directory contents to working directory")
+		local templateItems = system.listDir(paths.TEMPLATE_DIR)
+		if not templateItems then
+			logger.error("Failed to list contents of template directory: " .. paths.TEMPLATE_DIR)
+			return false
+		end
+
+		-- Ensure the scheme directory exists in the working theme directory
+		local workingSchemeDir = paths.WORKING_THEME_DIR .. "/scheme"
+		if not system.ensurePath(workingSchemeDir) then
+			logger.error("Failed to create working scheme directory: " .. workingSchemeDir)
+			return false
+		end
+
+		for _, item in ipairs(templateItems) do
+			local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
+			local destPath = paths.WORKING_THEME_DIR .. "/" .. item
+
+			if item == "scheme" then
+				-- Handle scheme directory contents separately later
+				logger.debug("Skipping scheme directory for now: " .. sourcePath)
+			else
+				-- Copy other files and directories directly to the working theme directory
+				logger.debug("Copying template item: " .. sourcePath .. " to " .. destPath)
+				if system.isDir(sourcePath) then
+					-- If it's a directory, use copyDir
+					if not system.copyDir(sourcePath, destPath) then
+						logger.error("Failed to copy template directory: " .. sourcePath)
+						return false
+					end
+				else
+					-- If it's a file, use copyFile
+					if not system.copyFile(sourcePath, destPath) then
+						logger.error("Failed to copy template file: " .. sourcePath)
+						return false
+					end
+				end
+			end
+		end
+
+		-- Now handle the contents of the scheme directory, copying them to workingSchemeDir
+		local schemeSourceDir = paths.TEMPLATE_DIR .. "/scheme"
+		local schemeItems = system.listDir(schemeSourceDir)
+		if not schemeItems then
+			logger.error("Failed to list contents of scheme template directory: " .. schemeSourceDir)
+			return false
+		end
+
+		for _, item in ipairs(schemeItems) do
+			local sourcePath = schemeSourceDir .. "/" .. item
+			local destPath = workingSchemeDir .. "/" .. item
+			logger.debug("Copying scheme item: " .. sourcePath .. " to " .. destPath)
+			if system.isDir(sourcePath) then
+				-- If it's a directory, use copyDir
+				if not system.copyDir(sourcePath, destPath) then
+					logger.error("Failed to copy scheme directory: " .. sourcePath)
+					return false
+				end
+			else
+				-- If it's a file, use copyFile
+				if not system.copyFile(sourcePath, destPath) then
+					logger.error("Failed to copy scheme file: " .. sourcePath)
+					return false
+				end
+			end
+		end
+
 		-- Generate glyphs dynamically from SVG sources
 		logger.debug("Generating glyphs dynamically")
 		local glyphs = require("utils.glyphs")
 		if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
 			logger.error("Failed to generate glyphs")
-			return false
-		end
-
-		-- Copy scheme directory and contents
-		logger.debug(
-			"Copying scheme directory and contents, source: "
-				.. paths.THEME_SCHEME_SOURCE_DIR
-				.. ", destination: "
-				.. paths.THEME_SCHEME_DIR
-		)
-		if not system.copyDir(paths.THEME_SCHEME_SOURCE_DIR, paths.THEME_SCHEME_DIR) then
 			return false
 		end
 
@@ -336,12 +393,6 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's footer and header height settings
-		logger.debug("Setting theme's footer and header height settings")
-		if not schemeConfigurator.applyFooterHeaderHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
-			return false
-		end
-
 		-- Set theme's content height settings
 		logger.debug("Setting theme's content height settings")
 		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
@@ -354,12 +405,6 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's antialiasing settings
-		logger.debug("Setting theme's antialiasing settings")
-		if not schemeConfigurator.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL) then
-			return false
-		end
-
 		-- Set theme's navigation alignment settings
 		logger.debug("Setting theme's navigation alignment settings")
 		if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
@@ -369,12 +414,6 @@ function themeCreator.createTheme()
 		-- Set theme's status alignment settings
 		logger.debug("Setting theme's status alignment settings")
 		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
-			return false
-		end
-
-		-- Set theme's header text alpha settings
-		logger.debug("Setting theme's header text alpha settings")
-		if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
