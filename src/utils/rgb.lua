@@ -217,36 +217,12 @@ function rgb.parseConfig(filePath)
 	return config
 end
 
--- Function to backup current RGB configuration
-function rgb.backupConfig()
-	-- Check if active config exists
-	if not system.fileExists(paths.ACTIVE_RGB_CONF) then
-		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
-		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
-		return false
-	end
-
-	-- Ensure backup directory exists
-	if not system.ensurePath(paths.ACTIVE_RGB_DIR) then
-		return false
-	end
-
-	-- Copy current config to backup
-	return system.copyFile(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
-end
-
 -- Function to restore RGB configuration from backup or turn off if no backup
 function rgb.restoreConfig()
 	-- Skip if RGB is not supported on this device
 	if state.hasRGBSupport == false then
 		logger.debug("Skipping RGB restoreConfig - device does not support RGB lighting")
 		return true
-	end
-
-	-- Only restore if we haven't applied a theme
-	if state.themeApplied then
-		logger.warning("Someone called rgb.restoreConfig() but a theme is applied")
-		return false
 	end
 
 	-- If backup exists, restore it
@@ -276,19 +252,21 @@ function rgb.restoreConfig()
 end
 
 -- Function to backup the current RGB configuration if it exists
-function rgb.backupCurrentConfig()
-	-- Skip if RGB is not supported on this device
-	if state.hasRGBSupport == false then
-		logger.debug("Skipping RGB backup - device does not support RGB lighting")
-		return true
-	end
-
-	logger.debug("Backing up current RGB config")
+function rgb.backupConfig()
+	-- Check if active config exists
 	if not system.fileExists(paths.ACTIVE_RGB_CONF) then
 		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
+		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 		return false
 	end
-	return rgb.backupConfig()
+
+	-- Ensure backup directory exists
+	if not system.ensurePath(paths.ACTIVE_RGB_DIR) then
+		return false
+	end
+
+	-- Copy current config to backup location
+	return system.copyFile(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
 end
 
 -- Function to install RGB config from theme to active config

@@ -23,59 +23,30 @@ local system = require("utils.system")
 -- Screens module will be initialized after loading
 local screens = nil
 
--- Function to load settings from file
-local function loadSettings()
-	return settings.loadFromFile()
-end
-
--- Function to save settings to file
-local function saveSettings()
-	return settings.saveToFile()
-end
+-- Fade duration for screen transitions
+local fadeDuration = 0.5
 
 function love.load()
-	local envWidth = tonumber(os.getenv("WIDTH"))
-	local envHeight = tonumber(os.getenv("HEIGHT"))
-	if envWidth and envHeight and envWidth > 0 and envHeight > 0 then
-		state.screenWidth = envWidth
-		state.screenHeight = envHeight
-		logger.debug("Using environment dimensions: " .. envWidth .. "x" .. envHeight)
-	else
-		logger.warning("Using default dimensions")
-	end
-
+	state.screenWidth = tonumber(system.getEnvironmentVariable("WIDTH"))
+	state.screenHeight = tonumber(system.getEnvironmentVariable("HEIGHT"))
 	logger.info("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
-	state.fadeDuration = 0.5
 
 	fonts.initializeFonts(state.screenWidth, state.screenHeight)
-
 	input.load()
-
-	-- Load user settings if they exist
-	loadSettings()
+	settings.loadFromFile()
 
 	-- Check if device has RGB support before performing RGB operations
 	state.hasRGBSupport = system.hasRGBSupport()
-	logger.info("RGB support: " .. (state.hasRGBSupport and "enabled" or "disabled"))
 
 	if state.hasRGBSupport then
-		-- Backup the current RGB config if it exists
-		local backupSuccess = rgbUtils.backupCurrentConfig()
-		if not backupSuccess then
-			errorHandler.setError("Failed to backup current RGB config")
-		end
-		rgbUtils.updateConfig() -- Apply RGB settings from state
-	else
-		logger.info("Skipping RGB operations - device does not support RGB lighting")
+		rgbUtils.backupConfig()
+		rgbUtils.updateConfig()
 	end
 
 	-- Load UI components that require initialization
-	local button = require("ui.button")
-	button.load()
-
-	-- Now that state is initialized, load the screens module
+	-- local button = require("ui.button")
 	screens = require("screens")
-
+	-- button.load()
 	screens.load()
 
 	-- Start with the splash screen
@@ -86,54 +57,44 @@ function love.load()
 end
 
 -- Function to handle window resize
-function love.resize(w, h)
-	logger.debug("Window resized to: " .. w .. "x" .. h)
-	-- Update screen dimensions in state
-	state.screenWidth, state.screenHeight = w, h
+function love.resize(width, height)
+	logger.debug("Window resized to: " .. width .. "x" .. height)
+	state.screenWidth, state.screenHeight = width, height
 
 	-- Recalculate and reload fonts
 	fonts.initializeFonts(state.screenWidth, state.screenHeight)
 
 	-- Reload the current screen to update layout
-	if screens then
-		local currentScreen = screens.getCurrentScreen()
-		if currentScreen then
-			logger.debug("Reloading screen: " .. currentScreen)
-			screens.switchTo(currentScreen)
-		end
-	end
+	local currentScreen = screens.getCurrentScreen()
+	logger.debug("Reloading screen: " .. currentScreen)
+	screens.switchTo(currentScreen)
 end
 
 function love.update(dt)
 	input.update(dt)
 
-	-- Use the screens module that was loaded in love.load
-	if screens then
-		screens.update(dt)
-	else
-		logger.error("screens module is nil in love.update")
-	end
+	screens.update(dt)
 
 	if state.fading then
 		state.fadeTimer = state.fadeTimer + dt
-		if state.fadeTimer >= state.fadeDuration then
-			state.fadeTimer = state.fadeDuration
+		if state.fadeTimer >= fadeDuration then
+			state.fadeTimer = fadeDuration
 			state.fading = false
 		end
 	end
 end
 
 function love.draw()
-	-- Draw the current screen using the screens module loaded in love.load
-	if screens then
-		screens.draw()
-	else
-		logger.error("screens module is nil in love.draw")
-	end
+	love.graphics.origin() -- Reset coordinate system to default
+	screens.draw()
 
-	-- Apply the fade-in overlay if needed
+	-- Debug: Draw a red square at 0,0
+	love.graphics.setColor(1, 0, 0, 1)
+	love.graphics.rectangle("fill", 0, 0, 10, 10)
+
+	-- Apply the fade-in overlay
 	if state.fading then
-		local fadeProgress = state.fadeTimer / state.fadeDuration
+		local fadeProgress = state.fadeTimer / fadeDuration
 		local fadeAlpha = 1 - fadeProgress
 		love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], fadeAlpha)
 		love.graphics.rectangle("fill", 0, 0, state.screenWidth, state.screenHeight)
@@ -143,11 +104,10 @@ end
 -- Handle application exit
 function love.quit()
 	logger.debug("Application quitting")
-	saveSettings()
+	settings.saveToFile()
 
 	-- Restore original RGB configuration if no theme was applied
 	if state.hasRGBSupport and not state.themeApplied then
-		logger.debug("Restoring original RGB config")
 		rgbUtils.restoreConfig()
 	end
 end
