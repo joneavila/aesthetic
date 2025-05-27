@@ -69,7 +69,7 @@ function rgb.updateConfig()
 	logger.debug("Generated command: " .. command)
 
 	-- Create the configuration file for persistence
-	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH) then
+	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF) then
 		-- Execute the command directly
 		local result = commands.executeCommand(command)
 		return result == 0
@@ -220,9 +220,9 @@ end
 -- Function to backup current RGB configuration
 function rgb.backupConfig()
 	-- Check if active config exists
-	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
-		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
-		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
+	if not system.fileExists(paths.ACTIVE_RGB_CONF) then
+		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
+		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 		return false
 	end
 
@@ -232,7 +232,7 @@ function rgb.backupConfig()
 	end
 
 	-- Copy current config to backup
-	return system.copyFile(paths.ACTIVE_RGB_CONF_PATH, paths.ACTIVE_RGB_CONF_BACKUP_PATH)
+	return system.copyFile(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
 end
 
 -- Function to restore RGB configuration from backup or turn off if no backup
@@ -250,15 +250,15 @@ function rgb.restoreConfig()
 	end
 
 	-- If backup exists, restore it
-	if system.fileExists(paths.ACTIVE_RGB_CONF_BACKUP_PATH) then
+	if system.fileExists(paths.ACTIVE_RGB_CONF_BACKUP) then
 		-- Copy backup back to active config
-		if not system.copyFile(paths.ACTIVE_RGB_CONF_BACKUP_PATH, paths.ACTIVE_RGB_CONF_PATH) then
+		if not system.copyFile(paths.ACTIVE_RGB_CONF_BACKUP, paths.ACTIVE_RGB_CONF) then
 			return false
 		end
 
 		-- Execute the restored config
 		logger.debug("Backup found, executing restored config")
-		return rgb.executeConfig(paths.ACTIVE_RGB_CONF_PATH)
+		return rgb.executeConfig(paths.ACTIVE_RGB_CONF)
 	else
 		-- No backup exists, which means there was no RGB lighting
 		-- when the application started. Turn off RGB lighting.
@@ -267,7 +267,7 @@ function rgb.restoreConfig()
 
 		-- Write the command to file
 		logger.debug("No backup found, writing 'off' command to file")
-		rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH)
+		rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
 
 		-- Execute the command directly to turn off lighting
 		logger.debug("Executing 'off' command")
@@ -284,8 +284,8 @@ function rgb.backupCurrentConfig()
 	end
 
 	logger.debug("Backing up current RGB config")
-	if not system.fileExists(paths.ACTIVE_RGB_CONF_PATH) then
-		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF_PATH)
+	if not system.fileExists(paths.ACTIVE_RGB_CONF) then
+		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 		return false
 	end
 	return rgb.backupConfig()
@@ -303,7 +303,7 @@ function rgb.installFromTheme()
 	local command = rgb.buildCommand()
 
 	-- Write command to config file for persistence
-	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF_PATH)
+	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
 	if not writeSuccess then
 		errorHandler.setError("Failed to write RGB command to config file")
 		return false

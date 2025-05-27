@@ -28,7 +28,7 @@ local qrCodeImage = nil
 
 function about.load()
 	-- Load QR code image
-	qrCodeImage = love.graphics.newImage(paths.KOFI_QR_CODE_PATH)
+	qrCodeImage = love.graphics.newImage(paths.KOFI_QR_CODE_IMAGE)
 end
 
 function about.draw()

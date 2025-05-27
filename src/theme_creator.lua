@@ -29,12 +29,12 @@ local function createNameFile()
 	-- Use the theme name from state
 	local name = state.themeName
 	logger.debug("Using theme name: " .. name)
-	return system.createTextFile(paths.THEME_NAME_PATH, name)
+	return system.createTextFile(paths.THEME_NAME, name)
 end
 
 -- Function to create boot logo image shown during boot
 local function createBootImage()
-	if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE_PATH) then
+	if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE) then
 		return false
 	end
 
@@ -48,7 +48,7 @@ local function createBootImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.THEME_BOOTLOGO_SOURCE_PATH,
+		iconPath = paths.THEME_BOOTLOGO_SOURCE,
 		iconSize = 180,
 		outputPath = paths.getThemeBootlogoImagePath(),
 		saveAsBmp = true,
@@ -69,12 +69,12 @@ local function createRebootImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.THEME_REBOOT_ICON_PATH,
+		iconPath = paths.THEME_REBOOT_ICON_SOURCE,
 		iconSize = 50,
-		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
 		backgroundLogoSize = 180,
 		text = "Rebooting",
-		outputPath = paths.THEME_REBOOT_IMAGE_PATH,
+		outputPath = paths.THEME_REBOOT_IMAGE,
 		saveAsBmp = false,
 	}
 
@@ -93,12 +93,12 @@ local function createShutdownImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.THEME_SHUTDOWN_ICON_PATH,
+		iconPath = paths.THEME_SHUTDOWN_ICON_SOURCE,
 		iconSize = 50,
-		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
 		backgroundLogoSize = 180,
 		text = "Shutting down",
-		outputPath = paths.THEME_SHUTDOWN_IMAGE_PATH,
+		outputPath = paths.THEME_SHUTDOWN_IMAGE,
 		saveAsBmp = false,
 	}
 
@@ -117,12 +117,12 @@ local function createChargeImage()
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.THEME_CHARGE_ICON_PATH,
+		iconPath = paths.THEME_CHARGE_ICON_SOURCE,
 		iconSize = 50,
-		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE_PATH,
+		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
 		backgroundLogoSize = 180,
 		text = "Charging",
-		outputPath = paths.THEME_CHARGE_IMAGE_PATH,
+		outputPath = paths.THEME_CHARGE_IMAGE,
 		saveAsBmp = false,
 	}
 
@@ -146,13 +146,13 @@ end
 -- Function to create `credits.txt` file containing the theme's credits
 local function createCreditsFile()
 	local content = "Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic"
-	return system.createTextFile(paths.THEME_CREDITS_PATH, content)
+	return system.createTextFile(paths.THEME_CREDITS, content)
 end
 
 -- Function to create `version.txt` file containing the compatible muOS version
 local function createVersionFile()
 	-- Read the content from the source file
-	local content = system.readFile(paths.MUOS_VERSION_PATH)
+	local content = system.readFile(paths.MUOS_VERSION)
 	local versionNumber = system.getEnvironmentVariable("MUOS_VERSION")
 
 	if content then
@@ -169,7 +169,7 @@ local function createVersionFile()
 		logger.debug("Could not read muOS version file, using default version")
 	end
 
-	return system.createTextFile(paths.THEME_VERSION_PATH, versionNumber)
+	return system.createTextFile(paths.THEME_VERSION, versionNumber)
 end
 
 -- Function to find and copy the selected font file to theme directory based on screen height
@@ -225,7 +225,7 @@ local function copySelectedFont()
 	logger.debug(
 		"[FINAL] Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(state.fontSize)
 	)
-	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT_PATH) then
+	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
 		logger.error("Failed to copy font file: " .. selectedFontFile .. " (size " .. fontSizeDir .. ")")
 		return false
 	end
@@ -235,7 +235,7 @@ end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	return system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_PATH)
+	return system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
 end
 
 -- Main function to create theme
@@ -253,7 +253,7 @@ function themeCreator.createTheme()
 		-- Generate glyphs dynamically from SVG sources
 		logger.debug("Generating glyphs dynamically")
 		local glyphs = require("utils.glyphs")
-		if not glyphs.generateGlyphs(paths.THEME_GLYPH_PATH) then
+		if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
 			logger.error("Failed to generate glyphs")
 			return false
 		end
@@ -320,79 +320,79 @@ function themeCreator.createTheme()
 
 		-- Set theme's background settings with gradient support
 		logger.debug("Setting theme's background settings")
-		if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's glyph settings
 		logger.debug("Setting theme's glyph settings")
-		if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's screen width settings
 		logger.debug("Setting theme's screen width settings")
-		if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenWidth) then
+		if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 			return false
 		end
 
 		-- Set theme's content height settings
 		logger.debug("Setting theme's content height settings")
-		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
+		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
 			return false
 		end
 
 		-- Set theme's content width settings for `muxplore.ini`
 		logger.debug("Setting theme's content width settings for `muxplore.ini`")
-		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE_PATH) then
+		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
 			return false
 		end
 
 		-- Set theme's antialiasing settings
 		logger.debug("Setting theme's antialiasing settings")
-		if not schemeConfigurator.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyAntialiasingSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's navigation alignment settings
 		logger.debug("Setting theme's navigation alignment settings")
-		if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's status alignment settings
 		logger.debug("Setting theme's status alignment settings")
-		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's header text alpha settings
 		logger.debug("Setting theme's header text alpha settings")
-		if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's header text alignment settings
 		logger.debug("Setting theme's header text alignment settings")
-		if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's time alignment settings
 		logger.debug("Setting theme's time alignment settings")
-		if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
 		-- Set theme's bar Y position settings
 		logger.debug("Setting theme's bar Y position settings")
-		if not schemeConfigurator.applyBarYPosition(paths.THEME_SCHEME_GLOBAL_PATH, state.screenHeight) then
+		if not schemeConfigurator.applyBarYPosition(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
 			return false
 		end
 
 		-- Set theme's navigation alpha settings
 		logger.debug("Setting theme's navigation alpha settings")
-		if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL_PATH) then
+		if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 
@@ -423,7 +423,7 @@ function themeCreator.createTheme()
 		-- Create theme's RGB configuration file
 		if state.hasRGBSupport then
 			logger.debug("Creating theme's RGB configuration file")
-			if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF_PATH) then
+			if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF) then
 				return false
 			end
 		else
@@ -452,7 +452,7 @@ function themeCreator.createTheme()
 		resetGraphicsState()
 
 		-- Print the contents of global.ini in the working theme directory for debugging
-		local globalIniPath = paths.THEME_SCHEME_GLOBAL_PATH
+		local globalIniPath = paths.THEME_SCHEME_GLOBAL
 		local globalIniContent = system.readFile(globalIniPath)
 		if globalIniContent then
 			logger.debug("Contents of global.ini after theme creation:\n" .. globalIniContent)

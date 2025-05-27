@@ -19,26 +19,22 @@ if state.isDevelopment then
 	end
 end
 
--- muOS themes directory - using environment variable
-local muosThemeDir = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
-paths.THEME_DIR = muosThemeDir
-
 -- Working theme directory where files are written before archiving into a theme
+paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 if state.isDevelopment then
-	-- Use .dev/theme_working when running from dev_launch.sh
 	paths.WORKING_THEME_DIR = devDir .. "/theme_working"
-else
-	-- Use the standard directory otherwise
-	paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 end
 
--- Active theme directory where files of the currently active theme are stored
+-- muOS themes directory and files
+paths.THEME_DIR = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
+paths.THEME_VERSION = paths.THEME_DIR .. "/version.txt"
+
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
 
--- Active RGB configuration paths
+-- `rgb` directory and files
 paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
-paths.ACTIVE_RGB_CONF_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
-paths.ACTIVE_RGB_CONF_BACKUP_PATH = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
+paths.ACTIVE_RGB_CONF = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
+paths.ACTIVE_RGB_CONF_BACKUP = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
 
 -- Generated theme path where the generated theme is written
 -- Use a function to get the current theme name at time of use
@@ -53,45 +49,36 @@ paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR .. "/led_control.sh"
 
 -- muOS version file path (contains version info)
 local muosConfigDir = deviceScriptDir:gsub("/device/current/script", "/config")
-paths.MUOS_VERSION_PATH = muosConfigDir .. "/version.txt"
--- Theme version file path
--- Assuming the application is updated with every release, this file will contain
--- the version info read from muOS
-paths.THEME_VERSION_PATH = paths.THEME_DIR .. "/version.txt"
+paths.MUOS_VERSION = muosConfigDir .. "/version.txt"
 
--- Assets used by UI rather than generated theme
+-- Assets used by the UI
 paths.THEME_FONT_SOURCE_DIR = paths.ROOT_DIR .. "/assets/fonts"
 paths.THEME_IMAGE_SOURCE_DIR = paths.ROOT_DIR .. "/assets/images"
 paths.THEME_SOUND_SOURCE_DIR = paths.ROOT_DIR .. "/assets/sounds"
 
--- `credits.txt`
-paths.THEME_CREDITS_PATH = paths.WORKING_THEME_DIR .. "/credits.txt"
+paths.KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
+paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
--- `version.txt`
-paths.THEME_VERSION_PATH = paths.WORKING_THEME_DIR .. "/version.txt"
+paths.THEME_CREDITS = paths.WORKING_THEME_DIR .. "/credits.txt"
+paths.THEME_NAME = paths.WORKING_THEME_DIR .. "/name.txt"
+paths.THEME_VERSION = paths.WORKING_THEME_DIR .. "/version.txt"
+paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
+paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
--- `name.txt`
-paths.THEME_NAME_PATH = paths.WORKING_THEME_DIR .. "/name.txt"
-
--- `scheme`
+-- `scheme` directory and files
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
-paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
-paths.THEME_SCHEME_GLOBAL_PATH = paths.THEME_SCHEME_DIR .. "/global.ini"
-paths.THEME_SCHEME_MUXPLORE_PATH = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
+paths.THEME_SCHEME_GLOBAL = paths.THEME_SCHEME_DIR .. "/global.ini"
+paths.THEME_SCHEME_MUXPLORE = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
 
--- `font`
+-- `font` directory and files
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
-paths.THEME_DEFAULT_FONT_PATH = paths.THEME_FONT_DIR .. "/default.bin"
+paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
--- `glyph`
-paths.THEME_GLYPH_PATH = paths.WORKING_THEME_DIR .. "/glyph"
+paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
 
--- `rgb`
+-- `rgb` directory and files
 paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
-paths.THEME_RGB_CONF_PATH = paths.THEME_RGB_DIR .. "/rgbconf.sh"
-
--- `sound`
-paths.THEME_SOUND_PATH = paths.WORKING_THEME_DIR .. "/sound"
+paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 
 -- Create getter functions for resolution-dependent paths so they update with screen dimensions
 -- Get resolution directory path
@@ -114,27 +101,20 @@ function paths.getThemeBootlogoImagePath()
 	return paths.getThemeResolutionImageDir() .. "/bootlogo.bmp"
 end
 
-paths.THEME_BOOTLOGO_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
-paths.THEME_LOGO_OUTLINE_SOURCE_PATH = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
+paths.THEME_BOOTLOGO_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
+paths.THEME_LOGO_OUTLINE_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
 
--- `image`
+-- Theme `image` directory and files
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
-paths.THEME_REBOOT_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/reboot.png"
-paths.THEME_REBOOT_ICON_PATH = "assets/icons/lucide/ui/refresh-cw.svg"
-paths.THEME_SHUTDOWN_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/shutdown.png"
-paths.THEME_SHUTDOWN_ICON_PATH = "assets/icons/lucide/ui/power.svg"
-
--- `image/wall`
-paths.THEME_CHARGE_IMAGE_PATH = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
-paths.THEME_CHARGE_ICON_PATH = "assets/icons/lucide/ui/zap.svg"
+paths.THEME_REBOOT_IMAGE = paths.THEME_IMAGE_DIR .. "/reboot.png"
+paths.THEME_REBOOT_ICON_SOURCE = "assets/icons/lucide/ui/refresh-cw.svg"
+paths.THEME_SHUTDOWN_IMAGE = paths.THEME_IMAGE_DIR .. "/shutdown.png"
+paths.THEME_SHUTDOWN_ICON_SOURCE = "assets/icons/lucide/ui/power.svg"
+paths.THEME_CHARGE_IMAGE = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
+paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
 
 -- Theme presets directory
 paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
-
-paths.KOFI_QR_CODE_PATH = "/assets/images/kofi_qrcode.png"
-
--- Presets images directory - use direct path for LÖVE compatibility
-paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
 --- Returns the closest available bin font size directory (as a string) for the given display dimensions, using the
 --- diagonal and a base size of 28 for 640x480.
