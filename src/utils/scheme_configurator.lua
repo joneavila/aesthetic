@@ -328,7 +328,7 @@ function themeSettings.applyFooterHeaderHeightSettings(schemeFilePath, screenHei
 			["480"] = 42,
 			["576"] = 42,
 			["720"] = 50,
-			["768"] = 42,
+			["768"] = 70,
 		}
 
 		-- Use screenHeight as the key for lookup. Use 42 as fallback.
