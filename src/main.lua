@@ -89,10 +89,6 @@ function love.draw()
 	love.graphics.origin() -- TODO: Reset coordinate system to default does not fix TrimUI Brick GOOSE bug
 	screens.draw()
 
-	-- Debug: Draw a red square at 0,0
-	love.graphics.setColor(1, 0, 0, 1)
-	love.graphics.rectangle("fill", 0, 0, 10, 10)
-
 	-- Apply the fade-in overlay
 	if state.fading then
 		local fadeProgress = state.fadeTimer / fadeDuration
