@@ -14,6 +14,8 @@ local list = require("ui.list")
 local header = require("ui.header")
 local logger = require("utils.logger")
 
+local menu = {}
+
 -- Button state
 local BUTTONS = {}
 local lastSelectedIndex = 1
@@ -333,7 +335,9 @@ end
 
 -- Handle theme installation process
 local function handleThemeInstallation()
-	local success = themeCreator.installTheme(waitingThemePath)
+	-- Extract the filename without extension from the full path
+	local filename_only = waitingThemePath:match("([^/\\]+)%.[^%.]+$")
+	local success = themeCreator.installTheme(filename_only)
 	waitingThemePath = nil
 	rgbUtils.installFromTheme()
 	state.themeApplied = true
@@ -440,6 +444,11 @@ function menu.update(dt)
 			return handleButtonOptionCycle(btn, direction) -- Use the new handler
 		end,
 	})
+
+	-- Handle B button press for exit if no modal is visible
+	if virtualJoystick.isGamepadPressedWithDelay("b") and not modal.isModalVisible() then
+		love.event.quit()
+	end
 
 	-- Update scroll position if changed
 	if result.scrollPositionChanged then
