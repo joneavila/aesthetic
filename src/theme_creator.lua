@@ -393,12 +393,6 @@ function themeCreator.createTheme()
 			return false
 		end
 
-		-- Set theme's content height settings
-		logger.debug("Setting theme's content height settings")
-		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
-			return false
-		end
-
 		-- Set theme's content width settings for `muxplore.ini`
 		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
