@@ -181,9 +181,9 @@ rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" || { echoError "Failed to c
 rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" || { echoError "Failed to copy bin/"; exit 1; }
 rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" || { echoError "Failed to copy lib/"; exit 1; }
 
-# Copy glyph_map.txt for dynamic glyph generation
+# Copy glyph mapping files
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils" || { echoError "Failed to create utils directory"; exit 1; }
-rsync -aq utils/glyph_map.txt "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils/" || { echoError "Failed to copy glyph_map.txt"; exit 1; }
+rsync -aq utils/glyph_mappings/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils/glyph_mappings/" || { echoError "Failed to copy glyph mapping files"; exit 1; }
 
 # assets/fonts (.bin and .ttf files)
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts"

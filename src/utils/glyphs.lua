@@ -18,41 +18,153 @@ local glyphs = {}
 
 local GLYPH_HEIGHT = 24
 local FIXED_STROKE_WIDTH = 1.5
+local GLYPH_MAPPINGS_DIR = paths.ROOT_DIR .. "/utils/glyph_mappings"
+local BASE_VERSION = "PIXIE"
 
 -- TrimUI Brick GOOSE default theme has average glyph width of 43px and height of 41px.
 -- RG35XXSP has the same glyph dimensions.
 
--- Read the glyph mapping file and return parsed mapping data
-function glyphs.readGlyphMap()
-	local mapPath = paths.ROOT_DIR .. "/utils/glyph_map.txt"
-	local mapContent = system.readFile(mapPath)
+-- Helper function to load and parse a single glyph map file
+local function loadMapFile(mapFilePath)
+	logger.debug("Attempting to load glyph map file: " .. mapFilePath)
+
+	local mapContent = system.readFile(mapFilePath)
 
 	if not mapContent then
-		errorHandler.setError("Failed to read glyph map file: " .. mapPath)
 		return nil
 	end
 
-	local glyphMap = {}
+	local mapEntries = {}
 
 	-- Parse each line
 	for line in mapContent:gmatch("[^\r\n]+") do
 		-- Skip comments and empty lines
 		if not line:match("^%s*#") and not line:match("^%s*$") then
-			local outputPath, inputFilename = line:match("([^,]+),%s*(.+)")
-			if outputPath and inputFilename then
-				-- Trim whitespace
-				outputPath = outputPath:match("^%s*(.-)%s*$")
-				inputFilename = inputFilename:match("^%s*(.-)%s*$")
-
-				table.insert(glyphMap, {
-					outputPath = outputPath,
-					inputFilename = inputFilename,
-				})
+			-- Check for removal entry (starts with -)
+			if line:match("^%s*%-(.+)") then
+				local outputPathToRemove = line:match("^%s*%-(.+)")
+				table.insert(mapEntries, { type = "remove", outputPath = outputPathToRemove:match("^%s*(.-)%s*$") })
+			else
+				-- Assume addition or override entry
+				local outputPath, inputFilename = line:match("([^,]+),%s*(.+)")
+				if outputPath and inputFilename then
+					-- Trim whitespace
+					table.insert(mapEntries, {
+						type = "add_or_override",
+						outputPath = outputPath:match("^%s*(.-)%s*$"),
+						inputFilename = inputFilename:match("^%s*(.-)%s*$"),
+					})
+				else
+					logger.warning("Skipping malformed line in glyph map: " .. line)
+				end
 			end
 		end
 	end
 
-	return glyphMap
+	logger.debug(string.format("Loaded %d entries from %s", #mapEntries, mapFilePath))
+
+	return mapEntries
+end
+
+-- Read the glyph mapping files and return the merged map
+function glyphs.readGlyphMap()
+	logger.debug("Starting glyph map reading process.")
+
+	local baseMapPath = GLYPH_MAPPINGS_DIR .. "/" .. BASE_VERSION .. ".txt"
+	local baseMapEntries = loadMapFile(baseMapPath)
+
+	if not baseMapEntries then
+		-- Cannot proceed without the base map
+		errorHandler.setError("Failed to read base glyph map file: " .. baseMapPath)
+		return nil
+	end
+
+	-- Convert base map entries to a dictionary for easier merging
+	local mergedMap = {}
+	for _, entry in ipairs(baseMapEntries) do
+		if entry.type == "add_or_override" then
+			mergedMap[entry.outputPath] = entry
+		end
+		-- Removal entries in the base map should theoretically not exist,
+		-- but we'll ignore them just in case.
+	end
+
+	logger.debug(string.format("Base map (%s) loaded with %d entries.", BASE_VERSION, #baseMapEntries))
+
+	local systemVersion = system.getSystemVersion()
+	logger.debug("Detected system version string: " .. tostring(systemVersion))
+	local versionName = ""
+
+	-- Extract version name from system version string (part after the last underscore)
+	local _, _, name = string.find(systemVersion, "_([^_]+)$")
+
+	if name then
+		-- Trim trailing whitespace and remove anything after a newline
+		name = name:match("^%s*(.-)%s*$") -- Trim whitespace
+		name = name:match("([^\n]+)") or name -- Remove part after newline if present
+	end
+
+	if name and name ~= BASE_VERSION then
+		logger.debug("Extracted version name: " .. name)
+		versionName = name
+		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. versionName .. ".txt"
+		local versionMapEntries = loadMapFile(versionMapPath)
+
+		if versionMapEntries then
+			logger.debug("Merging glyph map for version: " .. versionName)
+			local initialMergedCount = #baseMapEntries -- Approximate count before merge
+			-- Merge version-specific entries
+			local additions = 0
+			local removals = 0
+			local overrides = 0
+
+			for _, entry in ipairs(versionMapEntries) do
+				if entry.type == "remove" then
+					if mergedMap[entry.outputPath] then
+						logger.debug("Removing glyph mapping: " .. entry.outputPath)
+						removals = removals + 1
+					else
+						logger.debug("Attempted to remove non-existent glyph mapping: " .. entry.outputPath)
+					end
+					mergedMap[entry.outputPath] = nil -- Remove the entry
+				elseif entry.type == "add_or_override" then
+					if mergedMap[entry.outputPath] then
+						logger.debug(
+							"Overriding glyph mapping: " .. entry.outputPath .. " with " .. entry.inputFilename
+						)
+						overrides = overrides + 1
+					else
+						logger.debug("Adding new glyph mapping: " .. entry.outputPath .. " -> " .. entry.inputFilename)
+						additions = additions + 1
+					end
+					mergedMap[entry.outputPath] = entry -- Add or override the entry
+				end
+			end
+			logger.debug(
+				string.format("Merge summary: Additions=%d, Removals=%d, Overrides=%d", additions, removals, overrides)
+			)
+		else
+			logger.warning(
+				"Version-specific glyph map not found or unreadable for " .. versionName .. ", using base map."
+			)
+		end
+	else
+		logger.warning(
+			"Could not extract version name from system version string: "
+				.. tostring(systemVersion)
+				.. ", using base map."
+		)
+	end
+
+	-- Convert merged map dictionary back to a list (order doesn't strictly matter for generation)
+	local finalGlyphMap = {}
+	for _, entry in pairs(mergedMap) do
+		table.insert(finalGlyphMap, { outputPath = entry.outputPath, inputFilename = entry.inputFilename })
+	end
+
+	logger.debug(string.format("Final merged glyph map contains %d entries.", #finalGlyphMap))
+
+	return finalGlyphMap
 end
 
 -- Utility to override stroke-width in SVG XML string
@@ -66,6 +178,8 @@ end
 
 -- Convert a single SVG icon to PNG with fixed stroke width, using TÖVE's prescale for sharpness
 function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
+	logger.debug(string.format("Attempting to convert SVG %s to PNG %s", svgPath, pngPath))
+
 	-- Ensure parent directory exists
 	if not system.ensurePath(pngPath) then
 		logger.error("Failed to create directory for glyph: " .. pngPath)
@@ -117,12 +231,14 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 		return false
 	end
 
+	logger.debug("Successfully converted " .. svgPath .. " to " .. pngPath)
+
 	return true
 end
 
 -- Copy header icons directory
 function glyphs.copyHeaderIcons(sourceDir, targetDir)
-	logger.debug("Copy header icons from: " .. sourceDir .. " to target dir: " .. targetDir)
+	logger.debug("Starting header icon copy from: " .. sourceDir .. " to target dir: " .. targetDir)
 
 	-- Ensure the target directory exists (header directory should be at same level as other category dirs)
 	local headerDir = targetDir .. "/header"
@@ -151,7 +267,7 @@ function glyphs.copyHeaderIcons(sourceDir, targetDir)
 		return false
 	end
 
-	logger.debug("Found " .. #files .. " files to copy")
+	logger.debug("Found " .. #files .. " files to copy from " .. sourceDir)
 
 	-- Copy each file from source to target
 	local successCount = 0
@@ -159,7 +275,7 @@ function glyphs.copyHeaderIcons(sourceDir, targetDir)
 		local sourcePath = sourceDir .. "/" .. filename
 		local targetPath = headerDir .. "/" .. filename
 
-		logger.debug("Copying file: " .. filename)
+		logger.debug("Copying header icon file: " .. filename .. " from " .. sourcePath .. " to " .. targetPath)
 
 		-- Read source file
 		local fileData = system.readFile(sourcePath)
@@ -176,7 +292,7 @@ function glyphs.copyHeaderIcons(sourceDir, targetDir)
 	end
 
 	logger.debug(
-		"Copied " .. successCount .. " of " .. #files .. " header icons from " .. sourceDir .. " to " .. headerDir
+		string.format("Copied %d of %d header icons from %s to %s", successCount, #files, sourceDir, headerDir)
 	)
 	return successCount > 0
 end

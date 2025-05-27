@@ -74,8 +74,15 @@ function settings.draw()
 		screenWidth = state.screenWidth,
 		screenHeight = state.screenHeight,
 		drawItemFunc = function(item, _index, y)
-			-- Settings has simple buttons, so just use the standard drawing
-			button.draw(item.text, 0, y, item.selected, state.screenWidth)
+			local btn = button.create({
+				text = item.text,
+				x = 0,
+				y = y,
+				selected = item.selected,
+				screenWidth = state.screenWidth,
+				type = button.TYPES.BASIC, -- Assuming these are basic buttons
+			})
+			button.draw(btn)
 		end,
 	})
 

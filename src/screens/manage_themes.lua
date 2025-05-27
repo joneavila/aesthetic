@@ -78,9 +78,6 @@ function manage_themes.draw()
 end
 
 function manage_themes.update(dt)
-	-- Ensure modal animations and visibility are updated
-	modal.update(dt)
-
 	local vjoy = input.virtualJoystick
 
 	if modal.isModalVisible() then

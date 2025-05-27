@@ -450,6 +450,13 @@ function menu.update(dt)
 		love.event.quit()
 	end
 
+	-- Handle Start button press for settings
+	if virtualJoystick.isGamepadPressedWithDelay("start") and not modal.isModalVisible() then
+		if switchScreen then
+			switchScreen("settings")
+		end
+	end
+
 	-- Update scroll position if changed
 	if result.scrollPositionChanged then
 		scrollPosition = result.scrollPosition
