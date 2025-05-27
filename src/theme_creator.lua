@@ -336,6 +336,12 @@ function themeCreator.createTheme()
 			return false
 		end
 
+		-- Set theme's footer and header height settings
+		logger.debug("Setting theme's footer and header height settings")
+		if not schemeConfigurator.applyFooterHeaderHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
+			return false
+		end
+
 		-- Set theme's content height settings
 		logger.debug("Setting theme's content height settings")
 		if not schemeConfigurator.applyContentHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
@@ -345,12 +351,6 @@ function themeCreator.createTheme()
 		-- Set theme's content width settings for `muxplore.ini`
 		logger.debug("Setting theme's content width settings for `muxplore.ini`")
 		if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
-			return false
-		end
-
-		-- Set theme's footer and header height settings
-		logger.debug("Setting theme's footer and header height settings")
-		if not schemeConfigurator.applyFooterHeaderHeightSettings(paths.THEME_SCHEME_GLOBAL, state.screenHeight) then
 			return false
 		end
 
