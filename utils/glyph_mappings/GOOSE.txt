@@ -2,28 +2,8 @@
 # Lines starting with `-` indicate removal of a mapping present in the base (PIXIE) map.
 # Lines without a prefix indicate additions or overrides.
 
-# Additions: Add new glyphs specific to GOOSE
-# muxapp/goose_feature, feather
-bar/bright_0, moon
-bar/bright_1, sun-dim
-bar/bright_2, sun-medium
-bar/bright_3, sun
-muxcustom/bootlogo, image-play
-muxcustom/chime, bell
-muxcustom/theme_resolution, proportions
-muxinfo/netinfo, house-wifi
-muxinfo/sysinfo, computer
-muxnetinfo/actraffic, shrink
-muxnetinfo/channel,antenna
-muxnetinfo/dns, hash
-muxnetinfo/gateway, hash
-# muxnetinfo/hostname, 
-muxnetinfo/ip, router
-muxnetinfo/mac, cpu
-muxnetinfo/signal, signal
-# muxnetinfo/ssid
-# muxnetinfo/tptraffic
-muxtask/folder, folder
+# TODO: Add footer glyphs
+# footer – Seen throughout the UI
 # footer/a
 # footer/b
 # footer/c
@@ -32,30 +12,9 @@ muxtask/folder, folder
 # footer/x
 # footer/y
 # footer/z
-# muxconfig/theme
-muxgov/conservative, shield
-muxgov/interactive, zap
-muxgov/ondemand, star
-muxgov/performance, gauge
-muxgov/powersave, battery-low
-# muxgov/schedutil
-muxgov/userspace, user-round-cog
-muxoption/tag, tag
-muxtag/abandoned, circle-x
-muxtag/alternate, files
-muxtag/backlog, scroll
-muxtag/complected, circle-help
-muxtag/completed, circle-check
-muxtag/cursed, ghost
-muxtag/default, tag
-muxtag/experimental, flask-conical
-muxtag/homebrew, coffee
-muxtag/inprogress, loader
-muxtag/none, ban
-muxtag/patched, bandage
-muxtag/replay, rotate-ccw
-muxtag/romhack, wand-sparkles
-muxtag/translated, globe
+
+# TODO: Add muxtester glyphs
+# muxtester – Information > Input Tester
 # muxtester/btn_a
 # muxtester/btn_b
 # muxtester/btn_c
@@ -86,8 +45,64 @@ muxtag/translated, globe
 # muxtester/vol_down
 # muxtester/vol_up
 
+# bar – (Press Menu + Vol. Up/Down for brightness)
+bar/bright_0, sun-dim
+bar/bright_1, sun-dim
+bar/bright_2, sun-medium
+bar/bright_3, sun
+
+# muxcustom – Configuration > Customisation
+muxcustom/bootlogo, image
+muxcustom/chime, bell
+muxcustom/theme_resolution, proportions
+
+# muxinfo – Information
+muxinfo/netinfo, network
+muxinfo/sysinfo, computer
+
+# muxnetinfo – Information > Network Details
+muxnetinfo/actraffic, shrink
+muxnetinfo/channel, antenna
+muxnetinfo/dns, hash
+muxnetinfo/gateway, hash
+muxnetinfo/hostname, letter-text
+muxnetinfo/ip, router
+muxnetinfo/mac, cpu
+muxnetinfo/signal, signal-high
+muxnetinfo/ssid, globe
+muxnetinfo/tptraffic, arrow-left-right
+
+# muxtask – Applications > Task Toolkit
+muxtask/folder, folder
+
+# muxgov – (Press Select on content) > Assign Governor
+muxgov/conservative, shield
+muxgov/interactive, zap
+muxgov/ondemand, activity
+muxgov/performance, flame
+muxgov/powersave, leaf
+muxgov/schedutil, bot
+muxgov/userspace, user-round-cog
+
+# muxoption – (Press Select on content)
+muxoption/tag, tag
+
+# muxoption – (Press Select on content) > Assign Tag
+muxtag/abandoned, circle-x
+muxtag/alternate, files
+muxtag/backlog, scroll
+muxtag/complected, circle-help
+muxtag/completed, circle-check
+muxtag/cursed, ghost
+muxtag/default, tag
+muxtag/experimental, flask-conical
+muxtag/homebrew, coffee
+muxtag/inprogress, loader-circle
+muxtag/none, ban
+muxtag/patched, bandage
+muxtag/replay, rotate-ccw
+muxtag/romhack, wand-sparkles
+muxtag/translated, globe
+
 # Removals: Remove glyphs that are not present or needed on GOOSE
 # -muxapp/dingux, folder-search
-
-# Overrides: Change the SVG for an existing glyph
-# muxlaunch/apps, package 
