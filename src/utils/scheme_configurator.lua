@@ -6,6 +6,7 @@
 local system = require("utils.system")
 local state = require("state")
 local errorHandler = require("error_handler")
+local logger = require("utils.logger")
 
 local themeSettings = {}
 
@@ -110,22 +111,39 @@ function themeSettings.applyContentHeightSettings(schemeFilePath, screenHeight)
 			return content, false
 		end
 
-		-- Determine content item count based on display height
-		-- local contentItemCount = 9 -- Default value for 480px height
-		-- if screenHeight == 576 then
-		-- 	contentItemCount = 11
-		-- elseif screenHeight == 720 or screenHeight == 768 then
-		-- 	contentItemCount = 13
-		-- end
+		-- Determine content item count based on display height using a lookup table
+		-- These valus are sourced from 2502.0 GOOSE (456e98d8) default theme
+		-- (`global.ini` and resolution-specific `default.ini`)
+		local itemCountLookup = {
+			["640x480"] = 9,
+			["720x480"] = 9,
+			["720x576"] = 11,
+			["720x720"] = 13,
+			["1024x768"] = 9,
+			["1280x720"] = 13,
+		}
+
+		local screenDimensionsKey = state.screenWidth .. "x" .. screenHeight
+		local contentItemCount = itemCountLookup[screenDimensionsKey]
+
+		if contentItemCount == nil then
+			-- Dimensions not found, log a warning and use the default
+			logger.warning(
+				'Unknown screen dimensions "'
+					.. screenDimensionsKey
+					.. '" for content item count lookup. Falling back to default.'
+			)
+			contentItemCount = 9 -- Fallback default
+		end
 
 		-- Replace content-item-count placeholder
-		-- local contentItemCountReplaceCount
-		-- content, contentItemCountReplaceCount =
-		-- 	content:gsub("%%{%s*content%-item%-count%s*}", tostring(contentItemCount))
-		-- if contentItemCountReplaceCount == 0 then
-		-- 	errorHandler.setError("Failed to replace content item count settings in template")
-		-- 	return content, false
-		-- end
+		local contentItemCountReplaceCount
+		content, contentItemCountReplaceCount =
+			content:gsub("%%{%s*content%-item%-count%s*}", tostring(contentItemCount))
+		if contentItemCountReplaceCount == 0 then
+			errorHandler.setError("Failed to replace content item count settings in template")
+			return content, false
+		end
 
 		return content, true
 	end)
