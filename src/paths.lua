@@ -67,6 +67,8 @@ paths.THEME_VERSION = paths.WORKING_THEME_DIR .. "/version.txt"
 paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
+paths.HEADER_GLYPHS_SOURCE_DIR = paths.ROOT_DIR .. "/assets/icons/glyph/header"
+
 -- `scheme` directory and files
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL = paths.THEME_SCHEME_DIR .. "/global.ini"

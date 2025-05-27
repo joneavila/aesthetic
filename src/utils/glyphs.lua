@@ -322,17 +322,11 @@ function glyphs.generateGlyphs(targetDir)
 		local svgPath = svgBaseDir .. "/" .. entry.inputFilename .. ".svg"
 		local pngPath = baseOutputDir .. "/" .. entry.outputPath .. ".png"
 
-		-- Call convertSvgToPng, letting it default padding to FIXED_STROKE_WIDTH.
-		-- The render height is the target height.
-		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor) then
-			logger.warning("Failed to convert glyph: " .. entry.inputFilename)
-		end
+		glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
 	end
 
 	-- Copy header icons directly
-	local headerSourceDir = paths.ROOT_DIR .. "/assets/icons/glyph/header"
-	logger.debug("Copying header icons from: " .. headerSourceDir)
-	glyphs.copyHeaderIcons(headerSourceDir, baseOutputDir)
+	glyphs.copyHeaderIcons(paths.HEADER_GLYPHS_SOURCE_DIR, baseOutputDir)
 
 	return true
 end
@@ -362,7 +356,7 @@ function glyphs.generateMuxLaunchGlyphs()
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
 	local targetCanvasSize = 120 -- Desired final image size (with padding)
-	local muxLaunchPadding = 8 -- Specific padding requested for muxlaunch glyphs
+	local muxLaunchPadding = 30 -- Specific padding requested for muxlaunch glyphs
 	-- Calculate the render height needed for the glyph itself
 	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 

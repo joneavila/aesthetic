@@ -137,14 +137,14 @@ muxinfo/tracker, locate
 muxlanguage/language, languages
 
 # muxlaunch – (Home screen)
-muxlaunch/apps, box
+muxlaunch/apps, shapes
 muxlaunch/collection, heart
 muxlaunch/config, settings
 muxlaunch/explore, compass
 muxlaunch/favourite, heart
 muxlaunch/history, history
 muxlaunch/info, info
-muxlaunch/reboot, refresh-cw
+muxlaunch/reboot, rotate-cw
 muxlaunch/shutdown, power
 
 # muxnetprofile – Configuration > Wi-Fi Network > (Press Y)
