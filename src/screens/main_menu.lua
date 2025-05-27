@@ -1,19 +1,20 @@
 --- Main menu screen
 local love = require("love")
-local state = require("state")
-local controls = require("controls")
-local rgbUtils = require("utils.rgb")
 
+local controls = require("controls")
 local errorHandler = require("error_handler")
-local button = require("ui.button")
-local background = require("ui.background")
-local modal = require("ui.modal")
-local themeCreator = require("theme_creator")
-local fonts = require("ui.fonts")
-local list = require("ui.list")
-local header = require("ui.header")
-local logger = require("utils.logger")
+local rgbUtils = require("utils.rgb")
 local screens = require("screens")
+local state = require("state")
+local themeCreator = require("theme_creator")
+
+local background = require("ui.background")
+local button = require("ui.button")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
+local list = require("ui.list")
+local logger = require("utils.logger")
+local modal = require("ui.modal")
 
 local menu = {}
 
@@ -21,9 +22,7 @@ local menu = {}
 local BUTTONS = {}
 local lastSelectedIndex = 1
 
--- Calculate margin dynamically
-local buttonBottomMargin = 6
-local BUTTON_BOTTOM_MARGIN = controls.calculateHeight() + button.getHeight() + buttonBottomMargin
+local TOTAL_BOTTOM_AREA_HEIGHT = controls.calculateHeight() + button.getHeight() + 6
 
 -- Scrolling
 local scrollPosition = 0
@@ -264,7 +263,7 @@ function menu.draw()
 	end
 
 	-- Calculate the maximum available height for the list (space above the bottom button)
-	local bottomY = state.screenHeight - BUTTON_BOTTOM_MARGIN
+	local bottomY = state.screenHeight - TOTAL_BOTTOM_AREA_HEIGHT
 
 	-- Draw regular buttons with list component
 	local result = list.draw({
@@ -285,7 +284,7 @@ function menu.draw()
 	visibleButtonCount = result.visibleCount
 
 	-- Draw the bottom button separately
-	actionButton.y = state.screenHeight - BUTTON_BOTTOM_MARGIN
+	actionButton.y = state.screenHeight - TOTAL_BOTTOM_AREA_HEIGHT
 	button.draw(actionButton)
 
 	-- Draw modal if active
