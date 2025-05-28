@@ -6,9 +6,8 @@ local input = require("input")
 local paths = require("paths")
 local header = require("ui.header")
 local background = require("ui.background")
-local list_select = require("ui.list_select")
-local list = require("ui.list")
-local modal = require("ui.modal")
+local ListSelect = require("ui.list_select").ListSelect
+local Modal = require("ui.modal").Modal
 local logger = require("utils.logger")
 local system = require("utils.system")
 local commands = require("utils.commands")
@@ -17,12 +16,12 @@ local screens = require("screens")
 local manage_themes = {}
 
 local themeItems = {}
-local scrollPosition = 0
-local visibleCount = 0
-local modalMode = "none" -- none, confirm_delete, error, deleted
-local savedSelectedIndex = 1 -- Track the last selected index for screen transitions
+local modalMode = "none"
+local savedSelectedIndex = 1
+local listSelect = nil
+local inputObj = nil
+local modalInstance = nil
 
--- Helper to scan for .muxthm files in paths.THEME_DIR
 local function scanThemes()
 	themeItems = {}
 	local p = paths.THEME_DIR
@@ -33,41 +32,43 @@ local function scanThemes()
 end
 
 function manage_themes.load()
-	-- TODO: Fix crash on TrimUI Brick GOOSE
-	-- scanThemes()
-	-- scrollPosition = 0
+	inputObj = input
+	scanThemes()
+	listSelect = ListSelect:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = themeItems,
+		itemHeight = state.fonts.body:getHeight() + 24,
+		onItemChecked = function(item, idx)
+			-- No-op, handled by ListSelect
+		end,
+		onActionSelected = function(action, idx)
+			-- No actions in this screen
+		end,
+		wrap = false,
+		paddingX = 16,
+		paddingY = 8,
+	})
+	modalInstance = Modal:new({ font = state.fonts.body })
 end
 
 function manage_themes.draw()
 	background.draw()
 	header.draw("manage themes")
-	local startY = header.getContentStartY()
 	love.graphics.setFont(state.fonts.body)
-	local selectedCount = 0
-	for _, item in ipairs(themeItems) do
-		if item.checked then
-			selectedCount = selectedCount + 1
-		end
+	if listSelect then
+		listSelect:draw()
 	end
-	local result = list_select.draw({
-		items = themeItems,
-		actions = {},
-		startY = startY,
-		itemHeight = state.fonts.body:getHeight() + 24,
-		scrollPosition = scrollPosition,
-		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
-		selectedCount = selectedCount,
-	})
-	visibleCount = result.visibleCount
-	if modal.isModalVisible() then
-		modal.drawModal(state.screenWidth, state.screenHeight, state.fonts.body)
+	if modalInstance and modalInstance:isVisible() then
+		modalInstance:draw(state.screenWidth, state.screenHeight, state.fonts.body)
 	end
 	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	}
-	if selectedCount > 0 then
+	if listSelect and #listSelect:getCheckedItems() > 0 then
 		table.insert(controlsList, { button = "x", text = "Delete" })
 	end
 	controls.draw(controlsList)
@@ -75,11 +76,9 @@ end
 
 function manage_themes.update(dt)
 	local vjoy = input.virtualJoystick
-
-	if modal.isModalVisible() then
+	if modalInstance and modalInstance:isVisible() then
 		if vjoy.isGamepadPressedWithDelay("a") then
 			if modalMode == "confirm_delete" then
-				-- Delete selected themes
 				local toDelete = {}
 				for _, item in ipairs(themeItems) do
 					if item.checked then
@@ -91,46 +90,32 @@ function manage_themes.update(dt)
 						commands.executeCommand("rm '" .. paths.THEME_DIR .. "/" .. fname .. "'")
 					end
 					modalMode = "deleted"
-					modal.showModal("Selected themes deleted.", { { text = "Close", selected = true } })
+					modalInstance:show("Selected themes deleted.", { { text = "Close", selected = true } })
 					scanThemes()
+					if listSelect then
+						listSelect:setItems(themeItems)
+					end
 				else
 					modalMode = "none"
-					modal.hideModal()
+					modalInstance:hide()
 				end
 			elseif modalMode == "deleted" or modalMode == "error" then
 				modalMode = "none"
-				modal.hideModal()
+				modalInstance:hide()
 			end
 			return
 		end
 		if vjoy.isGamepadPressedWithDelay("b") then
 			modalMode = "none"
-			modal.hideModal()
+			modalInstance:hide()
 			return
 		end
 		return
 	end
-
-	-- Use the enhanced list input handler for navigation and selection
-	local result = list.handleInput({
-		items = themeItems,
-		scrollPosition = scrollPosition,
-		visibleCount = visibleCount,
-		virtualJoystick = vjoy,
-
-		-- Handle item selection (A button)
-		handleItemSelect = function(item, idx)
-			list_select.toggleChecked(themeItems, idx)
-		end,
-	})
-
-	-- Update scroll position if changed
-	if result.scrollPositionChanged then
-		scrollPosition = result.scrollPosition
-		logger.debug("Updated manage themes scroll position to: " .. scrollPosition)
+	if listSelect then
+		listSelect:handleInput(inputObj)
+		listSelect:update(dt)
 	end
-
-	-- Delete action with X button
 	if vjoy.isGamepadPressedWithDelay("x") then
 		local anyChecked = false
 		for _, item in ipairs(themeItems) do
@@ -141,18 +126,16 @@ function manage_themes.update(dt)
 		end
 		if anyChecked then
 			modalMode = "confirm_delete"
-			modal.showModal("This action cannot be undone. Are you sure you want to delete the selected themes?", {
+			modalInstance:show("This action cannot be undone. Are you sure you want to delete the selected themes?", {
 				{ text = "Delete", selected = true },
 				{ text = "Cancel", selected = false },
 			})
 		else
 			modalMode = "error"
-			modal.showModal("No themes selected.", { { text = "Close", selected = true } })
+			modalInstance:show("No themes selected.", { { text = "Close", selected = true } })
 		end
 		return
 	end
-
-	-- Back to settings
 	if vjoy.isGamepadPressedWithDelay("b") then
 		screens.switchTo("settings")
 		return
@@ -161,18 +144,16 @@ end
 
 function manage_themes.onEnter(data)
 	scanThemes()
-
-	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter("manage_themes", themeItems, savedSelectedIndex)
-	logger.debug("Manage themes screen entered with scroll position: " .. scrollPosition)
+	if listSelect then
+		listSelect:setItems(themeItems)
+	end
 end
 
 function manage_themes.onExit()
-	modal.hideModal()
+	if modalInstance then
+		modalInstance:hide()
+	end
 	modalMode = "none"
-
-	-- Save the current selected index
-	savedSelectedIndex = list.onScreenExit()
 end
 
 return manage_themes

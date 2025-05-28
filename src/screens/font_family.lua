@@ -5,11 +5,12 @@ local state = require("state")
 local fonts = require("ui.fonts")
 local header = require("ui.header")
 local background = require("ui.background")
-local list = require("ui.list")
-local button = require("ui.button")
+local Button = require("ui.button").Button
+local List = require("ui.list").List
 local controls = require("controls")
 local logger = require("utils.logger")
 local screens = require("screens")
+local inputHandler = require("ui.input_handler")
 
 -- Module table to export public functions
 local font = {}
@@ -72,10 +73,8 @@ local function calculateMaxPreviewHeight()
 	local maxHeight = 0
 	for _, fontChoice in ipairs(fonts.themeDefinitions) do
 		local previewFont = getPreviewFont(fontChoice.name)
-		local _, textLines = previewFont:getWrap(
-			FONT_PREVIEW.PREVIEW_TEXT,
-			state.screenWidth - (button.BUTTON.HORIZONTAL_PADDING * 2) - (FONT_PREVIEW.PADDING * 2)
-		)
+		local _, textLines =
+			previewFont:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - 32 - (FONT_PREVIEW.PADDING * 2))
 		local height = #textLines * previewFont:getHeight() + (FONT_PREVIEW.PADDING * 2)
 		maxHeight = math.max(maxHeight, height)
 	end
@@ -108,8 +107,42 @@ local function initFontItems()
 	end
 end
 
+local function createMenuButtons()
+	local buttons = {}
+	for _, fontItem in ipairs(fonts.themeDefinitions) do
+		table.insert(
+			buttons,
+			Button:new({
+				text = fontItem.name,
+				screenWidth = state.screenWidth,
+				onClick = function()
+					state.selectedFont = fontItem.name
+					screens.switchTo("main_menu")
+				end,
+			})
+		)
+	end
+	return buttons
+end
+
 function font.load()
-	initFontItems()
+	input = inputHandler.create()
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 120,
+		items = createMenuButtons(),
+		itemHeight = 60,
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		wrap = false,
+		paddingX = 16,
+		paddingY = 8,
+	})
 end
 
 function font.draw()
@@ -132,38 +165,25 @@ function font.draw()
 	-- Calculate start Y position for the list and available height
 	local startY = header.getContentStartY()
 
-	-- Find the currently hovered font
-	local hoveredFontName = state.selectedFont
-	for _, item in ipairs(fontItems) do
-		if item.selected then
-			hoveredFontName = item.text
-			break
-		end
+	-- Use the currently focused font for preview
+	local hoveredFontName = nil
+	if menuList and menuList.selectedIndex and menuList.items[menuList.selectedIndex] then
+		hoveredFontName = menuList.items[menuList.selectedIndex].text
 	end
 
-	-- Get current scroll position from list module
-	local scrollPosition = list.getScrollPosition()
-
 	-- Draw the list using our list component
-	list.draw({
-		items = fontItems,
-		startY = startY,
-		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
-		screenWidth = state.screenWidth,
-		screenHeight = previewY, -- Set the maximum height for the list
-		drawItemFunc = function(item, _index, y)
-			button.draw(item.text, 0, y, item.selected, state.screenWidth)
-		end,
-	})
+	if menuList then
+		menuList.height = previewY - header.getContentStartY() - 8
+		menuList:draw()
+	end
 
 	-- Draw rounded background for preview text
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle(
 		"fill",
-		button.BUTTON.EDGE_MARGIN,
+		32,
 		previewY,
-		state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2),
+		state.screenWidth - (32 * 2),
 		previewHeight,
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
@@ -178,9 +198,9 @@ function font.draw()
 		love.graphics.setFont(previewFont)
 		love.graphics.printf(
 			FONT_PREVIEW.PREVIEW_TEXT,
-			button.BUTTON.EDGE_MARGIN + FONT_PREVIEW.PADDING,
+			32 + FONT_PREVIEW.PADDING,
 			previewY + FONT_PREVIEW.PADDING,
-			state.screenWidth - (button.BUTTON.EDGE_MARGIN * 2) - (FONT_PREVIEW.PADDING * 2),
+			state.screenWidth - (32 * 2) - (FONT_PREVIEW.PADDING * 2),
 			"left"
 		)
 	end
@@ -192,44 +212,24 @@ function font.draw()
 	})
 end
 
-function font.update(_dt)
-	local virtualJoystick = require("input").virtualJoystick
-
-	-- Handle B button (Back to menu)
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
-		screens.switchTo("main_menu")
-		return
+function font.update(dt)
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
 	end
-
-	-- Use the enhanced list input handler for navigation and selection
-	list.handleInput({
-		items = fontItems,
-		virtualJoystick = virtualJoystick,
-
-		-- Handle item selection (A button)
-		handleItemSelect = function(item)
-			savedSelectedIndex = list.getSelectedIndex()
-
-			-- Update the selected font in state
-			state.selectedFont = item.text
-
-			-- Return to menu
-			screens.switchTo("main_menu")
-		end,
-	})
+	if input.isPressed("b") then
+		screens.switchTo("main_menu")
+	end
 end
 
-function font.onEnter(data)
-	initFontItems()
-
-	-- Reset list state and restore selection
-	list.onScreenEnter("font_family", fontItems, savedSelectedIndex)
-	logger.debug("Font family screen entered")
+function font.onEnter()
+	if menuList then
+		menuList:setItems(createMenuButtons())
+	end
 end
 
 function font.onExit()
-	-- Save the current selected index
-	savedSelectedIndex = list.onScreenExit()
+	-- No-op for now
 end
 
 return font

@@ -1,13 +1,19 @@
 --[[
-   Screen manager module
-   This module manages application screens, handling screen registration, switching, and lifecycle methods
-   (load, enter, exit, update, draw). It automatically loads screens from the `screens` directory and
-   supports returning value passing between screens.
+	Screen manager module
+   	This module manages application screens, handling screen registration, switching, and lifecycle methods (load, 
+	enter, exit, update, draw).
+	It automatically loads screens from the `screens` directory and supports returning value passing between screens.
+
+   	The function `screens.load` must be called explicitly by the application after initializing state and fonts.
+	This function discovers and registers all screen modules in the screens directory, and calls their load() methods
+	if present.
+	This ensures that all necessary state (such as screen dimensions and fonts) is set up before screens are loaded.
 ]]
 
 --- Screen manager module
 local screens = {}
 local love = require("love")
+local logger = require("utils.logger")
 
 -- Private state
 local currentScreen = "main_menu" -- Default screen
@@ -26,9 +32,7 @@ function screens.register(screenName, screenModule)
 
 	registeredScreens[screenName] = screenModule
 
-	-- Debug log: print screen name and filename
-	local logger = require("utils.logger")
-	logger.debug("Registered screen: " .. tostring(screenName) .. " (screens/" .. tostring(screenName) .. ".lua)")
+	logger.debug("Registered screen: " .. tostring(screenName))
 end
 
 function screens.getCurrentScreen()
@@ -114,10 +118,7 @@ function screens.load()
 
 	-- Load all registered screens
 	for screenName, module in pairs(registeredScreens) do
-		local logger = require("utils.logger")
-		logger.debug(
-			"Calling load() for screen: " .. tostring(screenName) .. " (screens/" .. tostring(screenName) .. ".lua)"
-		)
+		logger.debug("Calling 'load' for screen: " .. tostring(screenName))
 		if module.load then
 			module.load()
 		end

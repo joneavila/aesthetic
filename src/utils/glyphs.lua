@@ -23,8 +23,6 @@ local BASE_VERSION = "PIXIE"
 
 -- Helper function to load and parse a single glyph map file
 local function loadMapFile(mapFilePath)
-	logger.debug("Attempting to load glyph map file: " .. mapFilePath)
-
 	local mapContent = system.readFile(mapFilePath)
 
 	if not mapContent then
@@ -89,7 +87,6 @@ function glyphs.readGlyphMap()
 	logger.debug(string.format("Base map (%s) loaded with %d entries.", BASE_VERSION, #baseMapEntries))
 
 	local systemVersion = system.getSystemVersion()
-	logger.debug("Detected system version string: " .. tostring(systemVersion))
 	local versionName = ""
 
 	-- Extract version name from system version string (part after the last underscore)
@@ -177,8 +174,6 @@ end
 -- Optionally accepts a padding value to use instead of the fixed stroke width for canvas size.
 -- The glyphHeight parameter should be the size the glyph itself is rendered at *before* padding.
 function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, padding)
-	logger.debug(string.format("Attempting to convert SVG %s to PNG %s", svgPath, pngPath))
-
 	-- Ensure parent directory exists
 	if not system.ensurePath(pngPath) then
 		logger.error("Failed to create directory for glyph: " .. pngPath)
@@ -248,8 +243,6 @@ function glyphs.copyHeaderIcons(sourceDir, targetDir)
 		logger.error("Failed to create header directory: " .. headerDir)
 		return false
 	end
-
-	logger.debug("Created header directory: " .. headerDir)
 
 	-- Use system.copyDir for direct directory copy if available
 	if system.copyDir then
@@ -356,7 +349,7 @@ function glyphs.generateMuxLaunchGlyphs()
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
 	local targetCanvasSize = 120 -- Desired final image size (with padding)
-	local muxLaunchPadding = 30 -- Specific padding requested for muxlaunch glyphs
+	local muxLaunchPadding = 60
 	-- Calculate the render height needed for the glyph itself
 	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 

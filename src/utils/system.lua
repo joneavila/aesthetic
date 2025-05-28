@@ -263,7 +263,7 @@ function system.getEnvironmentVariable(name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end
-	logger.debug("Read environment variable " .. name .. " with value: " .. value)
+	logger.debug("Environment variable '" .. name .. "' has value: " .. value)
 	return value
 end
 
@@ -407,7 +407,7 @@ function system.hasRGBSupport()
 			-- Look for rgb setting in [led] section
 			local key, value = line:match("^%s*([%w_]+)%s*=%s*(%d+)%s*$")
 			if key == "rgb" then
-				logger.debug("Found RGB setting: " .. value)
+				logger.debug("Found RGB setting in device config: " .. value)
 				return value == "1"
 			end
 		end
@@ -451,8 +451,8 @@ function system.getSystemVersion()
 		logger.error("Failed to read system version from " .. versionFilePath)
 		return "Unknown"
 	end
-	-- Trim leading/trailing whitespace
-	local cleanedVersion = content:gsub("^%s*(.-)%s*$", "%1")
+	-- Replace all newlines with spaces and trim leading/trailing whitespace
+	local cleanedVersion = content:gsub("[\r\n]+", " "):gsub("^%s*(.-)%s*$", "%1")
 	logger.debug("Read version: " .. cleanedVersion)
 	return cleanedVersion
 end

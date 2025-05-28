@@ -5,10 +5,12 @@ local controls = require("controls")
 local rgbUtils = require("utils.rgb")
 local header = require("ui.header")
 local background = require("ui.background")
-local list = require("ui.list")
-local button = require("ui.button")
+local Button = require("ui.button").Button
+local ButtonTypes = require("ui.button").TYPES
+local List = require("ui.list").List
 local fonts = require("ui.fonts")
 local screens = require("screens")
+local inputHandler = require("ui.input_handler")
 
 -- Module table to export public functions
 local rgb = {}
@@ -31,39 +33,8 @@ local RGB_MODES = {
 -- Store the last selected index for persistence
 local savedSelectedIndex = 1
 
--- Buttons in this screen
-local ALL_BUTTONS = {
-	{
-		text = "Mode",
-		selected = true,
-		options = RGB_MODES,
-		currentOption = 1, -- Will be updated in load() based on state.rgbMode
-	},
-	{
-		text = "Color",
-		selected = false,
-		colorKey = "rgb",
-	},
-	{
-		text = "Brightness",
-		selected = false,
-		min = 1,
-		max = 10,
-		step = 1,
-		value = 5, -- Will be updated in load() based on state.rgbBrightness
-	},
-	{
-		text = "Speed",
-		selected = false,
-		min = 1,
-		max = 10,
-		step = 1,
-		value = 5, -- Will be updated in load() based on state.rgbSpeed
-	},
-}
-
--- Filtered list of visible buttons
-local visibleButtons = {}
+local menuList = nil
+local input = nil
 
 -- Helper function to check if RGB color should be visible based on mode
 local function isColorVisible()
@@ -87,51 +58,126 @@ local function isBrightnessVisible()
 	return currentMode ~= "Off"
 end
 
--- Update UI state based on current state values and filter visible buttons
-local function updateButtonStates()
-	-- Set the correct current option index based on state.rgbMode
-	for i, option in ipairs(RGB_MODES) do
-		if option == state.rgbMode then
-			ALL_BUTTONS[1].currentOption = i
-			break
-		end
-	end
-
-	-- Update brightness and speed values
-	ALL_BUTTONS[3].value = state.rgbBrightness
-	ALL_BUTTONS[4].value = state.rgbSpeed
-
-	-- Clear visible buttons
-	visibleButtons = {}
-
-	-- Always add the Mode button
-	table.insert(visibleButtons, ALL_BUTTONS[1])
-	visibleButtons[1].selected = true
-
-	-- Add Brightness second if it should be visible
+local function createMenuButtons()
+	local buttons = {}
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Mode",
+			type = ButtonTypes.INDICATORS,
+			options = RGB_MODES,
+			currentOptionIndex = (function()
+				for i, option in ipairs(RGB_MODES) do
+					if option == state.rgbMode then
+						return i
+					end
+				end
+				return 1
+			end)(),
+			screenWidth = state.screenWidth,
+			context = "modeToggle",
+		})
+	)
 	if isBrightnessVisible() then
-		local brightnessBtn = ALL_BUTTONS[3]
-		brightnessBtn.selected = false
-		table.insert(visibleButtons, brightnessBtn)
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Brightness",
+				type = ButtonTypes.INDICATORS,
+				options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+				currentOptionIndex = state.rgbBrightness or 5,
+				screenWidth = state.screenWidth,
+				context = "brightnessToggle",
+			})
+		)
 	end
-
-	-- Add Color third if it should be visible
 	if isColorVisible() then
-		local colorBtn = ALL_BUTTONS[2]
-		colorBtn.selected = false
-		table.insert(visibleButtons, colorBtn)
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Color",
+				type = ButtonTypes.COLOR,
+				hexColor = state.getColorValue("rgb"),
+				monoFont = fonts.loaded.monoBody,
+				screenWidth = state.screenWidth,
+				onClick = function()
+					state.activeColorContext = "rgb"
+					state.previousScreen = "rgb"
+					screens.switchTo(COLOR_PICKER_SCREEN)
+				end,
+			})
+		)
 	end
-
-	-- Add Speed last if it should be visible
 	if isSpeedVisible() then
-		local speedBtn = ALL_BUTTONS[4]
-		speedBtn.selected = false
-		table.insert(visibleButtons, speedBtn)
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Speed",
+				type = ButtonTypes.INDICATORS,
+				options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+				currentOptionIndex = state.rgbSpeed or 5,
+				screenWidth = state.screenWidth,
+				context = "speedToggle",
+			})
+		)
 	end
+	return buttons
+end
+
+local function handleOptionCycle(button, direction)
+	if button.context == "modeToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.rgbMode = button:getCurrentOption()
+			if state.hasRGBSupport then
+				rgbUtils.updateConfig()
+			end
+			if menuList then
+				menuList:setItems(createMenuButtons())
+			end
+		end
+		return changed
+	elseif button.context == "brightnessToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.rgbBrightness = button:getCurrentOption()
+			if state.hasRGBSupport then
+				rgbUtils.updateConfig()
+			end
+		end
+		return changed
+	elseif button.context == "speedToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.rgbSpeed = button:getCurrentOption()
+			if state.hasRGBSupport then
+				rgbUtils.updateConfig()
+			end
+		end
+		return changed
+	end
+	return false
 end
 
 function rgb.load()
-	updateButtonStates()
+	input = inputHandler.create()
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		itemHeight = 60,
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+		paddingX = 16,
+		paddingY = 8,
+	})
 end
 
 function rgb.draw()
@@ -143,54 +189,9 @@ function rgb.draw()
 
 	love.graphics.setFont(state.fonts.body)
 
-	-- Calculate start Y position for the list
-	local startY = header.getContentStartY()
-
-	local scrollPosition = list.getScrollPosition()
-
-	list.draw({
-		items = visibleButtons,
-		startY = startY,
-		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
-		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
-		drawItemFunc = function(item, _index, y)
-			if item.colorKey then
-				local colorValue = state.getColorValue(item.colorKey)
-				button.drawWithColorPreview(
-					item.text,
-					item.selected,
-					0,
-					y,
-					state.screenWidth,
-					colorValue,
-					false,
-					fonts.loaded.monoBody
-				)
-			elseif item.options then
-				-- For items with multiple options
-				local currentValue = item.options[item.currentOption]
-				button.drawWithIndicators(item.text, 0, y, item.selected, false, state.screenWidth, currentValue)
-			elseif item.min ~= nil and item.max ~= nil then
-				-- For numeric ranges
-				local currentValue = item.value or item.min
-				button.drawWithIndicators(
-					item.text,
-					0,
-					y,
-					item.selected,
-					false,
-					state.screenWidth,
-					tostring(currentValue)
-				)
-			elseif item.rgbLighting then
-				button.drawWithTextPreview(item.text, 0, y, item.selected, state.screenWidth, state.rgbMode)
-			else
-				button.draw(item.text, 0, y, item.selected, state.screenWidth)
-			end
-		end,
-	})
+	if menuList then
+		menuList:draw()
+	end
 
 	-- Draw controls
 	controls.draw({
@@ -200,114 +201,29 @@ function rgb.draw()
 	})
 end
 
-function rgb.update(_dt)
+function rgb.update(dt)
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
+	end
 	local virtualJoystick = require("input").virtualJoystick
-
-	-- Handle B button to return to menu
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
-
-	-- Use the enhanced list input handler for navigation and selection
-	list.handleInput({
-		items = visibleButtons,
-		virtualJoystick = virtualJoystick,
-
-		-- Handle button selection (A button)
-		handleItemSelect = function(btn)
-			savedSelectedIndex = list.getSelectedIndex()
-
-			if btn.colorKey then
-				-- Open color picker for this color
-				state.activeColorContext = btn.colorKey
-				state.previousScreen = "rgb" -- Set previous screen to return to
-				screens.switchTo(COLOR_PICKER_SCREEN)
-			end
-		end,
-
-		-- Handle option cycling (left/right d-pad)
-		handleItemOption = function(btn, direction)
-			local changed = false
-
-			if btn.options then
-				-- Calculate new option index
-				local newIndex = btn.currentOption + direction
-
-				-- Wrap around if needed
-				if newIndex < 1 then
-					newIndex = #btn.options
-				elseif newIndex > #btn.options then
-					newIndex = 1
-				end
-
-				-- Update current option
-				btn.currentOption = newIndex
-
-				-- Update state with selected option
-				state.rgbMode = btn.options[btn.currentOption]
-
-				-- Update visible buttons based on new mode
-				updateButtonStates()
-
-				-- Apply RGB settings immediately
-				if state.hasRGBSupport then
-					rgbUtils.updateConfig()
-				end
-				changed = true
-			elseif btn.min ~= nil and btn.max ~= nil then
-				-- Handle brightness or speed adjustment
-				local isSpeed = btn.text == "Speed"
-
-				local newValue = btn.value + (direction * btn.step)
-
-				-- Clamp to min/max
-				if newValue < btn.min then
-					newValue = btn.min
-				elseif newValue > btn.max then
-					newValue = btn.max
-				end
-
-				-- Update button value
-				btn.value = newValue
-
-				-- Update state
-				if isSpeed then
-					state.rgbSpeed = newValue
-				else
-					state.rgbBrightness = newValue
-				end
-
-				-- Apply RGB settings immediately
-				if state.hasRGBSupport then
-					rgbUtils.updateConfig()
-				end
-				changed = true
-			end
-
-			return changed
-		end,
-	})
 end
 
 function rgb.onEnter()
-	-- Update button states based on current settings
-	updateButtonStates()
-
-	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter("rgb", visibleButtons, savedSelectedIndex)
-
-	-- Apply RGB settings in case they were changed in the color picker
+	if menuList then
+		menuList:setItems(createMenuButtons())
+	end
 	if state.hasRGBSupport then
 		rgbUtils.updateConfig()
 	end
 end
 
 function rgb.onExit()
-	-- Save the current selected index
-	savedSelectedIndex = list.onScreenExit()
-
-	-- No need to restore RGB settings here - let them persist while previewing
+	-- No-op for now
 end
 
 return rgb

@@ -109,9 +109,6 @@ local state = {
 	systemVersion = "Unknown", -- Initialize with a default value
 }
 
-logger.debug("State initialized with dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
-logger.debug("Application name: " .. state.applicationName)
-
 --- Helper function to get a color context
 function state.getColorContext(contextKey)
 	if not state.colorContexts[contextKey] then

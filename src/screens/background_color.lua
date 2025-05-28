@@ -2,20 +2,20 @@
 local love = require("love")
 local state = require("state")
 local controls = require("controls")
-local button = require("ui.button")
+local Button = require("ui.button").Button
+local ButtonTypes = require("ui.button").TYPES
+local List = require("ui.list").List
 local header = require("ui.header")
 local background = require("ui.background")
-local list = require("ui.list")
 local fonts = require("ui.fonts")
 local gradientPreview = require("ui.gradient_preview")
 local screens = require("screens")
+local inputHandler = require("ui.input_handler")
 
 local backgroundColor = {}
 
--- List of buttons
-local buttons = {}
--- Last selected button index for persistence
-local lastSelectedIndex = 1
+local menuList = nil
+local input = nil
 
 local function getDirectionText()
 	return state.backgroundGradientDirection or "Vertical"
@@ -42,26 +42,118 @@ local function cycleDirection()
 end
 
 -- Function to build buttons list
-local function buildButtonsList()
-	buttons = {
-		{ text = "Type", selected = true, typeToggle = true, valueText = state.backgroundType or "Solid" },
-	}
+local function createMenuButtons()
+	local buttons = {}
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Type",
+			type = ButtonTypes.INDICATORS,
+			options = { "Solid", "Gradient" },
+			currentOptionIndex = (state.backgroundType == "Gradient" and 2) or 1,
+			screenWidth = state.screenWidth,
+			context = "typeToggle",
+		})
+	)
 	if state.backgroundType == "Gradient" then
-		table.insert(buttons, { text = "Color Start", selected = false, gradientStart = true })
-		table.insert(buttons, { text = "Color Stop", selected = false, gradientStop = true })
 		table.insert(
 			buttons,
-			{ text = "Direction", selected = false, directionToggle = true, valueText = getDirectionText() }
+			Button:new({
+				text = "Color Start",
+				type = ButtonTypes.COLOR,
+				hexColor = state.getColorValue("background"),
+				monoFont = fonts.loaded.monoBody,
+				screenWidth = state.screenWidth,
+				onClick = function()
+					state.activeColorContext = "background"
+					state.previousScreen = "background_color"
+					screens.switchTo("color_picker")
+				end,
+			})
+		)
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Color Stop",
+				type = ButtonTypes.COLOR,
+				hexColor = state.getColorValue("backgroundGradient"),
+				monoFont = fonts.loaded.monoBody,
+				screenWidth = state.screenWidth,
+				onClick = function()
+					state.activeColorContext = "backgroundGradient"
+					state.previousScreen = "background_color"
+					screens.switchTo("color_picker")
+				end,
+			})
+		)
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Direction",
+				type = ButtonTypes.INDICATORS,
+				options = { "Vertical", "Horizontal" },
+				currentOptionIndex = (state.backgroundGradientDirection == "Horizontal" and 2) or 1,
+				screenWidth = state.screenWidth,
+				context = "directionToggle",
+			})
 		)
 	else
-		table.insert(buttons, { text = "Color", selected = false, solidColor = true })
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Color",
+				type = ButtonTypes.COLOR,
+				hexColor = state.getColorValue("background"),
+				monoFont = fonts.loaded.monoBody,
+				screenWidth = state.screenWidth,
+				onClick = function()
+					state.activeColorContext = "background"
+					screens.switchTo("color_picker")
+				end,
+			})
+		)
 	end
+	return buttons
+end
 
-	updateGradientPreview()
+local function handleOptionCycle(button, direction)
+	if button.context == "typeToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.backgroundType = button:getCurrentOption()
+			updateGradientPreview()
+			menuList:setItems(createMenuButtons())
+		end
+		return changed
+	elseif button.context == "directionToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.backgroundGradientDirection = button:getCurrentOption()
+			updateGradientPreview()
+		end
+		return changed
+	end
+	return false
 end
 
 function backgroundColor.load()
-	buildButtonsList()
+	input = inputHandler.create()
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		itemHeight = 60,
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		paddingX = 16,
+		paddingY = 8,
+	})
 end
 
 function backgroundColor.draw()
@@ -73,93 +165,26 @@ function backgroundColor.draw()
 
 	love.graphics.setFont(state.fonts.body)
 
-	local headerHeight = header.getContentStartY()
-	local scrollPosition = list.getScrollPosition()
-
-	-- Draw list of buttons
-	local result = list.draw({
-		items = buttons,
-		startY = headerHeight,
-		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
-		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
-		drawItemFunc = function(item, _index, y)
-			if item.typeToggle then
-				button.drawWithIndicators(item.text, 0, y, item.selected, false, state.screenWidth, item.valueText)
-			elseif item.directionToggle then
-				button.drawWithIndicators(item.text, 0, y, item.selected, false, state.screenWidth, item.valueText)
-			elseif item.solidColor then
-				button.drawWithColorPreview(
-					item.text,
-					item.selected,
-					0,
-					y,
-					state.screenWidth,
-					state.getColorValue("background"),
-					false,
-					fonts.loaded.monoBody
-				)
-			elseif item.gradientStart then
-				button.drawWithColorPreview(
-					item.text,
-					item.selected,
-					0,
-					y,
-					state.screenWidth,
-					state.getColorValue("background"),
-					false,
-					fonts.loaded.monoBody
-				)
-			elseif item.gradientStop then
-				button.drawWithColorPreview(
-					item.text,
-					item.selected,
-					0,
-					y,
-					state.screenWidth,
-					state.getColorValue("backgroundGradient"),
-					false,
-					fonts.loaded.monoBody
-				)
-			else
-				button.draw(item.text, 0, y, item.selected, state.screenWidth)
-			end
-		end,
-	})
+	if menuList then
+		menuList:draw()
+	end
 
 	-- Draw gradient preview box if gradient mode is selected
 	if state.backgroundType == "Gradient" then
-		-- Get the end Y position of the list
-		local listEndY = result.endY
-
-		-- Get control hint height to avoid overlapping with bottom controls
+		local listBottom = header.getContentStartY() + menuList.visibleCount * (60 + 12) + 8
 		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
-
-		-- Calculate available vertical space between list end and controls
-		local availableHeight = state.screenHeight - listEndY - controlsHeight - 20 -- 20px for padding
-		local availableWidth = state.screenWidth - 40 -- 20px padding on each side
-
-		-- Calculate dimensions maintaining 4:3 aspect ratio (640x480)
-		local previewWidth, previewHeight
-
-		-- Try to fit by height first
-		previewHeight = availableHeight -- Use all available height
-		previewWidth = previewHeight * 4 / 3 -- Maintain 4:3 aspect ratio
-
-		-- If width doesn't fit, recalculate based on width
+		local availableHeight = state.screenHeight - listBottom - controlsHeight - 20
+		local availableWidth = state.screenWidth - 40
+		local previewHeight = availableHeight
+		local previewWidth = previewHeight * 4 / 3
 		if previewWidth > availableWidth then
 			previewWidth = availableWidth
-			previewHeight = previewWidth * 3 / 4 -- Maintain 4:3 aspect ratio
+			previewHeight = previewWidth * 3 / 4
 		end
-
-		-- Only draw preview if we have enough space
-		if previewHeight >= 40 then -- Minimum height threshold to make preview useful
+		if previewHeight >= 40 then
 			local previewX = (state.screenWidth - previewWidth) / 2
-			local previewY = listEndY + 10 -- 10px padding after list
-
-			-- Draw gradient preview using new component with rounded corners
-			local cornerRadius = button.BUTTON.CORNER_RADIUS / 2 -- Match the corner radius in button.drawWithColorPreview
+			local previewY = listBottom + 10
+			local cornerRadius = 8
 			gradientPreview.draw(
 				previewX,
 				previewY,
@@ -180,74 +205,22 @@ function backgroundColor.draw()
 	})
 end
 
-function backgroundColor.update(_dt)
+function backgroundColor.update(dt)
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
+	end
 	local virtualJoystick = require("input").virtualJoystick
-
-	-- Handle back button
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		screens.switchTo("main_menu")
 		return
 	end
-
-	-- Use the enhanced list input handler for all navigation and selection
-	list.handleInput({
-		items = buttons,
-		virtualJoystick = virtualJoystick,
-
-		-- Handle button selection (A button)
-		handleItemSelect = function(btn)
-			lastSelectedIndex = list.getSelectedIndex()
-
-			if btn.solidColor then
-				state.activeColorContext = "background"
-				state.previousScreen = "background_color"
-				screens.switchTo("color_picker")
-			elseif btn.gradientStart then
-				state.activeColorContext = "background"
-				state.previousScreen = "background_color"
-				screens.switchTo("color_picker")
-			elseif btn.gradientStop then
-				state.activeColorContext = "backgroundGradient"
-				state.previousScreen = "background_color"
-				screens.switchTo("color_picker")
-			end
-		end,
-
-		-- Handle option cycling (left/right d-pad)
-		handleItemOption = function(btn)
-			local changed = false
-
-			if btn.typeToggle then
-				if btn.valueText == "Solid" then
-					btn.valueText = "Gradient"
-					state.backgroundType = "Gradient"
-				else
-					btn.valueText = "Solid"
-					state.backgroundType = "Solid"
-				end
-				buildButtonsList()
-				changed = true
-			elseif btn.directionToggle then
-				cycleDirection()
-				btn.valueText = getDirectionText()
-				changed = true
-			end
-
-			return changed
-		end,
-	})
 end
 
 function backgroundColor.onEnter()
-	buildButtonsList()
-
-	-- Use the centralized list state management for screen entry
-	list.onScreenEnter("background_color", buttons, lastSelectedIndex)
-end
-
-function backgroundColor.onExit()
-	-- Store the current selected index before leaving
-	lastSelectedIndex = list.onScreenExit()
+	if menuList then
+		menuList:setItems(createMenuButtons())
+	end
 end
 
 return backgroundColor

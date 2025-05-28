@@ -11,6 +11,8 @@ local slider = require("ui.slider")
 local input = require("input")
 local list = require("ui.list")
 local screens = require("screens")
+local Slider = require("ui.slider").Slider
+local inputHandler = require("ui.input_handler")
 
 -- Screen switching
 local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
@@ -21,21 +23,7 @@ local navigation_alpha = {}
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 
--- Create a button that represents slider for list.handleInput
-local BUTTONS = {
-	{
-		text = "Transparency",
-		selected = true,
-		min = 1,
-		max = #alphaValues,
-		value = 11, -- Default to 100%
-		step = 1,
-	},
-}
-
--- Animated slider state managed by slider.lua
-local alphaSliderState = nil
-local ANIMATION_DURATION = 0.25 -- Define animation duration locally
+local alphaSlider = nil
 
 -- Function to get display text for an alpha value
 local function getDisplayText(alpha)
@@ -58,16 +46,9 @@ function navigation_alpha.draw()
 
 	-- Draw slider
 	local sliderY = startY + 40
-	-- Use the animated value from the state table for drawing the handle position
-	slider.draw(
-		40, -- x
-		sliderY, -- y
-		state.screenWidth - 80, -- width
-		alphaValues, -- values
-		alphaSliderState.animatedValue, -- animatedIndex (use tweenTarget.value for smooth drawing)
-		BUTTONS[1].value, -- currentIndex (for displaying value text)
-		"Transparency"
-	)
+	if alphaSlider then
+		alphaSlider:draw()
+	end
 
 	-- Draw preview area
 	local previewY = sliderY + 120
@@ -83,7 +64,7 @@ function navigation_alpha.draw()
 
 	-- Calculate alpha from current value (0-100 to 0-1)
 	-- Use the actual BUTTONS value, not the animated value, for the preview transparency
-	local alpha = alphaValues[BUTTONS[1].value] / 100
+	local alpha = alphaSlider and alphaSlider.values[alphaSlider.valueIndex] / 100 or 1
 
 	-- Draw preview rectangle with selected alpha
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], alpha)
@@ -103,48 +84,18 @@ end
 
 -- Update function to handle input
 function navigation_alpha.update(dt)
-	-- Update the animated slider state
-	slider.updateAnimatedSliderState(alphaSliderState, dt)
-
+	if alphaSlider then
+		alphaSlider:update(dt)
+	end
 	local virtualJoystick = input.virtualJoystick
-
-	-- Handle save button
+	local handler = inputHandler.create(virtualJoystick)
 	if virtualJoystick.isGamepadPressedWithDelay("b") then
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
-
-	-- Use the enhanced list input handler for option cycling
-	list.handleInput({
-		items = BUTTONS,
-		virtualJoystick = virtualJoystick,
-
-		-- Handle option cycling (left/right d-pad)
-		handleItemOption = function(btn, direction)
-			-- Calculate new value with bounds checking
-			local newValue = btn.value + direction
-
-			-- Clamp to min/max
-			if newValue < btn.min then
-				newValue = btn.min
-			elseif newValue > btn.max then
-				newValue = btn.max
-			end
-
-			-- Only update if changed
-			if newValue ~= btn.value then
-				btn.value = newValue
-				state.navigationAlpha = alphaValues[btn.value] -- Update application state
-
-				-- Start the animation in the slider component
-				slider.setAnimatedSliderValue(alphaSliderState, newValue, ANIMATION_DURATION)
-
-				return true
-			end
-
-			return false
-		end,
-	})
+	if alphaSlider and alphaSlider:handleInput(handler) then
+		state.navigationAlpha = alphaSlider.values[alphaSlider.valueIndex]
+	end
 end
 
 -- Called when entering the screen
@@ -153,7 +104,6 @@ function navigation_alpha.onEnter()
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
 
-	-- If navigationAlpha is already set in state, find the closest value
 	if state.navigationAlpha then
 		for i, value in ipairs(alphaValues) do
 			local diff = math.abs(state.navigationAlpha - value)
@@ -164,13 +114,17 @@ function navigation_alpha.onEnter()
 		end
 	end
 
-	BUTTONS[1].value = closestIndex
-
-	-- Initialize the animated slider state
-	alphaSliderState = slider.createAnimatedSliderState(BUTTONS[1].value)
-
-	-- Initialize the list UI state with the selected item
-	list.setSelectedIndex(1, BUTTONS)
+	alphaSlider = Slider:new({
+		x = 40,
+		y = header.getContentStartY() + 100,
+		width = state.screenWidth - 80,
+		values = alphaValues,
+		valueIndex = closestIndex,
+		label = "Transparency",
+		onValueChanged = function(val, idx)
+			state.navigationAlpha = val
+		end,
+	})
 end
 
 return navigation_alpha

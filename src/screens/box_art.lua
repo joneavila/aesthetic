@@ -5,10 +5,12 @@ local state = require("state")
 local controls = require("controls")
 local header = require("ui.header")
 local background = require("ui.background")
-local list = require("ui.list")
-local button = require("ui.button")
+local Button = require("ui.button").Button
+local ButtonTypes = require("ui.button").TYPES
+local List = require("ui.list").List
 local tween = require("tween")
 local screens = require("screens")
+local inputHandler = require("ui.input_handler")
 
 -- Module table to export public functions
 local box_art = {}
@@ -34,21 +36,8 @@ local tweenObj = { leftWidth = 0, rightWidth = 0 }
 
 -- List handling variables
 local savedSelectedIndex = 1 -- Track the last selected index
-
--- Buttons in this screen
-local BUTTONS = {
-	{
-		text = "Box art width",
-		selected = true,
-		options = BOX_ART_WIDTH_OPTIONS,
-		currentOption = 1, -- Will be updated in load() based on state
-	},
-}
-
--- Initialize box art width in state if it doesn't exist
-if state.boxArtWidth == nil then
-	state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1] -- Default to first option (0)
-end
+local menuList = nil
+local input = nil
 
 -- Function to get display text for a box art width value
 local function getDisplayText(width)
@@ -76,28 +65,63 @@ local function generateWidthOptions()
 	end
 end
 
-function box_art.load()
-	-- Generate width options
-	generateWidthOptions()
+local function createMenuButtons()
+	return {
+		Button:new({
+			text = "Box art width",
+			type = ButtonTypes.INDICATORS,
+			options = BOX_ART_WIDTH_OPTIONS,
+			currentOptionIndex = (function()
+				for i, option in ipairs(BOX_ART_WIDTH_OPTIONS) do
+					if option == state.boxArtWidth then
+						return i
+					end
+				end
+				return 1
+			end)(),
+			screenWidth = state.screenWidth,
+			getDisplayText = getDisplayText,
+			context = "boxArtWidth",
+		}),
+	}
+end
 
-	-- Set the correct current option index based on state.boxArtWidth
-	local found = false
-	for i, option in ipairs(BOX_ART_WIDTH_OPTIONS) do
-		if option == state.boxArtWidth then
-			BUTTONS[1].currentOption = i
-			found = true
-			break
+local function handleOptionCycle(button, direction)
+	if button.context == "boxArtWidth" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			state.boxArtWidth = button:getCurrentOption()
+			local boxArtWidth = state.boxArtWidth
+			local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+			local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+			local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
+			local target = { leftWidth = targetLeftWidth, rightWidth = targetRightWidth }
+			currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
 		end
+		return changed
 	end
+	return false
+end
 
-	-- If the stored width is not in the options (possibly due to screen size change), default to 0
-	if not found then
-		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
-		BUTTONS[1].currentOption = 1
-	end
-
-	-- Initialize animation values
-	local boxArtWidth = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
+function box_art.load()
+	input = inputHandler.create()
+	generateWidthOptions()
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		itemHeight = 60,
+		onItemSelect = function(item)
+			-- No-op for this screen
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+		paddingX = 16,
+		paddingY = 8,
+	})
+	local boxArtWidth = state.boxArtWidth or BOX_ART_WIDTH_OPTIONS[1]
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
 	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
@@ -106,62 +130,18 @@ function box_art.load()
 end
 
 function box_art.draw()
-	-- Set background
 	background.draw()
-
-	-- Draw header with title
 	header.draw("box art width")
-
-	-- Set font
 	love.graphics.setFont(state.fonts.body)
-
-	-- Calculate start Y position for the list
-	local startY = header.getContentStartY()
-
-	-- Get current scroll position from list module
-	local scrollPosition = list.getScrollPosition()
-
-	-- Draw the list using our list component
-	list.draw({
-		items = BUTTONS,
-		startY = startY,
-		itemHeight = button.calculateHeight(),
-		scrollPosition = scrollPosition,
-		screenWidth = state.screenWidth,
-		screenHeight = state.screenHeight,
-		drawItemFunc = function(item, _index, y)
-			if item.options then
-				-- For items with multiple options
-				local currentValue = item.options[item.currentOption]
-				local displayText = getDisplayText(currentValue)
-				button.drawWithIndicators(item.text, 0, y, item.selected, item.disabled, state.screenWidth, displayText)
-			else
-				button.draw(item.text, 0, y, item.selected, state.screenWidth)
-			end
-		end,
-	})
-
-	-- Calculate where the list ends
-	local totalListHeight = #BUTTONS * (button.calculateHeight() + button.BUTTON.SPACING)
-	local endY = startY + totalListHeight
-
-	-- Draw preview rectangles
-	local previewY = endY + button.BUTTON.SPACING
+	if menuList then
+		menuList:draw()
+	end
+	local listBottom = header.getContentStartY() + menuList.visibleCount * (60 + 12) + 8
+	local previewY = listBottom + 40
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
-
-	-- Get current value for preview
-	local currentValue = BOX_ART_WIDTH_OPTIONS[BUTTONS[1].currentOption]
-
-	-- Draw preview rectangles
+	local currentValue = state.boxArtWidth or BOX_ART_WIDTH_OPTIONS[1]
 	local previewHeight = 100
-	local previewYOffset = 40
-
-	previewY = previewY + previewYOffset
-
-	-- Determine box art width from current selection
 	local boxArtWidth = currentValue
-
-	-- Draw left rectangle with teal color
 	love.graphics.setColor(colors.ui.teal)
 	love.graphics.rectangle(
 		"fill",
@@ -172,8 +152,6 @@ function box_art.draw()
 		CORNER_RADIUS,
 		CORNER_RADIUS
 	)
-
-	-- Draw right rectangle with lavender color, only if box art is enabled
 	if animatedRightWidth > 0 then
 		love.graphics.setColor(colors.ui.lavender)
 		love.graphics.rectangle(
@@ -186,9 +164,7 @@ function box_art.draw()
 			CORNER_RADIUS
 		)
 	end
-
 	if boxArtWidth > 0 then
-		-- Draw labels for content and box art areas with background color
 		love.graphics.setColor(colors.ui.background)
 		love.graphics.printf(
 			"Text",
@@ -197,8 +173,6 @@ function box_art.draw()
 			animatedLeftWidth,
 			"center"
 		)
-
-		-- Only show box art label if there's enough space
 		if boxArtWidth >= 70 then
 			love.graphics.printf(
 				"Box art",
@@ -209,7 +183,6 @@ function box_art.draw()
 			)
 		end
 	else
-		-- If disabled, show simple text label in the center with background color
 		love.graphics.setColor(colors.ui.background)
 		love.graphics.printf(
 			"Text",
@@ -219,112 +192,45 @@ function box_art.draw()
 			"center"
 		)
 	end
-
-	-- Draw controls
 	controls.draw({
 		{ button = "b", text = "Save" },
 	})
 end
 
 function box_art.update(dt)
-	local virtualJoystick = require("input").virtualJoystick
-
-	-- Update tween animation if it exists
 	if currentTween then
 		local completed = currentTween:update(dt)
 		if completed then
 			currentTween = nil
 		end
-		-- Update animated values from tween object
 		animatedLeftWidth = tweenObj.leftWidth
 		animatedRightWidth = tweenObj.rightWidth
 	end
 
-	-- Handle B button to return to menu
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	-- Handle B button to return to main menu
+	if input and input.isPressed and input.isPressed("b") then
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
 
-	-- Use the enhanced list input handler for navigation and option cycling
-	list.handleInput({
-		items = BUTTONS,
-		virtualJoystick = virtualJoystick,
-
-		-- Nothing special happens on select for this screen
-		handleItemSelect = function(item)
-			savedSelectedIndex = list.getSelectedIndex()
-		end,
-
-		-- Handle option cycling (left/right d-pad)
-		handleItemOption = function(btn, direction)
-			if btn.options then
-				-- Calculate new option index
-				local newIndex = btn.currentOption + direction
-
-				-- Wrap around if needed
-				if newIndex < 1 then
-					newIndex = #btn.options
-				elseif newIndex > #btn.options then
-					newIndex = 1
-				end
-
-				-- Update current option
-				btn.currentOption = newIndex
-
-				-- Update state with selected option
-				state.boxArtWidth = btn.options[btn.currentOption]
-
-				-- Create animation tween for the transition
-				local boxArtWidth = state.boxArtWidth
-				local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
-				local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
-				local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
-
-				-- Target object for the animation
-				local target = {
-					leftWidth = targetLeftWidth,
-					rightWidth = targetRightWidth,
-				}
-
-				-- Create tween with current values as starting point - using inOutQuad for ease in ease out
-				currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
-
-				return true
-			end
-
-			return false
-		end,
-	})
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
+	end
 end
 
 function box_art.onEnter()
-	-- Regenerate width options in case screen size has changed
 	generateWidthOptions()
-
-	-- Set the correct current option index based on state.boxArtWidth
-	local found = false
-	for i, option in ipairs(BOX_ART_WIDTH_OPTIONS) do
-		if option == state.boxArtWidth then
-			BUTTONS[1].currentOption = i
-			found = true
-			break
-		end
+	if menuList then
+		menuList:setItems(createMenuButtons())
 	end
-
-	-- If the stored width is not in the options (possibly due to screen size change), default to 0
-	if not found then
-		state.boxArtWidth = BOX_ART_WIDTH_OPTIONS[1]
-		BUTTONS[1].currentOption = 1
-	end
-
-	-- Reset list state and restore selection
-	scrollPosition = list.onScreenEnter("box_art", BUTTONS, savedSelectedIndex)
 end
 
 function box_art.onExit()
 	-- Save the current selected index
-	savedSelectedIndex = list.onScreenExit()
+	if menuList then
+		savedSelectedIndex = menuList:getSelectedIndex()
+	end
 end
 
 return box_art

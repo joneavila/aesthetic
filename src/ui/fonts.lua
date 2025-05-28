@@ -94,7 +94,6 @@ fonts.initializeFonts = function()
 
 		if success then
 			fonts.loaded[key] = result
-			logger.debug("Font loaded: " .. key .. " from " .. def.path .. " size " .. def.size)
 		else
 			logger.error("Failed to load font: " .. key .. " - " .. tostring(result))
 		end
@@ -123,7 +122,6 @@ end
 -- Helper function to set the default font
 fonts.setDefault = function()
 	if love and fonts.loaded.body then
-		logger.debug("Default font set to body")
 		love.graphics.setFont(fonts.loaded.body)
 	else
 		logger.error("Failed to set default font - body font not loaded")

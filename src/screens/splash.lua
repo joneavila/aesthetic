@@ -116,7 +116,6 @@ function splash.update(dt)
 	if splash.state == "waiting" then
 		splash.letterTimer = splash.letterTimer + dt
 		if splash.letterTimer >= 0.3 then
-			logger.debug("Splash state changing: waiting -> typing")
 			splash.state = "typing"
 			splash.letterTimer = 0
 		end
@@ -126,7 +125,6 @@ function splash.update(dt)
 			splash.letterTimer = 0
 			splash.currentIndex = splash.currentIndex + 1
 			if splash.currentIndex >= string.len(splash.title) then
-				logger.debug("Splash state changing: typing -> holding")
 				splash.state = "holding"
 				splash.holdTimer = splash.holdDuration
 			end
@@ -134,14 +132,12 @@ function splash.update(dt)
 	elseif splash.state == "holding" then
 		splash.holdTimer = splash.holdTimer - dt
 		if splash.holdTimer <= 0 then
-			logger.debug("Splash state changing: holding -> fading")
 			splash.state = "fading"
 		end
 	elseif splash.state == "fading" then
 		splash.fadeTimer = splash.fadeTimer + dt
 		splash.alpha = math.max(0, 1 - (splash.fadeTimer / splash.fadeOutDuration))
 		if splash.alpha <= 0 then
-			logger.debug("Splash state changing: fading -> done")
 			splash.state = "done"
 			-- When done, switch to the menu screen
 			logger.debug("Splash completed, switching to main_menu")
