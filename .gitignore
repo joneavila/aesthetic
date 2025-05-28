@@ -3,6 +3,7 @@
 
 # Build directories
 .dist/
+.build/
 
 # Files created during local development
 .dev/
