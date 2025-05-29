@@ -111,7 +111,7 @@ function font.load()
 				item.onClick()
 			end
 		end,
-		wrap = false,
+		itemHeight = 40,
 	})
 end
 
@@ -141,6 +141,7 @@ function font.draw()
 	-- Draw the list using our list component
 	if menuList then
 		menuList.height = previewY - header.getContentStartY() - 8
+		menuList:calculateDimensions()
 		menuList:draw()
 	end
 

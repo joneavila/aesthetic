@@ -28,7 +28,7 @@ function List:new(config)
 	instance.itemHeight = config.itemHeight or 50
 	instance.spacing = config.spacing or LIST_CONFIG.ITEM_SPACING
 	instance.visibleCount = 0
-	instance.wrap = config.wrap ~= false -- default true
+	instance.wrap = config.wrap ~= false -- Default true
 	instance.paddingX = config.paddingX or 12
 	instance.paddingY = config.paddingY or 8
 
