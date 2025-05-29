@@ -1,12 +1,15 @@
 --- Splash screen animation (terminal-style typing effect)
 local love = require("love")
-local splash = {}
+
 local colors = require("colors")
-local state = require("state")
-local logger = require("utils.logger")
 local screens = require("screens")
+local state = require("state")
+
 local fonts = require("ui.fonts")
-local background = require("ui.background")
+
+local logger = require("utils.logger")
+
+local splash = {}
 
 function splash.load()
 	logger.debug("Splash screen load started")

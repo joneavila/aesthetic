@@ -60,7 +60,6 @@ function Slider:draw()
 	if not self.values or #self.values == 0 then
 		return
 	end
-	local clampedAnimatedIndex = math.max(1, math.min(self.animatedValue, #self.values))
 	local clampedCurrentIndex = math.max(1, math.min(self.valueIndex, #self.values))
 	local trackX = self.x + Slider.PADDING
 	local trackY = self.y + (Slider.HEIGHT / 2) - (Slider.TRACK_HEIGHT / 2)

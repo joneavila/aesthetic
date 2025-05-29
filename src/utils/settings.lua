@@ -1,11 +1,12 @@
 --- Settings management module
 --- Manages persistent application-wide settings that are automatically saved and loaded between sessions in a single
 --- configuration file
-local state = require("state")
-local system = require("utils.system")
 local errorHandler = require("error_handler")
+local state = require("state")
+
 local fonts = require("ui.fonts")
-local logger = require("utils.logger")
+
+local system = require("utils.system")
 
 local settings = {}
 

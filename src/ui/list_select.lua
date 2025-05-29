@@ -1,13 +1,14 @@
 --- ListSelect UI component (Component-based)
 -- This module provides a scrollable list with checkboxes and action buttons
-
 local love = require("love")
-local component = require("ui.component")
-local Button = require("ui.button").Button
-local List = require("ui.list").List
-local svg = require("utils.svg")
-local controls = require("controls")
+
 local colors = require("colors")
+local controls = require("controls")
+
+local component = require("ui.component")
+local List = require("ui.list").List
+
+local svg = require("utils.svg")
 
 local ListSelect = setmetatable({}, { __index = component.Component })
 ListSelect.__index = ListSelect
@@ -72,7 +73,6 @@ function ListSelect:draw()
 	local font = love.graphics.getFont()
 	local controlsHeight = controls.HEIGHT or 42
 	local indicatorHeight = font:getHeight() + 24
-	local reservedBottom = indicatorHeight + controlsHeight
 	local y = self.y
 	local screenWidth = self.width
 	local buttonWidth = screenWidth - 2 * self.paddingX
@@ -100,7 +100,7 @@ function ListSelect:draw()
 		end
 		-- Draw checkbox for each item
 		local itemY = listStartY + (idx - 1) * (self.itemHeight + self.paddingY)
-		self:drawCheckboxItem(item, idx, itemY, screenWidth, buttonWidth)
+		self:drawCheckboxItem(item, itemY, buttonWidth)
 	end
 
 	love.graphics.pop()
@@ -116,7 +116,7 @@ function ListSelect:draw()
 	end
 end
 
-function ListSelect:drawCheckboxItem(item, index, y, screenWidth, buttonWidth)
+function ListSelect:drawCheckboxItem(item, y, buttonWidth)
 	local boxSize = 28
 	local padding = self.paddingX
 	local font = love.graphics.getFont()
@@ -198,7 +198,7 @@ end
 
 function ListSelect:getSelectedItems()
 	local selected = {}
-	for i, item in ipairs(self.items) do
+	for _, item in ipairs(self.items) do
 		if item.selected then
 			table.insert(selected, item)
 		end
@@ -208,7 +208,7 @@ end
 
 function ListSelect:getCheckedItems()
 	local checked = {}
-	for i, item in ipairs(self.items) do
+	for _, item in ipairs(self.items) do
 		if item.checked then
 			table.insert(checked, item)
 		end

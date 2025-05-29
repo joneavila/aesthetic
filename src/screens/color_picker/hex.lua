@@ -1,15 +1,17 @@
 --- Hex color picker screen
 local love = require("love")
+
 local colors = require("colors")
-local state = require("state")
 local controls = require("controls")
-local colorUtils = require("utils.color")
-local constants = require("screens.color_picker.constants")
-local svg = require("utils.svg")
 local screens = require("screens")
+local state = require("state")
+
 local fonts = require("ui.fonts")
-local inputHandler = require("ui.input_handler")
-local logger = require("utils.logger")
+
+local colorUtils = require("utils.color")
+local svg = require("utils.svg")
+
+local constants = require("screens.color_picker.constants")
 
 local hex = {}
 

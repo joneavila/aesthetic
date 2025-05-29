@@ -3,9 +3,7 @@ local love = require("love")
 
 local controls = require("controls")
 local errorHandler = require("error_handler")
-local input = require("input")
 local paths = require("paths")
-local presets = require("utils.presets")
 local screens = require("screens")
 local state = require("state")
 local system = require("utils.system")
@@ -26,7 +24,6 @@ local settings = {}
 local lastSelectedIndex = 1
 
 -- Modal state tracking
-local modalMode = "none" -- none, save_success, load_success, error, save_input
 local presetName = nil
 local menuList = nil
 local input = nil
@@ -194,9 +191,6 @@ function settings.draw()
 
 	-- Draw header with title
 	header.draw("settings")
-
-	-- Calculate start Y position for the list
-	local startY = header.getContentStartY()
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)

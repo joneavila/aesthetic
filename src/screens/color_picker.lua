@@ -1,20 +1,18 @@
 --- Color picker screen with tabbed interface
 local love = require("love")
-local colors = require("colors")
-local state = require("state")
-local constants = require("screens.color_picker.constants")
-local errorHandler = require("error_handler")
-local header = require("ui.header")
-local tween = require("tween")
-local fonts = require("ui.fonts")
-local background = require("ui.background")
-local controls = require("controls")
-local inputHandler = require("ui.input_handler")
-local screens = require("screens")
 
-local paletteScreen = require("screens.color_picker.palette")
-local hsvScreen = require("screens.color_picker.hsv")
+local colors = require("colors")
+local screens = require("screens")
+local state = require("state")
+local tween = require("tween")
+
+local fonts = require("ui.fonts")
+local header = require("ui.header")
+
+local constants = require("screens.color_picker.constants")
 local hexScreen = require("screens.color_picker.hex")
+local hsvScreen = require("screens.color_picker.hsv")
+local paletteScreen = require("screens.color_picker.palette")
 
 -- Module table to export public functions
 local colorPicker = {}

@@ -87,7 +87,6 @@ function glyphs.readGlyphMap()
 	logger.debug(string.format("Base map (%s) loaded with %d entries.", BASE_VERSION, #baseMapEntries))
 
 	local systemVersion = system.getSystemVersion()
-	local versionName = ""
 
 	-- Extract version name from system version string (part after the last underscore)
 	local _, _, name = string.find(systemVersion, "_([^_]+)$")
@@ -97,16 +96,15 @@ function glyphs.readGlyphMap()
 		name = name:match("^%s*(.-)%s*$") -- Trim whitespace
 		name = name:match("([^\n]+)") or name -- Remove part after newline if present
 	end
+	local versionName = name
 
 	if name and name ~= BASE_VERSION then
 		logger.debug("Extracted version name: " .. name)
-		versionName = name
 		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. versionName .. ".txt"
 		local versionMapEntries = loadMapFile(versionMapPath)
 
 		if versionMapEntries then
 			logger.debug("Merging glyph map for version: " .. versionName)
-			local initialMergedCount = #baseMapEntries -- Approximate count before merge
 			-- Merge version-specific entries
 			local additions = 0
 			local removals = 0

@@ -173,7 +173,7 @@ local function handleKeySelection()
 end
 
 -- Handle user input
-function virtual_keyboard.update(dt)
+function virtual_keyboard.update(_dt)
 	local virtualJoystick = input.virtualJoystick
 
 	-- D-pad navigation
@@ -379,8 +379,8 @@ end
 
 -- The keypressed function is no longer needed since we're using the input module
 -- This prevents duplicate input handling
-function love.keypressed(key)
-	-- Do nothing - input is now handled via input.virtualJoystick
+function love.keypressed(_key)
+	-- Input is handled via input.virtualJoystick
 end
 
 return virtual_keyboard

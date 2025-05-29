@@ -14,15 +14,17 @@
 --
 -- This approach fixes issues where SVG icons appear darker than text when rendered.
 local love = require("love")
-local state = require("state")
-local colorUtils = require("utils.color")
+
 local errorHandler = require("error_handler")
-local bmp = require("utils.bmp")
-local system = require("utils.system")
-local paths = require("paths")
+local state = require("state")
+
 local fonts = require("ui.fonts")
-local svg = require("utils.svg")
+
+local bmp = require("utils.bmp")
+local colorUtils = require("utils.color")
 local logger = require("utils.logger")
+local svg = require("utils.svg")
+local system = require("utils.system")
 
 local imageGenerator = {}
 

@@ -17,7 +17,6 @@ local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local logger = require("utils.logger")
-local modal = require("ui.modal")
 local Modal = require("ui.modal").Modal
 
 local menu = {}
@@ -379,7 +378,7 @@ function menu.load()
 		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT,
 		items = buttons,
 		itemHeight = buttons[1] and buttons[1].height or 60,
-		onItemSelect = function(item, index)
+		onItemSelect = function(item, _index)
 			if item.onClick then
 				item.onClick()
 			end
@@ -393,7 +392,7 @@ function menu.load()
 	-- Create modal component
 	modal = Modal:new({
 		font = fonts.loaded.body,
-		onButtonPress = function(index, button)
+		onButtonPress = function(_index, button)
 			if button and button.text == "Apply theme later" then
 				modal:hide()
 				modalState = "none"
@@ -576,7 +575,5 @@ function menu.onEnter(data)
 		end
 	end
 end
-
-local headerTextAlphaScreen = require("screens.header_text_alpha")
 
 return menu

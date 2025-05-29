@@ -2,18 +2,18 @@
 -- This screen allows controlling the alpha/transparency of navigation elements
 
 local love = require("love")
-local state = require("state")
+
 local colors = require("colors")
-local fonts = require("ui.fonts")
-local background = require("ui.background")
-local header = require("ui.header")
 local controls = require("controls")
-local slider = require("ui.slider")
 local input = require("input")
-local list = require("ui.list")
 local screens = require("screens")
-local Slider = require("ui.slider").Slider
+local state = require("state")
+
+local background = require("ui.background")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
+local Slider = require("ui.slider").Slider
 
 -- Screen switching
 local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
@@ -122,7 +122,7 @@ function navigation_alpha.onEnter()
 		values = alphaValues,
 		valueIndex = closestIndex,
 		label = "Transparency",
-		onValueChanged = function(val, idx)
+		onValueChanged = function(val, _idx)
 			state.navigationAlpha = val
 		end,
 	})

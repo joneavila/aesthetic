@@ -44,9 +44,7 @@ function Modal:getMessage()
 	return self.message
 end
 
-function Modal:update(dt)
-	-- No-op for now
-end
+function Modal:update(_dt) end
 
 function Modal:moveFocus(direction)
 	if #self.buttons == 0 then

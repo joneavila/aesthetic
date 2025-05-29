@@ -76,11 +76,11 @@ function svg.drawIcon(icon, x, y, color, opacity)
 end
 
 -- Draw SVG icon on a canvas with option to control blend mode restoration
-function svg.drawIconOnCanvas(svg, size, x, y, color, restoreBlendMode)
+function svg.drawIconOnCanvas(svgData, size, x, y, color, restoreBlendMode)
 	-- Set proper blend mode for drawing to canvas
 	love.graphics.setBlendMode("alpha")
 
-	local icon = tove.newGraphics(svg, size)
+	local icon = tove.newGraphics(svgData, size)
 	if color then
 		icon:setMonochrome(color[1], color[2], color[3])
 	end

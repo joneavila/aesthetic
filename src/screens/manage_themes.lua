@@ -1,28 +1,28 @@
 --- Manage Themes screen
 local love = require("love")
-local state = require("state")
+
+local colors = require("colors")
 local controls = require("controls")
 local input = require("input")
 local paths = require("paths")
-local header = require("ui.header")
-local background = require("ui.background")
-local List = require("ui.list").List
-local Button = require("ui.button").Button
-local Modal = require("ui.modal").Modal
-local logger = require("utils.logger")
-local system = require("utils.system")
-local commands = require("utils.commands")
 local screens = require("screens")
-local inputHandler = require("ui.input_handler")
-local svg = require("utils.svg")
-local colors = require("colors")
+local state = require("state")
+
+local background = require("ui.background")
 local fonts = require("ui.fonts")
+local header = require("ui.header")
+local inputHandler = require("ui.input_handler")
+local List = require("ui.list").List
+local Modal = require("ui.modal").Modal
+
+local commands = require("utils.commands")
+local svg = require("utils.svg")
+local system = require("utils.system")
 
 local manage_themes = {}
 
 local themeItems = {}
 local modalMode = "none"
-local savedSelectedIndex = 1
 local themeList = nil
 local inputObj = nil
 local modalInstance = nil
@@ -125,7 +125,7 @@ function manage_themes.load()
 		height = state.screenHeight - header.getContentStartY() - controls.calculateHeight(),
 		items = themeItems,
 		itemHeight = fonts.loaded.body:getHeight() + 24,
-		onItemSelect = function(item, idx)
+		onItemSelect = function(item, _idx)
 			-- Toggle checked state
 			item.checked = not item.checked
 		end,
@@ -252,7 +252,7 @@ function manage_themes.update(dt)
 	end
 end
 
-function manage_themes.onEnter(data)
+function manage_themes.onEnter(_data)
 	scanThemes()
 	if themeList then
 		themeList:setItems(themeItems)

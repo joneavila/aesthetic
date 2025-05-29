@@ -1,19 +1,18 @@
 --- Header Text Alpha screen
 -- This screen allows controlling the alpha/transparency of header text
-
 local love = require("love")
-local state = require("state")
+
 local colors = require("colors")
-local background = require("ui.background")
-local header = require("ui.header")
 local controls = require("controls")
-local slider = require("ui.slider")
 local input = require("input")
-local list = require("ui.list")
 local screens = require("screens")
-local Slider = require("ui.slider").Slider
-local inputHandler = require("ui.input_handler")
+local state = require("state")
+
+local background = require("ui.background")
 local fonts = require("ui.fonts")
+local header = require("ui.header")
+local inputHandler = require("ui.input_handler")
+local Slider = require("ui.slider").Slider
 
 -- Screen switching
 local MENU_SCREEN = "main_menu"
@@ -112,7 +111,7 @@ function header_text_alpha.onEnter()
 		values = alphaValues,
 		valueIndex = closestIndex,
 		label = "Transparency",
-		onValueChanged = function(val, idx)
+		onValueChanged = function(val, _idx)
 			state.headerTextAlpha = math.floor((val / 100) * 255 + 0.5)
 		end,
 	})

@@ -1,25 +1,23 @@
 --- Background color screen with Solid/Gradient options
 local love = require("love")
-local state = require("state")
+
 local controls = require("controls")
+local screens = require("screens")
+local state = require("state")
+
+local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
-local List = require("ui.list").List
-local header = require("ui.header")
-local background = require("ui.background")
 local fonts = require("ui.fonts")
 local gradientPreview = require("ui.gradient_preview")
-local screens = require("screens")
+local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
+local List = require("ui.list").List
 
 local backgroundColor = {}
 
 local menuList = nil
 local input = nil
-
-local function getDirectionText()
-	return state.backgroundGradientDirection or "Vertical"
-end
 
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
@@ -29,16 +27,6 @@ local function updateGradientPreview()
 		local direction = state.backgroundGradientDirection or "Vertical"
 		gradientPreview.updateMesh(bgColor, gradientColor, direction)
 	end
-end
-
-local function cycleDirection()
-	if state.backgroundGradientDirection == "Vertical" then
-		state.backgroundGradientDirection = "Horizontal"
-	else
-		state.backgroundGradientDirection = "Vertical"
-	end
-	-- Update gradient preview when direction changes
-	updateGradientPreview()
 end
 
 -- Function to build buttons list

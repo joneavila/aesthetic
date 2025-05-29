@@ -1,6 +1,5 @@
 --- Base UI Component
 --- Provides common functionality for all UI components
-local love = require("love")
 
 local component = {}
 
@@ -69,7 +68,7 @@ function Component:draw()
 	-- Override in subclasses
 end
 
-function Component:handleInput(input)
+function Component:handleInput(_input)
 	-- Override in subclasses
 	return false
 end

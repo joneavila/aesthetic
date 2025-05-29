@@ -1,13 +1,14 @@
 --- Debug screen for development purposes
 local love = require("love")
-local state = require("state")
-local fonts = require("ui.fonts")
-local screens = require("screens")
-local background = require("ui.background")
-local header = require("ui.header")
-local controls = require("controls")
+
 local colors = require("colors")
 local input = require("input")
+local screens = require("screens")
+
+local background = require("ui.background")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
+
 local logger = require("utils.logger")
 
 -- Module table to export public functions

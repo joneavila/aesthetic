@@ -10,14 +10,16 @@
 --]]
 
 local love = require("love")
-local input = require("input")
+
 local colors = require("colors")
+local input = require("input")
 local state = require("state")
+
 local fonts = require("ui.fonts")
-local settings = require("utils.settings")
+
 local logger = require("utils.logger")
-local errorHandler = require("error_handler")
 local rgbUtils = require("utils.rgb")
+local settings = require("utils.settings")
 local system = require("utils.system")
 
 -- Screens module will be initialized after loading

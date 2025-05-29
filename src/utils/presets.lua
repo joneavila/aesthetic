@@ -7,7 +7,6 @@ local state = require("state")
 
 local fonts = require("ui.fonts")
 
-local logger = require("utils.logger")
 local system = require("utils.system")
 
 local presets = {}

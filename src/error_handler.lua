@@ -1,10 +1,8 @@
 --- Error handler
 --- This module centralizes error handling functionality throughout the application
+local logger = require("utils.logger")
 
 local errorHandler = {}
-local modal = require("ui.modal")
-local logger = require("utils.logger")
-local fonts = require("ui.fonts")
 
 -- Error state
 local errorMessage = nil

@@ -1,19 +1,16 @@
---[[
-	Screen manager module
-   	This module manages application screens, handling screen registration, switching, and lifecycle methods (load, 
-	enter, exit, update, draw).
-	It automatically loads screens from the `screens` directory and supports returning value passing between screens.
-
-   	The function `screens.load` must be called explicitly by the application after initializing state and fonts.
-	This function discovers and registers all screen modules in the screens directory, and calls their load() methods
-	if present.
-	This ensures that all necessary state (such as screen dimensions and fonts) is set up before screens are loaded.
-]]
-
 --- Screen manager module
-local screens = {}
+--- This module manages application screens, handling screen registration, switching, and lifecycle methods
+--- (load, enter, exit, update, draw).
+--- It automatically loads screens from the `screens` directory and supports returning value passing between screens.
+--- The function `screens.load` must be called explicitly by the application after initializing state and fonts.
+--- This function discovers and registers all screen modules in the screens directory, and calls their load() methods
+--- if present.
+--- This ensures that all necessary state (such as screen dimensions and fonts) is set up before screens are loaded.
 local love = require("love")
+
 local logger = require("utils.logger")
+
+local screens = {}
 
 -- Private state
 local currentScreen = "main_menu" -- Default screen

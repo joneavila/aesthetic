@@ -1,16 +1,17 @@
 --- Font selection screen
 local love = require("love")
+
 local colors = require("colors")
+local controls = require("controls")
+local screens = require("screens")
 local state = require("state")
-local fonts = require("ui.fonts")
-local header = require("ui.header")
+
 local background = require("ui.background")
 local Button = require("ui.button").Button
-local List = require("ui.list").List
-local controls = require("controls")
-local logger = require("utils.logger")
-local screens = require("screens")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
+local List = require("ui.list").List
 
 -- Module table to export public functions
 local font = {}
@@ -29,10 +30,6 @@ local previewFontCache = {}
 
 -- Store the maximum preview height once calculated
 local maxPreviewHeight = nil
-
--- Font items with their selected state
-local fontItems = {}
-local savedSelectedIndex = 1 -- Track the last selected index
 
 -- Helper function to get a consistent preview font
 local function getPreviewFont(fontName)
@@ -81,30 +78,6 @@ local function calculateMaxPreviewHeight()
 
 	maxPreviewHeight = maxHeight
 	return maxHeight
-end
-
--- Initialize font items based on fonts.themeDefinitions
-local function initFontItems()
-	fontItems = {}
-	local foundSelected = false
-
-	for _, fontItem in ipairs(fonts.themeDefinitions) do
-		local isSelected = fontItem.name == fonts.getSelectedFont()
-
-		if isSelected then
-			foundSelected = true
-		end
-
-		table.insert(fontItems, {
-			text = fontItem.name,
-			selected = isSelected,
-		})
-	end
-
-	-- If no font was selected, select the first one by default
-	if not foundSelected and #fontItems > 0 then
-		fontItems[1].selected = true
-	end
 end
 
 local function createMenuButtons()
@@ -161,9 +134,6 @@ function font.draw()
 	-- Calculate the preview height and position
 	local previewHeight = calculateMaxPreviewHeight()
 	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
-
-	-- Calculate start Y position for the list and available height
-	local startY = header.getContentStartY()
 
 	-- Use the currently focused font for preview
 	local hoveredFontName = nil

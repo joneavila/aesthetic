@@ -145,7 +145,6 @@ end
 local function createVersionFile()
 	-- Read the content from the source file
 	local content = system.readFile(paths.MUOS_VERSION)
-	local versionNumber = system.getEnvironmentVariable("MUOS_VERSION")
 
 	-- Extract just the version number using pattern matching (digits with zero or more periods followed by underscore)
 	local parsedVersion = content:match("(%d[%d%.]+)_")

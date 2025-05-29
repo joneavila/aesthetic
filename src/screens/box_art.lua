@@ -38,7 +38,6 @@ local ANIMATION_DURATION = 0.25
 local tweenObj = { leftWidth = 0, rightWidth = 0 }
 
 -- List handling variables
-local savedSelectedIndex = 1 -- Track the last selected index
 local menuList = nil
 local input = nil
 
@@ -116,7 +115,7 @@ function box_art.load()
 		height = state.screenHeight - header.getContentStartY() - 60,
 		items = createMenuButtons(),
 		itemHeight = 60,
-		onItemSelect = function(item)
+		onItemSelect = function(_item)
 			-- No-op for this screen
 		end,
 		onItemOptionCycle = handleOptionCycle,
@@ -229,11 +228,6 @@ function box_art.onEnter()
 	end
 end
 
-function box_art.onExit()
-	-- Save the current selected index
-	if menuList then
-		savedSelectedIndex = menuList:getSelectedIndex()
-	end
-end
+function box_art.onExit() end
 
 return box_art

@@ -1,12 +1,10 @@
 --- Screen Setup UI component
 --- This file provides utilities for setting up common screen elements
+local love = require("love")
 
 local background = require("ui.background")
-local header = require("ui.header")
-local love = require("love")
-local colors = require("colors")
-local state = require("state")
 local fonts = require("ui.fonts")
+local header = require("ui.header")
 
 -- Module table to export public functions
 local screen_setup = {}

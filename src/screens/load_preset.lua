@@ -2,7 +2,6 @@
 local love = require("love")
 
 local controls = require("controls")
-local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
 
@@ -15,14 +14,12 @@ local List = require("ui.list").List
 
 local logger = require("utils.logger")
 local presets = require("utils.presets")
-local rgbUtils = require("utils.rgb")
 
 -- Module table to export public functions
 local loadPreset = {}
 
 -- Preset items list
 local presetItems = {}
-local lastSelectedIndex = 1
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
@@ -35,7 +32,7 @@ local function loadPresetsList()
 
 	-- Validate each preset and gather creation dates
 	logger.debug("Starting preset validation loop")
-	for i, presetName in ipairs(availablePresets) do
+	for _, presetName in ipairs(availablePresets) do
 		local isValid, presetData = presets.validatePreset(presetName)
 		logger.debug("Preset " .. tostring(presetName) .. " valid: " .. tostring(isValid))
 
@@ -180,11 +177,6 @@ function loadPreset.onEnter()
 end
 
 -- Clean up resources when leaving the screen
-function loadPreset.onExit()
-	-- Store selected index before leaving
-	if menuList then
-		lastSelectedIndex = menuList.selectedIndex
-	end
-end
+function loadPreset.onExit() end
 
 return loadPreset

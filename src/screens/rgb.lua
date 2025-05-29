@@ -1,17 +1,19 @@
 --- RGB lighting settings screen
 local love = require("love")
-local colors = require("colors")
-local state = require("state")
+
 local controls = require("controls")
-local rgbUtils = require("utils.rgb")
-local header = require("ui.header")
+local screens = require("screens")
+local state = require("state")
+
 local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
-local List = require("ui.list").List
 local fonts = require("ui.fonts")
-local screens = require("screens")
+local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
+local List = require("ui.list").List
+
+local rgbUtils = require("utils.rgb")
 
 -- Module table to export public functions
 local rgb = {}
@@ -30,9 +32,6 @@ local RGB_MODES = {
 	"Multi Rainbow",
 	"Off",
 }
-
--- Store the last selected index for persistence
-local savedSelectedIndex = 1
 
 local menuList = nil
 local input = nil

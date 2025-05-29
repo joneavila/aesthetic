@@ -1,8 +1,8 @@
 --- New List Component
 --- A clean, reusable scrollable list component
 local love = require("love")
+
 local Component = require("ui.component").Component
-local scrollable = require("ui.scrollable")
 local inputHandler = require("ui.input_handler")
 
 -- List constants
