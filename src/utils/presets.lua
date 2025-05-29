@@ -122,8 +122,8 @@ function presets.savePreset(presetName)
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. state.source .. '",\n')
 
-	-- Launch screen type
-	file:write('  launchScreenType = "' .. state.launchScreenType .. '",\n')
+	-- Home screen layout
+	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
 
 	file:write("}\n")
 
@@ -226,9 +226,9 @@ function presets.loadPreset(presetName)
 		state.source = "user" -- Default to user-created if not specified
 	end
 
-	-- Launch screen type
-	if loadedPreset.launchScreenType then
-		state.launchScreenType = loadedPreset.launchScreenType
+	-- Home screen layout
+	if loadedPreset.homeScreenLayout then
+		state.homeScreenLayout = loadedPreset.homeScreenLayout
 	end
 
 	return true

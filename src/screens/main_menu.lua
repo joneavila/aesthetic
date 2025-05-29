@@ -60,16 +60,16 @@ end
 local function createMenuButtons()
 	local buttons = {}
 
-	-- Launch Screen Type button (first item)
+	-- Home screen layout button
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Launch Screen Type",
+			text = "Home Screen Layout",
 			type = ButtonTypes.INDICATORS,
 			options = { "List", "Grid" },
-			currentOptionIndex = (state.launchScreenType == "Grid" and 2) or 1,
+			currentOptionIndex = (state.homeScreenLayout == "Grid" and 2) or 1,
 			screenWidth = state.screenWidth,
-			context = "launchScreenType",
+			context = "homeScreenLayout",
 		})
 	)
 
@@ -321,8 +321,8 @@ local function handleOptionCycle(button, direction)
 		state.statusAlignment = newValue
 	elseif button.context == "timeAlign" then
 		state.timeAlignment = newValue
-	elseif button.context == "launchScreenType" then
-		state.launchScreenType = newValue
+	elseif button.context == "homeScreenLayout" then
+		state.homeScreenLayout = newValue
 	end
 
 	return true

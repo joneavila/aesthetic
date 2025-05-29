@@ -98,8 +98,8 @@ function settings.saveToFile()
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
 
-	-- Launch screen type
-	file:write('  launchScreenType = "' .. state.launchScreenType .. '",\n')
+	-- Home screen layout
+	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
 
 	file:write("}\n")
 
@@ -245,9 +245,9 @@ function settings.loadFromFile()
 		state.source = settings.SOURCE_USER -- Default to user-created if not specified
 	end
 
-	-- Launch screen type
-	if loadedSettings.launchScreenType then
-		state.launchScreenType = loadedSettings.launchScreenType
+	-- Home screen layout
+	if loadedSettings.homeScreenLayout then
+		state.homeScreenLayout = loadedSettings.homeScreenLayout
 	end
 
 	return true

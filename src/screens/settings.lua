@@ -115,8 +115,8 @@ local function saveThemePreset(name)
 	-- Header text alpha
 	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
 
-	-- Launch screen type
-	file:write('  launchScreenType = "' .. state.launchScreenType .. '",\n')
+	-- Home screen layout
+	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
 
 	-- Preset metadata
 	file:write('  presetName = "' .. name .. '",\n')

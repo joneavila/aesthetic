@@ -252,7 +252,7 @@ end
 -- Apply grid settings to the muxlaunch.ini file in the resolution-specific directory
 function themeSettings.applyGridSettings(muxlaunchIniPath)
 	local colCount, rowCount = 0, 0
-	if state.launchScreenType == "Grid" then
+	if state.homeScreenLayout == "Grid" then
 		colCount, rowCount = 4, 2
 	end
 	return system.modifyFile(muxlaunchIniPath, function(content)
