@@ -33,42 +33,29 @@ local currentLayer = 1 -- Track current keyboard layer (1, 2, or 3)
 
 -- Keyboard layouts for different layers
 local keyboardLayouts = {
-	-- Layer 1: Lowercase (QWERTY)
+	-- Layer 1: Lowercase
 	{
 		-- Row 1: Digits
 		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
 		-- Row 2: QWERTY
 		{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
 		-- Row 3: ASDF
-		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", ":" },
-		-- Row 4: ZXCV with spacing
-		{ "z", "x", "c", "v", "b", "n", "m", ",", ".", "/" },
+		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "-" },
+		-- Row 4: ZXCV
+		{ "z", "x", "c", "v", "b", "n", "m", "(", ")", "_" },
 		-- Row 5: Special keys
 		{ "ABC", "", "OK" },
 	},
-	-- Layer 2: Uppercase (QWERTY)
+	-- Layer 2: Uppercase
 	{
 		-- Row 1: Digits
 		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
 		-- Row 2: QWERTY uppercase
 		{ "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" },
 		-- Row 3: ASDF uppercase
-		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", ":" },
-		-- Row 4: ZXCV uppercase with spacing
-		{ "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/" },
-		-- Row 5: Special keys
-		{ "!@#", "", "OK" },
-	},
-	-- Layer 3: Symbols and special characters
-	{
-		-- Row 1: Symbols
-		{ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")" },
-		-- Row 2: Symbols
-		{ "`", "~", "_", "-", "+", "=", "{", "}", "[", "]" },
-		-- Row 3: Symbols
-		{ "|", "\\", ":", ";", '"', "'", "€", "£", "¥", "¢" },
-		-- Row 4: Symbols
-		{ "<", ">", ",", ".", "?", "/", "§", "°", "©", "®" },
+		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", "-" },
+		-- Row 4: ZXCV uppercase
+		{ "Z", "X", "C", "V", "B", "N", "M", "(", ")", "_" },
 		-- Row 5: Special keys
 		{ "abc", "", "OK" },
 	},
@@ -79,7 +66,7 @@ local keyboard = keyboardLayouts[1]
 
 -- Function to switch keyboard layer
 local function switchKeyboardLayer()
-	currentLayer = currentLayer % 3 + 1 -- Cycle through layers 1, 2, 3
+	currentLayer = currentLayer % 2 + 1 -- Cycle through layers
 	keyboard = keyboardLayouts[currentLayer]
 end
 
@@ -163,7 +150,6 @@ local function handleKeySelection()
 	local selectedKey = keyboard[selectedY][selectedX]
 
 	if selectedKey == "OK" then
-
 		-- Pass the necessary data: preventImmediateInput, inputValue, title, and returnScreen
 		screens.switchTo(returnScreen, {
 			preventImmediateInput = true,
@@ -174,8 +160,7 @@ local function handleKeySelection()
 	elseif selectedKey == "" then
 		-- Space key (empty text)
 		inputValue = inputValue .. " "
-	elseif selectedKey == "ABC" or selectedKey == "!@#" or selectedKey == "abc" then
-		-- Layer switching
+	elseif selectedKey == "ABC" or selectedKey == "abc" then
 		switchKeyboardLayer()
 	elseif selectedKey == "BACKSPACE" then
 		if #inputValue > 0 then
