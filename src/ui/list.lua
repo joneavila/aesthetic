@@ -2,6 +2,8 @@
 --- A clean, reusable scrollable list component
 local love = require("love")
 
+local colors = require("colors")
+
 local Component = require("ui.component").Component
 local inputHandler = require("ui.input_handler")
 
@@ -30,6 +32,11 @@ function List:new(config)
 	instance.paddingX = config.paddingX or 12
 	instance.paddingY = config.paddingY or 8
 
+	-- Height redistribution properties
+	instance.adjustedItemHeight = instance.itemHeight
+	instance.adjustedSpacing = instance.spacing
+	instance.shouldRedistribute = false
+
 	-- Callbacks
 	instance.onItemSelect = config.onItemSelect
 	instance.onItemOptionCycle = config.onItemOptionCycle
@@ -48,8 +55,33 @@ function List:calculateDimensions()
 		local itemWithSpacing = self.itemHeight + self.spacing
 		self.visibleCount = math.floor(availableHeight / itemWithSpacing)
 		self.visibleCount = math.max(1, math.min(self.visibleCount, #self.items))
+
+		-- Check if we should redistribute height
+		-- This happens when there are more items than can be shown, or when adding one more item wouldn't fit
+		local totalItems = #self.items
+		local wouldFitOneMore = (self.visibleCount + 1) * itemWithSpacing <= availableHeight
+		self.shouldRedistribute = (totalItems > self.visibleCount)
+			or (totalItems == self.visibleCount and not wouldFitOneMore)
+
+		if self.shouldRedistribute and self.visibleCount > 0 then
+			-- Calculate redistributed heights
+			-- Total height used by spacing between items (n-1 spacings for n items)
+			local totalSpacingHeight = (self.visibleCount - 1) * self.spacing
+			-- Remaining height to distribute among items
+			local heightForItems = availableHeight - totalSpacingHeight
+			-- New item height
+			self.adjustedItemHeight = heightForItems / self.visibleCount
+			self.adjustedSpacing = self.spacing -- Keep original spacing
+		else
+			-- No redistribution needed, use original values
+			self.adjustedItemHeight = self.itemHeight
+			self.adjustedSpacing = self.spacing
+		end
 	else
 		self.visibleCount = 0
+		self.shouldRedistribute = false
+		self.adjustedItemHeight = self.itemHeight
+		self.adjustedSpacing = self.spacing
 	end
 end
 
@@ -274,10 +306,10 @@ function List:draw()
 		if item then
 			-- Calculate item position (relative to the list, not scrolled content)
 			local itemIndex = i - firstVisible -- Index within visible items (0-based)
-			local itemY = self.y + self.paddingY + itemIndex * (self.itemHeight + self.spacing)
+			local itemY = self.y + self.paddingY + itemIndex * (self.adjustedItemHeight + self.adjustedSpacing)
 			local itemX = self.x + self.paddingX
 			local itemW = self.width - self.paddingX * 2
-			local itemH = self.itemHeight
+			local itemH = self.adjustedItemHeight
 
 			-- Set item position
 			if item.setPosition then
@@ -313,7 +345,7 @@ function List:draw()
 			+ ((self.height - self.paddingY * 2) - barHeight)
 				* (self.scrollPosition / (#self.items - self.visibleCount))
 		local barX = self.x + self.width - 6 -- 6px from the right edge
-		love.graphics.setColor(1, 1, 1, 0.3)
+		love.graphics.setColor(colors.ui.surface)
 		love.graphics.rectangle("fill", barX, barY, 4, barHeight, 2, 2)
 	end
 end
