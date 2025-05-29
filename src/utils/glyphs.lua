@@ -18,7 +18,7 @@ local glyphs = {}
 
 local GLYPH_HEIGHT = 24
 local FIXED_STROKE_WIDTH = 1.5
-local GLYPH_MAPPINGS_DIR = paths.ROOT_DIR .. "/utils/glyph_mappings"
+local GLYPH_MAPPINGS_DIR = paths.SOURCE_DIR .. "/utils/glyph_mappings"
 local BASE_VERSION = "PIXIE"
 
 -- Helper function to load and parse a single glyph map file
@@ -297,7 +297,7 @@ function glyphs.generateGlyphs(targetDir)
 		return false
 	end
 
-	local svgBaseDir = paths.ROOT_DIR .. "/assets/icons/lucide/glyph"
+	local svgBaseDir = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
 	local baseOutputDir = targetDir
 
 	local glyphHeight = GLYPH_HEIGHT
@@ -343,7 +343,7 @@ function glyphs.generateMuxLaunchGlyphs()
 		end
 	end
 
-	local svgBaseDir = paths.ROOT_DIR .. "/assets/icons/lucide/glyph"
+	local svgBaseDir = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
 	local targetCanvasSize = 120 -- Desired final image size (with padding)

@@ -51,10 +51,10 @@ case "$OS" in
 esac
 
 # Define project directories
-ROOT_DIR="$(pwd)"
-DEV_DIR="$ROOT_DIR/.dev"
+SOURCE_DIR="$(pwd)"
+DEV_DIR="$SOURCE_DIR/.dev"
 LOG_DIR="$DEV_DIR/logs"
-TEMPLATE_DIR="$ROOT_DIR/src/template"
+TEMPLATE_DIR="$SOURCE_DIR/src/template"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"
@@ -85,6 +85,7 @@ echo "1.0.0-dev" > "$LOCAL_MUOS_CONFIG_DIR/version.txt"
 
 # Export environment variables
 export ROOT_DIR
+export SOURCE_DIR
 export DEV_DIR
 export LOG_DIR
 export SESSION_ID
@@ -98,15 +99,15 @@ export MUOS_VERSION
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then
-  export DYLD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/src/tove:$DYLD_LIBRARY_PATH"
+  export DYLD_LIBRARY_PATH="$SOURCE_DIR/lib:$SOURCE_DIR/src/tove:$DYLD_LIBRARY_PATH"
 else
-  export LD_LIBRARY_PATH="$ROOT_DIR/lib:$ROOT_DIR/src/tove:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$SOURCE_DIR/lib:$SOURCE_DIR/src/tove:$LD_LIBRARY_PATH"
 fi
 
 # Create symlink to assets directory in src if it doesn't exist
-if [ ! -L "$ROOT_DIR/src/assets" ]; then
+if [ ! -L "$SOURCE_DIR/src/assets" ]; then
   echo "Creating symlink to assets directory in src"
-  ln -s "$ROOT_DIR/assets" "$ROOT_DIR/src/assets"
+  ln -s "$SOURCE_DIR/assets" "$SOURCE_DIR/src/assets"
 fi
 
 # Print environment info for debugging
@@ -114,6 +115,7 @@ echo "Starting Aesthetic in development mode..."
 echo "DETECTED OS: $OS"
 echo "USING LÖVE PATH: $LOVE_PATH"
 echo "ROOT_DIR: $ROOT_DIR"
+echo "SOURCE_DIR: $SOURCE_DIR"
 echo "DEV_DIR: $DEV_DIR"
 echo "LOG_DIR: $LOG_DIR"
 echo "SESSION_LOG_FILE: $SESSION_LOG_FILE"
@@ -124,11 +126,11 @@ echo "WINDOW DIMENSIONS: ${WIDTH}x${HEIGHT}"
 # Extract and print keyboard to button mappings from input.lua
 echo ""
 echo "KEYBOARD TO HANDHELD BUTTON MAPPING:"
-grep -E '\["[^"]+"\] = "[^"]+",' "$ROOT_DIR/src/input.lua" | sed -E 's/\s*\["([^"]+)"\] = "[^"]+", -- (.+)/  \1 = \2/' | awk '{first=substr($1,1,1); rest=substr($1,2); print "  " toupper(first) rest " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9}'
+grep -E '\["[^"]+"\] = "[^"]+",' "$SOURCE_DIR/src/input.lua" | sed -E 's/\s*\["([^"]+)"\] = "[^"]+", -- (.+)/  \1 = \2/' | awk '{first=substr($1,1,1); rest=substr($1,2); print "  " toupper(first) rest " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9}'
 echo ""
 
 # Launch application with LÖVE and pass screen dimensions
-cd "$ROOT_DIR" || exit
+cd "$SOURCE_DIR" || exit
 # Launch with explicit width and height arguments
 "$LOVE_PATH" src --width $WIDTH --height $HEIGHT 2>&1 | tee -a "$SESSION_LOG_FILE" 
 # "$LOVE_PATH" src 2>&1 | tee -a "$SESSION_LOG_FILE" 

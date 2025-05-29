@@ -7,6 +7,7 @@ local errorHandler = require("error_handler")
 local paths = {}
 
 -- muOS themes directories
+paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
 
@@ -20,7 +21,7 @@ if state.isDevelopment then
 end
 
 -- Working theme directory where files are written before archiving into a theme
-paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
+paths.WORKING_THEME_DIR = paths.SOURCE_DIR .. "/theme_working"
 if state.isDevelopment then
 	paths.WORKING_THEME_DIR = devDir .. "/theme_working"
 end
@@ -54,9 +55,9 @@ paths.MUOS_VERSION = muosConfigDir .. "/version.txt"
 paths.THEME_INSTALL_SCRIPT = "/opt/muos/script/package/theme.sh"
 
 -- Assets used by the UI
-paths.THEME_FONT_SOURCE_DIR = paths.ROOT_DIR .. "/assets/fonts"
-paths.THEME_IMAGE_SOURCE_DIR = paths.ROOT_DIR .. "/assets/images"
-paths.THEME_SOUND_SOURCE_DIR = paths.ROOT_DIR .. "/assets/sounds"
+paths.THEME_FONT_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/fonts"
+paths.THEME_IMAGE_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/images"
+paths.THEME_SOUND_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/sounds"
 
 paths.KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
 paths.PRESETS_IMAGES_DIR = "assets/images/presets"
@@ -72,7 +73,7 @@ paths.THEME_VERSION = paths.WORKING_THEME_DIR .. "/version.txt"
 paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
-paths.HEADER_GLYPHS_SOURCE_DIR = paths.ROOT_DIR .. "/assets/icons/glyph/header"
+paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
 
 -- `scheme` directory and files
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
@@ -115,8 +116,18 @@ function paths.getThemeResolutionMuxlaunchIniPath()
 	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
 end
 
-paths.THEME_BOOTLOGO_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
-paths.THEME_LOGO_OUTLINE_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
+-- Function to get the settings file path
+function paths.getSettingsFilePath()
+	local baseDir = state.isDevelopment and system.getEnvironmentVariable("DEV_DIR")
+		or system.getEnvironmentVariable("ROOT_DIR")
+	if not baseDir then
+		return nil
+	end
+	return baseDir .. "/userdata/settings.lua"
+end
+
+paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
+paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"
 
 -- Theme `image` directory and files
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
@@ -129,7 +140,7 @@ paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
 paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
 
 -- Theme presets directory
-paths.PRESETS_DIR = paths.ROOT_DIR .. "/presets"
+paths.PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
 
 --- Returns the closest available bin font size directory (as a string) for the given display dimensions, using the
 --- diagonal and a base size of 28 for 640x480.

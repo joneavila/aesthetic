@@ -133,18 +133,13 @@ end
 
 -- Function to load a preset from file
 function presets.loadPreset(presetName)
-	if not presetName then
-		presetName = "preset1"
-	end
-
-	-- Get the ROOT_DIR from environment variable
-	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
-	if not rootDir then
+	local sourceDir = system.getEnvironmentVariable("SOURCE_DIR")
+	if not sourceDir then
 		return false
 	end
 
 	-- Prepare the file path - presetName is already sanitized at this point
-	local filePath = rootDir .. "/presets/" .. presetName .. ".lua"
+	local filePath = sourceDir .. "/presets/" .. presetName .. ".lua"
 
 	-- Check if the file exists
 	if not system.fileExists(filePath) then
@@ -241,14 +236,13 @@ end
 
 -- Function to list available presets
 function presets.listPresets()
-	-- Get the ROOT_DIR from environment variable
-	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
-	if not rootDir then
+	local sourceDir = system.getEnvironmentVariable("SOURCE_DIR")
+	if not sourceDir then
 		return {}
 	end
 
 	-- Prepare the presets directory
-	local presetsDir = rootDir .. "/presets"
+	local presetsDir = sourceDir .. "/presets"
 
 	-- Check if the directory exists
 	local exists = os.execute("test -d " .. presetsDir)

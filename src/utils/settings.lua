@@ -3,6 +3,7 @@
 --- configuration file
 local errorHandler = require("error_handler")
 local state = require("state")
+local paths = require("paths")
 
 local fonts = require("ui.fonts")
 
@@ -10,42 +11,14 @@ local system = require("utils.system")
 
 local settings = {}
 
--- The filename to use for storing settings
-settings.FILENAME = "settings.lua"
-
 -- Preset source type (built-in vs user-created)
 settings.SOURCE_BUILTIN = "built-in"
 settings.SOURCE_USER = "user"
 
--- Function to get the settings file path
-function settings.getFilePath()
-	-- Get the ROOT_DIR from environment variable
-	local rootDir = system.getEnvironmentVariable("ROOT_DIR")
-	if not rootDir then
-		errorHandler.setError("Failed to get ROOT_DIR environment variable")
-		return nil
-	end
-
-	-- Set baseDir based on development mode
-	local baseDir
-	if state.isDevelopment then
-		baseDir = system.getEnvironmentVariable("DEV_DIR")
-		if not baseDir then
-			errorHandler.setError("DEV_DIR environment variable not set but isDevelopment is true")
-			return nil
-		end
-	else
-		baseDir = rootDir
-	end
-
-	-- Return the appropriate path
-	return baseDir .. "/" .. settings.FILENAME
-end
-
 -- Function to save the current settings to a file
 function settings.saveToFile()
 	-- Get file path
-	local filePath = settings.getFilePath()
+	local filePath = paths.getSettingsFilePath()
 	if not filePath then
 		return false
 	end
@@ -137,7 +110,7 @@ end
 -- Function to load settings from file
 function settings.loadFromFile()
 	-- Get file path
-	local filePath = settings.getFilePath()
+	local filePath = paths.getSettingsFilePath()
 	if not filePath then
 		return false
 	end
