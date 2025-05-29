@@ -1,16 +1,19 @@
 --- Box art settings screen
 local love = require("love")
+
 local colors = require("colors")
-local state = require("state")
 local controls = require("controls")
-local header = require("ui.header")
+local screens = require("screens")
+local state = require("state")
+local tween = require("tween")
+
 local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
-local List = require("ui.list").List
-local tween = require("tween")
-local screens = require("screens")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
+local List = require("ui.list").List
 
 -- Module table to export public functions
 local box_art = {}
@@ -132,7 +135,7 @@ end
 function box_art.draw()
 	background.draw()
 	header.draw("box art width")
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 	if menuList then
 		menuList:draw()
 	end
@@ -169,7 +172,7 @@ function box_art.draw()
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
-			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+			previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
 			animatedLeftWidth,
 			"center"
 		)
@@ -177,7 +180,7 @@ function box_art.draw()
 			love.graphics.printf(
 				"Box art",
 				EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
-				previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+				previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
 				animatedRightWidth,
 				"center"
 			)
@@ -187,7 +190,7 @@ function box_art.draw()
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
-			previewY + previewHeight / 2 - state.fonts.caption:getHeight() / 2,
+			previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
 			previewWidth,
 			"center"
 		)

@@ -61,6 +61,11 @@ paths.THEME_SOUND_SOURCE_DIR = paths.ROOT_DIR .. "/assets/sounds"
 paths.KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
 paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
+-- Get preset image path for a specific preset
+function paths.getPresetImagePath(presetName)
+	return paths.PRESETS_IMAGES_DIR .. "/" .. presetName .. ".png"
+end
+
 paths.THEME_CREDITS = paths.WORKING_THEME_DIR .. "/credits.txt"
 paths.THEME_NAME = paths.WORKING_THEME_DIR .. "/name.txt"
 paths.THEME_VERSION = paths.WORKING_THEME_DIR .. "/version.txt"

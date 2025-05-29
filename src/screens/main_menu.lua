@@ -122,7 +122,7 @@ local function createMenuButtons()
 		Button:new({
 			text = "Font Family",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.selectedFont,
+			previewText = fonts.getSelectedFont(),
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("font_family")
@@ -137,7 +137,7 @@ local function createMenuButtons()
 			text = "Font Size",
 			type = ButtonTypes.INDICATORS,
 			options = { "Default", "Large", "Extra Large" },
-			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[state.fontSize] or 1,
+			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[fonts.getFontSize()] or 1,
 			screenWidth = state.screenWidth,
 			context = "fontSize",
 		})
@@ -299,7 +299,7 @@ local function handleOptionCycle(button, direction)
 
 	-- Update state based on button context
 	if button.context == "fontSize" then
-		state.fontSize = newValue
+		fonts.setFontSize(newValue)
 	elseif button.context == "glyphs" then
 		state.glyphs_enabled = (newValue == "Enabled")
 	elseif button.context == "headerText" then
@@ -392,7 +392,7 @@ function menu.load()
 
 	-- Create modal component
 	modal = Modal:new({
-		font = state.fonts.body,
+		font = fonts.loaded.body,
 		onButtonPress = function(index, button)
 			if button and button.text == "Apply theme later" then
 				modal:hide()
@@ -418,7 +418,7 @@ function menu.draw()
 	header.draw("main menu")
 
 	-- Set the default body font for consistent sizing
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw the main list
 	if menuList then
@@ -433,7 +433,7 @@ function menu.draw()
 
 	-- Draw modal if active
 	if modal and modal:isVisible() then
-		modal:draw(state.screenWidth, state.screenHeight, state.fonts.body)
+		modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
 	end
 
 	controls.draw({

@@ -162,23 +162,23 @@ local function copySelectedFont()
 	-- Find and copy the selected font file
 	local selectedFontFile
 	for _, font in ipairs(fonts.themeDefinitions) do
-		if font.name == state.selectedFont then
+		if font.name == fonts.getSelectedFont() then
 			selectedFontFile = font.file
 			break
 		end
 	end
 	if not selectedFontFile then
-		errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
+		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
 		return false
 	end
 
 	-- Get the font size directory
 	local fontSizeDir
 	local existingFontSize, result = pcall(function()
-		return fonts.themeFontSizeOptions[state.fontSize]
+		return fonts.themeFontSizeOptions[fonts.getFontSize()]
 	end)
 	if not existingFontSize or not result then
-		errorHandler.setError("Failed to get font size: " .. tostring(state.fontSize))
+		errorHandler.setError("Failed to get font size: " .. tostring(fonts.getFontSize()))
 		return false
 	end
 	fontSizeDir = result
@@ -191,7 +191,7 @@ local function copySelectedFont()
 		.. "_"
 		.. fontSizeDir
 		.. ".bin"
-	logger.debug("Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(state.fontSize))
+	logger.debug("Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(fonts.getFontSize()))
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
 		return false
 	end

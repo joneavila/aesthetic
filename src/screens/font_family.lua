@@ -89,7 +89,7 @@ local function initFontItems()
 	local foundSelected = false
 
 	for _, fontItem in ipairs(fonts.themeDefinitions) do
-		local isSelected = fontItem.name == state.selectedFont
+		local isSelected = fontItem.name == fonts.getSelectedFont()
 
 		if isSelected then
 			foundSelected = true
@@ -116,7 +116,7 @@ local function createMenuButtons()
 				text = fontItem.name,
 				screenWidth = state.screenWidth,
 				onClick = function()
-					state.selectedFont = fontItem.name
+					fonts.setSelectedFont(fontItem.name)
 					screens.switchTo("main_menu")
 				end,
 			})
@@ -153,7 +153,7 @@ function font.draw()
 	header.draw("font family")
 
 	-- Make sure we restore the default UI font for the button list
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	-- Ensure controls HEIGHT is calculated
 	controls.calculateHeight()

@@ -7,6 +7,7 @@ local colorUtils = require("utils.color")
 local controls = require("controls")
 local constants = require("screens.color_picker.constants")
 local screens = require("screens")
+local fonts = require("ui.fonts")
 
 local hsv = {}
 
@@ -209,7 +210,7 @@ function hsv.draw()
 
 	-- Draw "Current" label
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.caption)
+	love.graphics.setFont(fonts.loaded.caption)
 	love.graphics.printf(
 		"Old",
 		pickerState.previewX,

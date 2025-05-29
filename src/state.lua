@@ -6,6 +6,11 @@
 --- module to include these properties in the configuration file. The settings module handles saving and loading
 --- persistent application settings.
 
+local fonts = require("ui.fonts")
+local errorHandler = require("error_handler")
+local colorUtils = require("utils.color")
+local logger = require("utils.logger")
+
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application
 --- Color contexts enable the same UI components to modify different colors (background, foreground, RGB lighting, etc.)
@@ -14,11 +19,6 @@
 ---   2. State for the color palette picker
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
-local fonts = require("ui.fonts")
-local errorHandler = require("error_handler")
-local colorUtils = require("utils.color")
-local logger = require("utils.logger")
-
 local function createColorContext(defaultColor)
 	logger.debug("Creating color context with default color: " .. defaultColor)
 	return {
@@ -49,78 +49,48 @@ end
 --- Main state table containing all global application state
 local state = {
 	applicationName = "Aesthetic",
-	themeName = "Aesthetic", -- Default theme name
-
-	-- Screen dimensions are set in `src/main.lua`
-	screenWidth = 0,
-	screenHeight = 0,
-
-	-- Development mode flag
-	isDevelopment = os.getenv("DEV_DIR") ~= nil,
-
-	-- Font settings (moved to ui.fonts but kept references here for compatibility)
-	fonts = fonts.loaded,
-	selectedFont = "Inter",
-	fontSize = "Default",
+	themeName = "Aesthetic", -- Theme name
+	screenWidth = 0, -- Set in `main.lua`
+	screenHeight = 0, -- Set in `main.lua`
+	isDevelopment = os.getenv("DEV_DIR") ~= nil, -- Development mode flag
 
 	previousScreen = "main_menu", -- Default screen to return to after color picker
-	glyphs_enabled = true, -- Default value for glyphs enabled
-
-	-- Set the alignment of the theme's bottom navigation icons and text
-	navigationAlignment = "Left", -- Default navigation alignment (Left, Center, Right)
-	navigationAlpha = 100, -- Default navigation alpha (0-100)
-
-	-- Set the alignment of the status bar
-	-- Default status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)
-	statusAlignment = "Right",
-
-	-- Box art settings
-	boxArtWidth = 0, -- Default box art width
-
-	-- Time alignment setting
-	timeAlignment = "Left", -- Default time alignment (Auto, Left, Center, Right)
-
-	-- Header text alignment setting
-	headerTextAlignment = 2, -- Default header text alignment (0-Auto, 1-Left, 2-Center, 3-Right)
-
-	-- RGB lighting related settings
-	rgbMode = "Solid", -- Default RGB lighting mode
-	rgbBrightness = 5, -- Default RGB brightness (1-10)
-	rgbSpeed = 5, -- Default RGB speed (1-10)
-
 	themeApplied = false, -- Whether the theme has been applied
-	source = "user", -- Default source type for themes (user-created vs built-in)
+	source = "user", -- Source type for themes (user-created vs built-in)
+	systemVersion = "Unknown", -- System version, set in `main.lua`
+	activeColorContext = "background", -- Default active color context (background, backgroundGradient, foreground, rgb)
 
-	-- Color contexts
-	activeColorContext = "background", -- Default active color context
-	colorContexts = { -- Stores theme's configurable colors
+	-- Begin: Theme configuration and defaults
+	glyphs_enabled = true, -- Glyphs (icons) enabled
+	navigationAlignment = "Left", -- Navigation glyphs and text alignment (Left, Center, Right)
+	navigationAlpha = 100, -- Navigation glyphs and textalpha (0-100)
+	-- Status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)
+	statusAlignment = "Right",
+	boxArtWidth = 0, -- Box art width (content width)
+	timeAlignment = "Left", -- Time alignment (Auto, Left, Center, Right)
+	headerTextAlignment = 2, -- Header text alignment (0-Auto, 1-Left, 2-Center, 3-Right)
+	rgbMode = "Solid", -- RGB lighting mode
+	rgbBrightness = 5, -- RGB brightness (1-10)
+	rgbSpeed = 5, -- RGB speed (1-10)
+	backgroundType = "Solid", -- Background type (Solid or Gradient)
+	backgroundGradientDirection = "Vertical", -- Gradient direction
+	headerTextEnabled = "Disabled", -- Header text (Enabled/Disabled)
+	headerTextAlpha = 255, -- Header text alpha (0-255, 255 = 100%)
+	launchScreenType = "Grid", -- Launch screen type: "List" or "Grid"
+	colorContexts = {
 		background = createColorContext("#1E40AF"), -- Default background color
 		backgroundGradient = createColorContext("#155CFB"), -- Default background gradient stop color
 		foreground = createColorContext("#FFFFFF"), -- Default foreground color
 		rgb = createColorContext("#1E40AF"), -- Default RGB lighting color
 	},
-
-	backgroundType = "Solid", -- Default background type (Solid or Gradient)
-	backgroundGradientDirection = "Vertical", -- Default gradient direction
-
-	headerTextEnabled = "Disabled", -- Default value for header text (Enabled/Disabled)
-	headerTextAlpha = 255, -- Default header text alpha (0-255, 255 = 100%)
-
-	-- System information
-	systemVersion = "Unknown", -- Initialize with a default value
-
-	-- Launch screen type: "List" or "Grid"
-	launchScreenType = "Grid", -- Default launch screen type
+	-- End: Theme configuration and defaults
 }
 
 --- Helper function to get a color context
 function state.getColorContext(contextKey)
 	if not state.colorContexts[contextKey] then
-		local errorMsg = "Color context '"
-			.. contextKey
-			.. "' does not exist. Create it first using createColorContext."
-		logger.error(errorMsg)
-		error(errorMsg)
+		local errorMessage = "Color context '" .. contextKey .. "' does not exist. Create it using createColorContext."
+		errorHandler.setError(errorMessage)
 	end
 	return state.colorContexts[contextKey]
 end
@@ -135,32 +105,25 @@ end
 function state.setColorValue(contextKey, colorValue)
 	-- Only accept hex color values
 	if colorValue:sub(1, 1) ~= "#" then
-		local errorMsg = "Failed to set color value: only hex color strings (starting with #) are supported. Got: "
+		local errorMessage = "Failed to set color value. Only hex color strings starting with '#' are supported. Got: "
 			.. tostring(colorValue)
-		logger.error(errorMsg)
-		errorHandler.setError(errorMsg)
+		errorHandler.setError(errorMessage)
 		return
 	end
-	local normalizedColor = colorValue
 	local context = state.getColorContext(contextKey)
-	context.currentColor = normalizedColor
+	context.currentColor = colorValue
 
 	-- Initialize the hex input with the new value
-	context.hex.input = normalizedColor:sub(2) -- Remove # sign
+	context.hex.input = colorValue:sub(2) -- Remove # sign
 
 	-- Initialize HSV values based on RGB
-	local r, g, b = colorUtils.hexToRgb(normalizedColor)
+	local r, g, b = colorUtils.hexToRgb(colorValue)
 	local h, s, v = colorUtils.rgbToHsv(r, g, b)
 	context.hsv.hue = h * 360 -- Convert 0-1 to 0-360
 	context.hsv.sat = s
 	context.hsv.val = v
 
-	return normalizedColor
-end
-
---- Helper function to set the default font (delegated to fonts)
-function state.setDefaultFont()
-	fonts.setDefault()
+	return colorValue
 end
 
 return state

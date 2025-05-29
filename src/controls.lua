@@ -1,6 +1,10 @@
 local love = require("love")
-local state = require("state")
+
 local colors = require("colors")
+local state = require("state")
+
+local fonts = require("ui.fonts")
+
 local controls = {}
 
 -- Constants
@@ -17,8 +21,8 @@ local ALIGNMENT = "left" -- Controls alignment: "left" or "right"
 
 -- Function to calculate the HEIGHT based on font size and padding
 function controls.calculateHeight()
-	if state.fonts and state.fonts.caption then
-		local fontHeight = state.fonts.caption:getHeight()
+	if fonts and fonts.loaded and fonts.loaded.caption then
+		local fontHeight = fonts.loaded.caption:getHeight()
 		controls.HEIGHT = fontHeight
 			+ (BUTTON_VERTICAL_PADDING * 2)
 			+ CONTROL_BAR_TOP_PADDING
@@ -60,7 +64,7 @@ function controls.draw(controls_list)
 	for i, control in ipairs(controls_list) do
 		-- Uppercase the text for width calculation to match the displayed text
 		local uppercaseText = string.upper(control.text)
-		local textWidth = state.fonts.caption:getWidth(uppercaseText)
+		local textWidth = fonts.loaded.caption:getWidth(uppercaseText)
 		local buttonsWidth = 0
 
 		if type(control.button) == "table" then
@@ -68,19 +72,19 @@ function controls.draw(controls_list)
 			for btn, buttonKey in ipairs(control.button) do
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
 				buttonLabel = string.upper(buttonLabel)
-				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+				local buttonTextWidth = fonts.loaded.caption:getWidth(buttonLabel)
 				buttonsWidth = buttonsWidth + buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 
 				-- Add width for "/" separator if not the last button
 				if btn < #control.button then
-					buttonsWidth = buttonsWidth + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
+					buttonsWidth = buttonsWidth + fonts.loaded.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
 			-- Single button
 			local buttonLabel = BUTTON_LABELS[control.button] or control.button
 			buttonLabel = string.upper(buttonLabel)
-			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
+			local buttonTextWidth = fonts.loaded.caption:getWidth(buttonLabel)
 			buttonsWidth = buttonTextWidth + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
@@ -100,7 +104,7 @@ function controls.draw(controls_list)
 		x = SCREEN_EDGE_PADDING
 	end
 
-	local y = state.screenHeight - controls.HEIGHT + (controls.HEIGHT - state.fonts.caption:getHeight()) / 2
+	local y = state.screenHeight - controls.HEIGHT + (controls.HEIGHT - fonts.loaded.caption:getHeight()) / 2
 
 	-- Draw each control
 	for i, control in ipairs(controls_list) do
@@ -110,8 +114,8 @@ function controls.draw(controls_list)
 				-- Get button label
 				local buttonLabel = BUTTON_LABELS[buttonKey] or buttonKey
 				buttonLabel = string.upper(buttonLabel)
-				local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
-				local buttonHeight = state.fonts.caption:getHeight()
+				local buttonTextWidth = fonts.loaded.caption:getWidth(buttonLabel)
+				local buttonHeight = fonts.loaded.caption:getHeight()
 
 				-- Draw button background
 				love.graphics.setColor(globalColor)
@@ -126,7 +130,7 @@ function controls.draw(controls_list)
 				)
 
 				-- Draw button text
-				love.graphics.setFont(state.fonts.caption)
+				love.graphics.setFont(fonts.loaded.caption)
 				love.graphics.setColor(colors.ui.background)
 				love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
 
@@ -135,17 +139,17 @@ function controls.draw(controls_list)
 				-- Draw separator if not the last button
 				if btn < #control.button then
 					love.graphics.setColor(globalColor)
-					love.graphics.setFont(state.fonts.caption)
+					love.graphics.setFont(fonts.loaded.caption)
 					love.graphics.print("/", x + BUTTON_TEXT_SPACING, y)
-					x = x + state.fonts.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
+					x = x + fonts.loaded.caption:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
 			-- Draw single button background and text
 			local buttonLabel = BUTTON_LABELS[control.button] or control.button
 			buttonLabel = string.upper(buttonLabel)
-			local buttonTextWidth = state.fonts.caption:getWidth(buttonLabel)
-			local buttonHeight = state.fonts.caption:getHeight()
+			local buttonTextWidth = fonts.loaded.caption:getWidth(buttonLabel)
+			local buttonHeight = fonts.loaded.caption:getHeight()
 
 			-- Draw button background
 			love.graphics.setColor(globalColor)
@@ -160,7 +164,7 @@ function controls.draw(controls_list)
 			)
 
 			-- Draw button text
-			love.graphics.setFont(state.fonts.caption)
+			love.graphics.setFont(fonts.loaded.caption)
 			love.graphics.setColor(colors.ui.background)
 			love.graphics.print(buttonLabel, x + BUTTON_HORIZONTAL_PADDING, y)
 
@@ -169,13 +173,13 @@ function controls.draw(controls_list)
 
 		-- Draw action text (with spacing)
 		love.graphics.setColor(globalColor)
-		love.graphics.setFont(state.fonts.caption)
+		love.graphics.setFont(fonts.loaded.caption)
 		x = x + ACTION_TEXT_SPACING
 		local uppercaseText = string.upper(control.text)
 		love.graphics.print(uppercaseText, x, y)
 
 		-- Move x position for next control
-		local textWidth = state.fonts.caption:getWidth(uppercaseText)
+		local textWidth = fonts.loaded.caption:getWidth(uppercaseText)
 		x = x + textWidth
 
 		-- Add spacing between controls (except after the last one)

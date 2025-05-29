@@ -1,6 +1,7 @@
 local love = require("love")
 local state = require("state")
 local colors = require("colors")
+local fonts = require("ui.fonts")
 local header = require("ui.header")
 local controls = require("controls")
 local background = require("ui.background")
@@ -277,11 +278,11 @@ function virtual_keyboard.draw()
 
 	-- Draw input text
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 	love.graphics.printf(
 		inputValue,
 		40 + inputFieldPadding,
-		inputFieldY + (inputFieldHeight - state.fonts.body:getHeight()) / 2,
+		inputFieldY + (inputFieldHeight - fonts.loaded.body:getHeight()) / 2,
 		state.screenWidth - 80 - (inputFieldPadding * 2),
 		"left"
 	)
@@ -344,10 +345,10 @@ function virtual_keyboard.draw()
 			-- Draw key text, if it has any
 			if key ~= "" then
 				love.graphics.setColor(colors.ui.foreground)
-				love.graphics.setFont(state.fonts.body)
+				love.graphics.setFont(fonts.loaded.body)
 
-				local textX = posX + (actualKeyWidth - state.fonts.body:getWidth(key)) / 2
-				local textY = posY + (keyHeight - state.fonts.body:getHeight()) / 2
+				local textX = posX + (actualKeyWidth - fonts.loaded.body:getWidth(key)) / 2
+				local textY = posY + (keyHeight - fonts.loaded.body:getHeight()) / 2
 
 				love.graphics.print(key, textX, textY)
 			end

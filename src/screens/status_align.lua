@@ -7,6 +7,7 @@ local background = require("ui.background")
 local colors = require("colors")
 local list = require("ui.list")
 local screens = require("screens")
+local fonts = require("ui.fonts")
 
 local status_align = {}
 
@@ -56,7 +57,7 @@ function status_align.draw()
 	header.draw("status alignment")
 	local screenWidth = state.screenWidth
 	local y = header.getContentStartY() + 30
-	local font = state.fonts.body
+	local font = fonts.loaded.body
 	love.graphics.setFont(font)
 
 	-- Draw the button with indicators

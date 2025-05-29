@@ -68,8 +68,8 @@ function screens.switchTo(screenName, tabName, retVal)
 	end
 
 	-- Set default font to ensure consistent rendering across screens
-	local state = require("state")
-	state.setDefaultFont()
+	local fonts = require("ui.fonts")
+	fonts.setDefault()
 
 	return returnValue
 end

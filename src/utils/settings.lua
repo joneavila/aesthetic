@@ -4,6 +4,8 @@
 local state = require("state")
 local system = require("utils.system")
 local errorHandler = require("error_handler")
+local fonts = require("ui.fonts")
+local logger = require("utils.logger")
 
 local settings = {}
 
@@ -87,10 +89,10 @@ function settings.saveToFile()
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
-	file:write('  font = "' .. state.selectedFont .. '",\n')
+	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
 
 	-- Font size
-	file:write('  fontSize = "' .. state.fontSize .. '",\n')
+	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Navigation alignment
 	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
@@ -209,12 +211,12 @@ function settings.loadFromFile()
 
 	-- Font
 	if loadedSettings.font then
-		state.selectedFont = loadedSettings.font
+		fonts.setSelectedFont(loadedSettings.font)
 	end
 
 	-- Font size
 	if loadedSettings.fontSize then
-		state.fontSize = loadedSettings.fontSize
+		fonts.setFontSize(loadedSettings.fontSize)
 	end
 
 	-- Navigation alignment

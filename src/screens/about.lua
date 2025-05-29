@@ -1,13 +1,16 @@
 local love = require("love")
-local state = require("state")
+
 local colors = require("colors")
 local controls = require("controls")
-local version = require("version")
-local background = require("ui.background")
-local virtualJoystick = require("input").virtualJoystick
 local paths = require("paths")
-local header = require("ui.header")
 local screens = require("screens")
+local state = require("state")
+local version = require("version")
+local virtualJoystick = require("input").virtualJoystick
+
+local background = require("ui.background")
+local fonts = require("ui.fonts")
+local header = require("ui.header")
 
 local about = {}
 
@@ -36,7 +39,7 @@ function about.draw()
 	background.draw()
 
 	local contentWidth = state.screenWidth - (PADDING * 2)
-	local font = state.fonts.body
+	local font = fonts.loaded.body
 
 	-- Draw header using header module
 	header.draw(state.applicationName .. " " .. version.getVersionString())

@@ -136,7 +136,7 @@ function imageGenerator.createIconImage(options)
 	if text then
 		love.graphics.setBlendMode("alpha")
 		local imageFontSize = 28
-		local fontKey = fonts.nameToKey[state.selectedFont]
+		local fontKey = fonts.nameToKey[fonts.getSelectedFont()]
 		if not fontKey then
 			errorHandler.setError("Font mapping not found or initialized")
 			return false
@@ -266,7 +266,7 @@ function imageGenerator.createPreviewImage(outputPath)
 
 	-- Set font and draw text
 	love.graphics.setColor(fgColor)
-	local selectedFontName = state.selectedFont
+	local selectedFontName = fonts.getSelectedFont()
 
 	local font = fonts.getByName(selectedFontName)
 	love.graphics.setFont(font)

@@ -12,6 +12,7 @@ local system = require("utils.system")
 
 local background = require("ui.background")
 local Button = require("ui.button").Button
+local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
@@ -85,10 +86,10 @@ local function saveThemePreset(name)
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
-	file:write('  font = "' .. state.selectedFont .. '",\n')
+	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
 
 	-- Font size
-	file:write('  fontSize = "' .. state.fontSize .. '",\n')
+	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Navigation alignment
 	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
@@ -183,7 +184,7 @@ function settings.load()
 	})
 	-- Create modal instance
 	modalInstance = Modal:new({
-		font = state.fonts.body,
+		font = fonts.loaded.body,
 	})
 end
 
@@ -198,7 +199,7 @@ function settings.draw()
 	local startY = header.getContentStartY()
 
 	-- Set font for consistent sizing
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw the buttons using our list component
 	if menuList then
@@ -207,7 +208,7 @@ function settings.draw()
 
 	-- Draw modal if visible (now handled by modal component)
 	if modalInstance and modalInstance:isVisible() then
-		modalInstance:draw(state.screenWidth, state.screenHeight, state.fonts.body)
+		modalInstance:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
 	end
 
 	-- Draw controls at bottom of screen

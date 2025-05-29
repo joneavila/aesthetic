@@ -7,6 +7,9 @@ local colorUtils = require("utils.color")
 local constants = require("screens.color_picker.constants")
 local svg = require("utils.svg")
 local screens = require("screens")
+local fonts = require("ui.fonts")
+local inputHandler = require("ui.input_handler")
+local logger = require("utils.logger")
 
 local hex = {}
 
@@ -95,8 +98,8 @@ end
 -- Helper function to get necessary fonts (either from state or passed as parameter)
 local function getFonts()
 	local fonts = {
-		monoHeader = state.fonts and state.fonts.monoHeader,
-		body = state.fonts and state.fonts.body,
+		monoHeader = fonts and fonts.loaded.monoHeader,
+		body = fonts and fonts.loaded.body,
 	}
 	return fonts
 end

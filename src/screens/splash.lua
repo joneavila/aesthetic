@@ -5,6 +5,8 @@ local colors = require("colors")
 local state = require("state")
 local logger = require("utils.logger")
 local screens = require("screens")
+local fonts = require("ui.fonts")
+local background = require("ui.background")
 
 function splash.load()
 	logger.debug("Splash screen load started")
@@ -26,7 +28,7 @@ function splash.load()
 	splash.fadeTimer = 0 -- Timer for fade phase
 
 	-- Use the mono title font
-	splash.font = state.fonts.monoTitle
+	splash.font = fonts.loaded.monoTitle
 
 	-- Dimensions for positioning
 	splash.textWidth = splash.font:getWidth(splash.title)

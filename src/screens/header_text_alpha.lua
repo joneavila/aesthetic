@@ -13,6 +13,7 @@ local list = require("ui.list")
 local screens = require("screens")
 local Slider = require("ui.slider").Slider
 local inputHandler = require("ui.input_handler")
+local fonts = require("ui.fonts")
 
 -- Screen switching
 local MENU_SCREEN = "main_menu"
@@ -28,7 +29,7 @@ local alphaSlider = nil
 function header_text_alpha.draw()
 	background.draw()
 	header.draw("header text alpha")
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	local startY = header.getContentStartY() + 60
 

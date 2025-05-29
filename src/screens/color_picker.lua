@@ -6,12 +6,15 @@ local constants = require("screens.color_picker.constants")
 local errorHandler = require("error_handler")
 local header = require("ui.header")
 local tween = require("tween")
+local fonts = require("ui.fonts")
+local background = require("ui.background")
+local controls = require("controls")
+local inputHandler = require("ui.input_handler")
+local screens = require("screens")
 
--- Import sub-screens
 local paletteScreen = require("screens.color_picker.palette")
 local hsvScreen = require("screens.color_picker.hsv")
 local hexScreen = require("screens.color_picker.hex")
-local screens = require("screens")
 
 -- Module table to export public functions
 local colorPicker = {}
@@ -222,11 +225,11 @@ function colorPicker.draw()
 		local tabWidth = tab.width
 
 		-- Adjust vertical position so its visually centered
-		tabY = tabY + (TAB_CONTAINER_HEIGHT - state.fonts.body:getHeight()) / 2 - 1
+		tabY = tabY + (TAB_CONTAINER_HEIGHT - fonts.loaded.body:getHeight()) / 2 - 1
 
 		-- Use animated text color
 		love.graphics.setColor(tabTextColors[i].color)
-		love.graphics.setFont(state.fonts.body)
+		love.graphics.setFont(fonts.loaded.body)
 		love.graphics.printf(tab.name, tabX, tabY, tabWidth, "center")
 	end
 end

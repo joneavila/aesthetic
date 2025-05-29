@@ -1,5 +1,6 @@
 --- RGB lighting settings screen
 local love = require("love")
+local colors = require("colors")
 local state = require("state")
 local controls = require("controls")
 local rgbUtils = require("utils.rgb")
@@ -187,7 +188,7 @@ function rgb.draw()
 	-- Draw header with title
 	header.draw("rgb lighting")
 
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	if menuList then
 		menuList:draw()

@@ -1,10 +1,14 @@
 --- Presets management module
 --- Enables user to save, load, and switch between multiple named theme configurations stored as separate files in a
 --- presets directory
-local state = require("state")
-local system = require("utils.system")
 local errorHandler = require("error_handler")
 local paths = require("paths")
+local state = require("state")
+
+local fonts = require("ui.fonts")
+
+local logger = require("utils.logger")
+local system = require("utils.system")
 
 local presets = {}
 
@@ -102,10 +106,10 @@ function presets.savePreset(presetName)
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
-	file:write('  font = "' .. state.selectedFont .. '",\n')
+	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
 
 	-- Font size
-	file:write('  fontSize = "' .. state.fontSize .. '",\n')
+	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
@@ -198,12 +202,12 @@ function presets.loadPreset(presetName)
 
 	-- Font
 	if loadedPreset.font then
-		state.selectedFont = loadedPreset.font
+		fonts.setSelectedFont(loadedPreset.font)
 	end
 
 	-- Font size
 	if loadedPreset.fontSize then
-		state.fontSize = loadedPreset.fontSize
+		fonts.setFontSize(loadedPreset.fontSize)
 	end
 
 	-- Glyphs

@@ -1,12 +1,14 @@
 --- Debug screen for development purposes
 local love = require("love")
 local state = require("state")
+local fonts = require("ui.fonts")
+local screens = require("screens")
 local background = require("ui.background")
 local header = require("ui.header")
+local controls = require("controls")
+local colors = require("colors")
 local input = require("input")
 local logger = require("utils.logger")
-local colors = require("colors")
-local screens = require("screens")
 
 -- Module table to export public functions
 local debug = {}
@@ -33,7 +35,7 @@ function debug.draw()
 	header.draw("debug")
 
 	-- Set default body font
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 	local lineHeight = getTextHeight()
 
 	-- Get joystick information

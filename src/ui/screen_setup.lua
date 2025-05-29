@@ -4,7 +4,9 @@
 local background = require("ui.background")
 local header = require("ui.header")
 local love = require("love")
+local colors = require("colors")
 local state = require("state")
+local fonts = require("ui.fonts")
 
 -- Module table to export public functions
 local screen_setup = {}
@@ -20,8 +22,8 @@ function screen_setup.setup(params)
 	-- Set font if provided
 	if params.font then
 		love.graphics.setFont(params.font)
-	elseif state.fonts and state.fonts.body then
-		love.graphics.setFont(state.fonts.body)
+	elseif fonts and fonts.loaded and fonts.loaded.body then
+		love.graphics.setFont(fonts.loaded.body)
 	end
 
 	-- Calculate start Y position for the content

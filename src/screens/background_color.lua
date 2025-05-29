@@ -163,7 +163,7 @@ function backgroundColor.draw()
 	-- Draw header
 	header.draw("background color")
 
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	if menuList then
 		menuList:draw()

@@ -4,6 +4,7 @@
 local love = require("love")
 local state = require("state")
 local colors = require("colors")
+local fonts = require("ui.fonts")
 local background = require("ui.background")
 local header = require("ui.header")
 local controls = require("controls")
@@ -39,7 +40,7 @@ function navigation_alpha.draw()
 	header.draw("navigation alpha")
 
 	-- Set font
-	love.graphics.setFont(state.fonts.body)
+	love.graphics.setFont(fonts.loaded.body)
 
 	-- Calculate position
 	local startY = header.getContentStartY() + 60
