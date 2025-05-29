@@ -67,13 +67,7 @@ end
 function themeSettings.applyContentWidth(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		-- Calculate content width based on box art setting
-		local boxArtWidth = 0
-		if type(state.boxArtWidth) == "number" then
-			-- Add some padding to account for list selected padding
-			boxArtWidth = state.boxArtWidth + 20
-		end
-		-- For "Disabled", boxArtWidth remains 0
-
+		local boxArtWidth = state.boxArtWidth + 20
 		-- Calculate content width (screen width minus box art width)
 		local contentWidth = state.screenWidth - boxArtWidth
 
@@ -172,7 +166,7 @@ end
 -- Apply header text alpha settings to a scheme file
 function themeSettings.applyHeaderTextAlpha(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
-		local alphaValue = state.headerTextEnabled == "Enabled" and 255 or 0
+		local alphaValue = state.headerTextAlpha or 255
 		local headerAlphaCount
 		content, headerAlphaCount = content:gsub("%%{%s*header%-text%-alpha%s*}", tostring(alphaValue))
 		if headerAlphaCount == 0 then
@@ -249,6 +243,25 @@ function themeSettings.applyColorSettings(schemeFilePath)
 		content, count = content:gsub("%%{%s*gradient%-direction%s*}", tostring(directionValue))
 		if count == 0 then
 			errorHandler.setError("Failed to replace gradient direction setting in template")
+			return content, false
+		end
+		return content, true
+	end)
+end
+
+-- Apply grid settings to the muxlaunch.ini file in the resolution-specific directory
+function themeSettings.applyGridSettings(muxlaunchIniPath)
+	local colCount, rowCount = 0, 0
+	if state.launchScreenType == "Grid" then
+		colCount, rowCount = 4, 2
+	end
+	return system.modifyFile(muxlaunchIniPath, function(content)
+		local colCountReplaced
+		content, colCountReplaced = content:gsub("%%{%s*grid%-column%-count%s*}", tostring(colCount))
+		local rowCountReplaced
+		content, rowCountReplaced = content:gsub("%%{%s*grid%-row%-count%s*}", tostring(rowCount))
+		if colCountReplaced == 0 or rowCountReplaced == 0 then
+			errorHandler.setError("Failed to replace grid column/row count in muxlaunch.ini")
 			return content, false
 		end
 		return content, true

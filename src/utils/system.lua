@@ -331,7 +331,7 @@ end
 function system.readFile(filePath)
 	-- Check if file exists to provide better error message
 	if not system.fileExists(filePath) then
-		logger.error("File does not exist for reading: " .. filePath)
+		errorHandler.setError("File does not exist for reading: " .. filePath)
 		return nil
 	end
 
@@ -340,7 +340,6 @@ function system.readFile(filePath)
 	-- dd if=filePath bs=4M
 	local file, err = io.open(filePath, "r")
 	if not file then
-		logger.error("Failed to open file for reading (" .. filePath .. "): " .. err)
 		errorHandler.setError("Failed to open file for reading (" .. filePath .. "): " .. err)
 		return nil
 	end
@@ -349,7 +348,6 @@ function system.readFile(filePath)
 	file:close()
 
 	if not content then
-		logger.error("Failed to read content from file: " .. filePath)
 		errorHandler.setError("Failed to read content from file: " .. filePath)
 		return nil
 	end

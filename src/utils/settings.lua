@@ -84,12 +84,7 @@ function settings.saveToFile()
 	file:write("  },\n")
 
 	-- Box art width
-	-- This value can be an integer or a string since the option "Disabled" has been added
-	if type(state.boxArtWidth) == "string" then
-		file:write('  boxArtWidth = "' .. state.boxArtWidth .. '",\n')
-	else
-		file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-	end
+	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
 	file:write('  font = "' .. state.selectedFont .. '",\n')
@@ -121,8 +116,14 @@ function settings.saveToFile()
 	-- Header text enabled
 	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
 
+	-- Header text alpha
+	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
+
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
+
+	-- Launch screen type
+	file:write('  launchScreenType = "' .. state.launchScreenType .. '",\n')
 
 	file:write("}\n")
 
@@ -203,7 +204,7 @@ function settings.loadFromFile()
 
 	-- Box art width
 	if loadedSettings.boxArtWidth then
-		state.boxArtWidth = loadedSettings.boxArtWidth
+		state.boxArtWidth = tonumber(loadedSettings.boxArtWidth) or 0
 	end
 
 	-- Font
@@ -256,11 +257,21 @@ function settings.loadFromFile()
 		state.headerTextEnabled = loadedSettings.headerTextEnabled
 	end
 
+	-- Header text alpha
+	if loadedSettings.headerTextAlpha then
+		state.headerTextAlpha = tonumber(loadedSettings.headerTextAlpha) or 255
+	end
+
 	-- Source
 	if loadedSettings.source then
 		state.source = loadedSettings.source
 	else
 		state.source = settings.SOURCE_USER -- Default to user-created if not specified
+	end
+
+	-- Launch screen type
+	if loadedSettings.launchScreenType then
+		state.launchScreenType = loadedSettings.launchScreenType
 	end
 
 	return true

@@ -75,7 +75,7 @@ local state = {
 	statusAlignment = "Right",
 
 	-- Box art settings
-	boxArtWidth = 0, -- Default box art width (0 means disabled)
+	boxArtWidth = 0, -- Default box art width
 
 	-- Time alignment setting
 	timeAlignment = "Left", -- Default time alignment (Auto, Left, Center, Right)
@@ -104,9 +104,13 @@ local state = {
 	backgroundGradientDirection = "Vertical", -- Default gradient direction
 
 	headerTextEnabled = "Disabled", -- Default value for header text (Enabled/Disabled)
+	headerTextAlpha = 255, -- Default header text alpha (0-255, 255 = 100%)
 
 	-- System information
 	systemVersion = "Unknown", -- Initialize with a default value
+
+	-- Launch screen type: "List" or "Grid"
+	launchScreenType = "Grid", -- Default launch screen type
 }
 
 --- Helper function to get a color context

@@ -20,7 +20,7 @@ return {
 		speed = 0,
 	},
 	created = os.time(),
-	boxArtWidth = "Disabled",
+	boxArtWidth = 0,
 	font = "Retro Pixel",
 	fontSize = "Large",
 	glyphs_enabled = false,

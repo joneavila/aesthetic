@@ -99,11 +99,7 @@ function presets.savePreset(presetName)
 	file:write("  created = " .. currentTime .. ",\n")
 
 	-- Box art width
-	if type(state.boxArtWidth) == "string" then
-		file:write('  boxArtWidth = "' .. state.boxArtWidth .. '",\n')
-	else
-		file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-	end
+	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
 	file:write('  font = "' .. state.selectedFont .. '",\n')
@@ -114,8 +110,17 @@ function presets.savePreset(presetName)
 	-- Glyphs
 	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
 
+	-- Header text enabled
+	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
+
+	-- Header text alpha
+	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
+
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. state.source .. '",\n')
+
+	-- Launch screen type
+	file:write('  launchScreenType = "' .. state.launchScreenType .. '",\n')
 
 	file:write("}\n")
 
@@ -186,8 +191,9 @@ function presets.loadPreset(presetName)
 	end
 
 	-- Box art width
+	-- TODO: Delete old settings file from system to avoid converting to number
 	if loadedPreset.boxArtWidth then
-		state.boxArtWidth = loadedPreset.boxArtWidth
+		state.boxArtWidth = tonumber(loadedPreset.boxArtWidth) or 0
 	end
 
 	-- Font
@@ -205,11 +211,26 @@ function presets.loadPreset(presetName)
 		state.glyphs_enabled = loadedPreset.glyphs_enabled
 	end
 
+	-- Header text enabled
+	if loadedPreset.headerTextEnabled then
+		state.headerTextEnabled = loadedPreset.headerTextEnabled
+	end
+
+	-- Header text alpha
+	if loadedPreset.headerTextAlpha then
+		state.headerTextAlpha = tonumber(loadedPreset.headerTextAlpha) or 255
+	end
+
 	-- Source
 	if loadedPreset.source then
 		state.source = loadedPreset.source
 	else
 		state.source = "user" -- Default to user-created if not specified
+	end
+
+	-- Launch screen type
+	if loadedPreset.launchScreenType then
+		state.launchScreenType = loadedPreset.launchScreenType
 	end
 
 	return true

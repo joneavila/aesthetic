@@ -255,6 +255,12 @@ function themeCreator.createTheme()
 			end
 		end
 
+		-- Apply grid settings to muxlaunch.ini in the resolution-specific directory
+		local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath()
+		if not schemeConfigurator.applyGridSettings(muxlaunchIniPath) then
+			return false
+		end
+
 		-- Generate glyphs dynamically from SVG sources
 		local glyphs = require("utils.glyphs")
 		if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
@@ -317,6 +323,10 @@ function themeCreator.createTheme()
 		end
 
 		if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
+			return false
+		end
+
+		if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
 			return false
 		end
 

@@ -105,6 +105,11 @@ function paths.getThemeBootlogoImagePath()
 	return paths.getThemeResolutionImageDir() .. "/bootlogo.bmp"
 end
 
+-- Get muxlaunch.ini path in the resolution directory
+function paths.getThemeResolutionMuxlaunchIniPath()
+	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
+end
+
 paths.THEME_BOOTLOGO_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.ROOT_DIR .. "/assets/icons/muos/logo_outline.svg"
 

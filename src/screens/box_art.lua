@@ -121,7 +121,7 @@ function box_art.load()
 		paddingX = 16,
 		paddingY = 8,
 	})
-	local boxArtWidth = state.boxArtWidth or BOX_ART_WIDTH_OPTIONS[1]
+	local boxArtWidth = state.boxArtWidth
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
 	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
@@ -139,7 +139,7 @@ function box_art.draw()
 	local listBottom = header.getContentStartY() + menuList.visibleCount * (60 + 12) + 8
 	local previewY = listBottom + 40
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
-	local currentValue = state.boxArtWidth or BOX_ART_WIDTH_OPTIONS[1]
+	local currentValue = state.boxArtWidth
 	local previewHeight = 100
 	local boxArtWidth = currentValue
 	love.graphics.setColor(colors.ui.teal)

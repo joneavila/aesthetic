@@ -20,7 +20,7 @@ return {
 		speed = 0,
 	},
 	created = os.time(),
-	boxArtWidth = "Disabled",
+	boxArtWidth = 0,
 	font = "Inter",
 	fontSize = "Default",
 	glyphs_enabled = true,

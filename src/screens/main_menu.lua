@@ -52,6 +52,19 @@ end
 local function createMenuButtons()
 	local buttons = {}
 
+	-- Launch Screen Type button (first item)
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Launch Screen Type",
+			type = ButtonTypes.INDICATORS,
+			options = { "List", "Grid" },
+			currentOptionIndex = (state.launchScreenType == "Grid" and 2) or 1,
+			screenWidth = state.screenWidth,
+			context = "launchScreenType",
+		})
+	)
+
 	-- Background Color button
 	table.insert(
 		buttons,
@@ -143,19 +156,6 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Headers button
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Headers",
-			type = ButtonTypes.INDICATORS,
-			options = { "Disabled", "Enabled" },
-			currentOptionIndex = state.headerTextEnabled == "Enabled" and 2 or 1,
-			screenWidth = state.screenWidth,
-			context = "headerText",
-		})
-	)
-
 	-- Header Alignment button
 	table.insert(
 		buttons,
@@ -166,6 +166,20 @@ local function createMenuButtons()
 			currentOptionIndex = (state.headerTextAlignment or 0) + 1,
 			screenWidth = state.screenWidth,
 			context = "headerAlign",
+		})
+	)
+
+	-- Header Text Alpha button
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Header Text Alpha",
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = string.format("%d%%", math.floor((state.headerTextAlpha / 255) * 100 + 0.5)),
+			screenWidth = state.screenWidth,
+			onClick = function()
+				screens.switchTo("header_text_alpha")
+			end,
 		})
 	)
 
@@ -299,6 +313,8 @@ local function handleOptionCycle(button, direction)
 		state.statusAlignment = newValue
 	elseif button.context == "timeAlign" then
 		state.timeAlignment = newValue
+	elseif button.context == "launchScreenType" then
+		state.launchScreenType = newValue
 	end
 
 	return true
@@ -541,5 +557,7 @@ function menu.onEnter(data)
 		end
 	end
 end
+
+local headerTextAlphaScreen = require("screens.header_text_alpha")
 
 return menu
