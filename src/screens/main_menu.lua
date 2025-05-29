@@ -468,16 +468,26 @@ function menu.update(dt)
 
 	-- Check if action button has focus first - if it does, handle its input directly
 	if actionButton and actionButton.focused then
+		-- Check for up navigation before letting button handle input
+		if input.isPressed("dpup") then
+			-- Move focus to last item in list
+			if menuList then
+				actionButton:setFocused(false)
+				menuList:setSelectedIndex(#menuList.items)
+			end
+			return
+		elseif input.isPressed("dpdown") then
+			-- Move focus to first item in list
+			if menuList then
+				actionButton:setFocused(false)
+				menuList:setSelectedIndex(1)
+			end
+			return
+		end
+
 		local handled = actionButton:handleInput(input)
 		if handled then
 			return
-		end
-		-- If actionButton lost focus (e.g., user pressed up), unfocus it and focus the menu list
-		if not actionButton.focused then
-			if menuList then
-				-- Focus the first item in the list
-				menuList:setSelectedIndex(1)
-			end
 		end
 	end
 
@@ -489,6 +499,15 @@ function menu.update(dt)
 
 	-- If list signals end, move focus to action button
 	if listHandled == "end" then
+		if actionButton then
+			actionButton:setFocused(true)
+		end
+		if menuList then
+			menuList:setSelectedIndex(0)
+		end
+		return
+	-- If list signals start, move focus to action button
+	elseif listHandled == "start" then
 		if actionButton then
 			actionButton:setFocused(true)
 		end

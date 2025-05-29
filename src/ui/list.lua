@@ -196,6 +196,11 @@ function List:handleInput(input)
 
 	-- Handle navigation first
 	if input.isPressed("dpup") then
+		if not self.wrap and self.selectedIndex == 1 then
+			return "start"
+		elseif not self.wrap and self.selectedIndex == 0 then
+			return false
+		end
 		handled = self:navigate(-1)
 	elseif input.isPressed("dpdown") then
 		if not self.wrap and self.selectedIndex == #self.items then
