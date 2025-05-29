@@ -139,8 +139,6 @@ function backgroundColor.load()
 			end
 		end,
 		onItemOptionCycle = handleOptionCycle,
-		paddingX = 16,
-		paddingY = 8,
 	})
 end
 

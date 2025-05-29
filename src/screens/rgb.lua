@@ -175,8 +175,6 @@ function rgb.load()
 		end,
 		onItemOptionCycle = handleOptionCycle,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 end
 

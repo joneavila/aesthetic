@@ -120,8 +120,6 @@ function box_art.load()
 		end,
 		onItemOptionCycle = handleOptionCycle,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 	local boxArtWidth = state.boxArtWidth
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)

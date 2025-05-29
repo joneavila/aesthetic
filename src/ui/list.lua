@@ -27,7 +27,7 @@ function List:new(config)
 	instance.spacing = config.spacing or LIST_CONFIG.ITEM_SPACING
 	instance.visibleCount = 0
 	instance.wrap = config.wrap ~= false -- default true
-	instance.paddingX = config.paddingX or 16
+	instance.paddingX = config.paddingX or 12
 	instance.paddingY = config.paddingY or 8
 
 	-- Callbacks

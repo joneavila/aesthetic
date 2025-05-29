@@ -117,8 +117,6 @@ function loadPreset.load()
 			end
 		end,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 end
 

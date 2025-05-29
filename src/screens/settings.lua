@@ -176,8 +176,6 @@ function settings.load()
 			end
 		end,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 	-- Create modal instance
 	modalInstance = Modal:new({

@@ -58,8 +58,6 @@ function ListSelect:new(config)
 		end,
 		onItemFocus = self.onItemFocus,
 		wrap = self.wrap,
-		paddingX = self.paddingX,
-		paddingY = self.paddingY,
 	})
 	return self
 end

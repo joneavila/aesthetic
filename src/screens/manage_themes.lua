@@ -130,8 +130,6 @@ function manage_themes.load()
 			item.checked = not item.checked
 		end,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 	modalInstance = Modal:new({ font = fonts.loaded.body })
 end

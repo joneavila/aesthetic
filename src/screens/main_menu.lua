@@ -385,8 +385,6 @@ function menu.load()
 		end,
 		onItemOptionCycle = handleOptionCycle,
 		wrap = false,
-		paddingX = 16,
-		paddingY = 8,
 	})
 
 	-- Create modal component
