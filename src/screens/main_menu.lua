@@ -38,6 +38,15 @@ local waitingState = "none"
 local waitingThemePath = nil
 local createdThemePath = nil
 
+-- Coroutine handling
+local activeCoroutine = nil
+local coroutineType = "none"
+
+-- Fixed modal width (80% of screen width)
+local function getFixedModalWidth()
+	return math.floor(state.screenWidth * 0.8)
+end
+
 -- Helper function to truncate long theme names for display
 local function truncateThemeName(name)
 	local MAX_NAME_LENGTH = 20
@@ -319,42 +328,116 @@ local function handleOptionCycle(button, direction)
 	return true
 end
 
--- Handle theme creation process
+-- Handle theme creation process using coroutines
 local function handleThemeCreation()
-	createdThemePath = themeCreator.createTheme()
+	if not activeCoroutine then
+		-- Start the coroutine
+		activeCoroutine = themeCreator.createThemeCoroutine()
+		coroutineType = "create"
+		-- Show initial modal with main message and set fixed size
+		modal:show("Creating Theme")
+		if getFixedModalWidth() > 0 then
+			modal:setFixedWidth(getFixedModalWidth())
+		end
+	end
 
-	-- Show success/error modal after theme is created
-	if createdThemePath then
-		modal:show("Created theme successfully.", {
-			{ text = "Apply theme later", selected = false },
-			{ text = "Apply theme now", selected = true },
-		})
-		modalState = "created"
-	else
+	-- Resume the coroutine
+	local success, result, message = coroutine.resume(activeCoroutine)
+
+	if not success then
+		-- Coroutine error
+		activeCoroutine = nil
+		coroutineType = "none"
+		waitingState = "none"
 		local errorMessage = errorHandler.getErrorMessage()
 		local modalText = "Error creating theme: " .. (errorMessage or "Unknown error")
 		modal:show(modalText, { { text = "Exit", selected = true } })
 		modalState = "error"
+		return
+	end
+
+	if coroutine.status(activeCoroutine) == "dead" then
+		-- Coroutine completed
+		activeCoroutine = nil
+		coroutineType = "none"
+		waitingState = "none"
+
+		if result then
+			-- Success - Create reference modal to capture dimensions for future progress modals
+			createdThemePath = message
+			modal:show("Created theme successfully.", {
+				{ text = "Apply theme later", selected = false },
+				{ text = "Apply theme now", selected = true },
+			})
+			modalState = "created"
+		else
+			-- Failure
+			local errorMessage = message or errorHandler.getErrorMessage() or "Unknown error"
+			local modalText = "Error creating theme: " .. errorMessage
+			modal:show(modalText, { { text = "Exit", selected = true } })
+			modalState = "error"
+		end
+	else
+		-- Coroutine yielded with progress message
+		if type(result) == "string" then
+			modal:updateProgress(result)
+		end
 	end
 end
 
--- Handle theme installation process
+-- Handle theme installation process using coroutines
 local function handleThemeInstallation()
-	local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
-	if not filename_only then
-		logger.error("No valid theme filename to install")
-		modal:show("Failed to apply theme (no filename).", { { text = "Close", selected = true } })
+	if not activeCoroutine then
+		local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
+		if not filename_only then
+			logger.error("No valid theme filename to install")
+			modal:show("Failed to apply theme (no filename).", { { text = "Close", selected = true } })
+			waitingState = "none"
+			return
+		end
+
+		-- Start the coroutine
+		activeCoroutine = themeCreator.installThemeCoroutine(filename_only)
+		coroutineType = "install"
+		-- Show initial modal with main message and set fixed size
+		modal:show("Applying Theme")
+		if getFixedModalWidth() > 0 then
+			modal:setFixedWidth(getFixedModalWidth())
+		end
+	end
+
+	-- Resume the coroutine
+	local success, result, message = coroutine.resume(activeCoroutine)
+
+	if not success then
+		-- Coroutine error
+		activeCoroutine = nil
+		coroutineType = "none"
+		waitingState = "none"
+		waitingThemePath = nil
+		modal:show("Failed to apply theme.", { { text = "Close", selected = true } })
 		return
 	end
-	local success = themeCreator.installTheme(filename_only)
-	waitingThemePath = nil
-	rgbUtils.installFromTheme()
-	state.themeApplied = true
 
-	modal:show(
-		success and "Applied theme successfully." or "Failed to apply theme.",
-		{ { text = "Close", selected = true } }
-	)
+	if coroutine.status(activeCoroutine) == "dead" then
+		-- Coroutine completed
+		activeCoroutine = nil
+		coroutineType = "none"
+		waitingState = "none"
+		waitingThemePath = nil
+		rgbUtils.installFromTheme()
+		state.themeApplied = true
+
+		modal:show(
+			result and "Applied theme successfully." or "Failed to apply theme.",
+			{ { text = "Close", selected = true } }
+		)
+	else
+		-- Coroutine yielded with progress message
+		if type(result) == "string" then
+			modal:updateProgress(result)
+		end
+	end
 end
 
 local modalState = "none"
@@ -442,16 +525,12 @@ end
 function menu.update(dt)
 	-- Handle IO operations
 	if waitingState == "show_create_modal" then
-		modal:show("Creating theme...")
-		modalState = "creating"
 		waitingState = "create_theme"
 		return
 	elseif waitingState == "create_theme" then
-		waitingState = "none"
 		handleThemeCreation()
 		return
 	elseif waitingState == "install_theme" then
-		waitingState = "none"
 		handleThemeInstallation()
 		return
 	end
@@ -460,6 +539,11 @@ function menu.update(dt)
 	if modal and modal:isVisible() then
 		modal:handleInput(input)
 		return
+	end
+
+	-- Update modal animation
+	if modal then
+		modal:update(dt)
 	end
 
 	-- Check if action button has focus first - if it does, handle its input directly

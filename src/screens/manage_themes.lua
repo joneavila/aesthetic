@@ -175,78 +175,95 @@ function manage_themes.draw()
 end
 
 function manage_themes.update(dt)
-	local vjoy = input.virtualJoystick
-
-	-- Handle modal interactions
 	if modalInstance and modalInstance:isVisible() then
-		if vjoy.isGamepadPressedWithDelay("a") then
-			if modalMode == "confirm_delete" then
-				local toDelete = {}
-				for _, item in ipairs(themeItems) do
-					if item.checked then
-						table.insert(toDelete, item.text)
-					end
-				end
-				if #toDelete > 0 then
-					for _, fname in ipairs(toDelete) do
-						commands.executeCommand("rm '" .. paths.THEME_DIR .. "/" .. fname .. "'")
-					end
-					modalMode = "deleted"
-					modalInstance:show("Selected themes deleted.", { { text = "Close", selected = true } })
-					scanThemes()
-					if themeList then
-						themeList:setItems(themeItems)
-					end
-				else
-					modalMode = "none"
-					modalInstance:hide()
-				end
-			elseif modalMode == "deleted" or modalMode == "error" then
-				modalMode = "none"
-				modalInstance:hide()
-			end
+		if modalInstance:handleInput(inputObj) then
 			return
 		end
-		if vjoy.isGamepadPressedWithDelay("b") then
-			modalMode = "none"
-			modalInstance:hide()
-			return
-		end
+	end
+
+	-- Update modal animation
+	if modalInstance then
+		modalInstance:update(dt)
+	end
+
+	if not themeList then
 		return
 	end
 
-	-- Handle list input
-	if themeList then
-		themeList:handleInput(inputObj)
-		themeList:update(dt)
+	local handled = themeList:handleInput(inputObj)
+	themeList:update(dt)
+
+	if handled then
+		return
 	end
 
-	-- Handle delete action
-	if vjoy.isGamepadPressedWithDelay("x") then
-		local anyChecked = false
+	if inputObj.isPressed("b") then
+		screens.switchTo("settings")
+	elseif inputObj.isPressed("x") then
+		local checkedCount = 0
+		local checkedItems = {}
 		for _, item in ipairs(themeItems) do
 			if item.checked then
-				anyChecked = true
-				break
+				checkedCount = checkedCount + 1
+				table.insert(checkedItems, item.text)
 			end
 		end
-		if anyChecked then
-			modalMode = "confirm_delete"
-			modalInstance:show("This action cannot be undone. Are you sure you want to delete the selected themes?", {
-				{ text = "Delete", selected = true },
-				{ text = "Cancel", selected = false },
-			})
-		else
-			modalMode = "error"
-			modalInstance:show("No themes selected.", { { text = "Close", selected = true } })
-		end
-		return
-	end
 
-	-- Handle back navigation
-	if vjoy.isGamepadPressedWithDelay("b") then
-		screens.switchTo("settings")
-		return
+		if checkedCount == 0 then
+			return
+		end
+
+		modalMode = "confirm_delete"
+		local message = string.format("Delete %d selected theme%s?", checkedCount, checkedCount > 1 and "s" or "")
+		modalInstance:show(message, {
+			{
+				text = "Cancel",
+				onSelect = function()
+					modalInstance:hide()
+					modalMode = "none"
+				end,
+			},
+			{
+				text = "Delete",
+				onSelect = function()
+					local deleteSuccess = true
+					for _, themeName in ipairs(checkedItems) do
+						local fullPath = paths.THEME_DIR .. "/" .. themeName
+						if not system.removeFile(fullPath) then
+							deleteSuccess = false
+						end
+					end
+					if deleteSuccess then
+						modalInstance:show("Themes deleted successfully", {
+							{
+								text = "Close",
+								onSelect = function()
+									modalInstance:hide()
+									scanThemes()
+									if themeList then
+										themeList:setItems(themeItems)
+									end
+								end,
+							},
+						})
+					else
+						modalInstance:show("Failed to delete some themes", {
+							{
+								text = "Close",
+								onSelect = function()
+									modalInstance:hide()
+									scanThemes()
+									if themeList then
+										themeList:setItems(themeItems)
+									end
+								end,
+							},
+						})
+					end
+					modalMode = "none"
+				end,
+			},
+		})
 	end
 end
 

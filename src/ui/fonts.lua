@@ -61,7 +61,12 @@ fonts.uiDefinitions = {
 	monoBody = {
 		name = "JetBrains Mono",
 		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
-		size = bodySize,
+		size = 22,
+	},
+	console = {
+		name = "JetBrains Mono",
+		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		size = 16,
 	},
 	error = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 16 },
 	nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },

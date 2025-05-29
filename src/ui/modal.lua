@@ -12,11 +12,23 @@ function Modal:new(config)
 	local instance = Component.new(self, config or {})
 	instance.visible = false
 	instance.message = ""
+	instance.progressMessage = ""
+	instance.progressHistory = {} -- Store multiple progress messages
 	instance.buttons = {}
 	instance.selectedIndex = 1
 	instance.scrollPosition = 0
 	instance.font = config and config.font or love.graphics.getFont()
 	instance.onButtonPress = config and config.onButtonPress or nil
+
+	-- Animation properties
+	instance.animationTime = 0
+	instance.showAnimation = false
+	instance.isProgressModal = false
+
+	-- Fixed modal dimensions for consistency
+	instance.useFixedWidth = false
+	instance.fixedWidth = 0
+
 	return instance
 end
 
@@ -26,10 +38,61 @@ function Modal:show(message, buttons)
 	self.buttons = buttons or {}
 	self.selectedIndex = 1
 	self.scrollPosition = 0
+
+	-- Check if this is a progress modal (no buttons and contains progress keywords)
+	self.isProgressModal = (#self.buttons == 0)
+		and (
+			string.find(self.message:lower(), "creating")
+			or string.find(self.message:lower(), "applying")
+			or string.find(self.message:lower(), "installing")
+			or string.find(self.message:lower(), "loading")
+		)
+
+	-- If this is not a progress modal, reset progress message and history
+	if not self.isProgressModal then
+		self.progressMessage = ""
+		self.progressHistory = {}
+	else
+		-- Clear history when starting a new progress modal
+		self.progressHistory = {}
+	end
+
+	-- Enable animation for progress modals
+	self.showAnimation = self.isProgressModal
+
+	if self.showAnimation then
+		self.animationTime = 0
+	end
+end
+
+function Modal:updateProgress(progressText)
+	if self.isProgressModal and progressText then
+		self.progressMessage = progressText
+
+		-- Add to history and maintain maximum of 4 lines
+		table.insert(self.progressHistory, progressText)
+		if #self.progressHistory > 4 then
+			table.remove(self.progressHistory, 1) -- Remove oldest message
+		end
+	end
+end
+
+-- Function to set fixed width (height will be auto-calculated)
+function Modal:setFixedWidth(width)
+	self.useFixedWidth = true
+	self.fixedWidth = width
 end
 
 function Modal:hide()
 	self.visible = false
+	self.showAnimation = false
+	self.animationTime = 0
+	self.progressMessage = ""
+	self.progressHistory = {}
+	self.isProgressModal = false
+	-- Reset fixed width when hiding the modal
+	self.useFixedWidth = false
+	self.fixedWidth = 0
 end
 
 function Modal:isVisible()
@@ -44,7 +107,11 @@ function Modal:getMessage()
 	return self.message
 end
 
-function Modal:update(_dt) end
+function Modal:update(dt)
+	if self.showAnimation then
+		self.animationTime = self.animationTime + dt
+	end
+end
 
 function Modal:moveFocus(direction)
 	if #self.buttons == 0 then
@@ -102,42 +169,94 @@ function Modal:draw(screenWidth, screenHeight, font)
 		return
 	end
 	local controls = require("controls")
+	local fonts = require("ui.fonts")
 	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 	local padding = 40
 	local maxWidth = screenWidth * 0.9
 	local currentFont = font or self.font or love.graphics.getFont()
 	love.graphics.setFont(currentFont)
-	local maxTextHeight = screenHeight * 0.6
+
+	-- Calculate dimensions for main message
 	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
-	local _, estimatedLines = currentFont:getWrap(self.message, estimatedTextWidth)
-	local estimatedTextHeight = #estimatedLines * currentFont:getHeight()
-	local isScrollable = estimatedTextHeight > maxTextHeight
-	local minWidth = math.min(screenWidth * 0.8, maxWidth)
-	if #self.buttons == 0 and not isScrollable then
-		minWidth = math.min(currentFont:getWidth(self.message) + (padding * 2), maxWidth)
+	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
+	local mainMessageHeight = #mainMessageLines * currentFont:getHeight()
+
+	-- Calculate progress box dimensions if this is a progress modal
+	local progressBoxHeight = 0
+	local progressBoxPadding = 12
+	local progressMessageHeight = 0
+
+	if self.isProgressModal then
+		-- Use console font for progress messages
+		local consoleFont = fonts.loaded.console or currentFont
+
+		-- Calculate height for 4 lines minimum
+		local lineHeight = consoleFont:getHeight()
+		local minConsoleLines = 4
+		progressMessageHeight = lineHeight * minConsoleLines
+		progressBoxHeight = progressMessageHeight + (progressBoxPadding * 2)
 	end
-	local availableTextWidth = minWidth - (padding * 2)
-	local _, lines = currentFont:getWrap(self.message, availableTextWidth)
-	local lineHeight = currentFont:getHeight()
-	local textHeight = #lines * lineHeight
-	local contentHeight = textHeight
-	local visibleHeight = math.min(screenHeight * 0.6, contentHeight)
-	isScrollable = contentHeight > visibleHeight
-	local modalWidth = minWidth
-	local buttonHeight = 40
-	local buttonSpacing = 20
-	local buttonsExtraHeight = 0
+
+	-- Calculate total content height
+	local contentHeight = mainMessageHeight
+	if self.isProgressModal then
+		contentHeight = contentHeight + 20 -- spacing between main message and progress box
+		contentHeight = contentHeight + progressBoxHeight
+	end
+
+	local maxTextHeight = screenHeight * 0.6
+	local isScrollable = contentHeight > maxTextHeight
+
+	-- Use fixed width if available, otherwise calculate dynamically
+	local modalWidth, modalHeight
+	if self.useFixedWidth and self.fixedWidth > 0 then
+		modalWidth = self.fixedWidth
+		-- Calculate height based on content and buttons
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = 0
+		if #self.buttons > 0 then
+			buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		end
+		modalHeight = contentHeight + (padding * 2) + buttonsExtraHeight
+		local maxAvailableHeight = screenHeight - controlsHeight - 20
+		if modalHeight > maxAvailableHeight then
+			modalHeight = maxAvailableHeight
+		end
+	else
+		local minWidth = math.min(screenWidth * 0.8, maxWidth)
+		if #self.buttons == 0 and not isScrollable then
+			minWidth = math.min(currentFont:getWidth(self.message) + (padding * 2), maxWidth)
+		end
+		local availableTextWidth = minWidth - (padding * 2)
+		local visibleHeight = math.min(maxTextHeight, contentHeight)
+		modalWidth = minWidth
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = 0
+		if #self.buttons > 0 then
+			buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		end
+		modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
+		local maxAvailableHeight = screenHeight - controlsHeight - 20
+		if modalHeight > maxAvailableHeight then
+			modalHeight = maxAvailableHeight
+		end
+	end
+
+	local availableTextWidth = modalWidth - (padding * 2)
+	local visibleHeight = modalHeight - (padding * 2)
 	if #self.buttons > 0 then
-		buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		visibleHeight = visibleHeight - buttonsExtraHeight
 	end
-	local modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
-	local maxAvailableHeight = screenHeight - controlsHeight - 20
-	if modalHeight > maxAvailableHeight then
-		modalHeight = maxAvailableHeight
-		visibleHeight = modalHeight - (padding * 2) - buttonsExtraHeight
-	end
+
 	local x = (screenWidth - modalWidth) / 2
 	local y = (screenHeight - modalHeight - controlsHeight) / 2
+
+	-- Draw modal background
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
@@ -145,7 +264,8 @@ function Modal:draw(screenWidth, screenHeight, font)
 	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+
+	-- Draw content
 	if isScrollable then
 		local drawContent = function()
 			love.graphics.printf(self.message, x + padding, y + padding, availableTextWidth, "left")
@@ -166,39 +286,111 @@ function Modal:draw(screenWidth, screenHeight, font)
 		end
 	else
 		local textY = y + padding
+
+		-- Draw the main message
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, x + padding, textY, availableTextWidth, "center")
-	end
-	if #self.buttons > 0 then
-		local buttonWidth = 300
-		local buttonX = (screenWidth - buttonWidth) / 2
-		local startButtonY
-		if isScrollable then
-			startButtonY = y + padding + visibleHeight + padding
-		else
-			startButtonY = y + padding + textHeight + padding
-		end
-		for i, button in ipairs(self.buttons) do
-			local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
-			local isSelected = (i == self.selectedIndex)
-			button.selected = isSelected
-			if isSelected then
-				love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-			else
-				love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
-			end
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-			love.graphics.setLineWidth(isSelected and 4 or 2)
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-			love.graphics.printf(
-				button.text,
-				buttonX,
-				buttonY + (buttonHeight - currentFont:getHeight()) / 2,
-				buttonWidth,
-				"center"
+
+		-- Draw progress section for progress modals
+		if self.isProgressModal then
+			local progressY = textY + mainMessageHeight + 20
+			local consoleFont = fonts.loaded.console or currentFont
+
+			-- Calculate progress box dimensions
+			local progressBoxX = x + padding
+			local progressBoxWidth = availableTextWidth
+			local actualProgressBoxHeight = progressBoxHeight
+
+			-- Darker background for progress box
+			love.graphics.setColor(
+				colors.ui.background[1] * 0.7,
+				colors.ui.background[2] * 0.7,
+				colors.ui.background[3] * 0.7,
+				1
 			)
+			love.graphics.rectangle("fill", progressBoxX, progressY, progressBoxWidth, actualProgressBoxHeight, 5)
+
+			-- Draw console-like progress messages using console font
+			love.graphics.setFont(consoleFont)
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.9)
+
+			local lineHeight = consoleFont:getHeight()
+			local startY = progressY + progressBoxPadding
+
+			-- Draw up to 4 lines from history
+			for i, historyMessage in ipairs(self.progressHistory) do
+				local messageY = startY + (i - 1) * lineHeight
+				love.graphics.print(historyMessage, progressBoxX + progressBoxPadding, messageY)
+			end
+
+			-- If we have fewer than 4 messages and no animation, show dots
+			if #self.progressHistory == 0 and self.showAnimation then
+				-- Draw animation dots if no progress message yet
+				local dotSize = 4
+				local dotSpacing = 12
+				local animationCenterX = x + modalWidth / 2
+				local animationY = progressY + actualProgressBoxHeight / 2
+
+				-- Animated dots with cycling opacity
+				for i = 1, 3 do
+					local dotX = animationCenterX + (i - 2) * dotSpacing
+					local phase = (self.animationTime * 3 + (i - 1) * 0.4) % 2
+					local opacity = phase < 1 and phase or (2 - phase)
+					opacity = math.max(0.2, math.min(1, opacity))
+
+					love.graphics.setColor(
+						colors.ui.foreground[1],
+						colors.ui.foreground[2],
+						colors.ui.foreground[3],
+						opacity
+					)
+					love.graphics.circle("fill", dotX, animationY, dotSize)
+				end
+			end
+
+			-- Reset font to original
+			love.graphics.setFont(currentFont)
 		end
+
+		-- Reset color for subsequent drawing
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+	end
+
+	if #self.buttons == 0 then
+		return
+	end
+
+	local buttonWidth = 300
+	local buttonX = (screenWidth - buttonWidth) / 2
+	local startButtonY
+	if isScrollable then
+		startButtonY = y + padding + visibleHeight + padding
+	else
+		startButtonY = y + padding + contentHeight + padding
+	end
+	local buttonHeight = 40
+	local buttonSpacing = 20
+	for i, button in ipairs(self.buttons) do
+		local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
+		local isSelected = (i == self.selectedIndex)
+		button.selected = isSelected
+		if isSelected then
+			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+		else
+			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
+		end
+		love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+		love.graphics.setLineWidth(isSelected and 4 or 2)
+		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+		love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+		love.graphics.printf(
+			button.text,
+			buttonX,
+			buttonY + (buttonHeight - currentFont:getHeight()) / 2,
+			buttonWidth,
+			"center"
+		)
 	end
 end
 

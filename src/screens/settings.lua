@@ -215,6 +215,12 @@ function settings.update(dt)
 			return
 		end
 	end
+
+	-- Update modal animation
+	if modalInstance then
+		modalInstance:update(dt)
+	end
+
 	if menuList then
 		menuList:handleInput(input)
 		menuList:update(dt)
