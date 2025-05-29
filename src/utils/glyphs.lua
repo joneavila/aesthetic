@@ -349,7 +349,7 @@ function glyphs.generateMuxLaunchGlyphs()
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
 	local targetCanvasSize = 120 -- Desired final image size (with padding)
-	local muxLaunchPadding = 60
+	local muxLaunchPadding = 50
 	-- Calculate the render height needed for the glyph itself
 	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 
