@@ -160,12 +160,13 @@ function Button:handleInput(input)
 end
 
 function Button:drawBackground()
+	-- This function does not draw a background color for unfocused buttons, making them transparent
 	if self.focused then
 		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
 	else
 		love.graphics.setColor(colors.ui.background)
 	end
-	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
 end
 
 function Button:drawText()
