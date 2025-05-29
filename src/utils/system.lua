@@ -244,15 +244,13 @@ function system.copyFile(sourcePath, destinationPath)
 	return commands.executeCommand(cmd)
 end
 
--- Function to check if a path is a directory
+-- Function to check if a path is a directory using `test -d`
 function system.isDir(path)
 	if not path then
-		return false -- Not a valid path
+		return false
 	end
-	-- Use 'test -d' to check if path is a directory
 	local cmd = string.format('test -d "%s"', path)
-	-- os.execute returns 0 for success, non-zero for failure
-	return os.execute(cmd) == 0
+	return commands.executeCommand(cmd) == 0
 end
 
 -- Get environment variable, setting error if not found
