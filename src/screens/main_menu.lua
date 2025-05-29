@@ -377,7 +377,6 @@ function menu.load()
 		width = state.screenWidth,
 		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT,
 		items = buttons,
-		itemHeight = buttons[1] and buttons[1].height or 60,
 		onItemSelect = function(item, _index)
 			if item.onClick then
 				item.onClick()

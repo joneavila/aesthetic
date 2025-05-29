@@ -40,7 +40,6 @@ function ListSelect:new(config)
 		width = self.width,
 		height = self.height,
 		items = self.items,
-		itemHeight = self.itemHeight,
 		onItemSelect = function(item, idx)
 			if self.onItemSelect then
 				self.onItemSelect(item, idx)

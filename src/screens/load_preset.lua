@@ -110,7 +110,6 @@ function loadPreset.load()
 		width = state.screenWidth,
 		height = availableHeight,
 		items = presetItems,
-		itemHeight = 60,
 		onItemSelect = function(item)
 			if item.onClick then
 				item.onClick()

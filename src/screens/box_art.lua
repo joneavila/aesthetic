@@ -114,7 +114,6 @@ function box_art.load()
 		width = state.screenWidth,
 		height = state.screenHeight - header.getContentStartY() - 60,
 		items = createMenuButtons(),
-		itemHeight = 60,
 		onItemSelect = function(_item)
 			-- No-op for this screen
 		end,

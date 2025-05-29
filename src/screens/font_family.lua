@@ -106,7 +106,6 @@ function font.load()
 		width = state.screenWidth,
 		height = state.screenHeight - header.getContentStartY() - 120,
 		items = createMenuButtons(),
-		itemHeight = 60,
 		onItemSelect = function(item)
 			if item.onClick then
 				item.onClick()
