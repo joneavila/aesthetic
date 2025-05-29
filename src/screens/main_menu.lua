@@ -65,11 +65,12 @@ local function createMenuButtons()
 		buttons,
 		Button:new({
 			text = "Home Screen Layout",
-			type = ButtonTypes.INDICATORS,
-			options = { "List", "Grid" },
-			currentOptionIndex = (state.homeScreenLayout == "Grid" and 2) or 1,
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = state.homeScreenLayout,
 			screenWidth = state.screenWidth,
-			context = "homeScreenLayout",
+			onClick = function()
+				screens.switchTo("home_screen_layout")
+			end,
 		})
 	)
 
@@ -321,8 +322,6 @@ local function handleOptionCycle(button, direction)
 		state.statusAlignment = newValue
 	elseif button.context == "timeAlign" then
 		state.timeAlignment = newValue
-	elseif button.context == "homeScreenLayout" then
-		state.homeScreenLayout = newValue
 	end
 
 	return true
@@ -653,6 +652,14 @@ function menu.onEnter(data)
 			if themeNameButton then
 				themeNameButton:setPreviewText(truncateThemeName(state.themeName))
 			end
+		end
+	end
+
+	-- Update Home Screen Layout button preview text
+	for _, button in ipairs(menuList.items) do
+		if button.text == "Home Screen Layout" then
+			button:setPreviewText(state.homeScreenLayout)
+			break
 		end
 	end
 end

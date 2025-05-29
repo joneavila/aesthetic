@@ -142,6 +142,10 @@ paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
 -- Theme presets directory
 paths.PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
 
+-- Home screen layout images
+paths.HOME_SCREEN_LAYOUT_GRID_IMAGE = "assets/images/home_screen_layout/grid.png"
+paths.HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png"
+
 --- Returns the closest available bin font size directory (as a string) for the given display dimensions, using the
 --- diagonal and a base size of 28 for 640x480.
 paths.getFontSizeDir = function(displayWidth, displayHeight)

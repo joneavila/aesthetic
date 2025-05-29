@@ -74,7 +74,7 @@ local state = {
 	backgroundType = "Solid", -- Background type (Solid or Gradient)
 	backgroundGradientDirection = "Vertical", -- Gradient direction
 	headerTextEnabled = "Disabled", -- Header text (Enabled/Disabled)
-	headerTextAlpha = 255, -- Header text alpha (0-255, 255 = 100%)
+	headerTextAlpha = 0, -- Header text alpha (0-255, 255 = 100%)
 	homeScreenLayout = "Grid", -- Home screen layout: "List" or "Grid"
 	colorContexts = {
 		background = createColorContext("#1E40AF"), -- Default background color
