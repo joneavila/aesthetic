@@ -19,7 +19,7 @@ local glyphs = {}
 local GLYPH_HEIGHT = 24
 local FIXED_STROKE_WIDTH = 1.5
 local GLYPH_MAPPINGS_DIR = paths.SOURCE_DIR .. "/utils/glyph_mappings"
-local BASE_VERSION = "2502.0_PIXIE_54c85a0f"
+local BASE_VERSION = "2502.0_PIXIE"
 
 -- Helper function to load and parse a single glyph map file
 local function loadMapFile(mapFilePath)
@@ -63,6 +63,7 @@ end
 
 -- Read the glyph mapping files and return the merged map
 function glyphs.readGlyphMap()
+	local normalizedSystemVersion = system.getNormalizedSystemVersion()
 	local baseMapPath = GLYPH_MAPPINGS_DIR .. "/" .. BASE_VERSION .. ".txt"
 	local baseMapEntries = loadMapFile(baseMapPath)
 
@@ -82,15 +83,13 @@ function glyphs.readGlyphMap()
 		-- but we'll ignore them just in case.
 	end
 
-	local systemVersion = system.getSystemVersion()
-
-	if systemVersion and systemVersion ~= BASE_VERSION then
-		logger.debug("Extracted version name: " .. systemVersion)
-		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. systemVersion .. ".txt"
+	if normalizedSystemVersion and normalizedSystemVersion ~= BASE_VERSION then
+		logger.debug("Extracted normalized version name: " .. normalizedSystemVersion)
+		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. normalizedSystemVersion .. ".txt"
 		local versionMapEntries = loadMapFile(versionMapPath)
 
 		if versionMapEntries then
-			logger.debug("Merging glyph map for version: " .. systemVersion)
+			logger.debug("Merging glyph map for version: " .. normalizedSystemVersion)
 			-- Merge version-specific entries
 			local additions = 0
 			local removals = 0
@@ -122,13 +121,15 @@ function glyphs.readGlyphMap()
 			)
 		else
 			logger.warning(
-				"Version-specific glyph map not found or unreadable for " .. systemVersion .. ", using base map"
+				"Version-specific glyph map not found or unreadable for "
+					.. normalizedSystemVersion
+					.. ", using base map"
 			)
 		end
-	elseif systemVersion and systemVersion == BASE_VERSION then
+	elseif normalizedSystemVersion and normalizedSystemVersion == BASE_VERSION then
 		logger.debug("Using base glyph map")
 	else
-		logger.warning(string.format("systemVersion: '%s', BASE_VERSION: '%s'", systemVersion, BASE_VERSION))
+		logger.warning(string.format("systemVersion: '%s', BASE_VERSION: '%s'", normalizedSystemVersion, BASE_VERSION))
 		return nil
 	end
 
