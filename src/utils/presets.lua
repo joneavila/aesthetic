@@ -164,6 +164,17 @@ function presets.loadPreset(presetName)
 		state.setColorValue("background", loadedPreset.background.value)
 	end
 
+	-- Background gradient
+	if loadedPreset.backgroundGradient and loadedPreset.backgroundGradient.value then
+		state.setColorValue("backgroundGradient", loadedPreset.backgroundGradient.value)
+		state.backgroundType = "Gradient"
+		if loadedPreset.backgroundGradient.direction then
+			state.backgroundGradientDirection = loadedPreset.backgroundGradient.direction
+		end
+	else
+		state.backgroundType = "Solid"
+	end
+
 	-- Foreground color
 	if loadedPreset.foreground and loadedPreset.foreground.value then
 		state.setColorValue("foreground", loadedPreset.foreground.value)
