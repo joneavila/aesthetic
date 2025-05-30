@@ -19,7 +19,7 @@ local glyphs = {}
 local GLYPH_HEIGHT = 24
 local FIXED_STROKE_WIDTH = 1.5
 local GLYPH_MAPPINGS_DIR = paths.SOURCE_DIR .. "/utils/glyph_mappings"
-local BASE_VERSION = "PIXIE"
+local BASE_VERSION = "2502.0_PIXIE_54c85a0f"
 
 -- Helper function to load and parse a single glyph map file
 local function loadMapFile(mapFilePath)
@@ -56,15 +56,13 @@ local function loadMapFile(mapFilePath)
 		end
 	end
 
-	logger.debug(string.format("Loaded %d entries from %s", #mapEntries, mapFilePath))
+	logger.debug(string.format("Loaded %d entries from glyph map file: '%s'", #mapEntries, mapFilePath))
 
 	return mapEntries
 end
 
 -- Read the glyph mapping files and return the merged map
 function glyphs.readGlyphMap()
-	logger.debug("Starting glyph map reading process.")
-
 	local baseMapPath = GLYPH_MAPPINGS_DIR .. "/" .. BASE_VERSION .. ".txt"
 	local baseMapEntries = loadMapFile(baseMapPath)
 
@@ -84,27 +82,15 @@ function glyphs.readGlyphMap()
 		-- but we'll ignore them just in case.
 	end
 
-	logger.debug(string.format("Base map (%s) loaded with %d entries.", BASE_VERSION, #baseMapEntries))
-
 	local systemVersion = system.getSystemVersion()
 
-	-- Extract version name from system version string (part after the last underscore)
-	local _, _, name = string.find(systemVersion, "_([^_]+)$")
-
-	if name then
-		-- Trim trailing whitespace and remove anything after a newline
-		name = name:match("^%s*(.-)%s*$") -- Trim whitespace
-		name = name:match("([^\n]+)") or name -- Remove part after newline if present
-	end
-	local versionName = name
-
-	if name and name ~= BASE_VERSION then
-		logger.debug("Extracted version name: " .. name)
-		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. versionName .. ".txt"
+	if systemVersion and systemVersion ~= BASE_VERSION then
+		logger.debug("Extracted version name: " .. systemVersion)
+		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. systemVersion .. ".txt"
 		local versionMapEntries = loadMapFile(versionMapPath)
 
 		if versionMapEntries then
-			logger.debug("Merging glyph map for version: " .. versionName)
+			logger.debug("Merging glyph map for version: " .. systemVersion)
 			-- Merge version-specific entries
 			local additions = 0
 			local removals = 0
@@ -137,15 +123,14 @@ function glyphs.readGlyphMap()
 			)
 		else
 			logger.warning(
-				"Version-specific glyph map not found or unreadable for " .. versionName .. ", using base map."
+				"Version-specific glyph map not found or unreadable for " .. systemVersion .. ", using base map"
 			)
 		end
+	elseif systemVersion and systemVersion == BASE_VERSION then
+		logger.debug("Using base glyph map")
 	else
-		logger.warning(
-			"Could not extract version name from system version string: "
-				.. tostring(systemVersion)
-				.. ", using base map."
-		)
+		logger.warning(string.format("systemVersion: '%s', BASE_VERSION: '%s'", systemVersion, BASE_VERSION))
+		return nil
 	end
 
 	-- Convert merged map dictionary back to a list (order doesn't strictly matter for generation)
@@ -154,7 +139,7 @@ function glyphs.readGlyphMap()
 		table.insert(finalGlyphMap, { outputPath = entry.outputPath, inputFilename = entry.inputFilename })
 	end
 
-	logger.debug(string.format("Final merged glyph map contains %d entries.", #finalGlyphMap))
+	logger.debug(string.format("Final merged glyph map contains %d entries", #finalGlyphMap))
 
 	return finalGlyphMap
 end
@@ -306,7 +291,7 @@ function glyphs.generateGlyphs(targetDir)
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	logger.debug(
-		"Generating glyphs with height: " .. glyphHeight .. "px and stroke width: " .. FIXED_STROKE_WIDTH .. "px"
+		string.format("Generating glyphs with height %dpx and stroke width %.2fpx", glyphHeight, FIXED_STROKE_WIDTH)
 	)
 
 	for _, entry in ipairs(glyphMap) do
@@ -328,11 +313,9 @@ end
 --- The generated PNGs are saved to the directory specified by `paths.THEME_GRID_MUXLAUNCH`.
 --- Icons are rendered at a specific height such that when 8px padding is added, the final image is 120x120px.
 function glyphs.generateMuxLaunchGlyphs()
-	logger.debug("Starting muxlaunch glyph generation process.")
-
 	local glyphMap = glyphs.readGlyphMap()
 	if not glyphMap then
-		logger.error("Failed to read glyph map for muxlaunch glyph generation.")
+		logger.error("Failed to read glyph map for muxlaunch glyph generation")
 		return false
 	end
 
@@ -356,7 +339,7 @@ function glyphs.generateMuxLaunchGlyphs()
 
 	logger.debug(
 		string.format(
-			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: %fpx, padding: %dpx)",
+			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: %.2fpx, padding: %dpx)",
 			#muxLaunchGlyphMap,
 			targetCanvasSize,
 			glyphRenderHeight,

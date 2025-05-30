@@ -59,7 +59,7 @@ local function writeLog(level, message)
 		-- Fallback to LOG_DIR if SESSION_LOG_FILE is not set
 		if not logDir or logDir == "" then
 			-- Last fallback if neither variable is set
-			print("WARNING: SESSION_LOG_FILE and LOG_DIR environment variables not set. Logging to stdout only.")
+			print("WARNING: SESSION_LOG_FILE and LOG_DIR environment variables not set, logging to stdout only")
 			return
 		else
 			-- Create session ID if not already set

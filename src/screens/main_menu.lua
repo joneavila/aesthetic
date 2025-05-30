@@ -341,9 +341,9 @@ local function handleThemeCreation()
 	end
 
 	-- Resume the coroutine
-	local success, result, message = coroutine.resume(activeCoroutine)
+	local ok, isSuccess, pathOrError = coroutine.resume(activeCoroutine)
 
-	if not success then
+	if not ok then
 		-- Coroutine error
 		activeCoroutine = nil
 		coroutineType = "none"
@@ -361,9 +361,8 @@ local function handleThemeCreation()
 		coroutineType = "none"
 		waitingState = "none"
 
-		if result then
-			-- Success - Create reference modal to capture dimensions for future progress modals
-			createdThemePath = message
+		if isSuccess and type(pathOrError) == "string" then
+			createdThemePath = pathOrError
 			modal:show("Created theme successfully.", {
 				{ text = "Apply theme later", selected = false },
 				{ text = "Apply theme now", selected = true },
@@ -371,15 +370,15 @@ local function handleThemeCreation()
 			modalState = "created"
 		else
 			-- Failure
-			local errorMessage = message or errorHandler.getErrorMessage() or "Unknown error"
+			local errorMessage = pathOrError or errorHandler.getErrorMessage() or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true } })
 			modalState = "error"
 		end
 	else
 		-- Coroutine yielded with progress message
-		if type(result) == "string" then
-			modal:updateProgress(result)
+		if type(isSuccess) == "string" then
+			modal:updateProgress(isSuccess)
 		end
 	end
 end
@@ -387,10 +386,11 @@ end
 -- Handle theme installation process using coroutines
 local function handleThemeInstallation()
 	if not activeCoroutine then
+		logger.debug("waitingThemePath: " .. waitingThemePath)
+		logger.debug("waitingThemePath:match: " .. (waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")))
 		local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
 		if not filename_only then
-			logger.error("No valid theme filename to install")
-			modal:show("Failed to apply theme (no filename).", { { text = "Close", selected = true } })
+			modal:show("Failed to apply theme (no valid filename).", { { text = "Close", selected = true } })
 			waitingState = "none"
 			return
 		end
@@ -476,10 +476,15 @@ function menu.load()
 				modal:hide()
 				modalState = "none"
 			elseif button and button.text == "Apply theme now" then
-				waitingThemePath = createdThemePath
-				modal:show("Applying theme...")
-				modalState = "none"
-				waitingState = "install_theme"
+				if type(createdThemePath) == "string" and createdThemePath ~= "" then
+					waitingThemePath = createdThemePath
+					logger.debug("waitingThemePath set to: " .. tostring(waitingThemePath))
+					modal:show("Applying theme...")
+					modalState = "none"
+					waitingState = "install_theme"
+				else
+					modal:show("No theme path to apply.", { { text = "Close", selected = true } })
+				end
 			elseif button and button.text == "Exit" then
 				love.event.quit()
 				modal:hide()

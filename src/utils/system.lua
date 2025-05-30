@@ -261,7 +261,7 @@ function system.getEnvironmentVariable(name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end
-	logger.debug("Environment variable '" .. name .. "' has value: " .. value)
+	logger.debug(string.format("Environment variable '%s' has value '%s'", name, value))
 	return value
 end
 
@@ -437,20 +437,19 @@ function system.listFiles(dir, pattern)
 	end
 	return files
 end
-
 -- Read the system version from the MUOS version file
 function system.getSystemVersion()
 	local paths = require("paths")
 	local versionFilePath = paths.MUOS_VERSION
-	local content = system.readFile(versionFilePath)
-	if content == nil then
+	local versionFileContent = system.readFile(versionFilePath)
+	if versionFileContent == nil then
 		logger.error("Failed to read system version from " .. versionFilePath)
 		return "Unknown"
 	end
-	-- Replace all newlines with spaces and trim leading/trailing whitespace
-	local cleanedVersion = content:gsub("[\r\n]+", " "):gsub("^%s*(.-)%s*$", "%1")
-	logger.debug("Read version: " .. cleanedVersion)
-	return cleanedVersion
+	-- Replace all newlines with spaces, trim leading/trailing whitespace, and replace spaces with underscores
+	local versionString = versionFileContent:gsub("[\r\n]+", " "):gsub("^%s*(.-)%s*$", "%1"):gsub(" ", "_")
+	logger.debug(string.format("Read version '%s'", versionString))
+	return versionString
 end
 
 -- Function to list contents of a directory
@@ -470,8 +469,6 @@ function system.listDir(dir)
 
 	-- Use ls -a1 to list all entries (including hidden) one per line
 	local cmd = string.format('ls -a1 "%s"', dir)
-	logger.debug("Listing directory command: " .. cmd)
-
 	local handle = io.popen(cmd .. " 2>&1")
 	if not handle then
 		logger.error("Failed to execute list directory command")

@@ -268,6 +268,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	-- Draw content
 	if isScrollable then
 		local drawContent = function()
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 			love.graphics.printf(self.message, x + padding, y + padding, availableTextWidth, "left")
 		end
 		local metrics = scrollable.drawContent({
@@ -312,7 +313,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 
 			-- Draw console-like progress messages using console font
 			love.graphics.setFont(consoleFont)
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.9)
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 
 			local lineHeight = consoleFont:getHeight()
 			local startY = progressY + progressBoxPadding

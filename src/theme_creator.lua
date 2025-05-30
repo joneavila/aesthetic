@@ -1,15 +1,19 @@
 --- Theme creation functionality
-local state = require("state")
-local system = require("utils.system")
-local errorHandler = require("error_handler")
-local commands = require("utils.commands")
-local rgb = require("utils.rgb")
-local paths = require("paths")
-local fonts = require("ui.fonts")
-local imageGenerator = require("utils.image_generator")
-local schemeConfigurator = require("utils.scheme_configurator")
-local logger = require("utils.logger")
 local love = require("love")
+
+local colorUtils = require("utils.color")
+local errorHandler = require("error_handler")
+local paths = require("paths")
+local state = require("state")
+
+local fonts = require("ui.fonts")
+
+local commands = require("utils.commands")
+local imageGenerator = require("utils.image_generator")
+local logger = require("utils.logger")
+local rgb = require("utils.rgb")
+local schemeConfigurator = require("utils.scheme_configurator")
+local system = require("utils.system")
 
 -- Module table to export public functions
 local themeCreator = {}
@@ -43,6 +47,8 @@ local function createBootImage()
 		iconSize = 180,
 		outputPath = paths.getThemeBootlogoImagePath(),
 		saveAsBmp = true,
+		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
+		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
 	local result = imageGenerator.createIconImage(options)
@@ -67,6 +73,8 @@ local function createRebootImage()
 		text = "Rebooting",
 		outputPath = paths.THEME_REBOOT_IMAGE,
 		saveAsBmp = false,
+		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
+		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
 	local result = imageGenerator.createIconImage(options)
@@ -91,6 +99,8 @@ local function createShutdownImage()
 		text = "Shutting down",
 		outputPath = paths.THEME_SHUTDOWN_IMAGE,
 		saveAsBmp = false,
+		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
+		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
 	local result = imageGenerator.createIconImage(options)
@@ -115,6 +125,8 @@ local function createChargeImage()
 		text = "Charging",
 		outputPath = paths.THEME_CHARGE_IMAGE,
 		saveAsBmp = false,
+		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
+		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
 	local result = imageGenerator.createIconImage(options)

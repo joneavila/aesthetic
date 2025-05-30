@@ -79,7 +79,7 @@ fonts.uiDefinitions = {
 }
 
 fonts.nameToKey = {}
-for key, def in pairs(fonts.uiDefinitions) do
+for key, def in pairs(fonts.themeDefinitions) do
 	fonts.nameToKey[def.name] = key
 end
 
@@ -123,7 +123,7 @@ fonts.getByName = function(fontName)
 		return font
 	else
 		-- Fallback to the default body font if the requested font is not found
-		logger.warn("Font '" .. tostring(fontName) .. "' not found, using default body font.")
+		logger.warning("Font '" .. tostring(fontName) .. "' not found, using default body font.")
 		return fonts.loaded.body
 	end
 end

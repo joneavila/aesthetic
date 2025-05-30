@@ -14,17 +14,15 @@
 --
 -- This approach fixes issues where SVG icons appear darker than text when rendered.
 local love = require("love")
-
-local errorHandler = require("error_handler")
 local state = require("state")
-
-local fonts = require("ui.fonts")
-
-local bmp = require("utils.bmp")
 local colorUtils = require("utils.color")
-local logger = require("utils.logger")
-local svg = require("utils.svg")
+local errorHandler = require("error_handler")
+local bmp = require("utils.bmp")
 local system = require("utils.system")
+local paths = require("paths")
+local fonts = require("ui.fonts")
+local svg = require("utils.svg")
+local logger = require("utils.logger")
 
 local imageGenerator = {}
 
@@ -66,10 +64,13 @@ function imageGenerator.createIconImage(options)
 	end
 
 	-- Load icon SVG
-	local svgContent = system.readFile(iconPath)
-	if not svgContent then
-		errorHandler.setError("Failed to read SVG file: " .. iconPath)
-		return false
+	local svgContent
+	if iconPath then
+		svgContent = system.readFile(iconPath)
+		if not svgContent then
+			errorHandler.setError("Failed to read SVG file: " .. iconPath)
+			return false
+		end
 	end
 
 	-- Load background logo SVG if provided
@@ -77,17 +78,13 @@ function imageGenerator.createIconImage(options)
 	if backgroundLogoPath then
 		backgroundSvgContent = system.readFile(backgroundLogoPath)
 		if not backgroundSvgContent then
+			errorHandler.setError("Failed to read background SVG file: " .. backgroundLogoPath)
 			return false
 		end
 	end
 
 	-- Create canvas with base background color
-	local canvas, previousCanvas
-	if saveAsBmp then
-		canvas, previousCanvas = imageGenerator.createCanvas(width, height, bgColor)
-	else
-		canvas, previousCanvas = imageGenerator.createCanvas(width, height, { 0, 0, 0, 0 })
-	end
+	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, { 0, 0, 0, 0 })
 
 	-- Save current blend mode to restore later
 	-- This is crucial for proper alpha blending when drawing to canvas
@@ -96,18 +93,29 @@ function imageGenerator.createIconImage(options)
 
 	love.graphics.push()
 
+	-- Apply background based on background type
+	if state.backgroundType == "Gradient" then
+		-- Create gradient using our existing function
+		local gradientDirection = state.backgroundGradientDirection or "Vertical"
+		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
+
+		-- Create gradient mesh with background color and gradient color
+		local gradientMesh = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
+
+		-- Draw gradient filling the entire canvas
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.draw(gradientMesh, 0, 0, 0, width, height)
+	else
+		-- Solid background
+		love.graphics.setColor(bgColor)
+		love.graphics.rectangle("fill", 0, 0, width, height)
+	end
+
+	-- Special handling for boot image (BMP format)
 	if saveAsBmp then
-		-- For BMP, draw background
-		if state.backgroundType == "Gradient" then
-			local gradientDirection = state.backgroundGradientDirection or "Vertical"
-			local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
-			local gradientMesh = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
-			love.graphics.setColor(1, 1, 1, 1)
-			love.graphics.draw(gradientMesh, 0, 0, 0, width, height)
-		else
-			love.graphics.setColor(bgColor)
-			love.graphics.rectangle("fill", 0, 0, width, height)
-		end
+		-- For BMP images, use "alpha" blend mode but ensure full opacity
+		love.graphics.setBlendMode("alpha")
+		love.graphics.setColor(1, 1, 1, 1)
 	end
 
 	-- Draw background logo if provided
@@ -126,7 +134,7 @@ function imageGenerator.createIconImage(options)
 	-- Draw foreground icon
 	if svgContent then
 		if saveAsBmp then
-			-- For BMP, draw background at full opacity
+			-- For BMP format, we need to ensure full opacity
 			local r, g, b = fgColor[1], fgColor[2], fgColor[3]
 			svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, { r, g, b }, false)
 		else
@@ -136,21 +144,30 @@ function imageGenerator.createIconImage(options)
 
 	-- Draw text if provided
 	if text then
+		-- Set proper blend mode for text drawing
+		-- Text needs "alpha" blend mode when drawing to canvas
 		love.graphics.setBlendMode("alpha")
+
+		-- Create a larger version of the font
 		local imageFontSize = 28
 		local fontKey = fonts.nameToKey[fonts.getSelectedFont()]
 		if not fontKey then
+			logger.debug("fonts.getSelectedFont(): " .. fonts.getSelectedFont())
 			errorHandler.setError("Font mapping not found or initialized")
 			return false
 		end
-		local fontDef = fonts.uiDefinitions[fontKey]
-		local largerFont = love.graphics.newFont(fontDef.path, imageFontSize)
-		love.graphics.setFont(largerFont)
-		if saveAsBmp then
-			love.graphics.setColor(fgColor[1], fgColor[2], fgColor[3], 1.0)
-		else
-			love.graphics.setColor(fgColor)
+		local fontDef = fonts.themeDefinitions[fontKey]
+		if not fontDef then
+			errorHandler.setError("Font definition not found")
+			return false
 		end
+		local largerFont = love.graphics.newFont(fontDef.path, imageFontSize)
+
+		-- Set the font and color
+		love.graphics.setFont(largerFont)
+		love.graphics.setColor(fgColor)
+
+		-- Draw the text centered
 		local textWidth = largerFont:getWidth(text)
 		local textX = (width - textWidth) / 2
 		local textY = height / 2 + 64
@@ -163,8 +180,10 @@ function imageGenerator.createIconImage(options)
 	-- This ensures that any subsequent rendering uses the correct blend mode
 	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
 
+	-- Finish canvas operations
 	imageGenerator.finishCanvas(previousCanvas)
 
+	-- Get image data
 	local imageData = canvas:newImageData()
 
 	-- Save file
@@ -178,6 +197,7 @@ function imageGenerator.createIconImage(options)
 			errorHandler.setError("Failed to encode PNG")
 			return false
 		end
+
 		if not system.writeFile(outputPath, pngData:getString()) then
 			errorHandler.setError("Failed to write PNG")
 			return false
@@ -268,7 +288,7 @@ function imageGenerator.createPreviewImage(outputPath)
 
 	-- Set font and draw text
 	love.graphics.setColor(fgColor)
-	local selectedFontName = fonts.getSelectedFont()
+	local selectedFontName = state.selectedFont
 
 	local font = fonts.getByName(selectedFontName)
 	love.graphics.setFont(font)

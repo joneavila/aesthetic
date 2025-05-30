@@ -14,6 +14,7 @@
 
 local love = require("love")
 local tove = require("tove")
+local colors = require("colors")
 local errorHandler = require("error_handler")
 
 local svg = {}
@@ -86,9 +87,7 @@ function svg.drawIconOnCanvas(svgData, size, x, y, color, restoreBlendMode)
 	end
 
 	-- Ensure full opacity when drawing SVG
-	local r, g, b, _ = love.graphics.getColor()
-	love.graphics.setColor(r, g, b, 1.0)
-
+	love.graphics.setColor(color[1], color[2], color[3], 1.0)
 	icon:draw(x, y)
 
 	-- Restore blend mode to premultiplied alpha for canvas rendering if requested
