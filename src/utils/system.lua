@@ -250,7 +250,9 @@ function system.isDir(path)
 		return false
 	end
 	local cmd = string.format('test -d "%s"', path)
-	return commands.executeCommand(cmd) == 0
+	-- Use os.execute instead of commands.executeCommand to avoid printing
+	local result = os.execute(cmd)
+	return result == 0
 end
 
 -- Get environment variable, setting error if not found
@@ -494,6 +496,17 @@ function system.listDir(dir)
 	end
 
 	return items
+end
+
+-- Function to check if a path is a file using `test -f`
+function system.isFile(path)
+	if not path then
+		return false
+	end
+	local cmd = string.format('test -f "%s"', path)
+	-- Use os.execute instead of commands.executeCommand to avoid printing
+	local result = os.execute(cmd)
+	return result == 0
 end
 
 return system

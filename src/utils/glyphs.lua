@@ -56,7 +56,7 @@ local function loadMapFile(mapFilePath)
 		end
 	end
 
-	logger.debug(string.format("Loaded %d entries from glyph map file: '%s'", #mapEntries, mapFilePath))
+	logger.debug(string.format("Loaded %d entries from glyph map file '%s'", #mapEntries, mapFilePath))
 
 	return mapEntries
 end
@@ -218,7 +218,7 @@ end
 
 -- Copy header icons directory
 function glyphs.copyHeaderIcons(sourceDir, targetDir)
-	logger.debug("Starting header icon copy from: " .. sourceDir .. " to target dir: " .. targetDir)
+	logger.debug(string.format("Copying header icons from '%s' to '%s'", sourceDir, targetDir))
 
 	-- Ensure the target directory exists (header directory should be at same level as other category dirs)
 	local headerDir = targetDir .. "/header"
