@@ -131,12 +131,35 @@ end
 function box_art.draw()
 	background.draw()
 	header.draw("box art width")
+
+	-- Draw information text below header
+	local infoText =
+		"This setting applies to the Content, Collection, and History screens and assumes you have set muOS' Content Box Art Alignment setting to Bottom Right, Middle Right, or Top Right"
+	love.graphics.setFont(fonts.loaded.caption)
+	love.graphics.setColor(colors.ui.subtext)
+	local infoY = header.getContentStartY() + 2
+	local infoWidth = state.screenWidth - EDGE_PADDING * 2
+	love.graphics.printf(infoText, EDGE_PADDING, infoY, infoWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
+
+	-- Calculate dynamic height for info text
+	local font = love.graphics.getFont()
+	local _, wrappedLines = font:getWrap(infoText, infoWidth)
+	local infoHeight = #wrappedLines * font:getHeight() + 10
 	if menuList then
+		menuList.y = header.getContentStartY() + infoHeight + 6
 		menuList:draw()
 	end
-	local listBottom = header.getContentStartY() + menuList.visibleCount * (60 + 12) + 8
-	local previewY = listBottom + 40
+
+	-- Calculate the bottom Y of the last button in the menuList
+	local previewY = nil
+	if menuList then
+		local listBottom = menuList.y + menuList:getContentHeight()
+		previewY = listBottom + 40
+	else
+		previewY = header.getContentStartY() + infoHeight + 40
+	end
+
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 	local currentValue = state.boxArtWidth
 	local previewHeight = 100

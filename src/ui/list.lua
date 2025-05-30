@@ -364,6 +364,15 @@ function List:update(dt)
 	end
 end
 
+function List:getContentHeight()
+	local itemCount = #self.items
+	if itemCount == 0 then
+		return 0
+	end
+	-- Total height: paddingY (top) + all items + all spacings + paddingY (bottom)
+	return self.paddingY + itemCount * self.adjustedItemHeight + (itemCount - 1) * self.adjustedSpacing + self.paddingY
+end
+
 -- Module exports
 local list = {}
 list.List = List
