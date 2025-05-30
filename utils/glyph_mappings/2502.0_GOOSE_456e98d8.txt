@@ -1,0 +1,108 @@
+# Glyph mapping differences for GOOSE firmware
+# Lines starting with `-` indicate removal of a mapping present in the base (PIXIE) map.
+# Lines without a prefix indicate additions or overrides.
+
+# TODO: Add footer glyphs
+# footer – Seen throughout the UI
+# footer/a
+# footer/b
+# footer/c
+# footer/lr
+# footer/menu
+# footer/x
+# footer/y
+# footer/z
+
+# TODO: Add muxtester glyphs
+# muxtester – Information > Input Tester
+# muxtester/btn_a
+# muxtester/btn_b
+# muxtester/btn_c
+# muxtester/btn_l1
+# muxtester/btn_l2
+# muxtester/btn_l3
+# muxtester/btn_menu
+# muxtester/btn_r1
+# muxtester/btn_r2
+# muxtester/btn_r3
+# muxtester/btn_select
+# muxtester/btn_start
+# muxtester/btn_x
+# muxtester/btn_y
+# muxtester/btn_z
+# muxtester/dpad_down
+# muxtester/dpad_left
+# muxtester/dpad_right
+# muxtester/dpad_up
+# muxtester/ls_down
+# muxtester/ls_left
+# muxtester/ls_right
+# muxtester/ls_up
+# muxtester/rs_down
+# muxtester/rs_left
+# muxtester/rs_right
+# muxtester/rs_up
+# muxtester/vol_down
+# muxtester/vol_up
+
+# bar – (Press Menu + Vol. Up/Down for brightness)
+bar/bright_0, sun-dim
+bar/bright_1, sun-dim
+bar/bright_2, sun-medium
+bar/bright_3, sun
+
+# muxcustom – Configuration > Customisation
+muxcustom/bootlogo, image
+muxcustom/chime, bell
+muxcustom/theme_resolution, proportions
+
+# muxinfo – Information
+muxinfo/netinfo, network
+muxinfo/sysinfo, computer
+
+# muxnetinfo – Information > Network Details
+muxnetinfo/actraffic, shrink
+muxnetinfo/channel, antenna
+muxnetinfo/dns, hash
+muxnetinfo/gateway, hash
+muxnetinfo/hostname, letter-text
+muxnetinfo/ip, router
+muxnetinfo/mac, cpu
+muxnetinfo/signal, signal-high
+muxnetinfo/ssid, globe
+muxnetinfo/tptraffic, arrow-left-right
+
+# muxtask – Applications > Task Toolkit
+muxtask/folder, folder
+
+# muxgov – (Press Select on content) > Assign Governor
+muxgov/conservative, shield
+muxgov/interactive, zap
+muxgov/ondemand, activity
+muxgov/performance, flame
+muxgov/powersave, leaf
+muxgov/schedutil, bot
+muxgov/userspace, user-round-cog
+
+# muxoption – (Press Select on content)
+muxoption/tag, tag
+
+# muxoption – (Press Select on content) > Assign Tag
+muxtag/abandoned, circle-x
+muxtag/alternate, files
+muxtag/backlog, scroll
+muxtag/complected, circle-help
+muxtag/completed, circle-check
+muxtag/cursed, ghost
+muxtag/default, tag
+muxtag/experimental, flask-conical
+muxtag/homebrew, coffee
+muxtag/inprogress, loader-circle
+muxtag/none, ban
+muxtag/patched, bandage
+muxtag/replay, rotate-ccw
+muxtag/romhack, wand-sparkles
+muxtag/translated, globe
+
+# Removals: Remove glyphs that are not present or needed on GOOSE
+# -muxapp/dingux, folder-search

@@ -112,7 +112,6 @@ function glyphs.readGlyphMap()
 						)
 						overrides = overrides + 1
 					else
-						logger.debug("Adding new glyph mapping: " .. entry.outputPath .. " -> " .. entry.inputFilename)
 						additions = additions + 1
 					end
 					mergedMap[entry.outputPath] = entry -- Add or override the entry
