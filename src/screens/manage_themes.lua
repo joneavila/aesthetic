@@ -102,7 +102,8 @@ function CheckboxItem:draw()
 end
 
 local function createThemeCheckboxItem(filename, index)
-	return CheckboxItem:new(filename, index)
+	local name = filename:gsub("%.muxthm$", "") -- Remove .muxthm extension
+	return CheckboxItem:new(name, index)
 end
 
 local function scanThemes()
@@ -141,11 +142,20 @@ function manage_themes.draw()
 	-- Draw header with title
 	header.draw("manage themes")
 
+	-- Draw theme directory path in mono font between header and list
+	love.graphics.setFont(fonts.loaded.monoBody)
+	local dirText = "Theme directory: " .. paths.THEME_DIR
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.print(dirText, 32, header.getContentStartY() + 8)
+
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(fonts.loaded.body)
 
-	-- Draw the list
+	-- Adjust list Y to account for directory text
+	local listY = header.getContentStartY() + 8 + fonts.loaded.monoBody:getHeight() + 12
 	if themeList then
+		themeList.y = listY
+		themeList.height = state.screenHeight - listY - controls.calculateHeight()
 		themeList:draw()
 	end
 
@@ -228,7 +238,7 @@ function manage_themes.update(dt)
 				onSelect = function()
 					local deleteSuccess = true
 					for _, themeName in ipairs(checkedItems) do
-						local fullPath = paths.THEME_DIR .. "/" .. themeName
+						local fullPath = paths.THEME_DIR .. "/" .. themeName .. ".muxthm"
 						if not system.removeFile(fullPath) then
 							deleteSuccess = false
 						end

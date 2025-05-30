@@ -509,4 +509,23 @@ function system.isFile(path)
 	return result == 0
 end
 
+-- Remove a file at the given path
+function system.removeFile(path)
+	if not path then
+		errorHandler.setError("No file path provided to removeFile")
+		return false
+	end
+	if not system.isFile(path) then
+		logger.warning("File does not exist for removal: " .. path)
+		return true -- Nothing to remove
+	end
+	local ok, err = os.remove(path)
+	if not ok then
+		logger.error("Failed to remove file: " .. tostring(err))
+		errorHandler.setError("Failed to remove file: " .. tostring(err))
+		return false
+	end
+	return true
+end
+
 return system
