@@ -84,7 +84,7 @@ function settings.saveToFile()
 	file:write("  headerTextAlignment = " .. state.headerTextAlignment .. ",\n")
 
 	-- Glyphs
-	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
+	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
 
 	-- Theme name
 	file:write('  themeName = "' .. state.themeName .. '",\n')
@@ -219,8 +219,8 @@ function settings.loadFromFile()
 	end
 
 	-- Glyphs
-	if loadedSettings.glyphs_enabled ~= nil then
-		state.glyphs_enabled = loadedSettings.glyphs_enabled
+	if loadedSettings.glyphsEnabled ~= nil then
+		state.glyphsEnabled = loadedSettings.glyphsEnabled
 	end
 
 	-- Theme name

@@ -104,7 +104,7 @@ local function saveThemePreset(name)
 	file:write("  headerTextAlignment = " .. state.headerTextAlignment .. ",\n")
 
 	-- Glyphs
-	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
+	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
 
 	-- Theme name
 	file:write('  themeName = "' .. state.themeName .. '",\n')

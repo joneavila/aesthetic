@@ -14,14 +14,14 @@ local themeSettings = {}
 function themeSettings.applyGlyphSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		local glyphSettings = {
-			list_pad_left = state.glyphs_enabled and 42 or 20,
-			glyph_alpha = state.glyphs_enabled and 255 or 0,
+			listPadLeft = state.glyphsEnabled and 42 or 20,
+			glyphAlpha = state.glyphsEnabled and 255 or 0,
 		}
 
 		-- Replace placeholders
 		local listPadCount, glyphAlphaCount
-		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["list_pad_left"]))
-		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyph_alpha"]))
+		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["listPadLeft"]))
+		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyphAlpha"]))
 
 		-- Check if replacements were successful
 		if listPadCount == 0 then

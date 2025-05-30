@@ -23,6 +23,6 @@ return {
 	boxArtWidth = 0,
 	font = "Nunito",
 	fontSize = "Default",
-	glyphs_enabled = true,
+	glyphsEnabled = true,
 	source = "built-in",
 }

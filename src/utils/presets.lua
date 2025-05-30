@@ -111,7 +111,7 @@ function presets.savePreset(presetName)
 	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Glyphs
-	file:write("  glyphs_enabled = " .. tostring(state.glyphs_enabled) .. ",\n")
+	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
 
 	-- Header text enabled
 	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
@@ -166,10 +166,17 @@ function presets.loadPreset(presetName)
 
 	-- Background gradient
 	if loadedPreset.backgroundGradient and loadedPreset.backgroundGradient.value then
-		state.setColorValue("backgroundGradient", loadedPreset.backgroundGradient.value)
-		state.backgroundType = "Gradient"
-		if loadedPreset.backgroundGradient.direction then
-			state.backgroundGradientDirection = loadedPreset.backgroundGradient.direction
+		local bgValue = loadedPreset.background and loadedPreset.background.value or nil
+		local gradientValue = loadedPreset.backgroundGradient.value
+		if bgValue and gradientValue and bgValue == gradientValue then
+			state.setColorValue("backgroundGradient", gradientValue)
+			state.backgroundType = "Solid"
+		else
+			state.setColorValue("backgroundGradient", gradientValue)
+			state.backgroundType = "Gradient"
+			if loadedPreset.backgroundGradient.direction then
+				state.backgroundGradientDirection = loadedPreset.backgroundGradient.direction
+			end
 		end
 	else
 		state.backgroundType = "Solid"
@@ -216,8 +223,8 @@ function presets.loadPreset(presetName)
 	end
 
 	-- Glyphs
-	if loadedPreset.glyphs_enabled ~= nil then
-		state.glyphs_enabled = loadedPreset.glyphs_enabled
+	if loadedPreset.glyphsEnabled ~= nil then
+		state.glyphsEnabled = loadedPreset.glyphsEnabled
 	end
 
 	-- Header text enabled

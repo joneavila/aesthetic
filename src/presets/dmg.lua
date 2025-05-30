@@ -23,6 +23,6 @@ return {
 	boxArtWidth = 0,
 	font = "Retro Pixel",
 	fontSize = "Default",
-	glyphs_enabled = false,
+	glyphsEnabled = false,
 	source = "built-in",
 }

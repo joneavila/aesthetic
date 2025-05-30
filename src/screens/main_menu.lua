@@ -159,7 +159,7 @@ local function createMenuButtons()
 			text = "Icons",
 			type = ButtonTypes.INDICATORS,
 			options = { "Disabled", "Enabled" },
-			currentOptionIndex = state.glyphs_enabled and 2 or 1,
+			currentOptionIndex = state.glyphsEnabled and 2 or 1,
 			screenWidth = state.screenWidth,
 			context = "glyphs",
 		})
@@ -310,7 +310,7 @@ local function handleOptionCycle(button, direction)
 	if button.context == "fontSize" then
 		fonts.setFontSize(newValue)
 	elseif button.context == "glyphs" then
-		state.glyphs_enabled = (newValue == "Enabled")
+		state.glyphsEnabled = (newValue == "Enabled")
 	elseif button.context == "headerText" then
 		state.headerTextEnabled = newValue
 	elseif button.context == "headerAlign" then

@@ -23,6 +23,6 @@ return {
 	boxArtWidth = 0,
 	font = "Inter",
 	fontSize = "Default",
-	glyphs_enabled = true,
+	glyphsEnabled = true,
 	source = "built-in",
 }

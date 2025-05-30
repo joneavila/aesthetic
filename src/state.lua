@@ -60,7 +60,7 @@ local state = {
 	activeColorContext = "background", -- Default active color context (background, backgroundGradient, foreground, rgb)
 
 	-- Begin: Theme configuration and defaults
-	glyphs_enabled = true, -- Glyphs (icons) enabled
+	glyphsEnabled = true, -- Glyphs (icons) enabled
 	navigationAlignment = "Left", -- Navigation glyphs and text alignment (Left, Center, Right)
 	navigationAlpha = 100, -- Navigation glyphs and textalpha (0-100)
 	-- Status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)

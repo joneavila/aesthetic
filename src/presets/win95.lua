@@ -23,6 +23,6 @@ return {
 	boxArtWidth = 0,
 	font = "Cascadia Code",
 	fontSize = "Default",
-	glyphs_enabled = true,
+	glyphsEnabled = true,
 	source = "built-in",
 }
