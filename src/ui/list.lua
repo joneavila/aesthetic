@@ -292,6 +292,9 @@ function List:draw()
 		return
 	end
 
+	-- Always recalculate dimensions before drawing to ensure height/width changes are respected
+	self:calculateDimensions()
+
 	-- Calculate visible range based on scroll position
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
