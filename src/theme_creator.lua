@@ -254,17 +254,16 @@ function themeCreator.createThemeCoroutine()
 		local status, result = xpcall(function()
 			logger.debug("Starting coroutine-based theme creation")
 
+			coroutine.yield("Preparing workspace...")
 			-- Clean up old theme files
 			system.removeDir(paths.WORKING_THEME_DIR)
-			coroutine.yield("Preparing workspace...")
 
-			-- Copy template directory contents to working directory, handling scheme/global.ini specifically
+			coroutine.yield("Copying template files...")
+			-- Copy template directory contents to working directory
 			local templateItems = system.listDir(paths.TEMPLATE_DIR)
 			if not templateItems then
 				return false
 			end
-			coroutine.yield("Copying template files...")
-
 			for _, item in ipairs(templateItems) do
 				local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
 				local destPath = paths.WORKING_THEME_DIR .. "/" .. item
@@ -284,9 +283,9 @@ function themeCreator.createThemeCoroutine()
 					end
 				end
 			end
-			coroutine.yield("Setting up theme structure...")
 
 			-- Now handle the contents of the scheme directory, copying them to the working theme directory
+			coroutine.yield("Setting up theme structure...")
 			local schemeItems = system.listDir(paths.THEME_SCHEME_SOURCE_DIR)
 			if not schemeItems then
 				return false
@@ -307,16 +306,16 @@ function themeCreator.createThemeCoroutine()
 					return false
 				end
 			end
-			coroutine.yield("Configuring grid settings...")
 
 			-- Apply grid settings to muxlaunch.ini in the resolution-specific directory
+			coroutine.yield("Configuring grid settings...")
 			local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath()
 			if not schemeConfigurator.applyGridSettings(muxlaunchIniPath) then
 				return false
 			end
+
 			coroutine.yield("Generating glyphs...")
 
-			-- Generate glyphs dynamically from SVG sources
 			local glyphs = require("utils.glyphs")
 			if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
 				return false
@@ -326,43 +325,36 @@ function themeCreator.createThemeCoroutine()
 			if not glyphs.generateMuxLaunchGlyphs() then
 				return false
 			end
-			coroutine.yield("Creating boot image...")
 
-			-- Create theme's boot image
+			coroutine.yield("Creating boot image...")
 			if not createBootImage() then
 				return false
 			end
-			coroutine.yield("Creating shutdown image...")
 
-			-- Create theme's shutdown image
+			coroutine.yield("Creating shutdown image...")
 			if not createShutdownImage() then
 				return false
 			end
-			coroutine.yield("Creating charge image...")
 
-			-- Create theme's charge image
+			coroutine.yield("Creating charge image...")
 			if not createChargeImage() then
 				return false
 			end
 
 			-- Reset graphics state before creating reboot image
-			resetGraphicsState()
 			coroutine.yield("Creating reboot image...")
-
-			-- Create theme's reboot image
+			resetGraphicsState()
 			if not createRebootImage() then
 				return false
 			end
-
-			-- Reset graphics state after all image generation
 			resetGraphicsState()
-			coroutine.yield("Creating preview image...")
 
+			coroutine.yield("Creating preview image...")
 			if not createPreviewImage() then
 				return false
 			end
-			coroutine.yield("Applying color settings...")
 
+			coroutine.yield("Applying color settings...")
 			if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
@@ -371,75 +363,80 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
+			coroutine.yield("Applying screen width settings...")
 			if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 				return false
 			end
 
+			coroutine.yield("Applying box art width settings...")
 			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
 				return false
 			end
-			coroutine.yield("Applying alignment settings...")
+			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXHISTORY) then
+				return false
+			end
+			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXCOLLECT) then
+				return false
+			end
 
+			coroutine.yield("Applying alignment settings...")
 			if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-
 			if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-
-			if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
-				return false
-			end
-
 			if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-
 			if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
 
+			coroutine.yield("Applying alpha settings...")
+			if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
+				return false
+			end
 			if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-			coroutine.yield("Copying font files...")
 
+			coroutine.yield("Copying font files...")
 			if not copySelectedFont() then
 				return false
 			end
 
+			coroutine.yield("Creating text files...")
 			if not createCreditsFile() then
 				return false
 			end
-
 			if not createVersionFile() then
 				return false
 			end
-
 			if not createNameFile() then
 				return false
 			end
-			coroutine.yield("Setting up RGB configuration...")
 
 			if state.hasRGBSupport then
+				coroutine.yield("Setting up RGB configuration...")
 				if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF) then
 					return false
 				end
 			end
 
+			coroutine.yield("Copying sound files...")
 			if not copySoundFiles() then
 				return false
 			end
-			coroutine.yield("Creating theme archive...")
 
+			coroutine.yield("Creating theme archive...")
 			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 			if not outputThemePath then
 				return false
 			end
 
-			commands.executeCommand("sync")
 			coroutine.yield("Finalizing theme...")
+			commands.executeCommand("sync")
 
 			resetGraphicsState()
 

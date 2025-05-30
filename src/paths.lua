@@ -79,6 +79,8 @@ paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL = paths.THEME_SCHEME_DIR .. "/global.ini"
 paths.THEME_SCHEME_MUXPLORE = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
+paths.THEME_SCHEME_MUXHISTORY = paths.THEME_SCHEME_DIR .. "/muxhistory.ini"
+paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 
 -- `font` directory and files
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
