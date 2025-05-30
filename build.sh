@@ -107,18 +107,23 @@ BUILD_DIR=".build"
 
 # Target directories
 APP_DIR="mnt/mmc/MUOS/application/Aesthetic"
+APP_SOURCE_DIR="mnt/mmc/MUOS/application/Aesthetic/.aesthetic"
+APP_GLYPH_SOURCE="assets/icons/glyph/muxapp/aesthetic.png"
+APP_GLYPH_TARGET="opt/muos/default/MUOS/theme/active/glyph/muxapp"
 APP_GLYPH_DIR="opt/muos/default/MUOS/theme/active/glyph/muxapp"
+UPDATE_SCRIPT_DIR="opt"
 
 ARCHIVE_BASE_NAME=Aesthetic
 
-# This would be a .muxupd if there were an additional `update.sh` script in `opt/`: https://muos.dev/help/archive
-ARCHIVE_TYPE="muxzip"
+# This would be a .muxzip if there were no update script needed, see: https://muos.dev/help/archive
+ARCHIVE_TYPE="muxupd"
 
 echoHeader "Setting up clean build environment"
 rm -rf "${DIST_DIR}" "${BUILD_DIR}"
 mkdir -p "${DIST_DIR}" || { echoError "Failed to create distribution directory"; exit 1; }
 mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic" || { echoError "Failed to create app directory structure"; exit 1; }
 mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to create glyph directory"; exit 1; }
+mkdir -p "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}" || { echoError "Failed to create update script directory"; exit 1; }
 
 # Extract version information from Lua source
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -139,12 +144,7 @@ ITEMS_TO_DELETE=(
     "/mnt/sdcard/MUOS/theme/active/glyph/muxapp/aesthetic.png"
     "/mnt/mmc/MUOS/theme/Aesthetic*.muxthm"
     "/mnt/sdcard/MUOS/theme/Aesthetic*.muxthm"
-    "/mnt/mmc/ARCHIVE/Aesthetic_*.muxupd"
-    "/mnt/mmc/ARCHIVE/Aesthetic_*.muxzip"
-    "/mnt/sdcard/ARCHIVE/Aesthetic_*.muxupd"
-    "/mnt/sdcard/ARCHIVE/Aesthetic_*.muxzip"
     "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxupd.done"
-    "/mnt/mmc/MUOS/update/installed/Aesthetic_*.muxzip.done"
     "/opt/muos/default/MUOS/theme/active/glyph/muxapp/aesthetic.png"
 )
 
@@ -177,44 +177,49 @@ fi
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
 rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || { echoError "Failed to copy mux_launch.sh"; exit 1; }
-rsync -aq src/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/" || { echoError "Failed to copy src/"; exit 1; }
-rsync -aq bin/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/bin" || { echoError "Failed to copy bin/"; exit 1; }
-rsync -aq lib/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/lib" || { echoError "Failed to copy lib/"; exit 1; }
+rsync -aq src/ "${BUILD_DIR}/${APP_SOURCE_DIR}" || { echoError "Failed to copy src/"; exit 1; }
+rsync -aq bin/ "${BUILD_DIR}/${APP_SOURCE_DIR}/bin" || { echoError "Failed to copy bin/"; exit 1; }
+rsync -aq lib/ "${BUILD_DIR}/${APP_SOURCE_DIR}/lib" || { echoError "Failed to copy lib/"; exit 1; }
 
 # Copy glyph mapping files
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils" || { echoError "Failed to create utils directory"; exit 1; }
-rsync -aq utils/glyph_mappings/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/utils/glyph_mappings/" || { echoError "Failed to copy glyph mapping files"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/utils" || { echoError "Failed to create utils directory"; exit 1; }
+rsync -aq utils/glyph_mappings/ "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_mappings/" || { echoError "Failed to copy glyph mapping files"; exit 1; }
 
 # assets/fonts (.bin and .ttf files)
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts"
-rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts"
+rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
 
 # assets/icons/lucide/glyph (SVG source files for dynamic glyph generation)
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/glyph"
-rsync -aq assets/icons/lucide/glyph/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/glyph/" || { echoError "Failed to copy SVG glyph source files"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/glyph"
+rsync -aq assets/icons/lucide/glyph/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/glyph/" || { echoError "Failed to copy SVG glyph source files"; exit 1; }
 
 # assets/icons/lucide/ui
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/ui"
-rsync -aq assets/icons/lucide/ui/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/lucide/ui/" || { echoError "Failed to copy lucide UI icons"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui"
+rsync -aq assets/icons/lucide/ui/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui/" || { echoError "Failed to copy lucide UI icons"; exit 1; }
 
 # assets/icons/muos
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/muos"
-rsync -aq assets/icons/muos/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/icons/muos/" || { echoError "Failed to copy muos icons"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/muos"
+rsync -aq assets/icons/muos/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/muos/" || { echoError "Failed to copy muos icons"; exit 1; }
 
-# assets/images
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images"
-rsync -aq assets/images/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/" || { echoError "Failed to copy images"; exit 1; }
+# assets/images (includes presets subdirectory)
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images"
+rsync -aq assets/images/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images/" || { echoError "Failed to copy images"; exit 1; }
 
 # assets/sounds
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/sounds"
-rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/sounds/" || { echoError "Failed to copy sounds"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds"
+rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds/" || { echoError "Failed to copy sounds"; exit 1; }
 
-# assets/images/presets
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/presets"
-rsync -aq assets/images/presets/ "${BUILD_DIR}/${APP_DIR}/.aesthetic/assets/images/presets/" || { echoError "Failed to copy presets"; exit 1; }
+# Generate manifest of all files that should exist in the source directory
+echoHeader "Generating file manifest"
+MANIFEST_FILE="${BUILD_DIR}/${APP_SOURCE_DIR}/.manifest"
+(cd "${BUILD_DIR}/${APP_SOURCE_DIR}" && find . -type f -print | sort > ".manifest") || { echoError "Failed to generate manifest"; exit 1; }
+echo "Generated manifest with $(wc -l < "$MANIFEST_FILE") files"
 
 # Application glyph
-rsync -aq assets/icons/glyph/muxapp/aesthetic.png "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to copy aesthetic.png"; exit 1; }
+rsync -aq "${APP_GLYPH_SOURCE}" "${BUILD_DIR}/${APP_GLYPH_TARGET}" || { echoError "Failed to copy application glyph"; exit 1; }
+
+# Update script
+rsync -aq update.sh "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}/update.sh" || { echoError "Failed to copy update script"; exit 1; }
 
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving

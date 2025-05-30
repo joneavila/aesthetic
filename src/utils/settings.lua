@@ -1,6 +1,6 @@
 --- Settings management module
 --- Manages persistent application-wide settings that are automatically saved and loaded between sessions in a single
---- configuration file
+--- configuration file. Includes migration support for upgrading from v1.5.1 to any current version.
 local errorHandler = require("error_handler")
 local state = require("state")
 local paths = require("paths")
@@ -107,6 +107,85 @@ function settings.saveToFile()
 	return true
 end
 
+-- Function to migrate v1.5.1 settings to current version format
+local function migrateSettings(loadedSettings)
+	-- Start with the loaded settings and only make necessary changes
+	local migratedSettings = {}
+
+	-- Copy all existing settings first
+	for key, value in pairs(loadedSettings) do
+		migratedSettings[key] = value
+	end
+
+	-- Handle key renames: glyphs_enabled -> glyphsEnabled
+	if migratedSettings.glyphs_enabled ~= nil then
+		migratedSettings.glyphsEnabled = migratedSettings.glyphs_enabled
+		migratedSettings.glyphs_enabled = nil -- Remove the old key
+	end
+
+	-- Handle boxArtWidth conversion from string to number
+	if migratedSettings.boxArtWidth and type(migratedSettings.boxArtWidth) == "string" then
+		if migratedSettings.boxArtWidth == "Disabled" then
+			migratedSettings.boxArtWidth = 0
+		else
+			migratedSettings.boxArtWidth = tonumber(migratedSettings.boxArtWidth) or 0
+		end
+	end
+
+	-- Add missing keys with default values from state.lua
+	if not migratedSettings.background or not migratedSettings.background.type then
+		if not migratedSettings.background then
+			migratedSettings.background = {}
+		end
+		migratedSettings.background.type = state.backgroundType
+	end
+
+	if not migratedSettings.backgroundGradient then
+		migratedSettings.backgroundGradient = {
+			value = state.getColorValue("backgroundGradient"),
+			direction = state.backgroundGradientDirection,
+		}
+	end
+
+	if not migratedSettings.navigationAlignment then
+		migratedSettings.navigationAlignment = state.navigationAlignment
+	end
+
+	if not migratedSettings.navigationAlpha then
+		migratedSettings.navigationAlpha = state.navigationAlpha
+	end
+
+	if not migratedSettings.statusAlignment then
+		migratedSettings.statusAlignment = state.statusAlignment
+	end
+
+	if not migratedSettings.timeAlignment then
+		migratedSettings.timeAlignment = state.timeAlignment
+	end
+
+	if not migratedSettings.headerTextAlignment then
+		migratedSettings.headerTextAlignment = state.headerTextAlignment
+	end
+
+	if not migratedSettings.headerTextEnabled then
+		migratedSettings.headerTextEnabled = state.headerTextEnabled
+	end
+
+	if not migratedSettings.headerTextAlpha then
+		migratedSettings.headerTextAlpha = state.headerTextAlpha
+	end
+
+	if not migratedSettings.source then
+		migratedSettings.source = state.source
+	end
+
+	if not migratedSettings.homeScreenLayout then
+		migratedSettings.homeScreenLayout = state.homeScreenLayout
+	end
+
+	return migratedSettings
+end
+
 -- Function to load settings from file
 function settings.loadFromFile()
 	-- Get file path
@@ -135,7 +214,27 @@ function settings.loadFromFile()
 		return false
 	end
 
-	-- Apply the loaded settings to the state
+	-- Check if this is a v1.5.1 settings file and migrate if needed
+	local needsMigration = false
+
+	-- Detect v1.5.1 format by checking for old keys or missing new keys
+	-- This handles migration from v1.5.1 to any current version
+	if
+		loadedSettings.glyphs_enabled ~= nil -- Old key name
+		or not loadedSettings.backgroundGradient -- Missing new key (added in v1.6.0)
+		or not loadedSettings.navigationAlignment -- Missing new key (added in v1.6.0)
+		or (loadedSettings.boxArtWidth and type(loadedSettings.boxArtWidth) == "string")
+	then -- Old string format
+		needsMigration = true
+	end
+
+	if needsMigration then
+		loadedSettings = migrateSettings(loadedSettings)
+		-- Save the migrated settings back to file immediately
+		settings.saveToFile()
+	end
+
+	-- Apply the loaded (and possibly migrated) settings to the state
 	if loadedSettings.background then
 		if loadedSettings.background.value then
 			state.setColorValue("background", loadedSettings.background.value)
@@ -178,9 +277,9 @@ function settings.loadFromFile()
 		end
 	end
 
-	-- Box art width
+	-- Box art width (already converted to number in migration)
 	if loadedSettings.boxArtWidth then
-		state.boxArtWidth = tonumber(loadedSettings.boxArtWidth) or 0
+		state.boxArtWidth = loadedSettings.boxArtWidth
 	end
 
 	-- Font
@@ -218,7 +317,7 @@ function settings.loadFromFile()
 		state.headerTextAlignment = loadedSettings.headerTextAlignment
 	end
 
-	-- Glyphs
+	-- Glyphs (already converted from glyphs_enabled in migration)
 	if loadedSettings.glyphsEnabled ~= nil then
 		state.glyphsEnabled = loadedSettings.glyphsEnabled
 	end
@@ -235,7 +334,7 @@ function settings.loadFromFile()
 
 	-- Header text alpha
 	if loadedSettings.headerTextAlpha then
-		state.headerTextAlpha = tonumber(loadedSettings.headerTextAlpha) or 255
+		state.headerTextAlpha = loadedSettings.headerTextAlpha
 	end
 
 	-- Source
