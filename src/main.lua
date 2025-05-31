@@ -14,6 +14,7 @@ local love = require("love")
 local colors = require("colors")
 local input = require("input")
 local state = require("state")
+local font_calibration = require("font_calibration")
 
 local fonts = require("ui.fonts")
 
@@ -57,6 +58,9 @@ function love.load()
 
 	-- Fade effect will be handled after splash screen completes
 	state.fading = false
+
+	-- Run font calibration (debugging)
+	-- font_calibration.run()
 end
 
 -- Function to handle window resize

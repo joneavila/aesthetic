@@ -16,31 +16,31 @@ fonts.nameToKey = {}
 fonts.selectedFont = "Inter"
 fonts.fontSize = "Default"
 
--- Font available choices
+-- Theme font choices
 fonts.themeDefinitions = {
 	{
 		name = "Inter",
-		file = "inter.bin",
+		file = "inter_semibold_default.bin",
 		path = "assets/fonts/inter/inter_24pt_semibold.ttf",
 	},
 	{
 		name = "Nunito",
-		file = "nunito.bin",
+		file = "nunito_bold_default.bin",
 		path = "assets/fonts/nunito/nunito_bold.ttf",
 	},
 	{
 		name = "JetBrains Mono",
-		file = "jetbrains_mono.bin",
+		file = "jetbrains_mono_bold_default.bin",
 		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 	},
 	{
 		name = "Cascadia Code",
-		file = "cascadia_code.bin",
+		file = "cascadia_code_bold_default.bin",
 		path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
 	},
 	{
 		name = "Retro Pixel",
-		file = "retro_pixel.bin",
+		file = "retro_pixel_thick_default.bin",
 		path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf",
 	},
 }

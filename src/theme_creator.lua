@@ -168,8 +168,32 @@ local function createVersionFile()
 	return system.createTextFile(paths.THEME_VERSION, parsedVersion)
 end
 
--- Function to find and copy the selected font file to theme directory based on screen height
+-- Function to find and copy the selected font file to theme directory
 local function copySelectedFont()
+	-- TEMPORARILY SIMPLIFIED: Using single .bin file per font while making font size feature more robust
+	-- Find the selected font file path
+	local selectedFontFile
+	for _, font in ipairs(fonts.themeDefinitions) do
+		if font.name == fonts.getSelectedFont() then
+			selectedFontFile = font.file
+			break
+		end
+	end
+	if not selectedFontFile then
+		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
+		return false
+	end
+
+	-- Simply copy the font file directly to default.bin
+	local fontSourcePath = "assets/fonts/" .. selectedFontFile
+	logger.debug("Copying font file: " .. fontSourcePath)
+	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
+		return false
+	end
+
+	return true
+
+	--[[ ORIGINAL CODE: Commented out while making font size feature more robust
 	-- Find and copy the selected font file
 	local selectedFontFile
 	for _, font in ipairs(fonts.themeDefinitions) do
@@ -208,6 +232,7 @@ local function copySelectedFont()
 	end
 
 	return true
+	--]]
 end
 
 -- Function to copy sound files to the theme

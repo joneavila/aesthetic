@@ -139,7 +139,10 @@ local function createMenuButtons()
 		})
 	)
 
+	-- Temporarily disabled
 	-- Font Size button
+	-- Commenting out while making font size feature more robust
+	--[[
 	table.insert(
 		buttons,
 		Button:new({
@@ -151,6 +154,7 @@ local function createMenuButtons()
 			context = "fontSize",
 		})
 	)
+	--]]
 
 	-- Icons button
 	table.insert(
@@ -307,9 +311,13 @@ local function handleOptionCycle(button, direction)
 	local newValue = button:getCurrentOption()
 
 	-- Update state based on button context
+	-- Temporarily disabled
+	--[[
 	if button.context == "fontSize" then
 		fonts.setFontSize(newValue)
 	elseif button.context == "glyphs" then
+	--]]
+	if button.context == "glyphs" then
 		state.glyphsEnabled = (newValue == "Enabled")
 	elseif button.context == "headerText" then
 		state.headerTextEnabled = newValue
