@@ -1,7 +1,7 @@
 -- Theme preset
 -- Retro-futuristic pink and teal for 80s nostalgia
 return {
-	displayName = "Vaporwave",
+	themeName = "Vaporwave",
 	background = {
 		value = "#FFC1CC",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Inter",
+	fontFamily = "Inter",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = true,
 	source = "built-in",
 }

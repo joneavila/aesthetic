@@ -1,7 +1,7 @@
 -- Theme preset
 -- Cream and crimson color combo reminiscent of the classic gaming console
 return {
-	displayName = "Fami",
+	themeName = "Fami",
 	background = {
 		value = "#FAF3DD",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Retro Pixel",
+	fontFamily = "Retro Pixel",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = true,
 	source = "built-in",
 }

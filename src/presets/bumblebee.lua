@@ -1,7 +1,7 @@
 -- Theme preset
 -- Bold yellow and brown combo that buzzes with energy
 return {
-	displayName = "Bumblebee",
+	themeName = "Bumblebee",
 	background = {
 		value = "#FFD900",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Nunito",
+	fontFamily = "Nunito",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = true,
 	source = "built-in",
 }

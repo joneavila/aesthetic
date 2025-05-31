@@ -1,7 +1,7 @@
 -- Theme preset
 -- Dark theme with lavender accents for late-night sessions
 return {
-	displayName = "Purple Noir",
+	themeName = "Purple Noir",
 	background = {
 		value = "#1C1B29",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Cascadia Code",
+	fontFamily = "Cascadia Code",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = true,
 	source = "built-in",
 }

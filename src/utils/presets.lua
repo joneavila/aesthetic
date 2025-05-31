@@ -1,7 +1,15 @@
 --- Presets management module
---- Enables user to save, load, and switch between multiple named theme configurations stored as separate files in a
---- presets directory
+---
+--- This module enables users to save, load, and switch between multiple named theme configurations
+--- stored as separate files in a presets directory.
+---
+--- PRESET FILE FORMAT: Each preset file is a Lua table containing theme configuration fields that map directly to
+--- state.lua variables.
+---
+--- ERROR HANDLING: Missing or invalid fields trigger logger warnings and fallback to state.lua defaults.
+
 local errorHandler = require("error_handler")
+local logger = require("utils.logger")
 local paths = require("paths")
 local state = require("state")
 
@@ -131,10 +139,109 @@ function presets.savePreset(presetName)
 	return true
 end
 
+-- Helper function to safely load a field with logging and default fallback
+local function loadField(loadedPreset, presetName, fieldPath, targetSetter, defaultValue, fieldType)
+	fieldType = fieldType or "any"
+
+	-- Navigate nested field path (e.g., "background.value")
+	local value = loadedPreset
+	local pathParts = {}
+	for part in fieldPath:gmatch("[^%.]+") do
+		table.insert(pathParts, part)
+	end
+
+	for _, part in ipairs(pathParts) do
+		if type(value) == "table" and value[part] ~= nil then
+			value = value[part]
+		else
+			value = nil
+			break
+		end
+	end
+
+	-- Validate field type if specified
+	if value ~= nil then
+		if fieldType == "number" and type(value) ~= "number" then
+			value = tonumber(value)
+			if value == nil then
+				logger.warning(
+					"Preset '"
+						.. presetName
+						.. "': Field '"
+						.. fieldPath
+						.. "' is not a valid number, using default: "
+						.. tostring(defaultValue)
+				)
+				value = defaultValue
+			end
+		elseif fieldType == "string" and type(value) ~= "string" then
+			logger.warning(
+				"Preset '"
+					.. presetName
+					.. "': Field '"
+					.. fieldPath
+					.. "' is not a string, using default: "
+					.. tostring(defaultValue)
+			)
+			value = defaultValue
+		elseif fieldType == "boolean" and type(value) ~= "boolean" then
+			logger.warning(
+				"Preset '"
+					.. presetName
+					.. "': Field '"
+					.. fieldPath
+					.. "' is not a boolean, using default: "
+					.. tostring(defaultValue)
+			)
+			value = defaultValue
+		end
+	end
+
+	-- Use default if field is missing
+	if value == nil then
+		if defaultValue ~= nil then
+			logger.warning(
+				"Preset '"
+					.. presetName
+					.. "': Missing field '"
+					.. fieldPath
+					.. "', using default: "
+					.. tostring(defaultValue)
+			)
+			value = defaultValue
+		else
+			logger.warning("Preset '" .. presetName .. "': Missing field '" .. fieldPath .. "', skipping")
+			return false
+		end
+	end
+
+	-- Apply the value using the provided setter function
+	local success, err = pcall(targetSetter, value)
+	if not success then
+		logger.warning(
+			"Preset '"
+				.. presetName
+				.. "': Failed to set field '"
+				.. fieldPath
+				.. "': "
+				.. tostring(err)
+				.. ", using default: "
+				.. tostring(defaultValue)
+		)
+		if defaultValue ~= nil then
+			pcall(targetSetter, defaultValue)
+		end
+		return false
+	end
+
+	return true
+end
+
 -- Function to load a preset from file
 function presets.loadPreset(presetName)
 	local sourceDir = system.getEnvironmentVariable("SOURCE_DIR")
 	if not sourceDir then
+		logger.error("SOURCE_DIR environment variable not set, cannot load preset: " .. tostring(presetName))
 		return false
 	end
 
@@ -143,6 +250,7 @@ function presets.loadPreset(presetName)
 
 	-- Check if the file exists
 	if not system.fileExists(filePath) then
+		logger.error("Preset file does not exist: " .. filePath)
 		return false
 	end
 
@@ -156,99 +264,121 @@ function presets.loadPreset(presetName)
 	end)
 
 	if not success or type(loadedPreset) ~= "table" then
+		logger.error("Failed to load or parse preset file: " .. presetName .. " - " .. tostring(loadedPreset))
 		return false
 	end
 
-	-- Apply the loaded preset to the state
-	if loadedPreset.background and loadedPreset.background.value then
-		state.setColorValue("background", loadedPreset.background.value)
-	end
+	logger.info("Loading preset: " .. presetName)
 
-	-- Background gradient
-	if loadedPreset.backgroundGradient and loadedPreset.backgroundGradient.value then
-		local bgValue = loadedPreset.background and loadedPreset.background.value or nil
+	-- REQUIRED FIELDS - Theme name
+	loadField(loadedPreset, presetName, "themeName", function(v)
+		state.themeName = v
+	end, "Aesthetic", "string")
+
+	-- REQUIRED FIELDS - Colors
+	loadField(loadedPreset, presetName, "background.value", function(v)
+		state.setColorValue("background", v)
+	end, "#1E40AF", "string")
+	loadField(loadedPreset, presetName, "foreground.value", function(v)
+		state.setColorValue("foreground", v)
+	end, "#FFFFFF", "string")
+	loadField(loadedPreset, presetName, "rgb.value", function(v)
+		state.setColorValue("rgb", v)
+	end, "#1E40AF", "string")
+
+	-- OPTIONAL FIELDS - Background settings
+	loadField(loadedPreset, presetName, "background.type", function(v)
+		state.backgroundType = v
+	end, "Solid", "string")
+
+	-- Background gradient handling
+	local hasGradient = loadedPreset.backgroundGradient and loadedPreset.backgroundGradient.value
+	if hasGradient then
+		loadField(loadedPreset, presetName, "backgroundGradient.value", function(v)
+			state.setColorValue("backgroundGradient", v)
+		end, "#155CFB", "string")
+		loadField(loadedPreset, presetName, "backgroundGradient.direction", function(v)
+			state.backgroundGradientDirection = v
+		end, "Vertical", "string")
+
+		-- Set background type based on gradient presence and color matching
+		local bgValue = loadedPreset.background and loadedPreset.background.value
 		local gradientValue = loadedPreset.backgroundGradient.value
-		if bgValue and gradientValue and bgValue == gradientValue then
-			state.setColorValue("backgroundGradient", gradientValue)
-			state.backgroundType = "Solid"
-		else
-			state.setColorValue("backgroundGradient", gradientValue)
+		if bgValue and gradientValue and bgValue ~= gradientValue then
 			state.backgroundType = "Gradient"
-			if loadedPreset.backgroundGradient.direction then
-				state.backgroundGradientDirection = loadedPreset.backgroundGradient.direction
-			end
-		end
-	else
-		state.backgroundType = "Solid"
-	end
-
-	-- Foreground color
-	if loadedPreset.foreground and loadedPreset.foreground.value then
-		state.setColorValue("foreground", loadedPreset.foreground.value)
-	end
-
-	-- RGB settings
-	if loadedPreset.rgb then
-		if loadedPreset.rgb.value then
-			state.setColorValue("rgb", loadedPreset.rgb.value)
-		end
-
-		if loadedPreset.rgb.mode then
-			state.rgbMode = loadedPreset.rgb.mode
-		end
-
-		if loadedPreset.rgb.brightness then
-			state.rgbBrightness = loadedPreset.rgb.brightness
-		end
-
-		if loadedPreset.rgb.speed then
-			state.rgbSpeed = loadedPreset.rgb.speed
 		end
 	end
 
-	-- Box art width
-	-- TODO: Delete old settings file from system to avoid converting to number
-	if loadedPreset.boxArtWidth then
-		state.boxArtWidth = tonumber(loadedPreset.boxArtWidth) or 0
-	end
+	-- OPTIONAL FIELDS - RGB settings
+	loadField(loadedPreset, presetName, "rgb.mode", function(v)
+		state.rgbMode = v
+	end, "Solid", "string")
+	loadField(loadedPreset, presetName, "rgb.brightness", function(v)
+		state.rgbBrightness = v
+	end, 5, "number")
+	loadField(loadedPreset, presetName, "rgb.speed", function(v)
+		state.rgbSpeed = v
+	end, 5, "number")
 
-	-- Font
-	if loadedPreset.font then
-		fonts.setSelectedFont(loadedPreset.font)
-	end
+	-- OPTIONAL FIELDS - Layout and display
+	loadField(loadedPreset, presetName, "boxArtWidth", function(v)
+		state.boxArtWidth = v
+	end, 0, "number")
+	loadField(loadedPreset, presetName, "homeScreenLayout", function(v)
+		state.homeScreenLayout = v
+	end, "Grid", "string")
 
-	-- Font size
-	if loadedPreset.fontSize then
-		fonts.setFontSize(loadedPreset.fontSize)
+	-- OPTIONAL FIELDS - Font settings (support both fontFamily and legacy font field)
+	local fontSet = loadField(loadedPreset, presetName, "fontFamily", function(v)
+		fonts.setSelectedFont(v)
+	end, nil, "string")
+	if not fontSet then
+		loadField(loadedPreset, presetName, "font", function(v)
+			fonts.setSelectedFont(v)
+		end, nil, "string")
 	end
+	loadField(loadedPreset, presetName, "fontSize", function(v)
+		fonts.setFontSize(v)
+	end, nil, "string")
 
-	-- Glyphs
-	if loadedPreset.glyphsEnabled ~= nil then
-		state.glyphsEnabled = loadedPreset.glyphsEnabled
-	end
+	-- OPTIONAL FIELDS - Header settings
+	loadField(loadedPreset, presetName, "headerTextAlignment", function(v)
+		state.headerTextAlignment = v
+	end, 2, "number")
+	loadField(loadedPreset, presetName, "headerTextAlpha", function(v)
+		state.headerTextAlpha = v
+	end, 0, "number")
+	loadField(loadedPreset, presetName, "headerTextEnabled", function(v)
+		state.headerTextEnabled = v
+	end, "Disabled", "string")
 
-	-- Header text enabled
-	if loadedPreset.headerTextEnabled then
-		state.headerTextEnabled = loadedPreset.headerTextEnabled
-	end
+	-- OPTIONAL FIELDS - Navigation settings
+	loadField(loadedPreset, presetName, "navigationAlignment", function(v)
+		state.navigationAlignment = v
+	end, "Left", "string")
+	loadField(loadedPreset, presetName, "navigationAlpha", function(v)
+		state.navigationAlpha = v
+	end, 100, "number")
 
-	-- Header text alpha
-	if loadedPreset.headerTextAlpha then
-		state.headerTextAlpha = tonumber(loadedPreset.headerTextAlpha) or 255
-	end
+	-- OPTIONAL FIELDS - Status and time alignment
+	loadField(loadedPreset, presetName, "statusAlignment", function(v)
+		state.statusAlignment = v
+	end, "Right", "string")
+	loadField(loadedPreset, presetName, "timeAlignment", function(v)
+		state.timeAlignment = v
+	end, "Left", "string")
 
-	-- Source
-	if loadedPreset.source then
-		state.source = loadedPreset.source
-	else
-		state.source = "user" -- Default to user-created if not specified
-	end
+	-- OPTIONAL FIELDS - UI features
+	loadField(loadedPreset, presetName, "glyphsEnabled", function(v)
+		state.glyphsEnabled = v
+	end, true, "boolean")
 
-	-- Home screen layout
-	if loadedPreset.homeScreenLayout then
-		state.homeScreenLayout = loadedPreset.homeScreenLayout
-	end
+	-- OPTIONAL FIELDS - Metadata
+	loadField(loadedPreset, presetName, "source", function(v)
+		state.source = v
+	end, "user", "string")
 
+	logger.info("Successfully loaded preset: " .. presetName)
 	return true
 end
 

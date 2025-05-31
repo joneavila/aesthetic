@@ -1,7 +1,7 @@
 -- Theme preset
 -- Classic green-on-black hacker aesthetic
 return {
-	displayName = "Terminal",
+	themeName = "Terminal",
 	background = {
 		value = "#000000",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Retro Pixel",
+	fontFamily = "Retro Pixel",
 	fontSize = "Large",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = false,
 	source = "built-in",
 }

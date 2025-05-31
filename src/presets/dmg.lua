@@ -1,7 +1,7 @@
 -- Theme preset
 -- Green palette inspired by the original handheld console
 return {
-	displayName = "DMG",
+	themeName = "DMG",
 	background = {
 		value = "#9BBC0F",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Retro Pixel",
+	fontFamily = "Retro Pixel",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = false,
 	source = "built-in",
 }

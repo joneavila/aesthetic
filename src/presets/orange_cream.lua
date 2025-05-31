@@ -1,7 +1,7 @@
 -- Theme preset
 -- Vibrant orange and white combo that evokes a summer treat
 return {
-	displayName = "Orange Cream",
+	themeName = "Orange Cream",
 	background = {
 		value = "#FF5A1F",
 		type = "Solid",
@@ -21,8 +21,15 @@ return {
 	},
 	created = os.time(),
 	boxArtWidth = 0,
-	font = "Nunito",
+	fontFamily = "Nunito",
 	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	headerTextAlignment = 2,
+	headerTextAlpha = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
 	glyphsEnabled = true,
 	source = "built-in",
 }

@@ -45,8 +45,8 @@ local function loadPresetsList()
 				createdTime = presetData.created
 			end
 
-			if presetData.displayName then
-				displayName = presetData.displayName
+			if presetData.themeName then
+				displayName = presetData.themeName
 			end
 
 			if presetData.source then
