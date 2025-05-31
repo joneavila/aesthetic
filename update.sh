@@ -9,16 +9,7 @@ OLD_SETTINGS_PATH="$SOURCE_DIR/settings.lua"       # v1.5.1
 NEW_SETTINGS_DIR="$APP_DIR/userdata"               # v1.6.0 and later
 NEW_SETTINGS_PATH="$NEW_SETTINGS_DIR/settings.lua" # v1.6.0 and later
 
-text="[Aesthetic Update Script]"
-colors=(31 33 32 36 34 35)  # Red, Yellow, Green, Cyan, Blue, Magenta
-
-for ((i=0; i<${#text}; i++)); do
-  c="${text:$i:1}"
-  color=${colors[$((i % ${#colors[@]}))]}
-  echo -ne "\e[1;${color}m$c"
-done
-
-echo -e "\e[0m"  # Reset colors
+echo "[Aesthetic Update Script]"
 
 # Function to clean up old source files not part of the current version
 cleanup_old_source_files() {

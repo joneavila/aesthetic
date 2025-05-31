@@ -171,21 +171,22 @@ end
 -- Function to find and copy the selected font file to theme directory
 local function copySelectedFont()
 	-- TEMPORARILY SIMPLIFIED: Using single .bin file per font while making font size feature more robust
-	-- Find the selected font file path
-	local selectedFontFile
+	-- Find the selected font definition
+	local selectedFontDefinition
 	for _, font in ipairs(fonts.themeDefinitions) do
 		if font.name == fonts.getSelectedFont() then
-			selectedFontFile = font.file
+			selectedFontDefinition = font
 			break
 		end
 	end
-	if not selectedFontFile then
+	if not selectedFontDefinition then
 		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
 		return false
 	end
 
-	-- Simply copy the font file directly to default.bin
-	local fontSourcePath = "assets/fonts/" .. selectedFontFile
+	-- Extract the directory from the TTF path and combine with the .bin filename
+	local fontDirectory = selectedFontDefinition.path:match("^(.+)/[^/]+$")
+	local fontSourcePath = fontDirectory .. "/" .. selectedFontDefinition.file
 	logger.debug("Copying font file: " .. fontSourcePath)
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
 		return false

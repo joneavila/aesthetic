@@ -209,10 +209,24 @@ rsync -aq assets/images/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images/" || { ec
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds"
 rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds/" || { echoError "Failed to copy sounds"; exit 1; }
 
+# Remove macOS extended attributes that can interfere with find command
+xattr -rc "${BUILD_DIR}/${APP_SOURCE_DIR}/assets" 2>/dev/null || true
+
 # Generate manifest of all files that should exist in the source directory
 echoHeader "Generating file manifest"
 MANIFEST_FILE="${BUILD_DIR}/${APP_SOURCE_DIR}/.manifest"
-(cd "${BUILD_DIR}/${APP_SOURCE_DIR}" && find . -type f -print | sort > ".manifest") || { echoError "Failed to generate manifest"; exit 1; }
+(cd "${BUILD_DIR}/${APP_SOURCE_DIR}" && {
+    # List all non-asset files
+    find . -type f -not -path "./assets/*" -print
+    # Manually list asset files using ls and find in subdirectories
+    if [ -d "assets" ]; then
+        for subdir in assets/*/; do
+            if [ -d "$subdir" ]; then
+                find "$subdir" -type f -print 2>/dev/null || true
+            fi
+        done
+    fi
+} | sort > ".manifest") || { echoError "Failed to generate manifest"; exit 1; }
 echo "Generated manifest with $(wc -l < "$MANIFEST_FILE") files"
 
 # Application glyph
