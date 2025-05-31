@@ -176,14 +176,16 @@ function downloadUpdate()
 	end
 
 	downloadThread = threadOrError
-	-- Show download in progress modal
-	modalInstance:show("Downloading update...", {})
+	modalInstance:show("Downloading update...", {}, { forceSimple = true })
 end
 
 local function createMenuButtons()
 	return {
 		Button:new({
 			text = "Save Theme Preset",
+			type = "icon_text",
+			iconName = "save",
+			iconSize = 21,
 			onClick = function()
 				screens.switchTo("virtual_keyboard", {
 					title = "Enter Preset Name",
@@ -194,24 +196,36 @@ local function createMenuButtons()
 		}),
 		Button:new({
 			text = "Load Theme Preset",
+			type = "icon_text",
+			iconName = "file-up",
+			iconSize = 21,
 			onClick = function()
 				screens.switchTo("load_preset")
 			end,
 		}),
 		Button:new({
-			text = "Check for Updates",
-			onClick = function()
-				checkForUpdates()
-			end,
-		}),
-		Button:new({
 			text = "Manage Themes",
+			type = "icon_text",
+			iconName = "palette",
+			iconSize = 21,
 			onClick = function()
 				screens.switchTo("manage_themes")
 			end,
 		}),
 		Button:new({
+			text = "Check for Updates",
+			type = "icon_text",
+			iconName = "refresh-cw",
+			iconSize = 21,
+			onClick = function()
+				checkForUpdates()
+			end,
+		}),
+		Button:new({
 			text = "About",
+			type = "icon_text",
+			iconName = "info",
+			iconSize = 21,
 			onClick = function()
 				screens.switchTo("about")
 			end,

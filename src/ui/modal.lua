@@ -32,15 +32,18 @@ function Modal:new(config)
 	return instance
 end
 
-function Modal:show(message, buttons)
+function Modal:show(message, buttons, options)
 	self.visible = true
 	self.message = message or ""
 	self.buttons = buttons or {}
 	self.selectedIndex = 1
 	self.scrollPosition = 0
+	options = options or {}
 
 	-- Check if this is a progress modal (no buttons and contains progress keywords)
+	-- Can be overridden with options.forceSimple = true
 	self.isProgressModal = (#self.buttons == 0)
+		and not options.forceSimple
 		and (
 			string.find(self.message:lower(), "creating")
 			or string.find(self.message:lower(), "applying")

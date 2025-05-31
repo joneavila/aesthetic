@@ -17,6 +17,7 @@ local BUTTON_CONFIG = {
 }
 
 local ICON_SIZE = 14
+local SETTINGS_ICON_SIZE = 21
 local COLOR_DISPLAY_SIZE = 30
 local CHEVRON_PADDING = 16
 
@@ -28,6 +29,7 @@ local BUTTON_TYPES = {
 	TEXT_PREVIEW = "text_preview",
 	INDICATORS = "indicators",
 	ACCENTED = "accented",
+	ICON_TEXT = "icon_text",
 }
 
 -- Button class
@@ -50,6 +52,8 @@ function Button:new(config)
 	instance.direction = config.direction or "Vertical"
 	instance.previewText = config.previewText
 	instance.monoFont = config.monoFont
+	instance.iconName = config.iconName
+	instance.iconSize = config.iconSize or ICON_SIZE
 
 	-- Options for cycling
 	instance.options = config.options
@@ -360,6 +364,34 @@ function Button:drawAccented()
 	end
 end
 
+function Button:drawIconText()
+	self:drawBackground()
+
+	local font = love.graphics.getFont()
+	local textHeight = font:getHeight()
+	local opacity = self.disabled and 0.3 or 1
+	local iconSpacing = 8 -- Space between icon and text
+	local iconSize = self.iconSize
+
+	-- Calculate positions
+	local currentX = self.x + BUTTON_CONFIG.HORIZONTAL_PADDING
+	local textY = self.y + (self.height - textHeight) / 2
+	local iconY = self.y + self.height / 2
+
+	-- Draw icon if specified
+	if self.iconName then
+		local icon = svg.loadIcon(self.iconName, iconSize)
+		if icon then
+			svg.drawIcon(icon, currentX + iconSize / 2, iconY, colors.ui.foreground, opacity)
+			currentX = currentX + iconSize + iconSpacing
+		end
+	end
+
+	-- Draw text
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.print(self.text, currentX, textY)
+end
+
 function Button:draw()
 	if not self.visible then
 		return
@@ -377,6 +409,8 @@ function Button:draw()
 		self:drawGradient()
 	elseif self.type == BUTTON_TYPES.ACCENTED then
 		self:drawAccented()
+	elseif self.type == BUTTON_TYPES.ICON_TEXT then
+		self:drawIconText()
 	else
 		self:drawBasic()
 	end
@@ -385,6 +419,8 @@ end
 -- Initialize icons
 local function init()
 	svg.preloadIcons({ "chevron-left", "chevron-right" }, ICON_SIZE)
+	-- Preload settings screen icons at larger size
+	svg.preloadIcons({ "save", "file-up", "refresh-cw", "palette", "info" }, 21)
 end
 
 -- Module exports
