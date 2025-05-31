@@ -8,6 +8,7 @@ local screens = require("screens")
 local state = require("state")
 local system = require("utils.system")
 local otaUpdate = require("utils.ota_update")
+local presets = require("utils.presets")
 
 local background = require("ui.background")
 local Button = require("ui.button").Button
@@ -40,105 +41,6 @@ local updateCheckTimer = 0
 local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
 local downloadThread = nil -- LÖVE thread for downloading
 local downloadStartTime = 0
-
--- Function to save current state as a preset
-local function saveThemePreset(name)
-	-- Ensure presets directory exists
-	if not system.isDir(paths.PRESETS_DIR) then
-		local success = system.createDirectory(paths.PRESETS_DIR)
-		if not success then
-			errorHandler.setError("Failed to create presets directory: " .. paths.PRESETS_DIR)
-			return false
-		end
-	end
-
-	-- Create preset file path
-	local presetPath = paths.PRESETS_DIR .. "/" .. name .. ".lua"
-
-	-- Create the file
-	local file, err = io.open(presetPath, "w")
-	if not file then
-		errorHandler.setError("Failed to create preset file: " .. (err or "unknown error"))
-		return false
-	end
-
-	-- Serialize the current state as Lua code
-	file:write("-- Aesthetic theme preset: " .. name .. "\n")
-	file:write("return {\n")
-
-	-- Background color
-	file:write("  background = {\n")
-	file:write('    value = "' .. state.getColorValue("background") .. '",\n')
-	file:write('    type = "' .. state.backgroundType .. '",\n')
-	file:write("  },\n")
-
-	-- Background gradient color
-	file:write("  backgroundGradient = {\n")
-	file:write('    value = "' .. state.getColorValue("backgroundGradient") .. '",\n')
-	file:write('    direction = "' .. (state.backgroundGradientDirection or "Vertical") .. '",\n')
-	file:write("  },\n")
-
-	-- Foreground color
-	file:write("  foreground = {\n")
-	file:write('    value = "' .. state.getColorValue("foreground") .. '",\n')
-	file:write("  },\n")
-
-	-- RGB lighting
-	file:write("  rgb = {\n")
-	file:write('    value = "' .. state.getColorValue("rgb") .. '",\n')
-	file:write('    mode = "' .. state.rgbMode .. '",\n')
-	file:write("    brightness = " .. state.rgbBrightness .. ",\n")
-	file:write("    speed = " .. state.rgbSpeed .. ",\n")
-	file:write("  },\n")
-
-	-- Box art width
-	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-
-	-- Font family
-	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
-
-	-- Font size
-	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
-
-	-- Navigation alignment
-	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
-
-	-- Navigation alpha
-	file:write("  navigationAlpha = " .. state.navigationAlpha .. ",\n")
-
-	-- Status alignment
-	file:write('  statusAlignment = "' .. state.statusAlignment .. '",\n')
-
-	-- Time alignment
-	file:write('  timeAlignment = "' .. state.timeAlignment .. '",\n')
-
-	-- Header text alignment
-	file:write("  headerTextAlignment = " .. state.headerTextAlignment .. ",\n")
-
-	-- Glyphs
-	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
-
-	-- Theme name
-	file:write('  themeName = "' .. state.themeName .. '",\n')
-
-	-- Header text enabled
-	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
-
-	-- Header text alpha
-	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
-
-	-- Home screen layout
-	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
-
-	-- Preset metadata
-	file:write('  presetName = "' .. name .. '",\n')
-	file:write('  createdAt = "' .. os.date("%Y-%m-%d %H:%M:%S") .. '",\n')
-
-	file:write("}\n")
-
-	file:close()
-	return true
-end
 
 -- Function to handle OTA update check
 local function checkForUpdates()
@@ -435,7 +337,7 @@ function settings.onEnter(params)
 		presetName = params.inputValue
 
 		-- Save the preset
-		local success = saveThemePreset(presetName)
+		local success = presets.savePreset(presetName)
 
 		if success then
 			-- Show success modal

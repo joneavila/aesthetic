@@ -24,57 +24,48 @@ local presetItems = {}
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
-	-- Clear existing presets
 	presetItems = {}
-
-	-- Get list of presets
-	local availablePresets = presets.listPresets()
+	local presetDirs = {
+		presets._getUserThemePresetsPath and presets._getUserThemePresetsPath() or nil,
+		presets._getPresetsDir and presets._getPresetsDir() or nil,
+	}
+	local seen = {}
+	local availablePresets = {}
+	for _, presetName in ipairs(presets.listPresets()) do
+		if not seen[presetName] then
+			seen[presetName] = true
+			availablePresets[#availablePresets + 1] = presetName
+		end
+	end
 	local presetDetails = {}
-
-	-- Validate each preset and gather creation dates
-	logger.debug("Starting preset validation loop")
 	for _, presetName in ipairs(availablePresets) do
 		local isValid, presetData = presets.validatePreset(presetName)
-		logger.debug("Preset " .. tostring(presetName) .. " valid: " .. tostring(isValid))
-
 		local createdTime = 0
 		local displayName = presetName
 		local source = "user"
-
 		if presetData then
 			if presetData.created then
 				createdTime = presetData.created
 			end
-
 			if presetData.themeName then
 				displayName = presetData.themeName
 			end
-
 			if presetData.source then
 				source = presetData.source
 			end
-		else
-			logger.debug("No preset data available for " .. tostring(presetName))
 		end
-
 		table.insert(presetDetails, {
-			name = presetName, -- Original filename (sanitized)
-			displayName = displayName, -- Name to display
+			name = presetName,
+			displayName = displayName,
 			isValid = isValid,
 			created = createdTime,
 			source = source,
 		})
 	end
-
-	-- Sort by creation date (newest first)
 	table.sort(presetDetails, function(a, b)
 		return a.created > b.created
 	end)
-
-	-- Create the sorted list of preset items
-	logger.debug("Creating sorted list of preset items")
 	for i, detail in ipairs(presetDetails) do
-		logger.debug("Processing preset detail " .. i .. ": " .. tostring(detail.name))
 		table.insert(
 			presetItems,
 			Button:new({

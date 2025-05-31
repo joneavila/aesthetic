@@ -19,21 +19,39 @@ local system = require("utils.system")
 
 local presets = {}
 
+-- Helper to get all preset directories (user first, then default)
+local function getPresetDirectories()
+	local dirs = {}
+	local userDir = paths.getUserThemePresetsPath()
+	if userDir then
+		table.insert(dirs, userDir)
+	end
+	table.insert(dirs, paths.PRESETS_DIR)
+	return dirs
+end
+
+-- Helper to get the preset file path (user first, then default)
+local function getPresetFilePath(presetName)
+	for _, dir in ipairs(getPresetDirectories()) do
+		local filePath = dir .. "/" .. presetName .. ".lua"
+		if system.fileExists(filePath) then
+			return filePath
+		end
+	end
+	-- Default to user dir for saving
+	local userDir = paths.getUserThemePresetsPath() or paths.PRESETS_DIR
+	return userDir .. "/" .. presetName .. ".lua"
+end
+
 -- Function to validate a preset file
 function presets.validatePreset(presetName)
 	if not presetName then
 		return false, nil
 	end
-
-	-- Prepare the file path
-	local filePath = paths.PRESETS_DIR .. "/" .. presetName .. ".lua"
-
-	-- Check if the file exists
+	local filePath = getPresetFilePath(presetName)
 	if not system.fileExists(filePath) then
 		return false, nil
 	end
-
-	-- Try to load the preset file
 	local success, loadedPreset = pcall(function()
 		local chunk, err = loadfile(filePath)
 		if not chunk then
@@ -41,18 +59,14 @@ function presets.validatePreset(presetName)
 		end
 		return chunk()
 	end)
-
 	if not success or type(loadedPreset) ~= "table" then
 		errorHandler.setError("Invalid preset found: " .. presetName)
 		return false, nil
 	end
-
-	-- Check essential preset properties
 	if not loadedPreset.background or not loadedPreset.foreground or not loadedPreset.rgb then
 		errorHandler.setError("Preset missing required properties: " .. presetName)
 		return false, nil
 	end
-
 	return true, loadedPreset
 end
 
@@ -61,80 +75,40 @@ function presets.savePreset(presetName)
 	if not presetName then
 		presetName = "preset1"
 	end
-
-	-- Sanitize preset name for filesystem
 	local sanitizedName = presetName:gsub("[%s%p]", "_")
-
-	-- Create the presets directory if it doesn't exist
-	-- Unlike most paths in `constants.lua` this path must be created regardless if theme is created
-	local presetsDir = paths.PRESETS_DIR
+	local presetsDir = paths.getUserThemePresetsPath() or paths.PRESETS_DIR
 	os.execute("test -d " .. presetsDir .. " || mkdir -p " .. presetsDir)
-
-	-- Prepare the file path
 	local filePath = presetsDir .. "/" .. sanitizedName .. ".lua"
-
-	-- Create the file
 	local file, err = io.open(filePath, "w")
 	if not file then
 		errorHandler.setError("Failed to create preset file: " .. (err or "unknown error"))
 		return false
 	end
-
-	-- Serialize the preset as Lua code
 	file:write("-- Aesthetic preset file\n")
 	file:write("return {\n")
-
-	-- Store the original display name
 	file:write('  displayName = "' .. presetName .. '",\n')
-
-	-- Background color
 	file:write("  background = {\n")
 	file:write('    value = "' .. state.getColorValue("background") .. '",\n')
 	file:write("  },\n")
-
-	-- Foreground color
 	file:write("  foreground = {\n")
 	file:write('    value = "' .. state.getColorValue("foreground") .. '",\n')
 	file:write("  },\n")
-
-	-- RGB lighting
 	file:write("  rgb = {\n")
 	file:write('    value = "' .. state.getColorValue("rgb") .. '",\n')
 	file:write('    mode = "' .. state.rgbMode .. '",\n')
 	file:write("    brightness = " .. state.rgbBrightness .. ",\n")
 	file:write("    speed = " .. state.rgbSpeed .. ",\n")
 	file:write("  },\n")
-
-	-- Created timestamp
 	local currentTime = os.time()
 	file:write("  created = " .. currentTime .. ",\n")
-
-	-- Box art width
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-
-	-- Font family
 	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
-
-	-- TEMPORARILY DISABLED: Font size saving
-	-- file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
-
-	-- Glyphs
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
-
-	-- Header text enabled
 	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
-
-	-- Header text alpha
 	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
-
-	-- Source (user-created by default when saving)
 	file:write('  source = "' .. state.source .. '",\n')
-
-	-- Home screen layout
 	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
-
 	file:write("}\n")
-
 	file:close()
 	return true
 end
@@ -244,19 +218,13 @@ end
 -- Function to load a preset from file
 function presets.loadPreset(presetName)
 	logger.debug("Starting loadPreset for: " .. tostring(presetName))
-
-	-- Use the same path logic as validatePreset to ensure consistency
-	local filePath = paths.PRESETS_DIR .. "/" .. presetName .. ".lua"
+	local filePath = getPresetFilePath(presetName)
 	logger.debug("Looking for preset file at: " .. filePath)
-
-	-- Check if the file exists
 	if not system.fileExists(filePath) then
 		logger.error("Preset file does not exist: " .. filePath)
 		return false
 	end
 	logger.debug("Preset file exists, attempting to load")
-
-	-- Try to load the preset file
 	local success, loadedPreset = pcall(function()
 		local chunk, err = loadfile(filePath)
 		if not chunk then
@@ -264,13 +232,11 @@ function presets.loadPreset(presetName)
 		end
 		return chunk()
 	end)
-
 	if not success or type(loadedPreset) ~= "table" then
 		logger.error("Failed to load or parse preset file: " .. presetName .. " - " .. tostring(loadedPreset))
 		return false
 	end
 	logger.debug("Successfully loaded preset file, beginning field loading")
-
 	logger.info("Loading preset: " .. presetName)
 
 	-- REQUIRED FIELDS - Theme name
@@ -399,34 +365,27 @@ end
 
 -- Function to list available presets
 function presets.listPresets()
-	-- Use the same path logic as validatePreset and loadPreset for consistency
-	local presetsDir = paths.PRESETS_DIR
-
-	-- Check if the directory exists
-	local exists = os.execute("test -d " .. presetsDir)
-	if not exists then
-		return {}
-	end
-
-	-- List .lua files in the presets directory
-	local presetsList = {}
-	local handle = io.popen("ls " .. presetsDir .. "/*.lua 2>/dev/null")
-	if not handle then
-		errorHandler.setError("Failed to list presets")
-		return {}
-	end
-	local result = handle:read("*a")
-	handle:close()
-
-	-- Parse the filenames from the result
-	for filename in string.gmatch(result, "[^\n]+") do
-		local presetName = string.match(filename, "/([^/]+)%.lua$")
-		if presetName then
-			table.insert(presetsList, presetName)
+	local dirs = getPresetDirectories()
+	local presetSet = {}
+	local presetList = {}
+	for _, dir in ipairs(dirs) do
+		local exists = os.execute("test -d " .. dir)
+		if exists then
+			local handle = io.popen("ls " .. dir .. "/*.lua 2>/dev/null")
+			if handle then
+				local result = handle:read("*a")
+				handle:close()
+				for filename in string.gmatch(result, "[^\n]+") do
+					local presetName = string.match(filename, "/([^/]+)%.lua$")
+					if presetName and not presetSet[presetName] then
+						presetSet[presetName] = true
+						table.insert(presetList, presetName)
+					end
+				end
+			end
 		end
 	end
-
-	return presetsList
+	return presetList
 end
 
 return presets

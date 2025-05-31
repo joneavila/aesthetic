@@ -118,14 +118,29 @@ function paths.getThemeResolutionMuxlaunchIniPath()
 	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
 end
 
--- Function to get the settings file path
-function paths.getSettingsFilePath()
+function paths.getUserdataPath()
 	local baseDir = state.isDevelopment and system.getEnvironmentVariable("DEV_DIR")
 		or system.getEnvironmentVariable("ROOT_DIR")
 	if not baseDir then
 		return nil
 	end
-	return baseDir .. "/userdata/settings.lua"
+	return baseDir .. "/userdata"
+end
+
+function paths.getUserThemePresetsPath()
+	local userdataPath = paths.getUserdataPath()
+	if not userdataPath then
+		return nil
+	end
+	return userdataPath .. "/presets"
+end
+
+function paths.getSettingsFilePath()
+	local userdataPath = paths.getUserdataPath()
+	if not userdataPath then
+		return nil
+	end
+	return userdataPath .. "/settings.lua"
 end
 
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
