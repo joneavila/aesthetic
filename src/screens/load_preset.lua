@@ -14,6 +14,7 @@ local List = require("ui.list").List
 
 local logger = require("utils.logger")
 local presets = require("utils.presets")
+local rgb = require("utils.rgb")
 
 -- Module table to export public functions
 local loadPreset = {}
@@ -84,6 +85,7 @@ local function loadPresetsList()
 					if detail.isValid then
 						local success = presets.loadPreset(detail.name)
 						if success then
+							rgb.updateConfig()
 							screens.switchTo("main_menu")
 						else
 							logger.error("Failed to load preset: " .. detail.name)
