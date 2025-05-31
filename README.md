@@ -20,14 +20,21 @@
 
 ## ✨ Features
 
-- **Customize** your theme to match your style
-  - **Colors**: Select background and foreground colors from palette or create your own using HSV picker or hex input
-  - **RGB Lighting**: Configure mode (solid, breathing, rainbow, off), with adjustable color, speed, and brightness where supported
-  - **Font**: Select from Inter (clean), Nunito (rounded), Cascadia Code (monospaced), or Retro Pixel (pixelated) with three size options
-  - **Icons**: Toggle system glyphs for a minimal or informative interface
-- **Export** your theme directly to your theme collection
-- **Apply** your theme automatically upon exiting to instantly see your creation
-- **Remember** last theme configuration for easy adjustments when you return
+- **Theme Customization**
+  - **Home Screen Layout**: Choose between grid and list view
+  - **Colors**: Customize background and foreground colors using a palette, HSV picker, or hex code
+    - **Background**: Set a solid color or two-color gradient
+  - **RGB Lighting**: Configure mode (solid, breathing, rainbow, off), with adjustable color, speed, and brightness
+  - **Font**: Choose from *Inter*, *Montserrat*, *Nunito*, *JetBrains Mono*, *Cascadia Code*, *Retro Pixel*, or *Bitter* — supporting clean, rounded, monospaced, serif, and pixelated styles
+  - **Icons**: Enable or disable list glyphs
+  - **Header, Navigation, Status, Time**: Independently adjust alignment and transparency (alpha) for each section
+- **Theme Management**
+  - **Name and Export**: Save your theme directly to your theme collection
+  - **Apply**: Automatically apply your theme before exiting to instantly see your creation
+  - **Auto-Restore**: Remembers your last theme configuration for easy adjustments when you return
+  - **Presets**: Save and load theme presets with 8 built-in presets – *Win95*, *Purple Noir*, *Terminal*, *Vaporwave*, *Orange Cream*, *DMG*, *Fami*, *Bumblebee*
+  - **Manage Installed Themes**: Delete themes you no longer need
+- **OTA Updates**: Download the latest version directly within the app
 
 ## 📦 Installation
 
