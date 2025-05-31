@@ -74,7 +74,7 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 - [x] Remember most recent theme settings
 - [x] Customize theme font size
 - [x] Limit theme content width in content screens
-- [ ] Save, load presets
+- [x] Save, load presets
 
 ## ⭐ Credits
 
