@@ -2,13 +2,12 @@ local logger = require("utils.logger")
 
 local fonts = {
 	{ name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf" },
-	{ name = "BPreplay", path = "assets/fonts/bpreplay/bpreplay_bold.otf" },
-	{ name = "Silver", path = "assets/fonts/silver/silver.ttf" },
-	{ name = "Montserrat", path = "assets/fonts/montserrat/montserrat_bold.ttf" },
-	{ name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf" },
+	{ name = "Montserrat", path = "assets/fonts/montserrat/montserrat_semibold.ttf" },
+	{ name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf" },
 	{ name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf" },
 	{ name = "Cascadia Code", path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf" },
-	{ name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf" },
+	{ name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf" },
+	{ name = "Bitter", path = "assets/fonts/bitter/bitter_semibold.ttf" },
 }
 
 local reference_font_name = "Inter"

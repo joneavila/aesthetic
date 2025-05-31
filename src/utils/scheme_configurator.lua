@@ -288,10 +288,11 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 		local fontMetrics = {
 			["Inter"] = { ascent = 24, descent = -6, height = 29, sum = 18 },
 			["Montserrat"] = { ascent = 25, descent = -7, height = 30, sum = 18 },
-			["Retro Pixel"] = { ascent = 27, descent = -9, height = 35, sum = 18 },
+			["Nunito"] = { ascent = 28, descent = -10, height = 37, sum = 18 },
 			["JetBrains Mono"] = { ascent = 26, descent = -8, height = 33, sum = 18 },
 			["Cascadia Code"] = { ascent = 24, descent = -6, height = 29, sum = 18 },
-			["Nunito"] = { ascent = 28, descent = -10, height = 37, sum = 18 },
+			["Retro Pixel"] = { ascent = 27, descent = -9, height = 35, sum = 18 },
+			["Bitter"] = { ascent = 25, descent = -7, height = 31, sum = 18 },
 		}
 
 		-- Use Inter as the reference font (baseline for calculations)

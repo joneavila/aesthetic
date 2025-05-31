@@ -82,6 +82,7 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 
 ## ⭐ Credits
 
+- [**Bitter**](https://fonts.google.com/specimen/Bitter) • Font • [OFL-1.1](assets/fonts/bitter/OFL.txt)
 - [**Cascadia Code**](https://github.com/microsoft/cascadia-code/) • Font • [OFL-1.1](assets/fonts/cascadia_code/LICENSE)
 - [**Catppuccin Palettes**](https://github.com/catppuccin/palette) • Color palette • [MIT](https://github.com/catppuccin/palette/blob/main/LICENSE)
 - [**Inter**](https://github.com/rsms/inter) • Font • [OFL-1.1](assets/fonts/inter/OFL.txt)

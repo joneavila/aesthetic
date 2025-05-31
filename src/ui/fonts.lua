@@ -48,6 +48,11 @@ fonts.themeDefinitions = {
 		file = "retro_pixel_thick_default.bin",
 		path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf",
 	},
+	{
+		name = "Bitter",
+		file = "bitter_semibold_default.bin",
+		path = "assets/fonts/bitter/bitter_semibold.ttf",
+	},
 }
 
 -- Font definitions mapping
