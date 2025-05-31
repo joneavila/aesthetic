@@ -14,7 +14,7 @@
   <p>
     <img src="/.github/screenshot_main_menu_screen.png" width="30%" alt="Aesthetic main menu screen">
     <img src="/.github/screenshot_palette_screen.png" width="30%" alt="Aesthetic color palette screen">
-    <img src="/.github/screenshot_font_screen.png" width="30%" alt="Aesthetic font screen">
+    <img src="/.github/screenshot_font_family_screen.png" width="30%" alt="Aesthetic font family screen">
   </p>
 </div>
 
