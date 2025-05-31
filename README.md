@@ -39,19 +39,19 @@
 ## 📦 Installation
 
 > [!IMPORTANT]
-> **Aesthethic** is designed for muOS version 2502.0 PIXIE. You can check your muOS version via **_Information_** > **_System Details_**.
+> **Aesthethic** is designed for muOS version 2502.0 PIXIE. You can check your muOS version via ***Information*** > ***System Details***.
 
 1. Download the latest `Aesthetic-x.x.x.muxupd` from [Releases](https://github.com/joneavila/aesthetic/releases).
 2. Transfer `Aesthetic-x.x.x.muxupd` to your handheld's `SD1 (mmc)/ARCHIVE` directory.
-3. Open **_Applications_** > **_Archive Manager_**.
+3. Open ***Applications*** > ***Archive Manager***.
 4. Select **[SD1] Aesthetic-x.x.x.muxupd** to install.
-5. Launch the application via **_Applications_** > **_Aesthetic_**.
+5. Launch the application via ***Applications*** > ***Aesthetic***.
 
 ## ⚙️ Usage
 
 1. From the main menu, select the theme options to customize. Each screen includes helpful control hints at the bottom.
 2. Select "Create theme" to save your theme to your device's collection.
-3. Apply your theme automatically, or apply it manually later via **_Configuration_** > **_Customisation_** > **_muOS Themes_**.
+3. Apply your theme automatically, or apply it manually later via ***Configuration*** > ***Customisation*** > ***muOS Themes***.
 
 ## 🛠️ Contributing
 
@@ -60,17 +60,6 @@ Want to improve **Aesthetic**?
 - If you've found a bug or have a suggestion or question, [open an issue](https://github.com/joneavila/aesthetic/issues/new) or join the discussion on the [dedicated thread in the muOS community forum](https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld).
 - To contribute directly, fork the repo and [submit a pull request](https://github.com/joneavila/aesthetic/compare).
 - Check out the [wiki for the development guide](https://github.com/joneavila/aesthetic/wiki).
-
-## 🚀 Local Development (macOS, Linux)
-
-To run Aesthetic on your development machine:
-
-1. Install [LÖVE](https://love2d.org/)
-1. Clone this repository: `git clone https://github.com/joneavila/aesthetic.git`
-1. Make the development launch script executable: `chmod +x dev_launch.sh`
-1. Run the script to launch Aesthetic: `./dev_launch.sh`
-
-The launch script automatically sets up the necessary environment variables that would normally be provided by muOS. Output is logged to console and to a new `.dev/logs` directory.
 
 ## ❤️ Support
 
