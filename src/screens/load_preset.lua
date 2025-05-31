@@ -84,7 +84,7 @@ local function loadPresetsList()
 					if detail.isValid then
 						local success = presets.loadPreset(detail.name)
 						if success then
-							screens.switchTo("settings")
+							screens.switchTo("main_menu")
 						else
 							logger.error("Failed to load preset: " .. detail.name)
 						end

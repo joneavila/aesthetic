@@ -65,8 +65,8 @@ function settings.saveToFile()
 	-- Font family
 	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
 
-	-- Font size
-	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
+	-- TEMPORARILY DISABLED: Font size saving
+	-- file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Navigation alignment
 	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
@@ -287,9 +287,13 @@ function settings.loadFromFile()
 		fonts.setSelectedFont(loadedSettings.font)
 	end
 
-	-- Font size
+	-- TEMPORARILY DISABLED: Font size loading
 	if loadedSettings.fontSize then
-		fonts.setFontSize(loadedSettings.fontSize)
+		-- Show warning but don't apply the value
+		print(
+			"WARNING: Font size setting found in settings file but is temporarily disabled: "
+				.. tostring(loadedSettings.fontSize)
+		)
 	end
 
 	-- Navigation alignment

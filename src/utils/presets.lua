@@ -115,8 +115,8 @@ function presets.savePreset(presetName)
 	-- Font family
 	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
 
-	-- Font size
-	file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
+	-- TEMPORARILY DISABLED: Font size saving
+	-- file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
 
 	-- Glyphs
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
@@ -141,6 +141,7 @@ end
 
 -- Helper function to safely load a field with logging and default fallback
 local function loadField(loadedPreset, presetName, fieldPath, targetSetter, defaultValue, fieldType)
+	logger.debug("loadField called for field: " .. fieldPath)
 	fieldType = fieldType or "any"
 
 	-- Navigate nested field path (e.g., "background.value")
@@ -158,6 +159,7 @@ local function loadField(loadedPreset, presetName, fieldPath, targetSetter, defa
 			break
 		end
 	end
+	logger.debug("Field " .. fieldPath .. " has value: " .. tostring(value))
 
 	-- Validate field type if specified
 	if value ~= nil then
@@ -229,30 +231,30 @@ local function loadField(loadedPreset, presetName, fieldPath, targetSetter, defa
 				.. tostring(defaultValue)
 		)
 		if defaultValue ~= nil then
+			logger.debug("Setting default value for field: " .. fieldPath)
 			pcall(targetSetter, defaultValue)
 		end
 		return false
 	end
+	logger.debug("Successfully set field: " .. fieldPath)
 
 	return true
 end
 
 -- Function to load a preset from file
 function presets.loadPreset(presetName)
-	local sourceDir = system.getEnvironmentVariable("SOURCE_DIR")
-	if not sourceDir then
-		logger.error("SOURCE_DIR environment variable not set, cannot load preset: " .. tostring(presetName))
-		return false
-	end
+	logger.debug("Starting loadPreset for: " .. tostring(presetName))
 
-	-- Prepare the file path - presetName is already sanitized at this point
-	local filePath = sourceDir .. "/presets/" .. presetName .. ".lua"
+	-- Use the same path logic as validatePreset to ensure consistency
+	local filePath = paths.PRESETS_DIR .. "/" .. presetName .. ".lua"
+	logger.debug("Looking for preset file at: " .. filePath)
 
 	-- Check if the file exists
 	if not system.fileExists(filePath) then
 		logger.error("Preset file does not exist: " .. filePath)
 		return false
 	end
+	logger.debug("Preset file exists, attempting to load")
 
 	-- Try to load the preset file
 	local success, loadedPreset = pcall(function()
@@ -267,21 +269,26 @@ function presets.loadPreset(presetName)
 		logger.error("Failed to load or parse preset file: " .. presetName .. " - " .. tostring(loadedPreset))
 		return false
 	end
+	logger.debug("Successfully loaded preset file, beginning field loading")
 
 	logger.info("Loading preset: " .. presetName)
 
 	-- REQUIRED FIELDS - Theme name
+	logger.debug("Loading theme name field")
 	loadField(loadedPreset, presetName, "themeName", function(v)
 		state.themeName = v
 	end, "Aesthetic", "string")
 
 	-- REQUIRED FIELDS - Colors
+	logger.debug("Loading background color field")
 	loadField(loadedPreset, presetName, "background.value", function(v)
 		state.setColorValue("background", v)
 	end, "#1E40AF", "string")
+	logger.debug("Loading foreground color field")
 	loadField(loadedPreset, presetName, "foreground.value", function(v)
 		state.setColorValue("foreground", v)
 	end, "#FFFFFF", "string")
+	logger.debug("Loading rgb color field")
 	loadField(loadedPreset, presetName, "rgb.value", function(v)
 		state.setColorValue("rgb", v)
 	end, "#1E40AF", "string")
@@ -329,17 +336,24 @@ function presets.loadPreset(presetName)
 	end, "Grid", "string")
 
 	-- OPTIONAL FIELDS - Font settings (support both fontFamily and legacy font field)
+	logger.debug("Loading font family field")
 	local fontSet = loadField(loadedPreset, presetName, "fontFamily", function(v)
+		logger.debug("Attempting to set font family to: " .. tostring(v))
 		fonts.setSelectedFont(v)
 	end, nil, "string")
 	if not fontSet then
+		logger.debug("fontFamily field not found, trying legacy font field")
 		loadField(loadedPreset, presetName, "font", function(v)
+			logger.debug("Attempting to set font (legacy) to: " .. tostring(v))
 			fonts.setSelectedFont(v)
 		end, nil, "string")
 	end
-	loadField(loadedPreset, presetName, "fontSize", function(v)
-		fonts.setFontSize(v)
-	end, nil, "string")
+	-- TEMPORARILY DISABLED: Font size loading
+	-- logger.debug("Loading font size field")
+	-- loadField(loadedPreset, presetName, "fontSize", function(v)
+	-- 	logger.debug("Attempting to set font size to: " .. tostring(v))
+	-- 	fonts.setFontSize(v)
+	-- end, nil, "string")
 
 	-- OPTIONAL FIELDS - Header settings
 	loadField(loadedPreset, presetName, "headerTextAlignment", function(v)
@@ -379,18 +393,14 @@ function presets.loadPreset(presetName)
 	end, "user", "string")
 
 	logger.info("Successfully loaded preset: " .. presetName)
+	logger.debug("Finished loading all fields for preset: " .. presetName)
 	return true
 end
 
 -- Function to list available presets
 function presets.listPresets()
-	local sourceDir = system.getEnvironmentVariable("SOURCE_DIR")
-	if not sourceDir then
-		return {}
-	end
-
-	-- Prepare the presets directory
-	local presetsDir = sourceDir .. "/presets"
+	-- Use the same path logic as validatePreset and loadPreset for consistency
+	local presetsDir = paths.PRESETS_DIR
 
 	-- Check if the directory exists
 	local exists = os.execute("test -d " .. presetsDir)
