@@ -268,4 +268,57 @@ function themeSettings.applyGridSettings(muxlaunchIniPath)
 	end)
 end
 
+-- Apply font list padding settings to a scheme file
+--
+-- This function calculates the bottom padding for font list items based on font metrics
+-- to get consistent baselines across the different fonts. The padding adjustment is based
+-- on the difference in ascent values between the selected font and a reference font (Inter).
+--
+-- Font metrics:
+-- - Ascent: How far the font extends above the baseline (positive value)
+-- - Descent: How far the font extends below the baseline (negative value)
+-- - Height: Total height of the font
+-- - Sum: Ascent + |Descent|
+--
+-- All fonts are calibrated to have the same "sum" value (18) but have different ascent values.
+-- Fonts with higher ascent values appear to start higher and need negative padding to align baselines.
+function themeSettings.applyFontListPaddingSettings(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		-- Font metrics data from font_calibration.lua results
+		local fontMetrics = {
+			["Inter"] = { ascent = 24, descent = -6, height = 29, sum = 18 },
+			["Retro Pixel"] = { ascent = 27, descent = -9, height = 35, sum = 18 },
+			["JetBrains Mono"] = { ascent = 26, descent = -8, height = 33, sum = 18 },
+			["Cascadia Code"] = { ascent = 24, descent = -6, height = 29, sum = 18 },
+			["Nunito"] = { ascent = 28, descent = -10, height = 37, sum = 18 },
+		}
+
+		-- Use Inter as the reference font (baseline for calculations)
+		local referenceAscent = fontMetrics["Inter"].ascent
+		local selectedFont = require("ui.fonts").getSelectedFont()
+
+		-- Get metrics for the selected font, fallback to Inter if not found
+		local selectedFontMetrics = fontMetrics[selectedFont] or fontMetrics["Inter"]
+
+		-- Calculate padding adjustment based on ascent difference
+		-- Fonts with higher ascent need negative padding to lower their baseline
+		-- The factor of -0.5 provides a gentle adjustment that works well across different fonts
+		local ascentDifference = selectedFontMetrics.ascent - referenceAscent
+		local paddingAdjustment = math.floor(ascentDifference * -0.5)
+
+		-- Apply the padding adjustment (can be negative for upward adjustment)
+		local paddingValue = paddingAdjustment
+
+		-- Replace placeholder
+		local paddingCount
+		content, paddingCount = content:gsub("%%{%s*font%-list%-pad%-bottom%s*}", tostring(paddingValue))
+		if paddingCount == 0 then
+			errorHandler.setError("Failed to replace font list pad bottom setting in template")
+			return content, false
+		end
+
+		return content, true
+	end)
+end
+
 return themeSettings

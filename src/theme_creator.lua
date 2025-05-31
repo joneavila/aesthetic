@@ -389,6 +389,11 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
+			coroutine.yield("Applying font padding settings...")
+			if not schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL) then
+				return false
+			end
+
 			coroutine.yield("Applying screen width settings...")
 			if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 				return false
