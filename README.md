@@ -90,6 +90,7 @@ Looking for more muOS community apps? Check out: [**RomM**](https://github.com/r
 - [**Material Icons**](https://github.com/google/material-design-icons) • Icons • [Apache 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE)
 - [**MinUI**](https://github.com/shauninman/MinUI) • Inspiration (design) • No license provided
 - [**MinUIfied Theme Generator**](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator) • Inspiration (application), reference for default theme • [MIT](https://github.com/hmcneill46/muOS-MinUIfied-Theme-Generator/blob/master/LICENSE)
+- [**Montserrat**](https://github.com/googlefonts/montserrat) • Font • [OFL-1.1](assets/fonts/montserrat/OFL.txt)
 - [**Nunito**](https://github.com/googlefonts/nunito) • Font • [OFL-1.1](assets/fonts/nunito/OFL.txt)
 - [**Retro Pixel Font**](https://github.com/TakWolf/retro-pixel-font) • Font • [OFL-1.1](assets/fonts/retro_pixel/LICENSE)
 - [**TÖVE**](https://github.com/poke1024/tove2d) • LÖVE library • [MIT](src/tove/LICENSE)

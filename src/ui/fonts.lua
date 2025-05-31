@@ -24,6 +24,11 @@ fonts.themeDefinitions = {
 		path = "assets/fonts/inter/inter_24pt_semibold.ttf",
 	},
 	{
+		name = "Montserrat",
+		file = "montserrat_semibold_default.bin",
+		path = "assets/fonts/montserrat/montserrat_semibold.ttf",
+	},
+	{
 		name = "Nunito",
 		file = "nunito_bold_default.bin",
 		path = "assets/fonts/nunito/nunito_bold.ttf",
