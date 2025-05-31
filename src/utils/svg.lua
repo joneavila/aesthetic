@@ -2,6 +2,10 @@
 --
 -- This module handles SVG rendering using LÖVE and TOVE with proper blend mode handling
 --
+-- Always rasterize SVGs at the exact size they will be drawn.
+-- If you preload an icon at one size and later draw it at a different size, it will appear blurry.
+-- Only preload icons at the sizes you will actually use for drawing.
+--
 -- Note on SVG rendering and blend modes:
 -- When drawing SVG content to a Canvas using TOVE in LÖVE, we need to handle blend modes carefully:
 -- 1. Use "alpha" blend mode when drawing SVG icons to ensure correct color values
