@@ -46,6 +46,9 @@ function Modal:show(message, buttons)
 			or string.find(self.message:lower(), "applying")
 			or string.find(self.message:lower(), "installing")
 			or string.find(self.message:lower(), "loading")
+			or string.find(self.message:lower(), "preparing")
+			or string.find(self.message:lower(), "download")
+			or string.find(self.message:lower(), "connecting")
 		)
 
 	-- If this is not a progress modal, reset progress message and history
@@ -65,7 +68,7 @@ function Modal:show(message, buttons)
 	end
 end
 
-function Modal:updateProgress(progressText)
+function Modal:updateProgress(progressText, percent)
 	if self.isProgressModal and progressText then
 		self.progressMessage = progressText
 
@@ -74,6 +77,12 @@ function Modal:updateProgress(progressText)
 		if #self.progressHistory > 4 then
 			table.remove(self.progressHistory, 1) -- Remove oldest message
 		end
+	elseif progressText then
+		-- Force progress modal mode if it wasn't detected
+		self.isProgressModal = true
+		self.showAnimation = true
+		self.progressMessage = progressText
+		table.insert(self.progressHistory, progressText)
 	end
 end
 
@@ -135,10 +144,29 @@ function Modal:handleInput(input)
 		return false
 	end
 
+	-- Handle scrolling for modals with long content (regardless of button count)
+	local isScrollable = self:isContentScrollable()
+	if isScrollable then
+		if input.isPressed("dpup") then
+			self:scroll(-20) -- Scroll up
+			return true
+		elseif input.isPressed("dpdown") then
+			self:scroll(20) -- Scroll down
+			return true
+		end
+	end
+
+	-- Handle button navigation only if there are buttons
 	if #self.buttons == 0 then
+		-- For modals without buttons, still consume input but allow 'b' to close
+		if input.isPressed("b") then
+			self:hide()
+			return true
+		end
 		return true
 	end
 
+	-- Button navigation for modals with buttons
 	if input.isPressed("dpup") then
 		self:moveFocus(-1)
 		return true
@@ -162,6 +190,41 @@ function Modal:handleInput(input)
 	end
 
 	return false
+end
+
+-- Helper method to determine if content is scrollable
+function Modal:isContentScrollable()
+	local screenHeight = love.graphics.getHeight()
+	local controls = require("controls")
+	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+	local maxTextHeight = screenHeight * 0.6
+
+	-- Calculate content height
+	local currentFont = self.font or love.graphics.getFont()
+	local estimatedTextWidth = math.min(screenHeight * 0.8, screenHeight * 0.9) - 80 -- padding
+	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
+	local contentHeight = #mainMessageLines * currentFont:getHeight()
+
+	return contentHeight > maxTextHeight
+end
+
+-- Helper method to handle scrolling
+function Modal:scroll(amount)
+	local screenHeight = love.graphics.getHeight()
+	local controls = require("controls")
+	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+	local maxTextHeight = screenHeight * 0.6
+
+	-- Calculate content height
+	local currentFont = self.font or love.graphics.getFont()
+	local estimatedTextWidth = math.min(screenHeight * 0.8, screenHeight * 0.9) - 80 -- padding
+	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
+	local contentHeight = #mainMessageLines * currentFont:getHeight()
+
+	local maxScrollPosition = math.max(0, contentHeight - maxTextHeight)
+
+	self.scrollPosition = self.scrollPosition + amount
+	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
 end
 
 function Modal:draw(screenWidth, screenHeight, font)
@@ -322,31 +385,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 			for i, historyMessage in ipairs(self.progressHistory) do
 				local messageY = startY + (i - 1) * lineHeight
 				love.graphics.print(historyMessage, progressBoxX + progressBoxPadding, messageY)
-			end
-
-			-- If we have fewer than 4 messages and no animation, show dots
-			if #self.progressHistory == 0 and self.showAnimation then
-				-- Draw animation dots if no progress message yet
-				local dotSize = 4
-				local dotSpacing = 12
-				local animationCenterX = x + modalWidth / 2
-				local animationY = progressY + actualProgressBoxHeight / 2
-
-				-- Animated dots with cycling opacity
-				for i = 1, 3 do
-					local dotX = animationCenterX + (i - 2) * dotSpacing
-					local phase = (self.animationTime * 3 + (i - 1) * 0.4) % 2
-					local opacity = phase < 1 and phase or (2 - phase)
-					opacity = math.max(0.2, math.min(1, opacity))
-
-					love.graphics.setColor(
-						colors.ui.foreground[1],
-						colors.ui.foreground[2],
-						colors.ui.foreground[3],
-						opacity
-					)
-					love.graphics.circle("fill", dotX, animationY, dotSize)
-				end
 			end
 
 			-- Reset font to original

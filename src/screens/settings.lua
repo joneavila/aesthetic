@@ -7,6 +7,7 @@ local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
 local system = require("utils.system")
+local otaUpdate = require("utils.ota_update")
 
 local background = require("ui.background")
 local Button = require("ui.button").Button
@@ -28,6 +29,17 @@ local presetName = nil
 local menuList = nil
 local input = nil
 local modalInstance = nil
+
+-- OTA update state
+local updateCheckInProgress = false
+local downloadInProgress = false
+local updateInfo = nil
+local updateCheckScheduled = false
+local downloadScheduled = false
+local updateCheckTimer = 0
+local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
+local downloadThread = nil -- LÖVE thread for downloading
+local downloadStartTime = 0
 
 -- Function to save current state as a preset
 local function saveThemePreset(name)
@@ -128,6 +140,46 @@ local function saveThemePreset(name)
 	return true
 end
 
+-- Function to handle OTA update check
+local function checkForUpdates()
+	if updateCheckInProgress or downloadInProgress then
+		return
+	end
+
+	updateCheckScheduled = true
+	modalInstance:show("Checking for updates...", {})
+end
+
+-- Function to handle update download
+function downloadUpdate()
+	if not updateInfo or downloadInProgress then
+		return
+	end
+
+	downloadInProgress = true
+	downloadStartTime = love.timer.getTime()
+
+	-- Start the threaded download
+	local success, threadOrError = otaUpdate.startThreadedDownload(updateInfo.downloadUrl, updateInfo.assetName)
+	if not success then
+		-- Failed to start download
+		modalInstance:show("Failed to start download:\n" .. threadOrError, {
+			{
+				text = "Close",
+				onSelect = function()
+					modalInstance:hide()
+				end,
+			},
+		})
+		downloadInProgress = false
+		return
+	end
+
+	downloadThread = threadOrError
+	-- Show download in progress modal
+	modalInstance:show("Downloading update...", {})
+end
+
 local function createMenuButtons()
 	return {
 		Button:new({
@@ -144,6 +196,12 @@ local function createMenuButtons()
 			text = "Load Theme Preset",
 			onClick = function()
 				screens.switchTo("load_preset")
+			end,
+		}),
+		Button:new({
+			text = "Check for Updates",
+			onClick = function()
+				checkForUpdates()
 			end,
 		}),
 		Button:new({
@@ -210,6 +268,136 @@ function settings.draw()
 end
 
 function settings.update(dt)
+	-- Handle scheduled update check with minimum display time
+	if updateCheckScheduled then
+		updateCheckTimer = updateCheckTimer + dt
+
+		-- Start the actual check immediately but don't show results until minimum time
+		if not updateCheckInProgress then
+			updateCheckInProgress = true
+			-- Perform the check and store result
+			updateInfo = otaUpdate.checkForUpdates()
+		end
+
+		-- Only show results after minimum time has passed
+		if updateCheckTimer >= updateCheckMinTime then
+			updateCheckScheduled = false
+			updateCheckInProgress = false
+			updateCheckTimer = 0
+
+			local result = updateInfo
+			updateInfo = nil -- Clear the temporary storage
+
+			if result.error then
+				modalInstance:show("Update check failed:\n" .. result.error, {
+					{
+						text = "Close",
+						onSelect = function()
+							modalInstance:hide()
+						end,
+					},
+				})
+			elseif result.hasUpdate then
+				updateInfo = result -- Store for download
+				local message = string.format(
+					"New version available!\n\n%s → %s\n\nWould you like to download it?",
+					result.currentVersion,
+					result.latestVersion
+				)
+				modalInstance:show(message, {
+					{
+						text = "Download",
+						onSelect = function()
+							downloadUpdate()
+						end,
+					},
+					{
+						text = "Cancel",
+						onSelect = function()
+							modalInstance:hide()
+						end,
+					},
+				})
+			else
+				modalInstance:show("You are on the latest version (" .. result.currentVersion .. ")", {
+					{
+						text = "Close",
+						onSelect = function()
+							modalInstance:hide()
+						end,
+					},
+				})
+			end
+		end
+	end
+
+	-- Handle threaded download completion
+	if downloadInProgress and downloadThread then
+		-- Check for errors from the thread
+		local error = otaUpdate.getDownloadError()
+		if error then
+			-- Download failed
+			downloadInProgress = false
+			downloadThread = nil
+			modalInstance:show("Download failed:\n" .. error, {
+				{
+					text = "Close",
+					onSelect = function()
+						modalInstance:hide()
+					end,
+				},
+			})
+		else
+			-- Check if download is complete
+			local result = otaUpdate.getDownloadResult()
+			if result then
+				downloadInProgress = false
+				downloadThread = nil
+
+				if result.success then
+					local fileSize = result.fileSize and string.format(" (%.1f MB)", result.fileSize / 1024 / 1024)
+						or ""
+					modalInstance:show(
+						"Download complete!" .. fileSize .. "\n\nInstall the archive from muOS Apps > Archive Manager.",
+						{
+							{
+								text = "Close",
+								onSelect = function()
+									modalInstance:hide()
+								end,
+							},
+						}
+					)
+				else
+					modalInstance:show("Download failed:\nUnknown error occurred", {
+						{
+							text = "Close",
+							onSelect = function()
+								modalInstance:hide()
+							end,
+						},
+					})
+				end
+			-- Check if thread is no longer running (could be an error)
+			elseif not downloadThread:isRunning() then
+				downloadInProgress = false
+				local threadError = downloadThread:getError()
+				downloadThread = nil
+
+				local errorMsg = threadError and ("Thread error: " .. threadError)
+					or "Download failed for unknown reason"
+				modalInstance:show("Download failed:\n" .. errorMsg, {
+					{
+						text = "Close",
+						onSelect = function()
+							modalInstance:hide()
+						end,
+					},
+				})
+			end
+		end
+	end
+
 	if modalInstance and modalInstance:isVisible() then
 		if modalInstance:handleInput(input) then
 			return
@@ -281,6 +469,23 @@ function settings.onExit()
 		modalInstance:hide()
 	end
 	modalMode = "none"
+
+	-- Reset OTA update state
+	updateCheckInProgress = false
+	downloadInProgress = false
+	updateInfo = nil
+	updateCheckScheduled = false
+	updateCheckTimer = 0
+	downloadStartTime = 0
+
+	-- Clean up download thread if still running
+	if downloadThread then
+		if downloadThread:isRunning() then
+			-- Note: We can't easily stop LÖVE threads, but we can clear our reference
+			-- The thread will finish its work and exit naturally
+		end
+		downloadThread = nil
+	end
 
 	-- Save the current selected index
 	if menuList then
