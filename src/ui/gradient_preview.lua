@@ -2,6 +2,7 @@
 local love = require("love")
 local colorUtils = require("utils.color")
 local imageGenerator = require("utils.image_generator")
+local colors = require("colors")
 
 local gradientPreview = {}
 
@@ -49,7 +50,7 @@ function gradientPreview.draw(x, y, width, height, startColor, stopColor, direct
 		love.graphics.pop()
 
 		-- Draw border with corner radius if specified (draw after fill, at same position/size)
-		love.graphics.setColor(0.6, 0.6, 0.6, 1.0)
+		love.graphics.setColor(colors.ui.foreground) -- Matches default image component border color
 		if cornerRadius and cornerRadius > 0 then
 			love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
 		else

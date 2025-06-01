@@ -13,6 +13,7 @@ local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
+local image = require("ui.image")
 
 local homeScreenLayout = {}
 
@@ -111,7 +112,7 @@ function homeScreenLayout.draw()
 	-- Draw the preview image
 	local currentLayout = state.homeScreenLayout:lower()
 	if previewImage and previewImage[currentLayout] then
-		local image = previewImage[currentLayout]
+		local img = previewImage[currentLayout]
 
 		-- Calculate available space for the image
 		local buttonAreaBottom = header.getContentStartY() + 80 -- The button list height
@@ -120,8 +121,8 @@ function homeScreenLayout.draw()
 		local availableWidth = state.screenWidth - (IMAGE_MARGIN * 2) -- Left and right padding
 
 		-- Calculate image dimensions maintaining aspect ratio
-		local originalWidth = image:getWidth()
-		local originalHeight = image:getHeight()
+		local originalWidth = img:getWidth()
+		local originalHeight = img:getHeight()
 		local aspectRatio = originalWidth / originalHeight
 
 		local imageWidth, imageHeight
@@ -143,8 +144,7 @@ function homeScreenLayout.draw()
 
 		-- Only draw if there's enough space
 		if availableHeight > 50 then -- Minimum reasonable height
-			love.graphics.setColor(1, 1, 1, 1)
-			love.graphics.draw(image, imageX, imageY, 0, imageWidth / originalWidth, imageHeight / originalHeight)
+			image.draw(img, imageX, imageY, imageWidth, imageHeight, 8)
 		end
 	end
 
