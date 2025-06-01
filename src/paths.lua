@@ -165,6 +165,10 @@ paths.PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
 paths.HOME_SCREEN_LAYOUT_GRID_IMAGE = "assets/images/home_screen_layout/grid.png"
 paths.HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png"
 
+-- Icons toggle images
+paths.ICONS_TOGGLE_ENABLED_IMAGE = "assets/images/icons_toggle_samples/icons_enabled.png"
+paths.ICONS_TOGGLE_DISABLED_IMAGE = "assets/images/icons_toggle_samples/icons_disabled.png"
+
 --- TEMPORARILY DISABLED: Font size directory calculation while making font size feature more robust
 --[[
 paths.getFontSizeDir = function(displayWidth, displayHeight)

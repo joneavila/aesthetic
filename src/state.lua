@@ -71,7 +71,7 @@ local state = {
 	rgbMode = "Solid", -- RGB lighting mode
 	rgbBrightness = 5, -- RGB brightness (1-10)
 	rgbSpeed = 5, -- RGB speed (1-10)
-	backgroundType = "Solid", -- Background type (Solid or Gradient)
+	backgroundType = "Gradient", -- Background type (Solid or Gradient)
 	backgroundGradientDirection = "Vertical", -- Gradient direction
 	headerTextEnabled = "Disabled", -- Header text (Enabled/Disabled)
 	headerTextAlpha = 0, -- Header text alpha (0-255, 255 = 100%)

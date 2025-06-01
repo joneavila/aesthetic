@@ -161,11 +161,12 @@ local function createMenuButtons()
 		buttons,
 		Button:new({
 			text = "Icons",
-			type = ButtonTypes.INDICATORS,
-			options = { "Disabled", "Enabled" },
-			currentOptionIndex = state.glyphsEnabled and 2 or 1,
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = state.glyphsEnabled and "Enabled" or "Disabled",
 			screenWidth = state.screenWidth,
-			context = "glyphs",
+			onClick = function()
+				screens.switchTo("icons_toggle")
+			end,
 		})
 	)
 
@@ -317,9 +318,7 @@ local function handleOptionCycle(button, direction)
 		fonts.setFontSize(newValue)
 	elseif button.context == "glyphs" then
 	--]]
-	if button.context == "glyphs" then
-		state.glyphsEnabled = (newValue == "Enabled")
-	elseif button.context == "headerText" then
+	if button.context == "headerText" then
 		state.headerTextEnabled = newValue
 	elseif button.context == "headerAlign" then
 		local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
@@ -672,7 +671,8 @@ function menu.onEnter(data)
 	for _, button in ipairs(menuList.items) do
 		if button.text == "Home Screen Layout" then
 			button:setPreviewText(state.homeScreenLayout)
-			break
+		elseif button.text == "Icons" then
+			button:setPreviewText(state.glyphsEnabled and "Enabled" or "Disabled")
 		end
 	end
 end
