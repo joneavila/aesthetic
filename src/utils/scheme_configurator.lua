@@ -10,6 +10,9 @@ local system = require("utils.system")
 
 local themeSettings = {}
 
+-- Global constant for content padding
+local CONTENT_PADDING = 16
+
 -- Apply glyph settings to a scheme file
 function themeSettings.applyGlyphSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
@@ -38,24 +41,16 @@ function themeSettings.applyGlyphSettings(schemeFilePath)
 end
 
 -- Apply screen width settings to a scheme file
-function themeSettings.applyScreenWidthSettings(schemeFilePath, screenWidth)
+function themeSettings.applyContentPaddingLeftSettings(schemeFilePath, screenWidth)
 	return system.modifyFile(schemeFilePath, function(content)
-		local contentPadding = 4
-		local contentWidth = screenWidth - (contentPadding * 2)
+		local contentPaddingLeft = math.floor(CONTENT_PADDING / 2)
 
 		-- Replace content-padding placeholder
-		local contentPaddingCount
-		content, contentPaddingCount = content:gsub("%%{%s*content%-padding%s*}", tostring(contentPadding))
-		if contentPaddingCount == 0 then
+		local contentPaddingLeftCount
+		content, contentPaddingLeftCount =
+			content:gsub("%%{%s*content%-padding%-left%s*}", tostring(contentPaddingLeft))
+		if contentPaddingLeftCount == 0 then
 			errorHandler.setError("Failed to replace content padding settings in template")
-			return content, false
-		end
-
-		-- Replace screen-width placeholder
-		local screenWidthCount
-		content, screenWidthCount = content:gsub("%%{%s*screen%-width%s*}", tostring(contentWidth))
-		if screenWidthCount == 0 then
-			errorHandler.setError("Failed to replace screen width settings in template")
 			return content, false
 		end
 
@@ -63,14 +58,10 @@ function themeSettings.applyScreenWidthSettings(schemeFilePath, screenWidth)
 	end)
 end
 
--- Apply content width settings to the `muxplore.ini` file
-function themeSettings.applyContentWidth(schemeFilePath)
+-- Apply content width settings to a scheme file
+function themeSettings.applyContentWidthSettings(schemeFilePath, screenWidth)
 	return system.modifyFile(schemeFilePath, function(content)
-		-- Calculate content width based on box art setting
-		local boxArtWidth = state.boxArtWidth + 20
-		-- Calculate content width (screen width minus box art width)
-		local contentWidth = state.screenWidth - boxArtWidth
-
+		local contentWidth = screenWidth - CONTENT_PADDING
 		-- Replace content-width placeholder
 		local contentWidthCount
 		content, contentWidthCount = content:gsub("%%{%s*content%-width%s*}", tostring(contentWidth))
@@ -78,7 +69,6 @@ function themeSettings.applyContentWidth(schemeFilePath)
 			errorHandler.setError("Failed to replace content width settings in template")
 			return content, false
 		end
-
 		return content, true
 	end)
 end
@@ -319,6 +309,21 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 			return content, false
 		end
 
+		return content, true
+	end)
+end
+
+-- Apply content padding left settings to a scheme file
+function themeSettings.applyContentPaddingLeft(schemeFilePath)
+	return system.modifyFile(schemeFilePath, function(content)
+		local contentPaddingLeft = math.floor(CONTENT_PADDING / 2)
+		local contentPaddingLeftCount
+		content, contentPaddingLeftCount =
+			content:gsub("%%{%s*content%-padding%-left%s*}", tostring(contentPaddingLeft))
+		if contentPaddingLeftCount == 0 then
+			errorHandler.setError("Failed to replace content padding left in template")
+			return content, false
+		end
 		return content, true
 	end)
 end

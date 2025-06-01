@@ -394,19 +394,22 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
-			coroutine.yield("Applying screen width settings...")
-			if not schemeConfigurator.applyScreenWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
+			coroutine.yield("Applying content padding left settings...")
+			if not schemeConfigurator.applyContentPaddingLeftSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 				return false
 			end
 
-			coroutine.yield("Applying box art width settings...")
-			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXPLORE) then
+			coroutine.yield("Applying content width settings...")
+			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
 				return false
 			end
-			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXHISTORY) then
+			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXPLORE, state.screenWidth) then
 				return false
 			end
-			if not schemeConfigurator.applyContentWidth(paths.THEME_SCHEME_MUXCOLLECT) then
+			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXHISTORY, state.screenWidth) then
+				return false
+			end
+			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXCOLLECT, state.screenWidth) then
 				return false
 			end
 
