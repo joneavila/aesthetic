@@ -16,7 +16,7 @@ local List = require("ui.list").List
 local rgbUtils = require("utils.rgb")
 
 -- Module table to export public functions
-local rgb = {}
+local rgb_lighting = {}
 
 -- Screen switching
 local MENU_SCREEN = "main_menu"
@@ -102,7 +102,7 @@ local function createMenuButtons()
 				screenWidth = state.screenWidth,
 				onClick = function()
 					state.activeColorContext = "rgb"
-					state.previousScreen = "rgb"
+					state.previousScreen = "rgb_lighting"
 					screens.switchTo(COLOR_PICKER_SCREEN)
 				end,
 			})
@@ -159,7 +159,7 @@ local function handleOptionCycle(button, direction)
 	return false
 end
 
-function rgb.load()
+function rgb_lighting.load()
 	input = inputHandler.create()
 	menuList = List:new({
 		x = 0,
@@ -177,7 +177,7 @@ function rgb.load()
 	})
 end
 
-function rgb.draw()
+function rgb_lighting.draw()
 	-- Set background
 	background.draw()
 
@@ -198,7 +198,7 @@ function rgb.draw()
 	})
 end
 
-function rgb.update(dt)
+function rgb_lighting.update(dt)
 	if menuList then
 		menuList:handleInput(input)
 		menuList:update(dt)
@@ -210,7 +210,7 @@ function rgb.update(dt)
 	end
 end
 
-function rgb.onEnter()
+function rgb_lighting.onEnter()
 	if menuList then
 		menuList:setItems(createMenuButtons())
 	end
@@ -219,8 +219,8 @@ function rgb.onEnter()
 	end
 end
 
-function rgb.onExit()
+function rgb_lighting.onExit()
 	-- No-op for now
 end
 
-return rgb
+return rgb_lighting

@@ -119,7 +119,7 @@ local function createMenuButtons()
 				previewText = state.rgbMode,
 				screenWidth = state.screenWidth,
 				onClick = function()
-					screens.switchTo("rgb")
+					screens.switchTo("rgb_lighting")
 				end,
 			})
 		)
