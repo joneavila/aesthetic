@@ -61,6 +61,19 @@ local function getPreviewFont(fontName)
 	return previewFont
 end
 
+-- Helper function to calculate the preview height for a specific font
+local function calculatePreviewHeight(fontName)
+	if not fontName then
+		return 0
+	end
+
+	local previewFont = getPreviewFont(fontName)
+	local _, textLines =
+		previewFont:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - (32 * 2) - (FONT_PREVIEW.PADDING * 2))
+	local height = #textLines * previewFont:getHeight() + (FONT_PREVIEW.PADDING * 2)
+	return height
+end
+
 -- Helper function to calculate the maximum preview height across all fonts
 local function calculateMaxPreviewHeight()
 	if maxPreviewHeight then
@@ -69,10 +82,7 @@ local function calculateMaxPreviewHeight()
 
 	local maxHeight = 0
 	for _, fontChoice in ipairs(fonts.themeDefinitions) do
-		local previewFont = getPreviewFont(fontChoice.name)
-		local _, textLines =
-			previewFont:getWrap(FONT_PREVIEW.PREVIEW_TEXT, state.screenWidth - 32 - (FONT_PREVIEW.PADDING * 2))
-		local height = #textLines * previewFont:getHeight() + (FONT_PREVIEW.PADDING * 2)
+		local height = calculatePreviewHeight(fontChoice.name)
 		maxHeight = math.max(maxHeight, height)
 	end
 
@@ -128,35 +138,36 @@ function font.draw()
 	-- Ensure controls HEIGHT is calculated
 	controls.calculateHeight()
 
-	-- Calculate the preview height and position
-	local previewHeight = calculateMaxPreviewHeight()
-	local previewY = state.screenHeight - controls.HEIGHT - previewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
-
 	-- Use the currently focused font for preview
 	local hoveredFontName = nil
 	if menuList and menuList.selectedIndex and menuList.items[menuList.selectedIndex] then
 		hoveredFontName = menuList.items[menuList.selectedIndex].text
 	end
 
+	-- Calculate the maximum preview height for fixed positioning
+	local maxPreviewHeight = calculateMaxPreviewHeight()
+	local previewY = state.screenHeight - controls.HEIGHT - maxPreviewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
+
 	-- Draw the list using our list component
 	if menuList then
+		-- Use fixed list height based on maximum preview height
 		menuList.height = previewY - header.getContentStartY() - 8
 		menuList:calculateDimensions()
 		menuList:draw()
 	end
 
-	-- Draw rounded background for preview text
+	-- Always draw preview background with maximum height for consistency
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle(
 		"fill",
 		32,
 		previewY,
 		state.screenWidth - (32 * 2),
-		previewHeight,
+		maxPreviewHeight,
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
 
-	-- Draw preview text if a font is selected
+	-- Draw preview text if we have a font selected
 	if hoveredFontName then
 		-- Get the font for preview
 		local previewFont = getPreviewFont(hoveredFontName)
