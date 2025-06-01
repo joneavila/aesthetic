@@ -30,8 +30,8 @@ local BORDER = {
 
 -- Animation constants
 local ANIMATION = {
-	SCALE = 1.3,
-	DURATION = 0.2,
+	SCALE = 1.25,
+	DURATION = 0.15,
 }
 
 -- Helper function to get current palette state from central state manager
