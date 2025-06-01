@@ -233,7 +233,7 @@ local function createMenuButtons()
 			previewText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%",
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("navigation_alpha")
+				screens.switchTo("navigation_opacity")
 			end,
 		})
 	)

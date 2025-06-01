@@ -19,7 +19,7 @@ local Slider = require("ui.slider").Slider
 local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
 
 -- Module table to export public functions
-local navigation_alpha = {}
+local navigation_opacity = {}
 
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
@@ -32,7 +32,7 @@ local function getDisplayText(alpha)
 end
 
 -- Draw the screen
-function navigation_alpha.draw()
+function navigation_opacity.draw()
 	-- Draw background
 	background.draw()
 
@@ -84,7 +84,7 @@ function navigation_alpha.draw()
 end
 
 -- Update function to handle input
-function navigation_alpha.update(dt)
+function navigation_opacity.update(dt)
 	if alphaSlider then
 		alphaSlider:update(dt)
 	end
@@ -100,7 +100,7 @@ function navigation_alpha.update(dt)
 end
 
 -- Called when entering the screen
-function navigation_alpha.onEnter()
+function navigation_opacity.onEnter()
 	-- Find the closest alpha value index
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
@@ -128,4 +128,4 @@ function navigation_alpha.onEnter()
 	})
 end
 
-return navigation_alpha
+return navigation_opacity
