@@ -525,16 +525,22 @@ function hsv.update(dt)
 	else
 		-- Handle Hue slider navigation
 		local step = 6
+		local newHue = currentState.hue
+		local hueChanged = false
 
-		-- D-pad controls
-		if virtualJoystick.isGamepadPressedWithDelay("dpup") or virtualJoystick.isGamepadPressedWithDelay("dpdown") then
-			local newHue = currentState.hue
-			if virtualJoystick.isGamepadPressedWithDelay("dpup") then
-				newHue = (newHue + step) % 360
-			else
-				newHue = (newHue - step) % 360
-			end
+		-- D-pad UP: move cursor up on slider (increase hue value)
+		if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+			newHue = (newHue + step) % 360
+			hueChanged = true
+		end
 
+		-- D-pad DOWN: move cursor down on slider (decrease hue value)
+		if virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+			newHue = (newHue - step) % 360
+			hueChanged = true
+		end
+
+		if hueChanged then
 			currentState.hue = newHue
 			-- Update the SV square when hue changes
 			updateSVSquare()
