@@ -17,7 +17,7 @@ local Slider = require("ui.slider").Slider
 -- Screen switching
 local MENU_SCREEN = "main_menu"
 
-local header_text_alpha = {}
+local header_text_opacity = {}
 
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
@@ -25,7 +25,7 @@ local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 local alphaSlider = nil
 
 -- Draw the screen
-function header_text_alpha.draw()
+function header_text_opacity.draw()
 	background.draw()
 	header.draw("header text alpha")
 	love.graphics.setFont(fonts.loaded.body)
@@ -70,7 +70,7 @@ function header_text_alpha.draw()
 end
 
 -- Update function to handle input
-function header_text_alpha.update(dt)
+function header_text_opacity.update(dt)
 	if alphaSlider then
 		alphaSlider:update(dt)
 	end
@@ -88,7 +88,7 @@ function header_text_alpha.update(dt)
 end
 
 -- Called when entering the screen
-function header_text_alpha.onEnter()
+function header_text_opacity.onEnter()
 	-- Find the closest alpha value index
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
@@ -117,4 +117,4 @@ function header_text_alpha.onEnter()
 	})
 end
 
-return header_text_alpha
+return header_text_opacity

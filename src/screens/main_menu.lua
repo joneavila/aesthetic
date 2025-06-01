@@ -192,7 +192,7 @@ local function createMenuButtons()
 			previewText = string.format("%d%%", math.floor((state.headerTextAlpha / 255) * 100 + 0.5)),
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("header_text_alpha")
+				screens.switchTo("header_text_opacity")
 			end,
 		})
 	)
