@@ -10,6 +10,7 @@ local fonts = require("ui.fonts")
 
 local colorUtils = require("utils.color")
 local svg = require("utils.svg")
+local tween = require("tween")
 
 local constants = require("screens.color_picker.constants")
 
@@ -27,10 +28,17 @@ local INPUT_RECT_WIDTH = 30
 local INPUT_RECT_HEIGHT = 40
 local INPUT_RECT_SPACING = 5
 local ICON_SIZE = 24
+local ANIMATION_SCALE = 0.1
+local ANIMATION_DURATION = 0.4 -- Duration for each phase (expand/contract) in seconds
 
 -- State
 local hexState = {
 	maxInputLength = 6,
+	confirmButtonTween = nil,
+	confirmButtonScale = 1,
+	confirmButtonFlash = 0,
+	lastValidInput = "",
+	animationPhase = "idle", -- "expanding", "contracting", "idle"
 }
 
 -- Helper function to get current hex state from central state manager
@@ -40,12 +48,11 @@ local function getCurrentHexState()
 	return context.hex -- Return the hex specific state for this color context
 end
 
--- Button grid layout (5x4)
+-- Button grid layout (3x6)
 local buttons = {
-	{ "0", "1", "2", "3", "" },
-	{ "4", "5", "6", "7", "BACKSPACE" },
-	{ "8", "9", "A", "B", "CLEAR" },
-	{ "C", "D", "E", "F", "CONFIRM" },
+	{ "0", "1", "2", "3", "4", "5" },
+	{ "6", "7", "8", "9", "A", "B" },
+	{ "C", "D", "E", "F", "BACKSPACE", "CONFIRM" },
 }
 
 -- Helper function to check if hex input is valid
@@ -68,11 +75,11 @@ end
 local function getButtonDimensions()
 	local contentArea = constants.calculateContentArea()
 
-	local gridWidth = contentArea.width - (2 * EDGE_PADDING) - LAST_COLUMN_EXTRA_PADDING
+	local gridWidth = contentArea.width - (2 * EDGE_PADDING)
 	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT - (2 * GRID_PADDING)
 
-	local buttonWidth = (gridWidth - (4 * GRID_PADDING)) / 5
-	local buttonHeight = (availableHeight - (3 * GRID_PADDING)) / 4
+	local buttonWidth = (gridWidth - (5 * GRID_PADDING)) / 6
+	local buttonHeight = (availableHeight - (2 * GRID_PADDING)) / 3
 
 	return buttonWidth, buttonHeight
 end
@@ -86,12 +93,6 @@ local function getButtonPosition(row, col)
 	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
 
 	local x = startX + (col - 1) * (buttonWidth + GRID_PADDING)
-
-	-- Add extra padding before the last column (special buttons)
-	if col == 5 then
-		x = x + LAST_COLUMN_EXTRA_PADDING
-	end
-
 	local y = startY + (row - 1) * (buttonHeight + GRID_PADDING)
 
 	return x, y, buttonWidth, buttonHeight
@@ -106,11 +107,29 @@ local function getFonts()
 	return fonts
 end
 
+-- Helper function to start confirm button wobble animation
+local function startConfirmButtonWobble()
+	if hexState.confirmButtonTween then
+		return -- Animation already running
+	end
+
+	-- Reset animation values
+	hexState.confirmButtonScale = 1
+	hexState.confirmButtonFlash = 0
+	hexState.animationPhase = "expanding"
+
+	-- Create expand phase: animate from 1 to 1 + ANIMATION_SCALE
+	hexState.confirmButtonTween = tween.new(ANIMATION_DURATION, hexState, {
+		confirmButtonScale = 1 + ANIMATION_SCALE,
+		confirmButtonFlash = 1,
+	}, tween.easing.outQuad)
+end
+
 function hex.load()
 	-- Default context values are set in `state.lua`, nothing to do here
 
 	-- Preload icons
-	svg.preloadIcons({ "delete", "trash", "check" }, ICON_SIZE)
+	svg.preloadIcons({ "delete", "check" }, ICON_SIZE)
 end
 
 function hex.draw()
@@ -193,12 +212,44 @@ function hex.draw()
 				local isConfirmButton = (buttonText == "CONFIRM")
 				local isConfirmDisabled = isConfirmButton and not isValidHex(currentState.input)
 
-				-- Draw button background with transparency for disabled confirm button
-				if isConfirmButton and isSelected and isValidHex(currentState.input) then
-					-- Valid confirm button that is selected - use accent color
-					love.graphics.setColor(colors.ui.accent)
+				-- Apply animation to confirm button
+				if isConfirmButton then
+					local scale = hexState.confirmButtonScale
+					local flashAlpha = hexState.confirmButtonFlash
+
+					-- Calculate scaled dimensions
+					local scaledWidth = width * scale
+					local scaledHeight = height * scale
+					local scaledX = x + (width - scaledWidth) / 2
+					local scaledY = y + (height - scaledHeight) / 2
+
+					-- Update position and size for animation
+					x, y, width, height = scaledX, scaledY, scaledWidth, scaledHeight
+				end
+
+				-- Draw button background
+				if isConfirmButton then
+					-- For confirm button, handle animation color fading
+					local normalBgColor = (isSelected and isValidHex(currentState.input)) and colors.ui.accent
+						or (isSelected and colors.ui.surface or colors.ui.background)
+
+					if hexState.confirmButtonTween and isValidHex(currentState.input) then
+						-- During animation, fade between normal color and accent color
+						local fadeAmount = hexState.confirmButtonFlash
+						local accentColor = colors.ui.accent
+
+						-- Interpolate between normal background and accent color
+						local r = normalBgColor[1] + (accentColor[1] - normalBgColor[1]) * fadeAmount
+						local g = normalBgColor[2] + (accentColor[2] - normalBgColor[2]) * fadeAmount
+						local b = normalBgColor[3] + (accentColor[3] - normalBgColor[3]) * fadeAmount
+
+						love.graphics.setColor(r, g, b)
+					else
+						-- No animation, use normal colors
+						love.graphics.setColor(normalBgColor)
+					end
 				else
-					-- Use surface color for selected buttons, background color for non-selected
+					-- Non-confirm buttons use normal colors
 					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
 				end
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
@@ -236,15 +287,6 @@ function hex.draw()
 						local centerY = y + height / 2
 						svg.drawIcon(icon, centerX, centerY, colors.ui.foreground)
 					end
-				elseif buttonText == "CLEAR" then
-					-- Trash icon
-					local icon = svg.loadIcon("trash", ICON_SIZE)
-					if icon then
-						-- Draw the icon centered on the button with SVG utility
-						local centerX = x + width / 2
-						local centerY = y + height / 2
-						svg.drawIcon(icon, centerX, centerY, colors.ui.foreground)
-					end
 				elseif buttonText == "CONFIRM" then
 					-- Check icon (confirm)
 					local icon = svg.loadIcon("check", ICON_SIZE)
@@ -258,6 +300,18 @@ function hex.draw()
 								colors.ui.foreground[2] * 0.5,
 								colors.ui.foreground[3] * 0.5,
 							}
+						elseif hexState.confirmButtonTween and isValidHex(currentState.input) then
+							-- During animation, fade icon color from normal to background color for contrast
+							local fadeAmount = hexState.confirmButtonFlash
+							local normalIconColor = isSelected and colors.ui.background or colors.ui.foreground
+							local targetIconColor = colors.ui.background
+
+							-- Interpolate between normal icon color and background color
+							local r = normalIconColor[1] + (targetIconColor[1] - normalIconColor[1]) * fadeAmount
+							local g = normalIconColor[2] + (targetIconColor[2] - normalIconColor[2]) * fadeAmount
+							local b = normalIconColor[3] + (targetIconColor[3] - normalIconColor[3]) * fadeAmount
+
+							iconColor = { r, g, b }
 						elseif isSelected and isValidHex(currentState.input) then
 							-- If selected and valid, use background color for icon (for contrast with accent background)
 							iconColor = colors.ui.background
@@ -289,6 +343,7 @@ function hex.draw()
 	controls.draw({
 		{ button = { "l1", "r1" }, text = "Switch Tabs" },
 		{ button = "a", text = "Select" },
+		{ button = "y", text = "Clear" },
 		{ button = "b", text = "Back" },
 	})
 end
@@ -299,57 +354,66 @@ function hex.update(_dt)
 	-- Get current color type state
 	local currentState = getCurrentHexState()
 
+	-- Update confirm button animation
+	if hexState.confirmButtonTween then
+		local isComplete = hexState.confirmButtonTween:update(_dt)
+		if isComplete then
+			if hexState.animationPhase == "expanding" then
+				-- Start contracting phase
+				hexState.animationPhase = "contracting"
+				hexState.confirmButtonTween = tween.new(ANIMATION_DURATION, hexState, {
+					confirmButtonScale = 1,
+					confirmButtonFlash = 0,
+				}, tween.easing.inQuad)
+			else
+				-- Animation fully complete
+				hexState.confirmButtonTween = nil
+				hexState.confirmButtonScale = 1
+				hexState.confirmButtonFlash = 0
+				hexState.animationPhase = "idle"
+			end
+		end
+	end
+
+	-- Start wobble animation only once when hex becomes valid
+	if isValidHex(currentState.input) then
+		-- Only trigger animation if this is a new valid input
+		if currentState.input ~= hexState.lastValidInput and not hexState.confirmButtonTween then
+			startConfirmButtonWobble()
+			hexState.lastValidInput = currentState.input
+		end
+	else
+		-- Reset animation and tracking if input becomes invalid
+		if hexState.confirmButtonTween then
+			hexState.confirmButtonTween = nil
+			hexState.confirmButtonScale = 1
+			hexState.confirmButtonFlash = 0
+			hexState.animationPhase = "idle"
+		end
+		hexState.lastValidInput = ""
+	end
+
 	-- Handle D-pad navigation
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
 		currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
-
-		-- Skip empty buttons
-		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
-			currentState.selectedButton.col = currentState.selectedButton.col - 1
-			if currentState.selectedButton.col < 1 then
-				currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
-			end
-		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 		currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
-
-		-- Skip empty buttons
-		while
-			currentState.selectedButton.col > #buttons[currentState.selectedButton.row]
-			or buttons[currentState.selectedButton.row][currentState.selectedButton.col] == ""
-		do
-			currentState.selectedButton.col =
-				math.min(currentState.selectedButton.col, #buttons[currentState.selectedButton.row])
-			if buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" then
-				currentState.selectedButton.col = currentState.selectedButton.col - 1
-			end
-		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
 		currentState.selectedButton.col = currentState.selectedButton.col - 1
 		if currentState.selectedButton.col < 1 then
 			currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
-		end
-
-		-- Skip empty buttons
-		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
-			currentState.selectedButton.col = currentState.selectedButton.col - 1
-			if currentState.selectedButton.col < 1 then
-				currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
-			end
 		end
 	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
 		currentState.selectedButton.col = currentState.selectedButton.col + 1
 		if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
 			currentState.selectedButton.col = 1
 		end
+	end
 
-		-- Skip empty buttons
-		while buttons[currentState.selectedButton.row][currentState.selectedButton.col] == "" do
-			currentState.selectedButton.col = currentState.selectedButton.col + 1
-			if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
-				currentState.selectedButton.col = 1
-			end
-		end
+	-- Handle Y button for clear
+	if virtualJoystick.isGamepadPressedWithDelay("y") then
+		-- Clear all input
+		currentState.input = ""
 	end
 
 	-- Handle button press (A button)
@@ -361,9 +425,6 @@ function hex.update(_dt)
 			if #currentState.input > 0 then
 				currentState.input = currentState.input:sub(1, -2)
 			end
-		elseif selectedButton == "CLEAR" then
-			-- Clear - remove all characters
-			currentState.input = ""
 		elseif selectedButton == "CONFIRM" then
 			-- Confirm - only if input is valid
 			if isValidHex(currentState.input) then
