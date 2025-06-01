@@ -16,7 +16,7 @@ local errorHandler = require("error_handler")
 
 local glyphs = {}
 
-local GLYPH_HEIGHT = 24
+local GLYPH_HEIGHT = 22
 local FIXED_STROKE_WIDTH = 1.5
 local GLYPH_MAPPINGS_DIR = paths.SOURCE_DIR .. "/utils/glyph_mappings"
 local BASE_VERSION = "2502.0_PIXIE"
