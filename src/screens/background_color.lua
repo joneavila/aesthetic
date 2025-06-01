@@ -156,20 +156,22 @@ function backgroundColor.draw()
 
 	-- Draw gradient preview box if gradient mode is selected
 	if state.backgroundType == "Gradient" then
-		local listBottom = header.getContentStartY() + menuList.visibleCount * (60 + 12) + 8
 		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
-		local availableHeight = state.screenHeight - listBottom - controlsHeight - 20
-		local availableWidth = state.screenWidth - 40
-		local previewHeight = availableHeight
+		local margin = 10
+		local listBottom = menuList.y + menuList:getContentHeight()
+		local previewY = listBottom + margin
+		local previewX_margin = 20
+		local previewAreaHeight = state.screenHeight - previewY - controlsHeight - margin
+		local previewAreaWidth = state.screenWidth - previewX_margin * 2
+		-- Maintain 4:3 aspect ratio, but fit within available area
+		local previewHeight = previewAreaHeight
 		local previewWidth = previewHeight * 4 / 3
-		if previewWidth > availableWidth then
-			previewWidth = availableWidth
+		if previewWidth > previewAreaWidth then
+			previewWidth = previewAreaWidth
 			previewHeight = previewWidth * 3 / 4
 		end
 		if previewHeight >= 40 then
 			local previewX = (state.screenWidth - previewWidth) / 2
-			local previewY = listBottom + 10
-			local cornerRadius = 8
 			gradientPreview.draw(
 				previewX,
 				previewY,
@@ -178,7 +180,7 @@ function backgroundColor.draw()
 				state.getColorValue("background"),
 				state.getColorValue("backgroundGradient"),
 				state.backgroundGradientDirection,
-				cornerRadius
+				8
 			)
 		end
 	end
