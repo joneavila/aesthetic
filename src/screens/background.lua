@@ -54,7 +54,7 @@ local function createMenuButtons()
 				screenWidth = state.screenWidth,
 				onClick = function()
 					state.activeColorContext = "background"
-					state.previousScreen = "background_color"
+					state.previousScreen = "background"
 					screens.switchTo("color_picker")
 				end,
 			})
@@ -69,7 +69,7 @@ local function createMenuButtons()
 				screenWidth = state.screenWidth,
 				onClick = function()
 					state.activeColorContext = "backgroundGradient"
-					state.previousScreen = "background_color"
+					state.previousScreen = "background"
 					screens.switchTo("color_picker")
 				end,
 			})

@@ -87,7 +87,7 @@ local function createMenuButtons()
 			monoFont = fonts.loaded.monoBody,
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("background_color")
+				screens.switchTo("background")
 			end,
 		})
 	)
