@@ -10,7 +10,7 @@ local inputHandler = require("ui.input_handler")
 -- List constants
 local LIST_CONFIG = {
 	ITEM_SPACING = 12,
-	SCROLL_BAR_WIDTH = 8,
+	SCROLL_BAR_WIDTH = 9,
 }
 
 -- List class
@@ -299,6 +299,14 @@ function List:draw()
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
 
+	-- Determine if scrollbar is needed
+	local needsScrollbar = #self.items > self.visibleCount
+	local scrollbarWidth = LIST_CONFIG.SCROLL_BAR_WIDTH
+	local effectiveRightPadding = self.paddingX
+	if needsScrollbar then
+		effectiveRightPadding = self.paddingX + scrollbarWidth
+	end
+
 	-- Create scissor to clip content
 	love.graphics.push()
 	love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
@@ -311,7 +319,7 @@ function List:draw()
 			local itemIndex = i - firstVisible -- Index within visible items (0-based)
 			local itemY = self.y + self.paddingY + itemIndex * (self.adjustedItemHeight + self.adjustedSpacing)
 			local itemX = self.x + self.paddingX
-			local itemW = self.width - self.paddingX * 2
+			local itemW = self.width - self.paddingX - effectiveRightPadding
 			local itemH = self.adjustedItemHeight
 
 			-- Set item position
@@ -341,15 +349,31 @@ function List:draw()
 	love.graphics.setScissor() -- Reset scissor to avoid affecting other UI
 
 	-- Draw scrollbar if needed
-	if #self.items > self.visibleCount then
+	if needsScrollbar then
+		local barX = self.x + self.width - scrollbarWidth
+		local rx = 4
+		local ry = rx
+
+		-- Draw scrollbar background
+		love.graphics.setColor(colors.ui.background_dim)
+		love.graphics.rectangle(
+			"fill",
+			barX,
+			self.y + self.paddingY,
+			scrollbarWidth,
+			self.height - self.paddingY * 2,
+			rx,
+			ry
+		)
+
+		-- Draw scrollbar handle
 		local barHeight = (self.height - self.paddingY * 2) * (self.visibleCount / #self.items)
 		local barY = self.y
 			+ self.paddingY
 			+ ((self.height - self.paddingY * 2) - barHeight)
 				* (self.scrollPosition / (#self.items - self.visibleCount))
-		local barX = self.x + self.width - 6 -- 6px from the right edge
 		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", barX, barY, 4, barHeight, 2, 2)
+		love.graphics.rectangle("fill", barX, barY, scrollbarWidth, barHeight, rx, ry)
 	end
 end
 
