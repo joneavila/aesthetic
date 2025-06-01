@@ -299,6 +299,7 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 		local paddingAdjustment = math.floor(ascentDifference * -0.5)
 
 		-- Apply the padding adjustment (can be negative for upward adjustment)
+		-- Note: I think values below 0 are ignored, i.e. same as 0
 		local paddingValue = paddingAdjustment
 
 		-- Replace placeholder
