@@ -137,7 +137,7 @@ muxinfo/tracker, locate
 muxlanguage/language, languages
 
 # muxlaunch – (Home screen)
-muxlaunch/apps, shapes
+muxlaunch/apps, layout-grid
 muxlaunch/collection, heart
 muxlaunch/config, settings
 muxlaunch/explore, compass
