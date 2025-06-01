@@ -54,7 +54,7 @@ esac
 SOURCE_DIR="$(pwd)"
 DEV_DIR="$SOURCE_DIR/.dev"
 LOG_DIR="$DEV_DIR/logs"
-TEMPLATE_DIR="$SOURCE_DIR/src/template"
+TEMPLATE_DIR="$SOURCE_DIR/src/scheme_templates"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"

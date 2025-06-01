@@ -33,7 +33,7 @@ export LOG_DIR
 export SESSION_ID
 export SESSION_LOG_FILE
 export LD_LIBRARY_PATH="$SOURCE_DIR/lib:$SOURCE_DIR/tove:$LD_LIBRARY_PATH" # Add libraries to the library path
-export TEMPLATE_DIR="$SOURCE_DIR/template"
+export TEMPLATE_DIR="$SOURCE_DIR/scheme_templates"
 export MUOS_STORAGE_THEME_DIR
 export MUOS_DEVICE_SCRIPT_DIR
 export WIDTH
