@@ -165,7 +165,7 @@ local function createMenuButtons()
 			previewText = state.glyphsEnabled and "Enabled" or "Disabled",
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("icons_toggle")
+				screens.switchTo("icons")
 			end,
 		})
 	)
