@@ -370,4 +370,56 @@ function glyphs.generateMuxLaunchGlyphs()
 	return successCount > 0
 end
 
+--- Generates PNG files for footer glyphs from hardcoded mappings.
+--- Converts specific SVG files from the footer glyphs source directory to PNG format
+--- and saves them to the footer glyphs target directory with predefined filenames and heights.
+function glyphs.generateFooterGlyphs()
+	-- Hardcoded mappings: source filename, height, output filename
+	-- TODO: Refactor if all glyphs use the same height
+	local height = 23
+	local footerGlyphMappings = {
+		{ sourceFile = "playstation_dpad_horizontal_outline.svg", height = height, outputFile = "lr.png" },
+		{ sourceFile = "steam_button_a.svg", height = height, outputFile = "a.png" },
+		{ sourceFile = "steam_button_b.svg", height = height, outputFile = "b.png" },
+		{ sourceFile = "steam_button_x.svg", height = height, outputFile = "x.png" },
+		{ sourceFile = "steam_button_y.svg", height = height, outputFile = "y.png" },
+		{ sourceFile = "steamdeck_button_quickaccess.svg", height = height, outputFile = "menu.png" },
+	}
+
+	local sourceDir = paths.FOOTER_GLYPHS_SOURCE_DIR
+	local targetDir = paths.FOOTER_GLYPHS_TARGET_DIR
+
+	-- Get foreground color for icons
+	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
+
+	logger.debug(
+		string.format("Generating %d footer glyphs from '%s' to '%s'", #footerGlyphMappings, sourceDir, targetDir)
+	)
+
+	local successCount = 0
+	for _, mapping in ipairs(footerGlyphMappings) do
+		local svgPath = sourceDir .. "/" .. mapping.sourceFile
+		local pngPath = targetDir .. "/" .. mapping.outputFile
+
+		logger.debug(
+			string.format(
+				"Converting footer glyph: %s (height: %d) -> %s",
+				mapping.sourceFile,
+				mapping.height,
+				mapping.outputFile
+			)
+		)
+
+		if not glyphs.convertSvgToPng(svgPath, pngPath, mapping.height, fgColor) then
+			logger.warning("Failed to convert footer glyph: " .. mapping.sourceFile)
+		else
+			successCount = successCount + 1
+		end
+	end
+
+	logger.debug(string.format("Generated %d of %d footer glyphs.", successCount, #footerGlyphMappings))
+
+	return successCount > 0
+end
+
 return glyphs
