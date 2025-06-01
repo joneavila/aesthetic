@@ -206,7 +206,7 @@ local function createMenuButtons()
 			previewText = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth),
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("box_art")
+				screens.switchTo("box_art_width")
 			end,
 		})
 	)

@@ -16,7 +16,7 @@ local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 
 -- Module table to export public functions
-local box_art = {}
+local box_art_width = {}
 
 -- Screen switching
 local MENU_SCREEN = "main_menu"
@@ -105,7 +105,7 @@ local function handleOptionCycle(button, direction)
 	return false
 end
 
-function box_art.load()
+function box_art_width.load()
 	input = inputHandler.create()
 	generateWidthOptions()
 	menuList = List:new({
@@ -128,7 +128,7 @@ function box_art.load()
 	animatedRightWidth = tweenObj.rightWidth
 end
 
-function box_art.draw()
+function box_art_width.draw()
 	background.draw()
 	header.draw("box art width")
 
@@ -219,7 +219,7 @@ function box_art.draw()
 	})
 end
 
-function box_art.update(dt)
+function box_art_width.update(dt)
 	if currentTween then
 		local completed = currentTween:update(dt)
 		if completed then
@@ -241,13 +241,13 @@ function box_art.update(dt)
 	end
 end
 
-function box_art.onEnter()
+function box_art_width.onEnter()
 	generateWidthOptions()
 	if menuList then
 		menuList:setItems(createMenuButtons())
 	end
 end
 
-function box_art.onExit() end
+function box_art_width.onExit() end
 
-return box_art
+return box_art_width
