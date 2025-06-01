@@ -9,7 +9,7 @@ local list = require("ui.list")
 local screens = require("screens")
 local fonts = require("ui.fonts")
 
-local status_align = {}
+local status_alignment = {}
 
 local OPTIONS = {
 	"Left",
@@ -48,11 +48,11 @@ local function getCurrentIndex()
 	return 1
 end
 
-function status_align.onEnter()
+function status_alignment.onEnter()
 	BUTTONS[1].currentOption = getCurrentIndex()
 end
 
-function status_align.draw()
+function status_alignment.draw()
 	background.draw()
 	header.draw("status alignment")
 	local screenWidth = state.screenWidth
@@ -80,7 +80,7 @@ function status_align.draw()
 	})
 end
 
-function status_align.update(_dt)
+function status_alignment.update(_dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Handle B button to return to menu
@@ -117,4 +117,4 @@ function status_align.update(_dt)
 	})
 end
 
-return status_align
+return status_alignment
