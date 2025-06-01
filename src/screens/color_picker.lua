@@ -309,8 +309,27 @@ function colorPicker.onEnter(tabName)
 			tab.active = (i == 1)
 		end
 
-		-- Update tab animations
-		updateTabAnimations()
+		-- Clear any existing animations to prevent interference
+		tabIndicator.animation = nil
+		for i = 1, #tabs do
+			if tabTextColors[i] then
+				tabTextColors[i].animation = nil
+			end
+		end
+
+		-- Set tab indicator position directly to palette tab without animation
+		tabIndicator.x = tabs[1].x
+		tabIndicator.width = tabs[1].width
+
+		-- Set text colors directly without animation - palette active, others inactive
+		for i, tab in ipairs(tabs) do
+			if i == 1 then -- Palette tab
+				tabTextColors[i].color =
+					{ colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }
+			else
+				tabTextColors[i].color = { colors.ui.subtext[1], colors.ui.subtext[2], colors.ui.subtext[3], 1 }
+			end
+		end
 
 		-- Call onEnter for palette screen if it exists
 		if tabs[1].screen.onEnter then
