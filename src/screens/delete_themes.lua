@@ -19,7 +19,7 @@ local commands = require("utils.commands")
 local svg = require("utils.svg")
 local system = require("utils.system")
 
-local manage_themes = {}
+local delete_themes = {}
 
 local themeItems = {}
 local modalMode = "none"
@@ -116,7 +116,7 @@ local function scanThemes()
 	end
 end
 
-function manage_themes.load()
+function delete_themes.load()
 	inputObj = inputHandler.create()
 	scanThemes()
 	themeList = List:new({
@@ -135,7 +135,7 @@ function manage_themes.load()
 	modalInstance = Modal:new({ font = fonts.loaded.body })
 end
 
-function manage_themes.draw()
+function delete_themes.draw()
 	-- Set background
 	background.draw()
 
@@ -184,7 +184,7 @@ function manage_themes.draw()
 	controls.draw(controlsList)
 end
 
-function manage_themes.update(dt)
+function delete_themes.update(dt)
 	if modalInstance and modalInstance:isVisible() then
 		if modalInstance:handleInput(inputObj) then
 			return
@@ -277,18 +277,18 @@ function manage_themes.update(dt)
 	end
 end
 
-function manage_themes.onEnter(_data)
+function delete_themes.onEnter(_data)
 	scanThemes()
 	if themeList then
 		themeList:setItems(themeItems)
 	end
 end
 
-function manage_themes.onExit()
+function delete_themes.onExit()
 	if modalInstance then
 		modalInstance:hide()
 	end
 	modalMode = "none"
 end
 
-return manage_themes
+return delete_themes

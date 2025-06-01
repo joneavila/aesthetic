@@ -105,7 +105,7 @@ local function createMenuButtons()
 			text = "Manage Themes",
 			type = "basic",
 			onClick = function()
-				screens.switchTo("manage_themes")
+				screens.switchTo("delete_themes")
 			end,
 		}),
 		Button:new({
