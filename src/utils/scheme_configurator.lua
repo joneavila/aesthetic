@@ -17,7 +17,7 @@ local CONTENT_PADDING = 16
 function themeSettings.applyGlyphSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		local glyphSettings = {
-			listPadLeft = state.glyphsEnabled and 42 or 20,
+			listPadLeft = state.glyphsEnabled and 42 or 16,
 			glyphAlpha = state.glyphsEnabled and 255 or 0,
 		}
 
