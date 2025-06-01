@@ -5,7 +5,7 @@ local errorHandler = require("error_handler")
 local commands = require("utils.commands")
 local system = require("utils.system")
 local version = require("version")
-local json = require("json")
+local json = require("json_lua.json")
 
 local otaUpdate = {}
 
