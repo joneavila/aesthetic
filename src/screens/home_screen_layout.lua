@@ -138,9 +138,16 @@ function homeScreenLayout.draw()
 			imageWidth = availableHeight * aspectRatio
 		end
 
-		-- Center the image in the available space
+		-- Ensure image is never scaled beyond original size
+		if imageWidth > originalWidth then
+			imageWidth = originalWidth
+			imageHeight = originalHeight
+		end
+
+		-- Center the image both horizontally and vertically in the available space
 		local imageX = (state.screenWidth - imageWidth) / 2
-		local imageY = buttonAreaBottom + IMAGE_MARGIN
+		local totalAvailableHeight = controlsTop - buttonAreaBottom
+		local imageY = buttonAreaBottom + (totalAvailableHeight - imageHeight) / 2
 
 		-- Only draw if there's enough space
 		if availableHeight > 50 then -- Minimum reasonable height
