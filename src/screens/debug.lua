@@ -92,7 +92,7 @@ function debug.draw()
 		if upPressed then
 			love.graphics.setColor(colors.ui.green) -- Green for active
 		else
-			love.graphics.setColor(colors.ui.surface_dim) -- Gray for inactive
+			love.graphics.setColor(colors.ui.surface_bright) -- Gray for inactive
 		end
 		love.graphics.print("Up", labelX + 30, textY)
 		textY = textY + lineHeight
@@ -101,7 +101,7 @@ function debug.draw()
 		if rightPressed then
 			love.graphics.setColor(colors.ui.green)
 		else
-			love.graphics.setColor(colors.ui.surface_dim)
+			love.graphics.setColor(colors.ui.surface_bright)
 		end
 		love.graphics.print("Right", labelX + 30, textY)
 		textY = textY + lineHeight
@@ -110,7 +110,7 @@ function debug.draw()
 		if downPressed then
 			love.graphics.setColor(colors.ui.green)
 		else
-			love.graphics.setColor(colors.ui.surface_dim)
+			love.graphics.setColor(colors.ui.surface_bright)
 		end
 		love.graphics.print("Down", labelX + 30, textY)
 		textY = textY + lineHeight
@@ -119,7 +119,7 @@ function debug.draw()
 		if leftPressed then
 			love.graphics.setColor(colors.ui.green)
 		else
-			love.graphics.setColor(colors.ui.surface_dim)
+			love.graphics.setColor(colors.ui.surface_bright)
 		end
 		love.graphics.print("Left", labelX + 30, textY)
 		textY = textY + lineHeight * 1.5

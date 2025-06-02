@@ -57,7 +57,7 @@ function controls.draw(controls_list)
 	-- Ensure HEIGHT is calculated
 	controls.calculateHeight()
 
-	local globalColor = colors.ui.surface_dim
+	local globalColor = colors.ui.surface_bright
 
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
