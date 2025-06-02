@@ -25,16 +25,47 @@ local COLOR_PICKER_SCREEN = "color_picker"
 -- RGB mode options
 local RGB_MODES = {
 	"Solid",
-	"Fast Breathing",
-	"Medium Breathing",
-	"Slow Breathing",
+	"Breathing",
 	"Mono Rainbow",
 	"Multi Rainbow",
 	"Off",
 }
 
+-- Breathing speed options
+local BREATHING_SPEEDS = {
+	"Slow",
+	"Medium",
+	"Fast",
+}
+
 local menuList = nil
 local input = nil
+
+-- Helper function to get the current breathing speed based on rgbMode
+local function getCurrentBreathingSpeed()
+	if state.rgbMode == "Fast Breathing" then
+		return 1
+	elseif state.rgbMode == "Medium Breathing" then
+		return 2
+	elseif state.rgbMode == "Slow Breathing" then
+		return 3
+	else
+		return 2 -- Default to Medium
+	end
+end
+
+-- Helper function to get the current mode display name
+local function getCurrentModeDisplay()
+	if
+		state.rgbMode == "Fast Breathing"
+		or state.rgbMode == "Medium Breathing"
+		or state.rgbMode == "Slow Breathing"
+	then
+		return "Breathing"
+	else
+		return state.rgbMode
+	end
+end
 
 -- Helper function to check if RGB color should be visible based on mode
 local function isColorVisible()
@@ -47,9 +78,19 @@ local function isSpeedVisible()
 	local currentMode = state.rgbMode
 	return currentMode ~= "Off"
 		and currentMode ~= "Solid"
-		and currentMode ~= "Fast Breathing"
-		and currentMode ~= "Medium Breathing"
-		and currentMode ~= "Slow Breathing"
+		and (
+			currentMode == "Fast Breathing"
+			or currentMode == "Medium Breathing"
+			or currentMode == "Slow Breathing"
+			or currentMode == "Mono Rainbow"
+			or currentMode == "Multi Rainbow"
+		)
+end
+
+-- Helper function to check if breathing speed should be visible
+local function isBreathingSpeedVisible()
+	local currentMode = state.rgbMode
+	return currentMode == "Fast Breathing" or currentMode == "Medium Breathing" or currentMode == "Slow Breathing"
 end
 
 -- Helper function to check if RGB brightness should be visible based on mode
@@ -67,8 +108,9 @@ local function createMenuButtons()
 			type = ButtonTypes.INDICATORS,
 			options = RGB_MODES,
 			currentOptionIndex = (function()
+				local currentDisplay = getCurrentModeDisplay()
 				for i, option in ipairs(RGB_MODES) do
-					if option == state.rgbMode then
+					if option == currentDisplay then
 						return i
 					end
 				end
@@ -78,6 +120,19 @@ local function createMenuButtons()
 			context = "modeToggle",
 		})
 	)
+	if isBreathingSpeedVisible() then
+		table.insert(
+			buttons,
+			Button:new({
+				text = "Speed",
+				type = ButtonTypes.INDICATORS,
+				options = BREATHING_SPEEDS,
+				currentOptionIndex = getCurrentBreathingSpeed(),
+				screenWidth = state.screenWidth,
+				context = "breathingSpeedToggle",
+			})
+		)
+	end
 	if isBrightnessVisible() then
 		table.insert(
 			buttons,
@@ -108,7 +163,8 @@ local function createMenuButtons()
 			})
 		)
 	end
-	if isSpeedVisible() then
+
+	if isSpeedVisible() and not isBreathingSpeedVisible() then
 		table.insert(
 			buttons,
 			Button:new({
@@ -128,7 +184,13 @@ local function handleOptionCycle(button, direction)
 	if button.context == "modeToggle" then
 		local changed = button:cycleOption(direction)
 		if changed then
-			state.rgbMode = button:getCurrentOption()
+			local selectedMode = button:getCurrentOption()
+			if selectedMode == "Breathing" then
+				-- Default to Medium Breathing when switching to Breathing mode
+				state.rgbMode = "Medium Breathing"
+			else
+				state.rgbMode = selectedMode
+			end
 			if state.hasRGBSupport then
 				rgbUtils.updateConfig()
 			end
@@ -141,6 +203,22 @@ local function handleOptionCycle(button, direction)
 		local changed = button:cycleOption(direction)
 		if changed then
 			state.rgbBrightness = button:getCurrentOption()
+			if state.hasRGBSupport then
+				rgbUtils.updateConfig()
+			end
+		end
+		return changed
+	elseif button.context == "breathingSpeedToggle" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			local selectedSpeed = button:getCurrentOption()
+			if selectedSpeed == "Fast" then
+				state.rgbMode = "Fast Breathing"
+			elseif selectedSpeed == "Medium" then
+				state.rgbMode = "Medium Breathing"
+			elseif selectedSpeed == "Slow" then
+				state.rgbMode = "Slow Breathing"
+			end
 			if state.hasRGBSupport then
 				rgbUtils.updateConfig()
 			end
