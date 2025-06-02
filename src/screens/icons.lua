@@ -114,11 +114,18 @@ function iconsToggle.draw()
 			previewWidth = previewHeight * aspectRatio
 		end
 
-		-- Center the image
+		-- Ensure image is never scaled larger than original size
+		if previewWidth > imageWidth or previewHeight > imageHeight then
+			previewWidth = imageWidth
+			previewHeight = imageHeight
+		end
+
+		-- Center the image both horizontally and vertically
 		local previewX = (state.screenWidth - previewWidth) / 2
+		local centeredPreviewY = previewY + (previewAreaHeight - previewHeight) / 2
 
 		-- Draw using the image component
-		imageComponent.draw(currentImage, previewX, previewY, previewWidth, previewHeight)
+		imageComponent.draw(currentImage, previewX, centeredPreviewY, previewWidth, previewHeight)
 	end
 
 	-- Draw controls
