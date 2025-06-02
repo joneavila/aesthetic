@@ -71,7 +71,7 @@ local function isValidHex(input)
 	return true
 end
 
--- Helper function to get button dimensions
+-- Helper function to get button dimensions (square keys)
 local function getButtonDimensions()
 	local contentArea = constants.calculateContentArea()
 
@@ -81,16 +81,39 @@ local function getButtonDimensions()
 	local buttonWidth = (gridWidth - (5 * GRID_PADDING)) / 6
 	local buttonHeight = (availableHeight - (2 * GRID_PADDING)) / 3
 
-	return buttonWidth, buttonHeight
+	-- Make buttons square by using the smaller dimension
+	local buttonSize = math.min(buttonWidth, buttonHeight)
+
+	return buttonSize, buttonSize
+end
+
+-- Helper function to get grid start position (for centering)
+local function getGridStartPosition()
+	local contentArea = constants.calculateContentArea()
+	local buttonSize = getButtonDimensions()
+
+	-- Calculate total grid dimensions
+	local totalGridWidth = (buttonSize * 6) + (GRID_PADDING * 5)
+	local totalGridHeight = (buttonSize * 3) + (GRID_PADDING * 2)
+
+	-- Calculate available space for the grid
+	local availableWidth = contentArea.width
+	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
+
+	-- Center the grid horizontally and vertically
+	local startX = (availableWidth - totalGridWidth) / 2
+	local startY = contentArea.y
+		+ TOP_PADDING
+		+ PREVIEW_HEIGHT
+		+ (availableHeight - PREVIEW_HEIGHT - totalGridHeight) / 2
+
+	return startX, startY
 end
 
 -- Helper function to get button position
 local function getButtonPosition(row, col)
-	local contentArea = constants.calculateContentArea()
-
 	local buttonWidth, buttonHeight = getButtonDimensions()
-	local startX = EDGE_PADDING
-	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + GRID_PADDING
+	local startX, startY = getGridStartPosition()
 
 	local x = startX + (col - 1) * (buttonWidth + GRID_PADDING)
 	local y = startY + (row - 1) * (buttonHeight + GRID_PADDING)
