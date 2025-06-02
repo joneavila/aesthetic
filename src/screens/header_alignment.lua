@@ -107,14 +107,12 @@ function headerAlignment.draw()
 	header.draw("header alignment")
 
 	-- Draw warning text below header
-	local warningText =
-		"You must set the 'Status Alignment' and 'Time Alignment' settings appropriately to avoid overlapping elements."
-	love.graphics.setFont(fonts.loaded.caption)
+	local warningText = 'Note: Set the "Status Alignment" and "Time Alignment" settings to avoid overlapping elements.'
+	love.graphics.setFont(fonts.loaded.body)
 	love.graphics.setColor(colors.ui.subtext)
 	local warningY = header.getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(warningText, EDGE_PADDING, warningY, warningWidth, "left")
-	love.graphics.setFont(fonts.loaded.body)
 
 	-- Calculate warning text height
 	local _, wrappedLines = fonts.loaded.caption:getWrap(warningText, warningWidth)
@@ -122,7 +120,7 @@ function headerAlignment.draw()
 
 	-- Position the menu list below the warning text
 	if menuList then
-		menuList.y = header.getContentStartY() + warningHeight + 6
+		menuList.y = header.getContentStartY() + warningHeight + 10
 		menuList:draw()
 	end
 
