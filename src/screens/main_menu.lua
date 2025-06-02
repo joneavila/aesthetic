@@ -56,6 +56,16 @@ local function truncateThemeName(name)
 	return name
 end
 
+-- Helper function to format header opacity value consistently
+local function formatHeaderOpacity(alphaValue)
+	local percent = math.floor((alphaValue / 255) * 100 + 0.5)
+	if percent == 0 then
+		return "0% (Hidden)"
+	else
+		return percent .. "%"
+	end
+end
+
 -- Create all the menu buttons
 local function createMenuButtons()
 	local buttons = {}
@@ -193,9 +203,9 @@ local function createMenuButtons()
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Header Text Alpha",
+			text = "Header Opacity",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = string.format("%d%%", math.floor((state.headerTextAlpha / 255) * 100 + 0.5)),
+			previewText = formatHeaderOpacity(state.headerTextAlpha),
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("header_text_opacity")
@@ -679,6 +689,8 @@ function menu.onEnter(data)
 		elseif button.text == "Header Alignment" then
 			local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
 			button:setPreviewText(alignmentMap[state.headerTextAlignment] or "Center")
+		elseif button.text == "Header Opacity" then
+			button:setPreviewText(formatHeaderOpacity(state.headerTextAlpha))
 		end
 	end
 end

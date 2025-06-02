@@ -22,12 +22,21 @@ local header_text_opacity = {}
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 
+-- Function to format slider values with percentage and special case for 0
+local function formatSliderValue(value)
+	if value == 0 then
+		return "0% (Hidden)"
+	else
+		return value .. "%"
+	end
+end
+
 local alphaSlider = nil
 
 -- Draw the screen
 function header_text_opacity.draw()
 	background.draw()
-	header.draw("header text alpha")
+	header.draw("header opacity")
 	love.graphics.setFont(fonts.loaded.body)
 
 	local startY = header.getContentStartY() + 60
@@ -42,20 +51,37 @@ function header_text_opacity.draw()
 	local previewY = sliderY + 120
 	local previewHeight = 100
 
-	-- Draw preview label
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.printf("Preview", 40, previewY, state.screenWidth - 80, "center")
-
-	-- Draw preview box with current alpha value
-	previewY = previewY + 30
+	-- Draw preview box with background color at full opacity
 	local previewWidth = state.screenWidth - 80
 
 	-- Calculate alpha from current value (0-100 to 0-1)
 	local alpha = alphaSlider and alphaSlider.values[alphaSlider.valueIndex] / 100 or 1
 
-	-- Draw preview rectangle with selected alpha
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], alpha)
+	-- Get background color from state and draw rectangle at full opacity
+	local bgColor = state.getColorValue("background")
+	local bgR, bgG, bgB = love.math.colorFromBytes(
+		tonumber(bgColor:sub(2, 3), 16),
+		tonumber(bgColor:sub(4, 5), 16),
+		tonumber(bgColor:sub(6, 7), 16)
+	)
+	love.graphics.setColor(bgR, bgG, bgB, 1.0)
 	love.graphics.rectangle("fill", 40, previewY, previewWidth, previewHeight, 8, 8)
+
+	-- Draw "Preview" text in the center with matching opacity
+	local fgColor = state.getColorValue("foreground")
+	local fgR, fgG, fgB = love.math.colorFromBytes(
+		tonumber(fgColor:sub(2, 3), 16),
+		tonumber(fgColor:sub(4, 5), 16),
+		tonumber(fgColor:sub(6, 7), 16)
+	)
+	love.graphics.setColor(fgR, fgG, fgB, alpha)
+	love.graphics.printf(
+		"Preview",
+		40,
+		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
+		previewWidth,
+		"center"
+	)
 
 	-- Draw border around preview
 	love.graphics.setColor(colors.ui.foreground)
@@ -110,7 +136,8 @@ function header_text_opacity.onEnter()
 		width = state.screenWidth - 80,
 		values = alphaValues,
 		valueIndex = closestIndex,
-		label = "Transparency",
+		label = "Opacity",
+		valueFormatter = formatSliderValue,
 		onValueChanged = function(val, _idx)
 			state.headerTextAlpha = math.floor((val / 100) * 255 + 0.5)
 		end,

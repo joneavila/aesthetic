@@ -26,6 +26,7 @@ function Slider:new(config)
 	self.valueIndex = config.valueIndex or 1
 	self.label = config.label
 	self.onValueChanged = config.onValueChanged
+	self.valueFormatter = config.valueFormatter -- Custom formatter function
 	self.animatedValue = self.valueIndex
 	self.currentTween = nil
 	return self
@@ -97,7 +98,8 @@ function Slider:draw()
 		love.graphics.print(self.label, self.x + Slider.PADDING, self.y - Slider.LABEL_OFFSET_Y)
 	end
 	local currentValue = self.values[clampedCurrentIndex]
-	local valueText = tostring(currentValue)
+	-- Use custom formatter if provided, otherwise fall back to tostring
+	local valueText = self.valueFormatter and self.valueFormatter(currentValue) or tostring(currentValue)
 	local font = love.graphics.getFont()
 	local textWidth = font:getWidth(valueText)
 	love.graphics.setColor(colors.ui.foreground)
