@@ -146,7 +146,7 @@ function backgroundColor.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("background color")
+	header.draw("background")
 
 	love.graphics.setFont(fonts.loaded.body)
 

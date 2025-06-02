@@ -88,7 +88,7 @@ local function createMenuButtons()
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Background Color",
+			text = "Background",
 			type = state.backgroundType == "Gradient" and ButtonTypes.GRADIENT or ButtonTypes.COLOR,
 			hexColor = state.backgroundType ~= "Gradient" and state.getColorValue("background") or nil,
 			startColor = state.backgroundType == "Gradient" and state.getColorValue("background") or nil,
@@ -106,7 +106,7 @@ local function createMenuButtons()
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Foreground Color",
+			text = "Foreground",
 			type = ButtonTypes.COLOR,
 			hexColor = state.getColorValue("foreground"),
 			monoFont = fonts.loaded.monoBody,
