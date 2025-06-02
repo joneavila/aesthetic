@@ -171,15 +171,21 @@ local function createMenuButtons()
 	)
 
 	-- Header Alignment button
+	local function getHeaderAlignmentText()
+		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+		return alignmentMap[state.headerTextAlignment] or "Center"
+	end
+
 	table.insert(
 		buttons,
 		Button:new({
 			text = "Header Alignment",
-			type = ButtonTypes.INDICATORS,
-			options = { "Auto", "Left", "Center", "Right" },
-			currentOptionIndex = (state.headerTextAlignment or 0) + 1,
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = getHeaderAlignmentText(),
 			screenWidth = state.screenWidth,
-			context = "headerAlign",
+			onClick = function()
+				screens.switchTo("header_alignment")
+			end,
 		})
 	)
 
@@ -320,9 +326,6 @@ local function handleOptionCycle(button, direction)
 	--]]
 	if button.context == "headerText" then
 		state.headerTextEnabled = newValue
-	elseif button.context == "headerAlign" then
-		local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
-		state.headerTextAlignment = alignmentMap[newValue] or 2
 	elseif button.context == "navAlign" then
 		state.navigationAlignment = newValue
 	elseif button.context == "statusAlign" then
@@ -667,12 +670,15 @@ function menu.onEnter(data)
 		end
 	end
 
-	-- Update Home Screen Layout button preview text
+	-- Update buttons' preview text
 	for _, button in ipairs(menuList.items) do
 		if button.text == "Home Screen Layout" then
 			button:setPreviewText(state.homeScreenLayout)
 		elseif button.text == "Icons" then
 			button:setPreviewText(state.glyphsEnabled and "Enabled" or "Disabled")
+		elseif button.text == "Header Alignment" then
+			local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+			button:setPreviewText(alignmentMap[state.headerTextAlignment] or "Center")
 		end
 	end
 end
