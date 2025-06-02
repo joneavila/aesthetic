@@ -120,14 +120,14 @@ end
 -- Helper function to format color context for display
 local function formatColorContext(context)
 	if context == "background" then
-		return "Background color"
+		return "Background"
 	elseif context == "foreground" then
-		return "Foreground color"
+		return "Foreground"
 	elseif context == "rgb" then
-		return "RGB lighting color"
+		return "RGB lighting"
 	else
-		-- Capitalize first letter and add " color" suffix for other contexts
-		return context:sub(1, 1):upper() .. context:sub(2) .. " color"
+		-- Capitalize first letter
+		return context:sub(1, 1):upper() .. context:sub(2)
 	end
 end
 

@@ -246,11 +246,11 @@ function presets.loadPreset(presetName)
 	end, "Aesthetic", "string")
 
 	-- REQUIRED FIELDS - Colors
-	logger.debug("Loading background color field")
+	logger.debug("Loading background field")
 	loadField(loadedPreset, presetName, "background.value", function(v)
 		state.setColorValue("background", v)
 	end, "#1E40AF", "string")
-	logger.debug("Loading foreground color field")
+	logger.debug("Loading foreground field")
 	loadField(loadedPreset, presetName, "foreground.value", function(v)
 		state.setColorValue("foreground", v)
 	end, "#FFFFFF", "string")

@@ -84,7 +84,7 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Background Color button
+	-- Background button
 	table.insert(
 		buttons,
 		Button:new({
@@ -102,7 +102,7 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Foreground Color button
+	-- Foreground button
 	table.insert(
 		buttons,
 		Button:new({

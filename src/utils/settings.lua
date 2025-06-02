@@ -46,7 +46,7 @@ function settings.saveToFile()
 	file:write('    direction = "' .. (state.backgroundGradientDirection or "Vertical") .. '",\n')
 	file:write("  },\n")
 
-	-- Foreground color
+	-- Foreground
 	file:write("  foreground = {\n")
 	file:write('    value = "' .. state.getColorValue("foreground") .. '",\n')
 	file:write("  },\n")
@@ -253,7 +253,7 @@ function settings.loadFromFile()
 		state.backgroundGradientDirection = loadedSettings.backgroundGradient.direction
 	end
 
-	-- Foreground color
+	-- Foreground
 	if loadedSettings.foreground and loadedSettings.foreground.value then
 		state.setColorValue("foreground", loadedSettings.foreground.value)
 	end
