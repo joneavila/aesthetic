@@ -15,11 +15,11 @@ function splash.load()
 	logger.debug("Splash screen load started")
 	-- Animation settings
 	splash.title = state.applicationName
-	splash.typingDelay = 0.05 -- Delay between revealing each character
-	splash.cursorBlinkRate = 0.3 -- How fast the cursor blinks
+	splash.typingDelay = 0.07 -- Delay between revealing each character
+	splash.cursorBlinkRate = 0.25 -- How fast the cursor blinks
 	splash.cursorChar = "_" -- Character used to represent the cursor
-	splash.holdDuration = 1.3 -- Duration to display the complete text before fading out
-	splash.fadeOutDuration = 0.2 -- Duration of the fade out animation
+	splash.holdDuration = 1.00 -- Duration to display the complete text before fading out
+	splash.fadeOutDuration = 0.05 -- Duration of the fade out animation
 
 	-- Initialize animation state
 	splash.currentIndex = 0 -- How many letters have been revealed
