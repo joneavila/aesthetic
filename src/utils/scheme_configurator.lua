@@ -287,7 +287,7 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 
 		-- Use Inter as the reference font (baseline for calculations)
 		local referenceAscent = fontMetrics["Inter"].ascent
-		local selectedFont = require("ui.fonts").getSelectedFont()
+		local fontFamily = state.fontFamily
 
 		-- Get metrics for the selected font, fallback to Inter if not found
 		local selectedFontMetrics = fontMetrics[selectedFont] or fontMetrics["Inter"]

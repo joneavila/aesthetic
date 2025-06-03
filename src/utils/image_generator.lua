@@ -150,9 +150,9 @@ function imageGenerator.createIconImage(options)
 
 		-- Create a larger version of the font
 		local imageFontSize = 28
-		local fontKey = fonts.nameToKey[fonts.getSelectedFont()]
+		local fontKey = fonts.nameToKey[state.selectedFont]
 		if not fontKey then
-			logger.debug("fonts.getSelectedFont(): " .. fonts.getSelectedFont())
+			logger.debug("state.selectedFont: " .. state.selectedFont)
 			errorHandler.setError("Font mapping not found or initialized")
 			return false
 		end

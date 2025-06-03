@@ -230,13 +230,13 @@ local function copySelectedFont()
 	-- Find the selected font definition
 	local selectedFontDefinition
 	for _, font in ipairs(fonts.themeDefinitions) do
-		if font.name == fonts.getSelectedFont() then
+		if font.name == state.selectedFont then
 			selectedFontDefinition = font
 			break
 		end
 	end
 	if not selectedFontDefinition then
-		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
+		errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
 		return false
 	end
 

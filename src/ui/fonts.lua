@@ -12,10 +12,6 @@ fonts.loaded = {}
 -- Font name to font key mapping for easy lookup
 fonts.nameToKey = {}
 
--- Font state
-fonts.selectedFont = "Inter"
-fonts.fontSize = "Default"
-
 -- Theme font choices
 fonts.themeDefinitions = {
 	{
@@ -145,26 +141,6 @@ fonts.setDefault = function()
 	else
 		logger.error("Failed to set default font - body font not loaded")
 	end
-end
-
--- Helper function to get the selected font
-fonts.getSelectedFont = function()
-	return fonts.selectedFont
-end
-
--- Helper function to set the selected font
-fonts.setSelectedFont = function(fontName)
-	fonts.selectedFont = fontName
-end
-
--- Helper function to get the font size
-fonts.getFontSize = function()
-	return fonts.fontSize
-end
-
--- Helper function to set the font size
-fonts.setFontSize = function(fontSize)
-	fonts.fontSize = fontSize
 end
 
 return fonts

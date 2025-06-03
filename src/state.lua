@@ -45,10 +45,37 @@ local function createColorContext(defaultColor)
 	}
 end
 
+--- Default theme configuration values - single source of truth
+local themeDefaults = {
+	themeName = "Aesthetic",
+	selectedFont = "Inter",
+	fontSize = "Default",
+	homeScreenLayout = "Grid",
+	backgroundType = "Gradient",
+	backgroundGradientDirection = "Vertical",
+	colorContexts = {
+		background = "#1E40AF",
+		backgroundGradient = "#155CFB",
+		foreground = "#FFFFFF",
+		rgb = "#1E40AF",
+	},
+	rgbMode = "Solid",
+	rgbBrightness = 5,
+	rgbSpeed = 5,
+	glyphsEnabled = true,
+	headerTextAlignment = 2,
+	headerTextEnabled = "Disabled",
+	headerTextAlpha = 0,
+	boxArtWidth = 0,
+	navigationAlignment = "Left",
+	navigationAlpha = 100,
+	statusAlignment = "Right",
+	timeAlignment = "Left",
+}
+
 --- Main state table containing all global application state
 local state = {
 	applicationName = "Aesthetic",
-	themeName = "Aesthetic", -- Theme name
 	screenWidth = 0, -- Set in `main.lua`
 	screenHeight = 0, -- Set in `main.lua`
 	isDevelopment = os.getenv("DEV_DIR") ~= nil, -- Development mode flag
@@ -60,28 +87,30 @@ local state = {
 	activeColorContext = "background", -- Default active color context (background, backgroundGradient, foreground, rgb)
 
 	-- Begin: Theme configuration and defaults
-	glyphsEnabled = true, -- Glyphs (icons) enabled
-	navigationAlignment = "Left", -- Navigation glyphs and text alignment (Left, Center, Right)
-	navigationAlpha = 100, -- Navigation glyphs and textalpha (0-100)
-	-- Status alignment (Left, Right, Center, Space Evenly, Equal Distribution, Edge Anchored)
-	statusAlignment = "Right",
-	boxArtWidth = 0, -- Box art width (content width)
-	timeAlignment = "Left", -- Time alignment (Auto, Left, Center, Right)
-	headerTextAlignment = 2, -- Header text alignment (0-Auto, 1-Left, 2-Center, 3-Right)
-	rgbMode = "Solid", -- RGB lighting mode
-	rgbBrightness = 5, -- RGB brightness (1-10)
-	rgbSpeed = 5, -- RGB speed (1-10)
-	backgroundType = "Gradient", -- Background type (Solid or Gradient)
-	backgroundGradientDirection = "Vertical", -- Gradient direction
-	headerTextEnabled = "Disabled", -- Header text (Enabled/Disabled)
-	headerTextAlpha = 0, -- Header text alpha (0-255, 255 = 100%)
-	homeScreenLayout = "Grid", -- Home screen layout: "List" or "Grid"
+	themeName = themeDefaults.themeName,
+	selectedFont = themeDefaults.selectedFont,
+	fontSize = themeDefaults.fontSize,
+	homeScreenLayout = themeDefaults.homeScreenLayout,
+	backgroundType = themeDefaults.backgroundType,
+	backgroundGradientDirection = themeDefaults.backgroundGradientDirection,
 	colorContexts = {
-		background = createColorContext("#1E40AF"), -- Default background color
-		backgroundGradient = createColorContext("#155CFB"), -- Default background gradient stop color
-		foreground = createColorContext("#FFFFFF"), -- Default foreground color
-		rgb = createColorContext("#1E40AF"), -- Default RGB lighting color
+		background = createColorContext(themeDefaults.colorContexts.background),
+		backgroundGradient = createColorContext(themeDefaults.colorContexts.backgroundGradient),
+		foreground = createColorContext(themeDefaults.colorContexts.foreground),
+		rgb = createColorContext(themeDefaults.colorContexts.rgb),
 	},
+	rgbMode = themeDefaults.rgbMode,
+	rgbBrightness = themeDefaults.rgbBrightness,
+	rgbSpeed = themeDefaults.rgbSpeed,
+	glyphsEnabled = themeDefaults.glyphsEnabled,
+	headerTextAlignment = themeDefaults.headerTextAlignment,
+	headerTextEnabled = themeDefaults.headerTextEnabled,
+	headerTextAlpha = themeDefaults.headerTextAlpha,
+	boxArtWidth = themeDefaults.boxArtWidth,
+	navigationAlignment = themeDefaults.navigationAlignment,
+	navigationAlpha = themeDefaults.navigationAlpha,
+	statusAlignment = themeDefaults.statusAlignment,
+	timeAlignment = themeDefaults.timeAlignment,
 	-- End: Theme configuration and defaults
 }
 
@@ -123,6 +152,43 @@ function state.setColorValue(contextKey, colorValue)
 	context.hsv.val = v
 
 	return colorValue
+end
+
+--- Reset all theme configuration to default values
+function state.resetToDefaults()
+	logger.debug("Resetting theme configuration to defaults")
+
+	-- Reset simple values
+	state.themeName = themeDefaults.themeName
+	state.selectedFont = themeDefaults.selectedFont
+	state.fontSize = themeDefaults.fontSize
+	state.homeScreenLayout = themeDefaults.homeScreenLayout
+	state.backgroundType = themeDefaults.backgroundType
+	state.backgroundGradientDirection = themeDefaults.backgroundGradientDirection
+	state.rgbMode = themeDefaults.rgbMode
+	state.rgbBrightness = themeDefaults.rgbBrightness
+	state.rgbSpeed = themeDefaults.rgbSpeed
+	state.glyphsEnabled = themeDefaults.glyphsEnabled
+	state.headerTextAlignment = themeDefaults.headerTextAlignment
+	state.headerTextEnabled = themeDefaults.headerTextEnabled
+	state.headerTextAlpha = themeDefaults.headerTextAlpha
+	state.boxArtWidth = themeDefaults.boxArtWidth
+	state.navigationAlignment = themeDefaults.navigationAlignment
+	state.navigationAlpha = themeDefaults.navigationAlpha
+	state.statusAlignment = themeDefaults.statusAlignment
+	state.timeAlignment = themeDefaults.timeAlignment
+
+	-- Reset color contexts
+	for contextKey, defaultColor in pairs(themeDefaults.colorContexts) do
+		state.setColorValue(contextKey, defaultColor)
+	end
+
+	-- Apply RGB settings immediately if RGB is supported
+	if state.hasRGBSupport then
+		local rgb = require("utils.rgb")
+		rgb.updateConfig()
+		logger.debug("Applied RGB settings after reset to defaults")
+	end
 end
 
 return state

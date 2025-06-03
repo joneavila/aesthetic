@@ -99,7 +99,7 @@ local function createMenuButtons()
 				text = fontItem.name,
 				screenWidth = state.screenWidth,
 				onClick = function()
-					fonts.setSelectedFont(fontItem.name)
+					state.selectedFont = fontItem.name
 					screens.switchTo("main_menu")
 				end,
 			})

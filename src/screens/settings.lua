@@ -102,6 +102,36 @@ local function createMenuButtons()
 			end,
 		}),
 		Button:new({
+			text = "Reset to Defaults",
+			type = "basic",
+			onClick = function()
+				modalInstance:show("This will clear your customizations. Reset to defaults?", {
+					{
+						text = "Cancel",
+						onSelect = function()
+							modalInstance:hide()
+						end,
+					},
+					{
+						text = "Confirm",
+						onSelect = function()
+							state.resetToDefaults()
+							modalInstance:show("Theme reset to defaults successfully", {
+								{
+									text = "Close",
+									onSelect = function()
+										modalInstance:hide()
+										-- Navigate back to main menu to refresh UI with new state
+										screens.switchTo("main_menu")
+									end,
+								},
+							})
+						end,
+					},
+				})
+			end,
+		}),
+		Button:new({
 			text = "Manage Themes",
 			type = "basic",
 			onClick = function()

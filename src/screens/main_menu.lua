@@ -141,7 +141,7 @@ local function createMenuButtons()
 		Button:new({
 			text = "Font Family",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = fonts.getSelectedFont(),
+			previewText = state.selectedFont,
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("font_family")
@@ -159,7 +159,7 @@ local function createMenuButtons()
 			text = "Font Size",
 			type = ButtonTypes.INDICATORS,
 			options = { "Default", "Large", "Extra Large" },
-			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[fonts.getFontSize()] or 1,
+			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[state.fontSize] or 1,
 			screenWidth = state.screenWidth,
 			context = "fontSize",
 		})
@@ -331,7 +331,7 @@ local function handleOptionCycle(button, direction)
 	-- Temporarily disabled
 	--[[
 	if button.context == "fontSize" then
-		fonts.setFontSize(newValue)
+		state.fontSize = newValue
 	elseif button.context == "glyphs" then
 	--]]
 	if button.context == "headerText" then
@@ -645,7 +645,18 @@ function menu.update(dt)
 	end
 end
 
-function menu.onExit() end
+-- Store the current focus state when exiting
+local lastFocusState = { actionButtonFocused = false, selectedIndex = 1 }
+
+function menu.onExit()
+	-- Remember the current focus state
+	if actionButton then
+		lastFocusState.actionButtonFocused = actionButton.focused or false
+	end
+	if menuList then
+		lastFocusState.selectedIndex = menuList.selectedIndex or 1
+	end
+end
 
 function menu.onEnter(data)
 	-- Rebuild the UI components with current state
@@ -654,6 +665,22 @@ function menu.onEnter(data)
 
 	if menuList then
 		menuList:setItems(buttons)
+
+		-- Restore focus state properly
+		if lastFocusState.actionButtonFocused then
+			-- If action button was focused, we need to ensure proper navigation works
+			-- Reset to a valid list state first, then focus the action button
+			menuList:setSelectedIndex(0) -- 0 means no list item selected
+		else
+			-- Restore the last selected index, ensuring it's valid
+			local validIndex = math.min(math.max(lastFocusState.selectedIndex, 1), #buttons)
+			menuList:setSelectedIndex(validIndex)
+		end
+	end
+
+	-- Restore action button focus state
+	if actionButton then
+		actionButton:setFocused(lastFocusState.actionButtonFocused)
 	end
 
 	-- Check for returned data from virtual_keyboard

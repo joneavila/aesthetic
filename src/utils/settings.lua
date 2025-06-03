@@ -63,7 +63,7 @@ function settings.saveToFile()
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
-	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
+	file:write('  font = "' .. state.selectedFont .. '",\n')
 
 	-- TEMPORARILY DISABLED: Font size saving
 	-- file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
@@ -284,7 +284,7 @@ function settings.loadFromFile()
 
 	-- Font
 	if loadedSettings.font then
-		fonts.setSelectedFont(loadedSettings.font)
+		state.selectedFont = loadedSettings.font
 	end
 
 	-- TEMPORARILY DISABLED: Font size loading

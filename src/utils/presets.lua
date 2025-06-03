@@ -102,7 +102,7 @@ function presets.savePreset(presetName)
 	local currentTime = os.time()
 	file:write("  created = " .. currentTime .. ",\n")
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-	file:write('  font = "' .. fonts.getSelectedFont() .. '",\n')
+	file:write('  font = "' .. state.selectedFont .. '",\n')
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
 	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
 	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
@@ -305,13 +305,13 @@ function presets.loadPreset(presetName)
 	logger.debug("Loading font family field")
 	local fontSet = loadField(loadedPreset, presetName, "fontFamily", function(v)
 		logger.debug("Attempting to set font family to: " .. tostring(v))
-		fonts.setSelectedFont(v)
+		state.selectedFont = v
 	end, nil, "string")
 	if not fontSet then
 		logger.debug("fontFamily field not found, trying legacy font field")
 		loadField(loadedPreset, presetName, "font", function(v)
 			logger.debug("Attempting to set font (legacy) to: " .. tostring(v))
-			fonts.setSelectedFont(v)
+			state.selectedFont = v
 		end, nil, "string")
 	end
 	-- TEMPORARILY DISABLED: Font size loading
