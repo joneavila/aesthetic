@@ -240,11 +240,11 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Navigation Alpha button
+	-- Navigation Opacity button
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Navigation Alpha",
+			text = "Navigation Opacity",
 			type = ButtonTypes.TEXT_PREVIEW,
 			previewText = state.navigationOpacity and (state.navigationOpacity .. "%") or "50%",
 			screenWidth = state.screenWidth,

@@ -1,5 +1,5 @@
---- Navigation Alpha screen
--- This screen allows controlling the alpha/transparency of navigation elements
+--- Navigation Opacity screen
+-- This screen allows controlling the opacity of navigation elements
 
 local love = require("love")
 
@@ -21,14 +21,14 @@ local MENU_SCREEN = "main_menu" -- Add MENU_SCREEN constant
 -- Module table to export public functions
 local navigation_opacity = {}
 
--- Alpha values for the slider (0-100 in increments of 10)
-local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
+-- Opacity values for the slider (0-100 in increments of 10)
+local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 
-local alphaSlider = nil
+local opacitySlider = nil
 
--- Function to get display text for an alpha value
-local function getDisplayText(alpha)
-	return tostring(alpha) .. "%"
+-- Function to get display text for an opacity value
+local function getDisplayText(opacity)
+	return tostring(opacity) .. "%"
 end
 
 -- Draw the screen
@@ -37,7 +37,7 @@ function navigation_opacity.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("navigation alpha")
+	header.draw("navigation opacity")
 
 	-- Set font
 	love.graphics.setFont(fonts.loaded.body)
@@ -47,8 +47,8 @@ function navigation_opacity.draw()
 
 	-- Draw slider
 	local sliderY = startY + 40
-	if alphaSlider then
-		alphaSlider:draw()
+	if opacitySlider then
+		opacitySlider:draw()
 	end
 
 	-- Draw preview area
@@ -59,13 +59,13 @@ function navigation_opacity.draw()
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf("Preview", 40, previewY, state.screenWidth - 80, "center")
 
-	-- Draw preview box with current alpha value
+	-- Draw preview box with current opacity value
 	previewY = previewY + 30
 	local previewWidth = state.screenWidth - 80
 
-	-- Calculate alpha from current value (0-100 to 0-1)
-	-- Use the actual BUTTONS value, not the animated value, for the preview transparency
-	local alpha = alphaSlider and alphaSlider.values[alphaSlider.valueIndex] / 100 or 1
+	-- Calculate opacity from current value (0-100 to 0-1)
+	-- Use the actual BUTTONS value, not the animated value, for the preview
+	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1
 
 	-- Draw preview rectangle with selected alpha
 	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], alpha)
@@ -85,8 +85,8 @@ end
 
 -- Update function to handle input
 function navigation_opacity.update(dt)
-	if alphaSlider then
-		alphaSlider:update(dt)
+	if opacitySlider then
+		opacitySlider:update(dt)
 	end
 	local virtualJoystick = input.virtualJoystick
 	local handler = inputHandler.create(virtualJoystick)
@@ -94,19 +94,19 @@ function navigation_opacity.update(dt)
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
-	if alphaSlider and alphaSlider:handleInput(handler) then
-		state.navigationOpacity = alphaSlider.values[alphaSlider.valueIndex]
+	if opacitySlider and opacitySlider:handleInput(handler) then
+		state.navigationOpacity = opacitySlider.values[opacitySlider.valueIndex]
 	end
 end
 
 -- Called when entering the screen
 function navigation_opacity.onEnter()
-	-- Find the closest alpha value index
+	-- Find the closest opacity value index
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
 
 	if state.navigationOpacity then
-		for i, value in ipairs(alphaValues) do
+		for i, value in ipairs(opacityValues) do
 			local diff = math.abs(state.navigationOpacity - value)
 			if diff < minDiff then
 				minDiff = diff
@@ -115,13 +115,13 @@ function navigation_opacity.onEnter()
 		end
 	end
 
-	alphaSlider = Slider:new({
+	opacitySlider = Slider:new({
 		x = 40,
 		y = header.getContentStartY() + 100,
 		width = state.screenWidth - 80,
-		values = alphaValues,
+		values = opacityValues,
 		valueIndex = closestIndex,
-		label = "Transparency",
+		label = "Opacity",
 		onValueChanged = function(val, _idx)
 			state.navigationOpacity = val
 		end,
