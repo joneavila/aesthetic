@@ -180,6 +180,33 @@ local function createMenuButtons()
 		})
 	)
 
+	-- Navigation Alignment button
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Navigation Alignment",
+			type = ButtonTypes.INDICATORS,
+			options = { "Left", "Center", "Right" },
+			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2,
+			screenWidth = state.screenWidth,
+			context = "navAlign",
+		})
+	)
+
+	-- Navigation Opacity button
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Navigation Opacity",
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = state.navigationOpacity and (state.navigationOpacity .. "%") or "50%",
+			screenWidth = state.screenWidth,
+			onClick = function()
+				screens.switchTo("navigation_opacity")
+			end,
+		})
+	)
+
 	-- Header Alignment button
 	local function getHeaderAlignmentText()
 		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
@@ -223,33 +250,6 @@ local function createMenuButtons()
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("box_art_width")
-			end,
-		})
-	)
-
-	-- Navigation Alignment button
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Navigation Alignment",
-			type = ButtonTypes.INDICATORS,
-			options = { "Left", "Center", "Right" },
-			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2,
-			screenWidth = state.screenWidth,
-			context = "navAlign",
-		})
-	)
-
-	-- Navigation Opacity button
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Navigation Opacity",
-			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.navigationOpacity and (state.navigationOpacity .. "%") or "50%",
-			screenWidth = state.screenWidth,
-			onClick = function()
-				screens.switchTo("navigation_opacity")
 			end,
 		})
 	)
