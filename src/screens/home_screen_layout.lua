@@ -46,7 +46,7 @@ end
 -- Create the layout selection button
 local function createLayoutButton()
 	return Button:new({
-		text = "Home Screen Layout",
+		text = "Layout",
 		type = ButtonTypes.INDICATORS,
 		options = { "List", "Grid" },
 		currentOptionIndex = (state.homeScreenLayout == "Grid" and 2) or 1,
