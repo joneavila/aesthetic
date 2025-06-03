@@ -34,6 +34,9 @@ Slider.TICK_VERTICAL_OFFSET = 2
 -- Component padding constants
 Slider.BOTTOM_PADDING = 10
 
+Slider.TWEEN_DURATION = 0.25 -- Duration in seconds for slider animation
+Slider.TWEEN_EASING = "outQuad" -- Easing function for slider animation
+
 function Slider:new(config)
 	local self = setmetatable(component.Component:new(config), Slider)
 	self.x = config.x or 0
@@ -53,7 +56,7 @@ function Slider:setValueIndex(idx, animate)
 	idx = math.max(1, math.min(#self.values, idx))
 	if animate then
 		if math.abs(self.animatedValue - idx) > 0.01 then
-			self.currentTween = tween.new(0.25, self, { animatedValue = idx }, "inOutQuad")
+			self.currentTween = tween.new(Slider.TWEEN_DURATION, self, { animatedValue = idx }, Slider.TWEEN_EASING)
 		end
 	else
 		self.animatedValue = idx
