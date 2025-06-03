@@ -249,12 +249,6 @@ end
 
 -- Create a preview image for muOS theme selection
 function imageGenerator.createPreviewImage(outputPath)
-	-- Set the preview image dimensions based on the screen resolution
-	local screenWidth, screenHeight = state.screenWidth, state.screenHeight
-
-	-- Log dimensions for debugging
-	logger.debug("Creating preview image with dimensions: " .. screenWidth .. "x" .. screenHeight)
-
 	-- See: https://muos.dev/themes/zipping.html#creating-a-preview-image
 	local previewImageWidth = 288
 	local previewImageHeight = 216
@@ -266,8 +260,13 @@ function imageGenerator.createPreviewImage(outputPath)
 	-- Create canvas
 	local canvas, previousCanvas = imageGenerator.createCanvas(previewImageWidth, previewImageHeight)
 
+	-- Save current blend mode and graphics state to restore later
+	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
+
 	-- Clear canvas with transparent color (we'll draw background after)
 	love.graphics.clear(0, 0, 0, 0)
+
+	love.graphics.push()
 
 	-- Apply background based on background type
 	if state.backgroundType == "Gradient" then
@@ -276,10 +275,14 @@ function imageGenerator.createPreviewImage(outputPath)
 		local gradientColor = colorUtils.hexToLove(state.getColorValue("backgroundGradient"))
 
 		-- Create gradient mesh with background color and gradient color
-		local rainbow = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
+		local gradientMesh = imageGenerator.createGradientMesh(gradientDirection, bgColor, gradientColor)
+
+		-- Set proper blend mode and color for gradient rendering
+		love.graphics.setBlendMode("alpha")
+		love.graphics.setColor(1, 1, 1, 1)
 
 		-- Draw gradient filling the entire canvas
-		love.graphics.draw(rainbow, 0, 0, 0, previewImageWidth, previewImageHeight)
+		love.graphics.draw(gradientMesh, 0, 0, 0, previewImageWidth, previewImageHeight)
 	else
 		-- Solid background
 		love.graphics.setColor(bgColor)
@@ -287,6 +290,7 @@ function imageGenerator.createPreviewImage(outputPath)
 	end
 
 	-- Set font and draw text
+	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(fgColor)
 	local selectedFontName = state.selectedFont
 
@@ -299,6 +303,11 @@ function imageGenerator.createPreviewImage(outputPath)
 	local textX = (previewImageWidth - textWidth) / 2
 	local textY = (previewImageHeight - textHeight) / 2
 	love.graphics.print(previewImageText, textX, textY)
+
+	love.graphics.pop()
+
+	-- Restore original blend mode
+	love.graphics.setBlendMode(prevBlendMode, prevAlphaMode)
 
 	-- Finish canvas operations
 	imageGenerator.finishCanvas(previousCanvas)
