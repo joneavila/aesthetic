@@ -28,7 +28,6 @@ local focusedComponent = 1 -- 1 = button, 2 = slider
 local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
-local INFO_TEXT = "Navigation controls appear at the bottom of the screen and show button prompts."
 
 -- Opacity values for the slider (0-100 in increments of 10)
 local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
@@ -113,13 +112,6 @@ local function updateFocusStates()
 	end
 end
 
--- Calculate warning text height properly accounting for wrapping
-local function calculateWarningHeight()
-	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	local _, wrappedLines = fonts.loaded.caption:getWrap(INFO_TEXT, warningWidth)
-	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
-end
-
 function navigationScreen.load()
 	input = inputHandler.create()
 
@@ -144,13 +136,6 @@ end
 function navigationScreen.draw()
 	background.draw()
 	header.draw("navigation")
-
-	-- Draw warning text below header
-	love.graphics.setFont(fonts.loaded.caption)
-	love.graphics.setColor(colors.ui.subtext)
-	local warningY = header.getContentStartY() + 2
-	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	love.graphics.printf(INFO_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw alignment button

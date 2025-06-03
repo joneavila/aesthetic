@@ -28,7 +28,7 @@ local focusedComponent = 1 -- 1 = button, 2 = slider
 local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
-local WARNING_TEXT = 'Note: Set the "Status Alignment" and "Header Alignment" settings to avoid overlapping elements.'
+local WARNING_TEXT = "Note: Time alignment setting may conflict with header alignment and status alignment settings."
 
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
