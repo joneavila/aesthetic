@@ -1,5 +1,5 @@
---- Navigation Settings Screen
--- NOTE: The header screen (header.lua) and navigation screen (navigation.lua) share layout,
+--- Status Settings Screen
+-- NOTE: The status screen (status.lua) and navigation screen (navigation.lua) share layout,
 -- so any changes made here should be made to the other screen.
 local love = require("love")
 
@@ -14,37 +14,23 @@ local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
-local Slider = require("ui.slider").Slider
 
-local navigationScreen = {}
+local statusScreen = {}
 
 -- UI Components
 local alignmentButton = nil
-local opacitySlider = nil
 local input = nil
-local focusedComponent = 1 -- 1 = button, 2 = slider
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
-
--- Opacity values for the slider (0-100 in increments of 10)
-local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
-
--- Function to format slider values with percentage and special case for 0
-local function formatSliderValue(value)
-	if value == 0 then
-		return "0% (Hidden)"
-	else
-		return value .. "%"
-	end
-end
+local WARNING_TEXT = "Note: Status alignment setting may conflict with time alignment and header alignment settings."
 
 -- Create the alignment selection button
 local function createAlignmentButton()
 	local alignmentOptions = { "Left", "Center", "Right" }
-	local currentIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2
+	local currentIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.statusAlignment] or 1
 
 	return Button:new({
 		text = "Alignment",
@@ -52,36 +38,7 @@ local function createAlignmentButton()
 		options = alignmentOptions,
 		currentOptionIndex = currentIndex,
 		screenWidth = state.screenWidth,
-		context = "navigationAlignment",
-	})
-end
-
--- Create the opacity slider
-local function createOpacitySlider(y)
-	-- Find the closest opacity value index
-	local closestIndex = 11 -- Default to 100%
-	local minDiff = 100
-
-	local percent = state.navigationOpacity or 100
-	for i, value in ipairs(opacityValues) do
-		local diff = math.abs(percent - value)
-		if diff < minDiff then
-			minDiff = diff
-			closestIndex = i
-		end
-	end
-
-	return Slider:new({
-		x = EDGE_PADDING,
-		y = y,
-		width = state.screenWidth - (EDGE_PADDING * 2),
-		values = opacityValues,
-		valueIndex = closestIndex,
-		label = "Opacity",
-		valueFormatter = formatSliderValue,
-		onValueChanged = function(val, _idx)
-			state.navigationOpacity = val
-		end,
+		context = "statusAlignment",
 	})
 end
 
@@ -97,44 +54,44 @@ local function handleAlignmentOptionCycle(direction)
 	end
 
 	local newValue = alignmentButton:getCurrentOption()
-	state.navigationAlignment = newValue
+	state.statusAlignment = newValue
 
 	return true
 end
 
--- Update focus states
-local function updateFocusStates()
-	if alignmentButton then
-		alignmentButton:setFocused(focusedComponent == 1)
-	end
-	if opacitySlider then
-		opacitySlider:setFocused(focusedComponent == 2)
-	end
+-- Calculate warning text height properly accounting for wrapping
+local function calculateWarningHeight()
+	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
+	local _, wrappedLines = fonts.loaded.caption:getWrap(WARNING_TEXT, warningWidth)
+	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
 end
 
-function navigationScreen.load()
+function statusScreen.load()
 	input = inputHandler.create()
 
 	-- Calculate positions
 	local startY = header.getContentStartY()
-	local buttonY = startY + COMPONENT_SPACING - 2
+	local warningHeight = calculateWarningHeight()
+	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
 
-	-- Create alignment button first to get its height
+	-- Create alignment button
 	alignmentButton = createAlignmentButton()
 	alignmentButton.y = buttonY
 
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Set initial focus
-	updateFocusStates()
+	-- Set focus on the button
+	alignmentButton:setFocused(true)
 end
 
-function navigationScreen.draw()
+function statusScreen.draw()
 	background.draw()
-	header.draw("navigation")
+	header.draw("status")
+
+	-- Draw warning text below header
+	love.graphics.setFont(fonts.loaded.caption)
+	love.graphics.setColor(colors.ui.subtext)
+	local warningY = header.getContentStartY() + 2
+	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
+	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw alignment button
@@ -142,18 +99,10 @@ function navigationScreen.draw()
 		alignmentButton:draw()
 	end
 
-	-- Draw slider
-	if opacitySlider then
-		opacitySlider:draw()
-	end
-
 	-- Draw preview rectangle
-	local previewY = opacitySlider.y + opacitySlider:getTotalHeight() + 20
+	local previewY = alignmentButton.y + alignmentButton.height + 20
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
-
-	-- Calculate alpha from current slider value (0-100 to 0-1)
-	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1
 
 	-- Get background color from state and draw rectangle at full opacity
 	local bgColor = state.getColorValue("background")
@@ -172,12 +121,12 @@ function navigationScreen.draw()
 		tonumber(fgColor:sub(4, 5), 16),
 		tonumber(fgColor:sub(6, 7), 16)
 	)
-	love.graphics.setColor(fgR, fgG, fgB, alpha)
+	love.graphics.setColor(fgR, fgG, fgB, 1.0)
 
-	-- Determine text alignment based on navigation alignment setting
+	-- Determine text alignment based on status alignment setting
 	local textAlign = "center" -- default
 	local textPadding = 0
-	local currentAlignment = state.navigationAlignment or "Center"
+	local currentAlignment = state.statusAlignment or "Center"
 	if currentAlignment == "Left" then
 		textAlign = "left"
 		textPadding = 16 -- Add left padding
@@ -207,41 +156,19 @@ function navigationScreen.draw()
 	})
 end
 
-function navigationScreen.update(dt)
-	-- Handle navigation between components
-	if input.isPressed("dpup") then
-		if focusedComponent > 1 then
-			focusedComponent = focusedComponent - 1
-			updateFocusStates()
-		end
-	elseif input.isPressed("dpdown") then
-		if focusedComponent < 2 then
-			focusedComponent = focusedComponent + 1
-			updateFocusStates()
-		end
-	end
-
-	-- Handle component-specific input
-	if focusedComponent == 1 and alignmentButton then
-		-- Handle alignment button input
+function statusScreen.update(dt)
+	-- Handle alignment button input
+	if alignmentButton then
 		if input.isPressed("dpleft") then
 			handleAlignmentOptionCycle(-1)
 		elseif input.isPressed("dpright") then
 			handleAlignmentOptionCycle(1)
-		end
-	elseif focusedComponent == 2 and opacitySlider then
-		-- Handle slider input
-		if opacitySlider:handleInput(input) then
-			-- Slider value was changed
 		end
 	end
 
 	-- Update components
 	if alignmentButton then
 		alignmentButton:update(dt)
-	end
-	if opacitySlider then
-		opacitySlider:update(dt)
 	end
 
 	-- Handle B button press to go back
@@ -250,28 +177,22 @@ function navigationScreen.update(dt)
 	end
 end
 
-function navigationScreen.onEnter(data)
+function statusScreen.onEnter(data)
 	-- Recreate components in case state changed
 	local startY = header.getContentStartY()
-	local buttonY = startY + COMPONENT_SPACING
+	local warningHeight = calculateWarningHeight()
+	local buttonY = startY + warningHeight + COMPONENT_SPACING
 
 	alignmentButton = createAlignmentButton()
 	alignmentButton.y = buttonY
 
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Reset focus to first component
-	focusedComponent = 1
-	updateFocusStates()
+	-- Set focus on the button
+	alignmentButton:setFocused(true)
 end
 
-function navigationScreen.onExit()
+function statusScreen.onExit()
 	-- Clean up
 	alignmentButton = nil
-	opacitySlider = nil
 end
 
-return navigationScreen
+return statusScreen

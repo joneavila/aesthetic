@@ -255,16 +255,17 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Status Alignment button
+	-- Status button
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Status Alignment",
-			type = ButtonTypes.INDICATORS,
-			options = { "Left", "Center", "Right" },
-			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.statusAlignment] or 1,
+			text = "Status",
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = state.statusAlignment,
 			screenWidth = state.screenWidth,
-			context = "statusAlign",
+			onClick = function()
+				screens.switchTo("status")
+			end,
 		})
 	)
 	-- Box Art Width button
@@ -332,11 +333,7 @@ local function handleOptionCycle(button, direction)
 	--[[
 	if button.context == "fontSize" then
 		state.fontSize = newValue
-	elseif button.context == "glyphs" then
 	--]]
-	if button.context == "statusAlign" then
-		state.statusAlignment = newValue
-	end
 
 	return true
 end
@@ -734,6 +731,8 @@ function menu.onEnter(data)
 				local opacity = formatHeaderOpacity(state.headerOpacity)
 				button:setPreviewText(alignment .. " (" .. opacity .. ")")
 			end
+		elseif button.text == "Status" then
+			button:setPreviewText(state.statusAlignment)
 		end
 	end
 end
