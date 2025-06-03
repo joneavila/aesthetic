@@ -135,11 +135,12 @@ function box_art_width.draw()
 	-- Draw information text below header
 	local infoText =
 		'This setting applies to the Content, Collection, and History screens and assumes you have set muOS\' "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
-	love.graphics.setFont(fonts.loaded.body)
+	love.graphics.setFont(fonts.loaded.caption)
 	love.graphics.setColor(colors.ui.subtext)
 	local infoY = header.getContentStartY() + 2
 	local infoWidth = state.screenWidth - EDGE_PADDING * 2
 	love.graphics.printf(infoText, EDGE_PADDING, infoY, infoWidth, "left")
+	love.graphics.setFont(fonts.loaded.body)
 
 	-- Calculate dynamic height for info text
 	local font = love.graphics.getFont()
