@@ -80,6 +80,9 @@ function settings.saveToFile()
 	-- Time alignment
 	file:write('  timeAlignment = "' .. state.timeAlignment .. '",\n')
 
+	-- Datetime opacity
+	file:write("  datetimeOpacity = " .. state.datetimeOpacity .. ",\n")
+
 	-- Header text alignment
 	file:write("  headerAlignment = " .. state.headerAlignment .. ",\n")
 
@@ -158,6 +161,10 @@ local function migrateSettings(loadedSettings)
 
 	if not migratedSettings.timeAlignment then
 		migratedSettings.timeAlignment = state.timeAlignment
+	end
+
+	if not migratedSettings.datetimeOpacity then
+		migratedSettings.datetimeOpacity = state.datetimeOpacity
 	end
 
 	if not migratedSettings.headerAlignment then
@@ -307,6 +314,11 @@ function settings.loadFromFile()
 	-- Time alignment
 	if loadedSettings.timeAlignment then
 		state.timeAlignment = loadedSettings.timeAlignment
+	end
+
+	-- Datetime opacity
+	if loadedSettings.datetimeOpacity then
+		state.datetimeOpacity = loadedSettings.datetimeOpacity
 	end
 
 	-- Header text alignment

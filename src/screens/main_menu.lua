@@ -230,16 +230,27 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Box Art Width button
+	-- Datetime button
+	local function getDateTimePreviewText()
+		local percent = math.floor((state.datetimeOpacity / 255) * 100 + 0.5)
+		if percent == 0 then
+			return "Hidden"
+		end
+
+		local alignment = state.timeAlignment or "Left"
+		local opacity = percent .. "%"
+		return alignment .. " (" .. opacity .. ")"
+	end
+
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Box Art Width",
+			text = "Time",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth),
+			previewText = getDateTimePreviewText(),
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("box_art_width")
+				screens.switchTo("datetime")
 			end,
 		})
 	)
@@ -256,18 +267,17 @@ local function createMenuButtons()
 			context = "statusAlign",
 		})
 	)
-
-	-- Time Alignment button
+	-- Box Art Width button
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Time Alignment",
-			type = ButtonTypes.INDICATORS,
-			options = { "Auto", "Left", "Center", "Right" },
-			currentOptionIndex = ({ ["Auto"] = 1, ["Left"] = 2, ["Center"] = 3, ["Right"] = 4 })[state.timeAlignment]
-				or 1,
+			text = "Box Art Width",
+			type = ButtonTypes.TEXT_PREVIEW,
+			previewText = state.boxArtWidth == 0 and "Disabled" or tostring(state.boxArtWidth),
 			screenWidth = state.screenWidth,
-			context = "timeAlign",
+			onClick = function()
+				screens.switchTo("box_art_width")
+			end,
 		})
 	)
 
@@ -326,8 +336,6 @@ local function handleOptionCycle(button, direction)
 	--]]
 	if button.context == "statusAlign" then
 		state.statusAlignment = newValue
-	elseif button.context == "timeAlign" then
-		state.timeAlignment = newValue
 	end
 
 	return true
@@ -705,6 +713,15 @@ function menu.onEnter(data)
 				button:setPreviewText("Hidden")
 			else
 				local alignment = state.navigationAlignment or "Left"
+				button:setPreviewText(alignment .. " (" .. opacity .. ")")
+			end
+		elseif button.text == "Time" then
+			local percent = math.floor((state.datetimeOpacity / 255) * 100 + 0.5)
+			if percent == 0 then
+				button:setPreviewText("Hidden")
+			else
+				local alignment = state.timeAlignment or "Left"
+				local opacity = percent .. "%"
 				button:setPreviewText(alignment .. " (" .. opacity .. ")")
 			end
 		elseif button.text == "Header" then

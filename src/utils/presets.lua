@@ -105,6 +105,7 @@ function presets.savePreset(presetName)
 	file:write('  font = "' .. state.fontFamily .. '",\n')
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
 	file:write("  headerOpacity = " .. tostring(state.headerOpacity) .. ",\n")
+	file:write("  datetimeOpacity = " .. state.datetimeOpacity .. ",\n")
 	file:write('  source = "' .. state.source .. '",\n')
 	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
 	file:write("}\n")
@@ -343,6 +344,9 @@ function presets.loadPreset(presetName)
 	loadField(loadedPreset, presetName, "timeAlignment", function(v)
 		state.timeAlignment = v
 	end, "Left", "string")
+	loadField(loadedPreset, presetName, "datetimeOpacity", function(v)
+		state.datetimeOpacity = v
+	end, 255, "number")
 
 	-- OPTIONAL FIELDS - UI features
 	loadField(loadedPreset, presetName, "glyphsEnabled", function(v)

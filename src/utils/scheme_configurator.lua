@@ -126,8 +126,8 @@ function themeSettings.applyStatusAlignmentSettings(schemeFilePath)
 	end)
 end
 
--- Apply time alignment settings to a scheme file
-function themeSettings.applyTimeAlignmentSettings(schemeFilePath)
+-- Apply datetime settings to a scheme file (alignment and opacity)
+function themeSettings.applyDatetimeSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		-- Map time alignment values to numeric settings
 		local alignmentValue = 1 -- Default to Left (1)
@@ -146,6 +146,14 @@ function themeSettings.applyTimeAlignmentSettings(schemeFilePath)
 		content, timeAlignCount = content:gsub("%%{%s*time%-align%s*}", tostring(alignmentValue))
 		if timeAlignCount == 0 then
 			errorHandler.setError("Failed to replace time alignment setting in template")
+			return content, false
+		end
+
+		-- Replace datetime-alpha placeholder
+		local datetimeAlphaCount
+		content, datetimeAlphaCount = content:gsub("%%{%s*datetime%-alpha%s*}", tostring(state.datetimeOpacity))
+		if datetimeAlphaCount == 0 then
+			errorHandler.setError("Failed to replace datetime alpha setting in template")
 			return content, false
 		end
 

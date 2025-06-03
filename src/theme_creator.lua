@@ -504,7 +504,7 @@ function themeCreator.createThemeCoroutine()
 			if not schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-			if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
+			if not schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
 

@@ -30,6 +30,7 @@ return {
 	navigationOpacity = 100,
 	statusAlignment = "Right",
 	timeAlignment = "Left",
+	datetimeOpacity = 255,
 	glyphsEnabled = true,
 	source = "built-in",
 }
