@@ -381,8 +381,10 @@ function glyphs.generateFooterGlyphs()
 		{ sourceFile = "playstation_dpad_horizontal_outline.svg", height = height, outputFile = "lr.png" },
 		{ sourceFile = "steam_button_a.svg", height = height, outputFile = "a.png" },
 		{ sourceFile = "steam_button_b.svg", height = height, outputFile = "b.png" },
+		{ sourceFile = "steam_button_c_custom.svg", height = height, outputFile = "c.png" },
 		{ sourceFile = "steam_button_x.svg", height = height, outputFile = "x.png" },
 		{ sourceFile = "steam_button_y.svg", height = height, outputFile = "y.png" },
+		{ sourceFile = "steam_button_z_custom.svg", height = height, outputFile = "z.png" },
 		{ sourceFile = "steamdeck_button_quickaccess.svg", height = height, outputFile = "menu.png" },
 	}
 
