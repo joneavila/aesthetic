@@ -18,6 +18,62 @@ local system = require("utils.system")
 -- Module table to export public functions
 local themeCreator = {}
 
+-- Supported resolutions for theme generation
+local SUPPORTED_RESOLUTIONS = {
+	"640x480",
+	"720x480",
+	"720x576",
+	"720x720",
+	"1024x768",
+	"1280x720",
+}
+
+-- Helper function to execute a function for all supported resolutions
+-- Executes the function for each supported resolution, temporarily setting screen dimensions
+-- The function receives no parameters and should use state.screenWidth/screenHeight
+local function executeForAllResolutions(func)
+	-- Store original dimensions
+	local originalWidth, originalHeight = state.screenWidth, state.screenHeight
+
+	-- Execute for all supported resolutions
+	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
+		local width, height = resolution:match("(%d+)x(%d+)")
+		width, height = tonumber(width), tonumber(height)
+
+		-- Set screen dimensions for this resolution
+		state.screenWidth, state.screenHeight = width, height
+
+		-- Execute the function
+		local success = func()
+		if not success then
+			-- Restore original dimensions before returning
+			state.screenWidth, state.screenHeight = originalWidth, originalHeight
+			return false
+		end
+	end
+
+	-- Restore original dimensions
+	state.screenWidth, state.screenHeight = originalWidth, originalHeight
+	return true
+end
+
+-- Helper function to copy resolution-specific template files
+-- Copies all resolution directories from templates
+local function copyAllResolutionTemplates()
+	-- Copy all resolution directories
+	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
+		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution
+		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
+
+		if system.isDir(sourcePath) then
+			if not system.copyDir(sourcePath, destPath) then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 -- Helper function to reset graphics state between image generation calls
 -- Sets blend mode to default, clears any active canvas, and sets color to default
 local function resetGraphicsState()
@@ -284,7 +340,7 @@ function themeCreator.createThemeCoroutine()
 			-- Clean up old theme files
 			system.removeDir(paths.WORKING_THEME_DIR)
 
-			coroutine.yield("Copying template files...")
+			coroutine.yield("Copying scheme template files...")
 			-- Copy template directory contents to working directory
 			local templateItems = system.listDir(paths.TEMPLATE_DIR)
 			if not templateItems then
@@ -294,7 +350,17 @@ function themeCreator.createThemeCoroutine()
 				local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
 				local destPath = paths.WORKING_THEME_DIR .. "/" .. item
 
-				if item ~= "scheme" then
+				-- Skip resolution directories (they will be handled by copyResolutionTemplates)
+				-- and scheme directory (handled separately below)
+				local isResolutionDir = false
+				for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
+					if item == resolution then
+						isResolutionDir = true
+						break
+					end
+				end
+
+				if item ~= "scheme" and not isResolutionDir then
 					if system.isDir(sourcePath) then
 						if not system.copyDir(sourcePath, destPath) then
 							return false
@@ -308,6 +374,12 @@ function themeCreator.createThemeCoroutine()
 						return false
 					end
 				end
+			end
+
+			-- Copy resolution-specific template files
+			coroutine.yield("Copying resolution templates...")
+			if not copyAllResolutionTemplates() then
+				return false
 			end
 
 			-- Now handle the contents of the scheme directory, copying them to the working theme directory
@@ -335,8 +407,12 @@ function themeCreator.createThemeCoroutine()
 
 			-- Apply grid settings to muxlaunch.ini in the resolution-specific directory
 			coroutine.yield("Configuring grid settings...")
-			local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath()
-			if not schemeConfigurator.applyGridSettings(muxlaunchIniPath) then
+			if
+				not executeForAllResolutions(function()
+					local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath()
+					return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
+				end)
+			then
 				return false
 			end
 
@@ -357,8 +433,8 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
-			coroutine.yield("Creating boot image...")
-			if not createBootImage() then
+			coroutine.yield("Creating boot images...")
+			if not executeForAllResolutions(createBootImage) then
 				return false
 			end
 
@@ -380,8 +456,8 @@ function themeCreator.createThemeCoroutine()
 			end
 			resetGraphicsState()
 
-			coroutine.yield("Creating preview image...")
-			if not createPreviewImage() then
+			coroutine.yield("Creating preview images...")
+			if not executeForAllResolutions(createPreviewImage) then
 				return false
 			end
 

@@ -120,6 +120,36 @@ function paths.getThemeResolutionMuxlaunchIniPath()
 	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
 end
 
+-- Hardcoded paths for each supported resolution
+function paths.getTheme640x480Dir()
+	return paths.WORKING_THEME_DIR .. "/640x480"
+end
+
+function paths.getTheme720x480Dir()
+	return paths.WORKING_THEME_DIR .. "/720x480"
+end
+
+function paths.getTheme720x576Dir()
+	return paths.WORKING_THEME_DIR .. "/720x576"
+end
+
+function paths.getTheme720x720Dir()
+	return paths.WORKING_THEME_DIR .. "/720x720"
+end
+
+function paths.getTheme1024x768Dir()
+	return paths.WORKING_THEME_DIR .. "/1024x768"
+end
+
+function paths.getTheme1280x720Dir()
+	return paths.WORKING_THEME_DIR .. "/1280x720"
+end
+
+-- Get boot logo image path for specific resolution
+function paths.getThemeBootlogoImagePathForResolution(width, height)
+	return paths.WORKING_THEME_DIR .. "/" .. width .. "x" .. height .. "/image/bootlogo.bmp"
+end
+
 function paths.getUserdataPath()
 	local baseDir = state.isDevelopment and system.getEnvironmentVariable("DEV_DIR")
 		or system.getEnvironmentVariable("ROOT_DIR")
