@@ -150,9 +150,9 @@ function imageGenerator.createIconImage(options)
 
 		-- Create a larger version of the font
 		local imageFontSize = 28
-		local fontKey = fonts.nameToKey[state.selectedFont]
+		local fontKey = fonts.nameToKey[state.fontFamily]
 		if not fontKey then
-			logger.debug("state.selectedFont: " .. state.selectedFont)
+			logger.debug("state.fontFamily: " .. state.fontFamily)
 			errorHandler.setError("Font mapping not found or initialized")
 			return false
 		end
@@ -292,9 +292,9 @@ function imageGenerator.createPreviewImage(outputPath)
 	-- Set font and draw text
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(fgColor)
-	local selectedFontName = state.selectedFont
+	local fontFamilyName = state.fontFamily
 
-	local font = fonts.getByName(selectedFontName)
+	local font = fonts.getByName(fontFamilyName)
 	love.graphics.setFont(font)
 
 	-- Center text

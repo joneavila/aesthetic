@@ -102,10 +102,9 @@ function presets.savePreset(presetName)
 	local currentTime = os.time()
 	file:write("  created = " .. currentTime .. ",\n")
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
-	file:write('  font = "' .. state.selectedFont .. '",\n')
+	file:write('  font = "' .. state.fontFamily .. '",\n')
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
-	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
-	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
+	file:write("  headerOpacity = " .. tostring(state.headerOpacity) .. ",\n")
 	file:write('  source = "' .. state.source .. '",\n')
 	file:write('  homeScreenLayout = "' .. state.homeScreenLayout .. '",\n')
 	file:write("}\n")
@@ -305,13 +304,13 @@ function presets.loadPreset(presetName)
 	logger.debug("Loading font family field")
 	local fontSet = loadField(loadedPreset, presetName, "fontFamily", function(v)
 		logger.debug("Attempting to set font family to: " .. tostring(v))
-		state.selectedFont = v
+		state.fontFamily = v
 	end, nil, "string")
 	if not fontSet then
 		logger.debug("fontFamily field not found, trying legacy font field")
 		loadField(loadedPreset, presetName, "font", function(v)
 			logger.debug("Attempting to set font (legacy) to: " .. tostring(v))
-			state.selectedFont = v
+			state.fontFamily = v
 		end, nil, "string")
 	end
 	-- TEMPORARILY DISABLED: Font size loading
@@ -322,22 +321,19 @@ function presets.loadPreset(presetName)
 	-- end, nil, "string")
 
 	-- OPTIONAL FIELDS - Header settings
-	loadField(loadedPreset, presetName, "headerTextAlignment", function(v)
-		state.headerTextAlignment = v
+	loadField(loadedPreset, presetName, "headerAlignment", function(v)
+		state.headerAlignment = v
 	end, 2, "number")
-	loadField(loadedPreset, presetName, "headerTextAlpha", function(v)
-		state.headerTextAlpha = v
+	loadField(loadedPreset, presetName, "headerOpacity", function(v)
+		state.headerOpacity = v
 	end, 0, "number")
-	loadField(loadedPreset, presetName, "headerTextEnabled", function(v)
-		state.headerTextEnabled = v
-	end, "Disabled", "string")
 
 	-- OPTIONAL FIELDS - Navigation settings
 	loadField(loadedPreset, presetName, "navigationAlignment", function(v)
 		state.navigationAlignment = v
 	end, "Left", "string")
-	loadField(loadedPreset, presetName, "navigationAlpha", function(v)
-		state.navigationAlpha = v
+	loadField(loadedPreset, presetName, "navigationOpacity", function(v)
+		state.navigationOpacity = v
 	end, 100, "number")
 
 	-- OPTIONAL FIELDS - Status and time alignment

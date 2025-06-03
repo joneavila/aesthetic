@@ -154,9 +154,9 @@ function themeSettings.applyTimeAlignmentSettings(schemeFilePath)
 end
 
 -- Apply header text alpha settings to a scheme file
-function themeSettings.applyHeaderTextAlpha(schemeFilePath)
+function themeSettings.applyHeaderOpacity(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
-		local alphaValue = state.headerTextAlpha or 255
+		local alphaValue = state.headerOpacity or 255
 		local headerAlphaCount
 		content, headerAlphaCount = content:gsub("%%{%s*header%-text%-alpha%s*}", tostring(alphaValue))
 		if headerAlphaCount == 0 then
@@ -168,10 +168,10 @@ function themeSettings.applyHeaderTextAlpha(schemeFilePath)
 end
 
 -- Apply header text alignment settings to a scheme file
-function themeSettings.applyHeaderTextAlignmentSettings(schemeFilePath)
+function themeSettings.applyHeaderAlignmentSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		-- Use the header text alignment value directly
-		local alignmentValue = state.headerTextAlignment
+		local alignmentValue = state.headerAlignment
 
 		-- Replace header text alignment placeholder
 		local headerTextAlignCount
@@ -189,15 +189,15 @@ end
 function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
 		-- Remap navigation alpha from 0-100 to 0-255
-		local alphaValue = math.floor((state.navigationAlpha / 100) * 255)
+		local alphaValue = math.floor((state.navigationOpacity / 100) * 255)
 
 		-- Ensure the value is in the proper range
 		alphaValue = math.max(0, math.min(255, alphaValue))
 
 		-- Replace navigation alpha placeholder
-		local navigationAlphaCount
-		content, navigationAlphaCount = content:gsub("%%{%s*navigation%-alpha%s*}", tostring(alphaValue))
-		if navigationAlphaCount == 0 then
+		local navigationOpacityCount
+		content, navigationOpacityCount = content:gsub("%%{%s*navigation%-alpha%s*}", tostring(alphaValue))
+		if navigationOpacityCount == 0 then
 			errorHandler.setError("Failed to replace navigation alpha setting in template")
 			return content, false
 		end
@@ -290,12 +290,12 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 		local fontFamily = state.fontFamily
 
 		-- Get metrics for the selected font, fallback to Inter if not found
-		local selectedFontMetrics = fontMetrics[selectedFont] or fontMetrics["Inter"]
+		local fontFamilyMetrics = fontMetrics[fontFamily] or fontMetrics["Inter"]
 
 		-- Calculate padding adjustment based on ascent difference
 		-- Fonts with higher ascent need negative padding to lower their baseline
 		-- The factor of -0.5 provides a gentle adjustment that works well across different fonts
-		local ascentDifference = selectedFontMetrics.ascent - referenceAscent
+		local ascentDifference = fontFamilyMetrics.ascent - referenceAscent
 		local paddingAdjustment = math.floor(ascentDifference * -0.5)
 
 		-- Apply the padding adjustment (can be negative for upward adjustment)

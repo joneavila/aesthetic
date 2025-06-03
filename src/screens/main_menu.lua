@@ -141,7 +141,7 @@ local function createMenuButtons()
 		Button:new({
 			text = "Font Family",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.selectedFont,
+			previewText = state.fontFamily,
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("font_family")
@@ -183,7 +183,7 @@ local function createMenuButtons()
 	-- Header Alignment button
 	local function getHeaderAlignmentText()
 		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-		return alignmentMap[state.headerTextAlignment] or "Center"
+		return alignmentMap[state.headerAlignment] or "Center"
 	end
 
 	table.insert(
@@ -205,7 +205,7 @@ local function createMenuButtons()
 		Button:new({
 			text = "Header Opacity",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = formatHeaderOpacity(state.headerTextAlpha),
+			previewText = formatHeaderOpacity(state.headerOpacity),
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("header_text_opacity")
@@ -246,7 +246,7 @@ local function createMenuButtons()
 		Button:new({
 			text = "Navigation Alpha",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.navigationAlpha and (state.navigationAlpha .. "%") or "50%",
+			previewText = state.navigationOpacity and (state.navigationOpacity .. "%") or "50%",
 			screenWidth = state.screenWidth,
 			onClick = function()
 				screens.switchTo("navigation_opacity")
@@ -334,9 +334,7 @@ local function handleOptionCycle(button, direction)
 		state.fontSize = newValue
 	elseif button.context == "glyphs" then
 	--]]
-	if button.context == "headerText" then
-		state.headerTextEnabled = newValue
-	elseif button.context == "navAlign" then
+	if button.context == "navAlign" then
 		state.navigationAlignment = newValue
 	elseif button.context == "statusAlign" then
 		state.statusAlignment = newValue
@@ -715,9 +713,9 @@ function menu.onEnter(data)
 			button:setPreviewText(state.glyphsEnabled and "Enabled" or "Disabled")
 		elseif button.text == "Header Alignment" then
 			local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-			button:setPreviewText(alignmentMap[state.headerTextAlignment] or "Center")
+			button:setPreviewText(alignmentMap[state.headerAlignment] or "Center")
 		elseif button.text == "Header Opacity" then
-			button:setPreviewText(formatHeaderOpacity(state.headerTextAlpha))
+			button:setPreviewText(formatHeaderOpacity(state.headerOpacity))
 		end
 	end
 end

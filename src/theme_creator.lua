@@ -228,21 +228,21 @@ end
 local function copySelectedFont()
 	-- TEMPORARILY SIMPLIFIED: Using single .bin file per font while making font size feature more robust
 	-- Find the selected font definition
-	local selectedFontDefinition
+	local fontFamilyDefinition
 	for _, font in ipairs(fonts.themeDefinitions) do
-		if font.name == state.selectedFont then
-			selectedFontDefinition = font
+		if font.name == state.fontFamily then
+			fontFamilyDefinition = font
 			break
 		end
 	end
-	if not selectedFontDefinition then
-		errorHandler.setError("Selected font not found: " .. tostring(state.selectedFont))
+	if not fontFamilyDefinition then
+		errorHandler.setError("Selected font not found: " .. tostring(state.fontFamily))
 		return false
 	end
 
 	-- Extract the directory from the TTF path and combine with the .bin filename
-	local fontDirectory = selectedFontDefinition.path:match("^(.+)/[^/]+$")
-	local fontSourcePath = fontDirectory .. "/" .. selectedFontDefinition.file
+	local fontDirectory = fontFamilyDefinition.path:match("^(.+)/[^/]+$")
+	local fontSourcePath = fontDirectory .. "/" .. fontFamilyDefinition.file
 	logger.debug("Copying font file: " .. fontSourcePath)
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
 		return false
@@ -252,14 +252,14 @@ local function copySelectedFont()
 
 	--[[ ORIGINAL CODE: Commented out while making font size feature more robust
 	-- Find and copy the selected font file
-	local selectedFontFile
+	local fontFamilyFile
 	for _, font in ipairs(fonts.themeDefinitions) do
 		if font.name == fonts.getSelectedFont() then
-			selectedFontFile = font.file
+			fontFamilyFile = font.file
 			break
 		end
 	end
-	if not selectedFontFile then
+	if not fontFamilyFile then
 		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
 		return false
 	end
@@ -277,9 +277,9 @@ local function copySelectedFont()
 
 	-- Copy the selected font file as default.bin
 	local fontSourcePath = "assets/fonts/"
-		.. selectedFontFile:gsub("%.bin$", "")
+		.. fontFamilyFile:gsub("%.bin$", "")
 		.. "/"
-		.. selectedFontFile:gsub("%.bin$", "")
+		.. fontFamilyFile:gsub("%.bin$", "")
 		.. "_"
 		.. fontSizeDir
 		.. ".bin"
@@ -501,7 +501,7 @@ function themeCreator.createThemeCoroutine()
 			if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
-			if not schemeConfigurator.applyHeaderTextAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
+			if not schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
 			if not schemeConfigurator.applyTimeAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
@@ -509,7 +509,7 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Applying alpha settings...")
-			if not schemeConfigurator.applyHeaderTextAlpha(paths.THEME_SCHEME_GLOBAL) then
+			if not schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
 			if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then

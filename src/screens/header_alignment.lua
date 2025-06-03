@@ -53,7 +53,7 @@ end
 -- Create the alignment selection button
 local function createAlignmentButton()
 	local alignmentOptions = { "Auto", "Left", "Center", "Right" }
-	local currentIndex = (state.headerTextAlignment or 0) + 1
+	local currentIndex = (state.headerAlignment or 0) + 1
 
 	return Button:new({
 		text = "Alignment",
@@ -78,7 +78,7 @@ local function handleOptionCycle(button, direction)
 
 	local newValue = button:getCurrentOption()
 	local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
-	state.headerTextAlignment = alignmentMap[newValue] or 2
+	state.headerAlignment = alignmentMap[newValue] or 2
 
 	return true
 end
@@ -133,7 +133,7 @@ function headerAlignment.draw()
 	local previewAreaWidth = state.screenWidth - (IMAGE_MARGIN * 2)
 
 	-- Get the appropriate preview image based on current alignment
-	local currentAlignment = state.headerTextAlignment or 2
+	local currentAlignment = state.headerAlignment or 2
 	local currentImage = nil
 
 	if currentAlignment == 1 then -- Left

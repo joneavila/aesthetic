@@ -107,9 +107,9 @@ function header_text_opacity.update(dt)
 		return
 	end
 	if alphaSlider and alphaSlider:handleInput(handler) then
-		-- Update state.headerTextAlpha (0-255) from slider percent
+		-- Update state.headerOpacity (0-255) from slider percent
 		local percent = alphaSlider.values[alphaSlider.valueIndex]
-		state.headerTextAlpha = math.floor((percent / 100) * 255 + 0.5)
+		state.headerOpacity = math.floor((percent / 100) * 255 + 0.5)
 	end
 end
 
@@ -119,8 +119,8 @@ function header_text_opacity.onEnter()
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
 
-	if state.headerTextAlpha then
-		local percent = math.floor((state.headerTextAlpha / 255) * 100 + 0.5)
+	if state.headerOpacity then
+		local percent = math.floor((state.headerOpacity / 255) * 100 + 0.5)
 		for i, value in ipairs(alphaValues) do
 			local diff = math.abs(percent - value)
 			if diff < minDiff then
@@ -139,7 +139,7 @@ function header_text_opacity.onEnter()
 		label = "Opacity",
 		valueFormatter = formatSliderValue,
 		onValueChanged = function(val, _idx)
-			state.headerTextAlpha = math.floor((val / 100) * 255 + 0.5)
+			state.headerOpacity = math.floor((val / 100) * 255 + 0.5)
 		end,
 	})
 end

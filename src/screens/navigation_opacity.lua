@@ -95,7 +95,7 @@ function navigation_opacity.update(dt)
 		return
 	end
 	if alphaSlider and alphaSlider:handleInput(handler) then
-		state.navigationAlpha = alphaSlider.values[alphaSlider.valueIndex]
+		state.navigationOpacity = alphaSlider.values[alphaSlider.valueIndex]
 	end
 end
 
@@ -105,9 +105,9 @@ function navigation_opacity.onEnter()
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
 
-	if state.navigationAlpha then
+	if state.navigationOpacity then
 		for i, value in ipairs(alphaValues) do
-			local diff = math.abs(state.navigationAlpha - value)
+			local diff = math.abs(state.navigationOpacity - value)
 			if diff < minDiff then
 				minDiff = diff
 				closestIndex = i
@@ -123,7 +123,7 @@ function navigation_opacity.onEnter()
 		valueIndex = closestIndex,
 		label = "Transparency",
 		onValueChanged = function(val, _idx)
-			state.navigationAlpha = val
+			state.navigationOpacity = val
 		end,
 	})
 end

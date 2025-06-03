@@ -48,7 +48,7 @@ end
 --- Default theme configuration values - single source of truth
 local themeDefaults = {
 	themeName = "Aesthetic",
-	selectedFont = "Inter",
+	fontFamily = "Inter",
 	fontSize = "Default",
 	homeScreenLayout = "Grid",
 	backgroundType = "Gradient",
@@ -63,12 +63,11 @@ local themeDefaults = {
 	rgbBrightness = 5,
 	rgbSpeed = 5,
 	glyphsEnabled = true,
-	headerTextAlignment = 2,
-	headerTextEnabled = "Disabled",
-	headerTextAlpha = 0,
+	headerAlignment = 2,
+	headerOpacity = 0,
 	boxArtWidth = 0,
 	navigationAlignment = "Left",
-	navigationAlpha = 100,
+	navigationOpacity = 100,
 	statusAlignment = "Right",
 	timeAlignment = "Left",
 }
@@ -88,7 +87,7 @@ local state = {
 
 	-- Begin: Theme configuration and defaults
 	themeName = themeDefaults.themeName,
-	selectedFont = themeDefaults.selectedFont,
+	fontFamily = themeDefaults.fontFamily,
 	fontSize = themeDefaults.fontSize,
 	homeScreenLayout = themeDefaults.homeScreenLayout,
 	backgroundType = themeDefaults.backgroundType,
@@ -103,12 +102,11 @@ local state = {
 	rgbBrightness = themeDefaults.rgbBrightness,
 	rgbSpeed = themeDefaults.rgbSpeed,
 	glyphsEnabled = themeDefaults.glyphsEnabled,
-	headerTextAlignment = themeDefaults.headerTextAlignment,
-	headerTextEnabled = themeDefaults.headerTextEnabled,
-	headerTextAlpha = themeDefaults.headerTextAlpha,
+	headerAlignment = themeDefaults.headerAlignment,
+	headerOpacity = themeDefaults.headerOpacity,
 	boxArtWidth = themeDefaults.boxArtWidth,
 	navigationAlignment = themeDefaults.navigationAlignment,
-	navigationAlpha = themeDefaults.navigationAlpha,
+	navigationOpacity = themeDefaults.navigationOpacity,
 	statusAlignment = themeDefaults.statusAlignment,
 	timeAlignment = themeDefaults.timeAlignment,
 	-- End: Theme configuration and defaults
@@ -160,7 +158,7 @@ function state.resetToDefaults()
 
 	-- Reset simple values
 	state.themeName = themeDefaults.themeName
-	state.selectedFont = themeDefaults.selectedFont
+	state.fontFamily = themeDefaults.fontFamily
 	state.fontSize = themeDefaults.fontSize
 	state.homeScreenLayout = themeDefaults.homeScreenLayout
 	state.backgroundType = themeDefaults.backgroundType
@@ -169,12 +167,11 @@ function state.resetToDefaults()
 	state.rgbBrightness = themeDefaults.rgbBrightness
 	state.rgbSpeed = themeDefaults.rgbSpeed
 	state.glyphsEnabled = themeDefaults.glyphsEnabled
-	state.headerTextAlignment = themeDefaults.headerTextAlignment
-	state.headerTextEnabled = themeDefaults.headerTextEnabled
-	state.headerTextAlpha = themeDefaults.headerTextAlpha
+	state.headerAlignment = themeDefaults.headerAlignment
+	state.headerOpacity = themeDefaults.headerOpacity
 	state.boxArtWidth = themeDefaults.boxArtWidth
 	state.navigationAlignment = themeDefaults.navigationAlignment
-	state.navigationAlpha = themeDefaults.navigationAlpha
+	state.navigationOpacity = themeDefaults.navigationOpacity
 	state.statusAlignment = themeDefaults.statusAlignment
 	state.timeAlignment = themeDefaults.timeAlignment
 

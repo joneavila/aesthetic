@@ -63,7 +63,7 @@ function settings.saveToFile()
 	file:write("  boxArtWidth = " .. state.boxArtWidth .. ",\n")
 
 	-- Font family
-	file:write('  font = "' .. state.selectedFont .. '",\n')
+	file:write('  font = "' .. state.fontFamily .. '",\n')
 
 	-- TEMPORARILY DISABLED: Font size saving
 	-- file:write('  fontSize = "' .. fonts.getFontSize() .. '",\n')
@@ -72,7 +72,7 @@ function settings.saveToFile()
 	file:write('  navigationAlignment = "' .. state.navigationAlignment .. '",\n')
 
 	-- Navigation alpha
-	file:write("  navigationAlpha = " .. state.navigationAlpha .. ",\n")
+	file:write("  navigationOpacity = " .. state.navigationOpacity .. ",\n")
 
 	-- Status alignment
 	file:write('  statusAlignment = "' .. state.statusAlignment .. '",\n')
@@ -81,7 +81,7 @@ function settings.saveToFile()
 	file:write('  timeAlignment = "' .. state.timeAlignment .. '",\n')
 
 	-- Header text alignment
-	file:write("  headerTextAlignment = " .. state.headerTextAlignment .. ",\n")
+	file:write("  headerAlignment = " .. state.headerAlignment .. ",\n")
 
 	-- Glyphs
 	file:write("  glyphsEnabled = " .. tostring(state.glyphsEnabled) .. ",\n")
@@ -89,11 +89,8 @@ function settings.saveToFile()
 	-- Theme name
 	file:write('  themeName = "' .. state.themeName .. '",\n')
 
-	-- Header text enabled
-	file:write('  headerTextEnabled = "' .. state.headerTextEnabled .. '",\n')
-
 	-- Header text alpha
-	file:write("  headerTextAlpha = " .. tostring(state.headerTextAlpha) .. ",\n")
+	file:write("  headerOpacity = " .. tostring(state.headerOpacity) .. ",\n")
 
 	-- Source (user-created by default when saving)
 	file:write('  source = "' .. settings.SOURCE_USER .. '",\n')
@@ -151,8 +148,8 @@ local function migrateSettings(loadedSettings)
 		migratedSettings.navigationAlignment = state.navigationAlignment
 	end
 
-	if not migratedSettings.navigationAlpha then
-		migratedSettings.navigationAlpha = state.navigationAlpha
+	if not migratedSettings.navigationOpacity then
+		migratedSettings.navigationOpacity = state.navigationOpacity
 	end
 
 	if not migratedSettings.statusAlignment then
@@ -163,16 +160,12 @@ local function migrateSettings(loadedSettings)
 		migratedSettings.timeAlignment = state.timeAlignment
 	end
 
-	if not migratedSettings.headerTextAlignment then
-		migratedSettings.headerTextAlignment = state.headerTextAlignment
+	if not migratedSettings.headerAlignment then
+		migratedSettings.headerAlignment = state.headerAlignment
 	end
 
-	if not migratedSettings.headerTextEnabled then
-		migratedSettings.headerTextEnabled = state.headerTextEnabled
-	end
-
-	if not migratedSettings.headerTextAlpha then
-		migratedSettings.headerTextAlpha = state.headerTextAlpha
+	if not migratedSettings.headerOpacity then
+		migratedSettings.headerOpacity = state.headerOpacity
 	end
 
 	if not migratedSettings.source then
@@ -284,7 +277,7 @@ function settings.loadFromFile()
 
 	-- Font
 	if loadedSettings.font then
-		state.selectedFont = loadedSettings.font
+		state.fontFamily = loadedSettings.font
 	end
 
 	-- TEMPORARILY DISABLED: Font size loading
@@ -302,8 +295,8 @@ function settings.loadFromFile()
 	end
 
 	-- Navigation alpha
-	if loadedSettings.navigationAlpha then
-		state.navigationAlpha = loadedSettings.navigationAlpha
+	if loadedSettings.navigationOpacity then
+		state.navigationOpacity = loadedSettings.navigationOpacity
 	end
 
 	-- Status alignment
@@ -317,8 +310,8 @@ function settings.loadFromFile()
 	end
 
 	-- Header text alignment
-	if loadedSettings.headerTextAlignment then
-		state.headerTextAlignment = loadedSettings.headerTextAlignment
+	if loadedSettings.headerAlignment then
+		state.headerAlignment = loadedSettings.headerAlignment
 	end
 
 	-- Glyphs (already converted from glyphs_enabled in migration)
@@ -331,14 +324,9 @@ function settings.loadFromFile()
 		state.themeName = loadedSettings.themeName
 	end
 
-	-- Header text enabled
-	if loadedSettings.headerTextEnabled then
-		state.headerTextEnabled = loadedSettings.headerTextEnabled
-	end
-
 	-- Header text alpha
-	if loadedSettings.headerTextAlpha then
-		state.headerTextAlpha = loadedSettings.headerTextAlpha
+	if loadedSettings.headerOpacity then
+		state.headerOpacity = loadedSettings.headerOpacity
 	end
 
 	-- Source
