@@ -8,14 +8,31 @@ local Slider = setmetatable({}, { __index = component.Component })
 Slider.__index = Slider
 
 Slider.HEIGHT = 30
-Slider.PADDING = 20
+Slider.PADDING = 18
 Slider.TRACK_HEIGHT = 8
-Slider.HANDLE_WIDTH = 16
-Slider.HANDLE_HEIGHT = 36
+Slider.HANDLE_WIDTH = 14
+Slider.HANDLE_HEIGHT = 32
 Slider.CORNER_RADIUS = 8
 Slider.TICK_HEIGHT = 10
 Slider.TICK_WIDTH = 2
-Slider.LABEL_OFFSET_Y = 30
+Slider.LABEL_OFFSET_Y = 38
+
+-- Focus background constants
+Slider.FOCUS_BACKGROUND_TOP_MARGIN = 6
+Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN = 12
+
+-- Label positioning constants
+Slider.LABEL_LEFT_PADDING = 12
+
+-- Handle shadow constants
+Slider.HANDLE_SHADOW_OFFSET_X = 1
+Slider.HANDLE_SHADOW_OFFSET_Y = 1
+
+-- Tick positioning constants
+Slider.TICK_VERTICAL_OFFSET = 2
+
+-- Component padding constants
+Slider.BOTTOM_PADDING = 10
 
 function Slider:new(config)
 	local self = setmetatable(component.Component:new(config), Slider)
@@ -57,20 +74,44 @@ function Slider:update(dt)
 	end
 end
 
+function Slider:getTotalHeight()
+	local baseHeight = Slider.LABEL_OFFSET_Y + Slider.HEIGHT + Slider.BOTTOM_PADDING
+	return baseHeight + Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
+end
+
 function Slider:draw()
 	if not self.values or #self.values == 0 then
 		return
 	end
+
+	-- Draw focused background if focused
+	if self.focused then
+		local backgroundPadding = 0
+		local backgroundY = self.y - Slider.FOCUS_BACKGROUND_TOP_MARGIN
+		local backgroundHeight = self:getTotalHeight() + Slider.FOCUS_BACKGROUND_TOP_MARGIN
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle(
+			"fill",
+			self.x - backgroundPadding,
+			backgroundY,
+			self.width + (backgroundPadding * 2),
+			backgroundHeight,
+			Slider.CORNER_RADIUS
+		)
+	end
 	local clampedCurrentIndex = math.max(1, math.min(self.valueIndex, #self.values))
 	local trackX = self.x + Slider.PADDING
-	local trackY = self.y + (Slider.HEIGHT / 2) - (Slider.TRACK_HEIGHT / 2)
+	local trackY = self.y + Slider.LABEL_OFFSET_Y + (Slider.HEIGHT / 2) - (Slider.TRACK_HEIGHT / 2)
 	local trackWidth = self.width - (Slider.PADDING * 2)
-	love.graphics.setColor(colors.ui.surface)
+
+	-- Draw track background - use overlay color when focused for better contrast
+	local trackBackgroundColor = self.focused and colors.ui.overlay or colors.ui.surface
+	love.graphics.setColor(trackBackgroundColor)
 	love.graphics.rectangle("fill", trackX, trackY, trackWidth, Slider.TRACK_HEIGHT, Slider.TRACK_HEIGHT / 2)
 	love.graphics.setColor(colors.ui.overlay)
 	for i = 1, #self.values do
 		local tickX = trackX + ((i - 1) / (#self.values - 1)) * trackWidth - (Slider.TICK_WIDTH / 2)
-		local tickY = trackY + Slider.TRACK_HEIGHT + 2
+		local tickY = trackY + Slider.TRACK_HEIGHT + Slider.TICK_VERTICAL_OFFSET
 		love.graphics.rectangle("fill", tickX, tickY, Slider.TICK_WIDTH, Slider.TICK_HEIGHT, 1)
 	end
 	local rawPercent = (self.animatedValue - 1) / math.max(1, #self.values - 1)
@@ -81,12 +122,12 @@ function Slider:draw()
 	local handlePercent = (self.animatedValue - 1) / math.max(1, #self.values - 1)
 	local clampedHandlePercent = math.max(0, math.min(1, handlePercent))
 	local handleX = trackX + trackWidth * clampedHandlePercent - (Slider.HANDLE_WIDTH / 2)
-	local handleY = self.y + (Slider.HEIGHT / 2) - (Slider.HANDLE_HEIGHT / 2)
+	local handleY = self.y + Slider.LABEL_OFFSET_Y + (Slider.HEIGHT / 2) - (Slider.HANDLE_HEIGHT / 2)
 	love.graphics.setColor(0, 0, 0, 0.3)
 	love.graphics.rectangle(
 		"fill",
-		handleX + 1,
-		handleY + 1,
+		handleX + Slider.HANDLE_SHADOW_OFFSET_X,
+		handleY + Slider.HANDLE_SHADOW_OFFSET_Y,
 		Slider.HANDLE_WIDTH,
 		Slider.HANDLE_HEIGHT,
 		Slider.CORNER_RADIUS
@@ -95,7 +136,7 @@ function Slider:draw()
 	love.graphics.rectangle("fill", handleX, handleY, Slider.HANDLE_WIDTH, Slider.HANDLE_HEIGHT, Slider.CORNER_RADIUS)
 	if self.label then
 		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(self.label, self.x + Slider.PADDING, self.y - Slider.LABEL_OFFSET_Y)
+		love.graphics.print(self.label, self.x + Slider.LABEL_LEFT_PADDING, self.y)
 	end
 	local currentValue = self.values[clampedCurrentIndex]
 	-- Use custom formatter if provided, otherwise fall back to tostring
@@ -103,7 +144,7 @@ function Slider:draw()
 	local font = love.graphics.getFont()
 	local textWidth = font:getWidth(valueText)
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(valueText, self.x + self.width - Slider.PADDING - textWidth, self.y - Slider.LABEL_OFFSET_Y)
+	love.graphics.print(valueText, self.x + self.width - Slider.PADDING - textWidth, self.y)
 end
 
 function Slider:handleInput(input)

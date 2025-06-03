@@ -57,7 +57,7 @@ fonts.uiDefinitions = {
 	header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
 	body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = bodySize },
 	bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = bodySize },
-	caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
+	caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 18 },
 	monoTitle = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 48 },
 	monoHeader = {
 		name = "JetBrains Mono",

@@ -199,11 +199,6 @@ paths.HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png
 paths.ICONS_TOGGLE_ENABLED_IMAGE = "assets/images/icons_toggle_samples/icons_enabled.png"
 paths.ICONS_TOGGLE_DISABLED_IMAGE = "assets/images/icons_toggle_samples/icons_disabled.png"
 
--- Header alignment images
-paths.HEADER_ALIGNMENT_LEFT_IMAGE = "assets/images/header_alignment/header_alignment_left.png"
-paths.HEADER_ALIGNMENT_CENTER_IMAGE = "assets/images/header_alignment/header_alignment_center.png"
-paths.HEADER_ALIGNMENT_RIGHT_IMAGE = "assets/images/header_alignment/header_alignment_right.png"
-
 --- TEMPORARILY DISABLED: Font size directory calculation while making font size feature more robust
 --[[
 paths.getFontSizeDir = function(displayWidth, displayHeight)
