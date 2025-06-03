@@ -180,46 +180,39 @@ local function createMenuButtons()
 		})
 	)
 
-	-- Navigation Alignment button
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Navigation Alignment",
-			type = ButtonTypes.INDICATORS,
-			options = { "Left", "Center", "Right" },
-			currentOptionIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2,
-			screenWidth = state.screenWidth,
-			context = "navAlign",
-		})
-	)
+	-- Navigation button
+	local function getNavigationPreviewText()
+		local opacity = state.navigationOpacity and (state.navigationOpacity .. "%") or "100%"
+		if state.navigationOpacity == 0 then
+			return "Hidden"
+		end
 
-	-- Navigation Opacity button
+		local alignment = state.navigationAlignment or "Left"
+		return alignment .. " (" .. opacity .. ")"
+	end
+
 	table.insert(
 		buttons,
 		Button:new({
-			text = "Navigation Opacity",
+			text = "Navigation",
 			type = ButtonTypes.TEXT_PREVIEW,
-			previewText = state.navigationOpacity and (state.navigationOpacity .. "%") or "50%",
+			previewText = getNavigationPreviewText(),
 			screenWidth = state.screenWidth,
 			onClick = function()
-				screens.switchTo("navigation_opacity")
+				screens.switchTo("navigation")
 			end,
 		})
 	)
 
 	-- Header button
-	local function getHeaderAlignmentText()
-		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
-		return alignmentMap[state.headerAlignment] or "Center"
-	end
-
 	local function getHeaderPreviewText()
 		local percent = math.floor((state.headerOpacity / 255) * 100 + 0.5)
 		if percent == 0 then
 			return "Hidden"
 		end
 
-		local alignment = getHeaderAlignmentText()
+		local alignmentMap = { [0] = "Auto", [1] = "Left", [2] = "Center", [3] = "Right" }
+		local alignment = alignmentMap[state.headerAlignment] or "Center"
 		local opacity = formatHeaderOpacity(state.headerOpacity)
 		return alignment .. " (" .. opacity .. ")"
 	end
@@ -331,9 +324,7 @@ local function handleOptionCycle(button, direction)
 		state.fontSize = newValue
 	elseif button.context == "glyphs" then
 	--]]
-	if button.context == "navAlign" then
-		state.navigationAlignment = newValue
-	elseif button.context == "statusAlign" then
+	if button.context == "statusAlign" then
 		state.statusAlignment = newValue
 	elseif button.context == "timeAlign" then
 		state.timeAlignment = newValue
@@ -708,6 +699,14 @@ function menu.onEnter(data)
 			button:setPreviewText(state.homeScreenLayout)
 		elseif button.text == "Icons" then
 			button:setPreviewText(state.glyphsEnabled and "Enabled" or "Disabled")
+		elseif button.text == "Navigation" then
+			local opacity = state.navigationOpacity and (state.navigationOpacity .. "%") or "100%"
+			if state.navigationOpacity == 0 then
+				button:setPreviewText("Hidden")
+			else
+				local alignment = state.navigationAlignment or "Left"
+				button:setPreviewText(alignment .. " (" .. opacity .. ")")
+			end
 		elseif button.text == "Header" then
 			local percent = math.floor((state.headerOpacity / 255) * 100 + 0.5)
 			if percent == 0 then

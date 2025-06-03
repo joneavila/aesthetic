@@ -1,4 +1,4 @@
---- Header Settings Screen
+--- Navigation Settings Screen
 -- NOTE: The header screen (header.lua) and navigation screen (navigation.lua) share layout,
 -- so any changes made here should be made to the other screen.
 local love = require("love")
@@ -16,7 +16,7 @@ local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
 
-local headerScreen = {}
+local navigationScreen = {}
 
 -- UI Components
 local alignmentButton = nil
@@ -28,10 +28,10 @@ local focusedComponent = 1 -- 1 = button, 2 = slider
 local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
-local WARNING_TEXT = 'Note: Set the "Status Alignment" and "Time Alignment" settings to avoid overlapping elements.'
+local INFO_TEXT = "Navigation controls appear at the bottom of the screen and show button prompts."
 
--- Alpha values for the slider (0-100 in increments of 10)
-local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
+-- Opacity values for the slider (0-100 in increments of 10)
+local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 
 -- Function to format slider values with percentage and special case for 0
 local function formatSliderValue(value)
@@ -44,8 +44,8 @@ end
 
 -- Create the alignment selection button
 local function createAlignmentButton()
-	local alignmentOptions = { "Auto", "Left", "Center", "Right" }
-	local currentIndex = (state.headerAlignment or 0) + 1
+	local alignmentOptions = { "Left", "Center", "Right" }
+	local currentIndex = ({ ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 })[state.navigationAlignment] or 2
 
 	return Button:new({
 		text = "Alignment",
@@ -53,18 +53,18 @@ local function createAlignmentButton()
 		options = alignmentOptions,
 		currentOptionIndex = currentIndex,
 		screenWidth = state.screenWidth,
-		context = "headerAlignment",
+		context = "navigationAlignment",
 	})
 end
 
 -- Create the opacity slider
 local function createOpacitySlider(y)
-	-- Find the closest alpha value index
+	-- Find the closest opacity value index
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
 
-	local percent = math.floor((state.headerOpacity / 255) * 100 + 0.5)
-	for i, value in ipairs(alphaValues) do
+	local percent = state.navigationOpacity or 100
+	for i, value in ipairs(opacityValues) do
 		local diff = math.abs(percent - value)
 		if diff < minDiff then
 			minDiff = diff
@@ -76,12 +76,12 @@ local function createOpacitySlider(y)
 		x = EDGE_PADDING,
 		y = y,
 		width = state.screenWidth - (EDGE_PADDING * 2),
-		values = alphaValues,
+		values = opacityValues,
 		valueIndex = closestIndex,
 		label = "Opacity",
 		valueFormatter = formatSliderValue,
 		onValueChanged = function(val, _idx)
-			state.headerOpacity = math.floor((val / 100) * 255 + 0.5)
+			state.navigationOpacity = val
 		end,
 	})
 end
@@ -98,8 +98,7 @@ local function handleAlignmentOptionCycle(direction)
 	end
 
 	local newValue = alignmentButton:getCurrentOption()
-	local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
-	state.headerAlignment = alignmentMap[newValue] or 2
+	state.navigationAlignment = newValue
 
 	return true
 end
@@ -117,11 +116,11 @@ end
 -- Calculate warning text height properly accounting for wrapping
 local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	local _, wrappedLines = fonts.loaded.caption:getWrap(WARNING_TEXT, warningWidth)
+	local _, wrappedLines = fonts.loaded.caption:getWrap(INFO_TEXT, warningWidth)
 	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
 end
 
-function headerScreen.load()
+function navigationScreen.load()
 	input = inputHandler.create()
 
 	-- Calculate positions
@@ -142,16 +141,16 @@ function headerScreen.load()
 	updateFocusStates()
 end
 
-function headerScreen.draw()
+function navigationScreen.draw()
 	background.draw()
-	header.draw("header")
+	header.draw("navigation")
 
 	-- Draw warning text below header
 	love.graphics.setFont(fonts.loaded.caption)
 	love.graphics.setColor(colors.ui.subtext)
 	local warningY = header.getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
+	love.graphics.printf(INFO_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw alignment button
@@ -191,20 +190,19 @@ function headerScreen.draw()
 	)
 	love.graphics.setColor(fgR, fgG, fgB, alpha)
 
-	-- Determine text alignment based on header alignment setting
+	-- Determine text alignment based on navigation alignment setting
 	local textAlign = "center" -- default
 	local textPadding = 0
-	local currentAlignment = state.headerAlignment or 2
-	if currentAlignment == 1 then
+	local currentAlignment = state.navigationAlignment or "Center"
+	if currentAlignment == "Left" then
 		textAlign = "left"
 		textPadding = 16 -- Add left padding
-	elseif currentAlignment == 2 then
+	elseif currentAlignment == "Center" then
 		textAlign = "center"
-	elseif currentAlignment == 3 then
+	elseif currentAlignment == "Right" then
 		textAlign = "right"
 		textPadding = 16 -- Add right padding by reducing width
 	end
-	-- Auto (0) uses center as default
 
 	love.graphics.printf(
 		"Preview",
@@ -225,7 +223,7 @@ function headerScreen.draw()
 	})
 end
 
-function headerScreen.update(dt)
+function navigationScreen.update(dt)
 	-- Handle navigation between components
 	if input.isPressed("dpup") then
 		if focusedComponent > 1 then
@@ -268,7 +266,7 @@ function headerScreen.update(dt)
 	end
 end
 
-function headerScreen.onEnter(data)
+function navigationScreen.onEnter(data)
 	-- Recreate components in case state changed
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
@@ -287,10 +285,10 @@ function headerScreen.onEnter(data)
 	updateFocusStates()
 end
 
-function headerScreen.onExit()
+function navigationScreen.onExit()
 	-- Clean up
 	alignmentButton = nil
 	opacitySlider = nil
 end
 
-return headerScreen
+return navigationScreen
