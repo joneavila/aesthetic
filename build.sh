@@ -227,7 +227,7 @@ MANIFEST_FILE="${BUILD_DIR}/${APP_SOURCE_DIR}/.manifest"
         done
     fi
 } | sort > ".manifest") || { echoError "Failed to generate manifest"; exit 1; }
-echo "Generated manifest with $(wc -l < "$MANIFEST_FILE") files"
+echo "Generated manifest with $(wc -l < "$MANIFEST_FILE" | xargs) files"
 
 # Application glyph
 rsync -aq "${APP_GLYPH_SOURCE}" "${BUILD_DIR}/${APP_GLYPH_TARGET}" || { echoError "Failed to copy application glyph"; exit 1; }
