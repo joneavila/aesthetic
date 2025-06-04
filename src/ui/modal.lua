@@ -71,7 +71,7 @@ function Modal:show(message, buttons, options)
 	end
 end
 
-function Modal:updateProgress(progressText, percent)
+function Modal:updateProgress(progressText, _percent)
 	if self.isProgressModal and progressText then
 		self.progressMessage = progressText
 
@@ -198,8 +198,6 @@ end
 -- Helper method to determine if content is scrollable
 function Modal:isContentScrollable()
 	local screenHeight = love.graphics.getHeight()
-	local controls = require("controls")
-	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 	local maxTextHeight = screenHeight * 0.6
 
 	-- Calculate content height
@@ -214,8 +212,6 @@ end
 -- Helper method to handle scrolling
 function Modal:scroll(amount)
 	local screenHeight = love.graphics.getHeight()
-	local controls = require("controls")
-	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 	local maxTextHeight = screenHeight * 0.6
 
 	-- Calculate content height
@@ -250,7 +246,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 	-- Calculate progress box dimensions if this is a progress modal
 	local progressBoxHeight = 0
 	local progressBoxPadding = 12
-	local progressMessageHeight = 0
 
 	if self.isProgressModal then
 		-- Use console font for progress messages
@@ -259,7 +254,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 		-- Calculate height for 4 lines minimum
 		local lineHeight = consoleFont:getHeight()
 		local minConsoleLines = 4
-		progressMessageHeight = lineHeight * minConsoleLines
+		local progressMessageHeight = lineHeight * minConsoleLines
 		progressBoxHeight = progressMessageHeight + (progressBoxPadding * 2)
 	end
 
@@ -294,7 +289,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 		if #self.buttons == 0 and not isScrollable then
 			minWidth = math.min(currentFont:getWidth(self.message) + (padding * 2), maxWidth)
 		end
-		local availableTextWidth = minWidth - (padding * 2)
 		local visibleHeight = math.min(maxTextHeight, contentHeight)
 		modalWidth = minWidth
 		local buttonHeight = 40

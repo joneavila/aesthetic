@@ -25,7 +25,6 @@ local input = nil
 local focusedComponent = 1 -- 1 = button, 2 = slider
 
 -- Constants
-local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
 
@@ -112,26 +111,6 @@ local function updateFocusStates()
 	end
 end
 
-function navigationScreen.load()
-	input = inputHandler.create()
-
-	-- Calculate positions
-	local startY = header.getContentStartY()
-	local buttonY = startY + COMPONENT_SPACING - 2
-
-	-- Create alignment button first to get its height
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
-
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Set initial focus
-	updateFocusStates()
-end
-
 function navigationScreen.draw()
 	background.draw()
 	header.draw("navigation")
@@ -148,7 +127,7 @@ function navigationScreen.draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = opacitySlider.y + opacitySlider:getTotalHeight() + 20
+	local previewY = opacitySlider.y + Slider.getTotalHeight() + 20
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 
@@ -229,11 +208,6 @@ function navigationScreen.update(dt)
 		elseif input.isPressed("dpright") then
 			handleAlignmentOptionCycle(1)
 		end
-	elseif focusedComponent == 2 and opacitySlider then
-		-- Handle slider input
-		if opacitySlider:handleInput(input) then
-			-- Slider value was changed
-		end
 	end
 
 	-- Update components
@@ -250,11 +224,15 @@ function navigationScreen.update(dt)
 	end
 end
 
-function navigationScreen.onEnter(data)
-	-- Recreate components in case state changed
-	local startY = header.getContentStartY()
-	local buttonY = startY + COMPONENT_SPACING
+function navigationScreen.onEnter(_data)
+	-- Initialize input handler
+	input = inputHandler.create()
 
+	-- Calculate positions
+	local startY = header.getContentStartY()
+	local buttonY = startY + COMPONENT_SPACING - 2
+
+	-- Create alignment button first to get its height
 	alignmentButton = createAlignmentButton()
 	alignmentButton.y = buttonY
 

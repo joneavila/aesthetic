@@ -1,7 +1,6 @@
 --- Path constants
 local system = require("utils.system")
 local state = require("state")
-local fonts = require("ui.fonts")
 local errorHandler = require("error_handler")
 
 local paths = {}

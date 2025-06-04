@@ -41,7 +41,7 @@ function themeSettings.applyGlyphSettings(schemeFilePath)
 end
 
 -- Apply screen width settings to a scheme file
-function themeSettings.applyContentPaddingLeftSettings(schemeFilePath, screenWidth)
+function themeSettings.applyContentPaddingLeftSettings(schemeFilePath, _screenWidth)
 	return system.modifyFile(schemeFilePath, function(content)
 		local contentPaddingLeft = math.floor(CONTENT_PADDING / 2)
 

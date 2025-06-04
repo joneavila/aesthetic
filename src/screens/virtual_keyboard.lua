@@ -105,14 +105,11 @@ local function initializeKeyboard()
 	keyboardY = header.getContentStartY() + inputFieldHeight + 30
 end
 
--- Load resources
-function virtual_keyboard.load()
-	-- Initialize keyboard positioning
-	initializeKeyboard()
-end
-
 -- Handle screen entry
 function virtual_keyboard.onEnter(params)
+	-- Initialize keyboard positioning
+	initializeKeyboard()
+
 	-- Reset state
 	inputValue = ""
 	selectedX = 1
@@ -125,15 +122,11 @@ function virtual_keyboard.onEnter(params)
 	if params then
 		headerTitle = params.title or "Input"
 		returnScreen = params.returnScreen
-		callback = params.callback
 		-- Set initial input value if provided
 		if params.inputValue then
 			inputValue = params.inputValue
 		end
 	end
-
-	-- Re-initialize keyboard in case screen dimensions changed
-	initializeKeyboard()
 end
 
 -- Handle screen exit

@@ -40,7 +40,6 @@ local createdThemePath = nil
 
 -- Coroutine handling
 local activeCoroutine = nil
-local coroutineType = "none"
 
 -- Fixed modal width (80% of screen width)
 local function getFixedModalWidth()
@@ -326,8 +325,7 @@ local function handleOptionCycle(button, direction)
 		return false
 	end
 
-	local newValue = button:getCurrentOption()
-
+	-- local newValue = button:getCurrentOption()
 	-- Update state based on button context
 	-- Temporarily disabled
 	--[[
@@ -343,7 +341,6 @@ local function handleThemeCreation()
 	if not activeCoroutine then
 		-- Start the coroutine
 		activeCoroutine = themeCreator.createThemeCoroutine()
-		coroutineType = "create"
 		-- Show initial modal with main message and set fixed size
 		modal:show("Creating Theme")
 		if getFixedModalWidth() > 0 then
@@ -357,19 +354,16 @@ local function handleThemeCreation()
 	if not ok then
 		-- Coroutine error
 		activeCoroutine = nil
-		coroutineType = "none"
 		waitingState = "none"
 		local errorMessage = errorHandler.getErrorMessage()
 		local modalText = "Error creating theme: " .. (errorMessage or "Unknown error")
 		modal:show(modalText, { { text = "Exit", selected = true } })
-		modalState = "error"
 		return
 	end
 
 	if coroutine.status(activeCoroutine) == "dead" then
 		-- Coroutine completed
 		activeCoroutine = nil
-		coroutineType = "none"
 		waitingState = "none"
 
 		if isSuccess and type(pathOrError) == "string" then
@@ -378,13 +372,11 @@ local function handleThemeCreation()
 				{ text = "Apply theme later", selected = false },
 				{ text = "Apply theme now", selected = true },
 			})
-			modalState = "created"
 		else
 			-- Failure
 			local errorMessage = pathOrError or errorHandler.getErrorMessage() or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true } })
-			modalState = "error"
 		end
 	else
 		-- Coroutine yielded with progress message
@@ -408,7 +400,6 @@ local function handleThemeInstallation()
 
 		-- Start the coroutine
 		activeCoroutine = themeCreator.installThemeCoroutine(filename_only)
-		coroutineType = "install"
 		-- Show initial modal with main message and set fixed size
 		modal:show("Applying Theme")
 		if getFixedModalWidth() > 0 then
@@ -417,12 +408,11 @@ local function handleThemeInstallation()
 	end
 
 	-- Resume the coroutine
-	local success, result, message = coroutine.resume(activeCoroutine)
+	local success, result, _ = coroutine.resume(activeCoroutine)
 
 	if not success then
 		-- Coroutine error
 		activeCoroutine = nil
-		coroutineType = "none"
 		waitingState = "none"
 		waitingThemePath = nil
 		modal:show("Failed to apply theme.", { { text = "Close", selected = true } })
@@ -432,7 +422,6 @@ local function handleThemeInstallation()
 	if coroutine.status(activeCoroutine) == "dead" then
 		-- Coroutine completed
 		activeCoroutine = nil
-		coroutineType = "none"
 		waitingState = "none"
 		waitingThemePath = nil
 		rgbUtils.installFromTheme()
@@ -448,63 +437,6 @@ local function handleThemeInstallation()
 			modal:updateProgress(result)
 		end
 	end
-end
-
-local modalState = "none"
-
-function menu.load()
-	-- Initialize new button component
-	require("ui.button").init()
-
-	-- Create input handler
-	input = inputHandler.create()
-
-	-- Create UI components
-	local buttons = createMenuButtons()
-	actionButton = createActionButton()
-
-	-- Create the main list
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT,
-		items = buttons,
-		onItemSelect = function(item, _index)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		onItemOptionCycle = handleOptionCycle,
-		wrap = false,
-	})
-
-	-- Create modal component
-	modal = Modal:new({
-		font = fonts.loaded.body,
-		onButtonPress = function(_index, button)
-			if button and button.text == "Apply theme later" then
-				modal:hide()
-				modalState = "none"
-			elseif button and button.text == "Apply theme now" then
-				if type(createdThemePath) == "string" and createdThemePath ~= "" then
-					waitingThemePath = createdThemePath
-					logger.debug("waitingThemePath set to: " .. tostring(waitingThemePath))
-					modal:show("Applying theme...")
-					modalState = "none"
-					waitingState = "install_theme"
-				else
-					modal:show("No theme path to apply.", { { text = "Close", selected = true } })
-				end
-			elseif button and button.text == "Exit" then
-				love.event.quit()
-				modal:hide()
-			else
-				modal:hide()
-				modalState = "none"
-			end
-		end,
-	})
 end
 
 function menu.draw()
@@ -650,23 +582,63 @@ function menu.onExit()
 end
 
 function menu.onEnter(data)
-	-- Rebuild the UI components with current state
+	-- Initialize components
+	require("ui.button").init()
+	input = inputHandler.create()
+
+	-- Create modal component
+	modal = Modal:new({
+		font = fonts.loaded.body,
+		onButtonPress = function(_index, button)
+			if button and button.text == "Apply theme later" then
+				modal:hide()
+			elseif button and button.text == "Apply theme now" then
+				if type(createdThemePath) == "string" and createdThemePath ~= "" then
+					waitingThemePath = createdThemePath
+					logger.debug("waitingThemePath set to: " .. tostring(waitingThemePath))
+					modal:show("Applying theme...")
+					waitingState = "install_theme"
+				else
+					modal:show("No theme path to apply.", { { text = "Close", selected = true } })
+				end
+			elseif button and button.text == "Exit" then
+				love.event.quit()
+				modal:hide()
+			else
+				modal:hide()
+			end
+		end,
+	})
+
+	-- Create UI components with current state
 	local buttons = createMenuButtons()
 	actionButton = createActionButton()
 
-	if menuList then
-		menuList:setItems(buttons)
+	-- Create the main list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT,
+		items = buttons,
+		onItemSelect = function(item, _index)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+	})
 
-		-- Restore focus state properly
-		if lastFocusState.actionButtonFocused then
-			-- If action button was focused, we need to ensure proper navigation works
-			-- Reset to a valid list state first, then focus the action button
-			menuList:setSelectedIndex(0) -- 0 means no list item selected
-		else
-			-- Restore the last selected index, ensuring it's valid
-			local validIndex = math.min(math.max(lastFocusState.selectedIndex, 1), #buttons)
-			menuList:setSelectedIndex(validIndex)
-		end
+	-- Restore focus state properly
+	if lastFocusState.actionButtonFocused then
+		-- If action button was focused, we need to ensure proper navigation works
+		-- Reset to a valid list state first, then focus the action button
+		menuList:setSelectedIndex(0) -- 0 means no list item selected
+	else
+		-- Restore the last selected index, ensuring it's valid
+		local validIndex = math.min(math.max(lastFocusState.selectedIndex, 1), #buttons)
+		menuList:setSelectedIndex(validIndex)
 	end
 
 	-- Restore action button focus state

@@ -1,7 +1,7 @@
 --- Download Thread for LÖVE
 --- This thread handles file downloads without blocking the main UI thread
+local love = require("love")
 
--- Import the commands utility
 local commands = require("utils.commands")
 
 -- Get the communication channels

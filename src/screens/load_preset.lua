@@ -19,16 +19,16 @@ local rgb = require("utils.rgb")
 -- Module table to export public functions
 local loadPreset = {}
 
+-- Local variables for this module
+local menuList
+local input
+
 -- Preset items list
 local presetItems = {}
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
 	presetItems = {}
-	local presetDirs = {
-		presets._getUserThemePresetsPath and presets._getUserThemePresetsPath() or nil,
-		presets._getPresetsDir and presets._getPresetsDir() or nil,
-	}
 	local seen = {}
 	local availablePresets = {}
 	for _, presetName in ipairs(presets.listPresets()) do
@@ -65,7 +65,7 @@ local function loadPresetsList()
 	table.sort(presetDetails, function(a, b)
 		return a.created > b.created
 	end)
-	for i, detail in ipairs(presetDetails) do
+	for _, detail in ipairs(presetDetails) do
 		table.insert(
 			presetItems,
 			Button:new({
@@ -88,28 +88,6 @@ local function loadPresetsList()
 			})
 		)
 	end
-end
-
-function loadPreset.load()
-	input = inputHandler.create()
-	loadPresetsList()
-
-	-- Calculate available height for the list (full space between header and controls)
-	local availableHeight = state.screenHeight - header.getContentStartY() - controls.calculateHeight()
-
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = availableHeight,
-		items = presetItems,
-		onItemSelect = function(item)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		wrap = false,
-	})
 end
 
 function loadPreset.draw()
@@ -158,12 +136,28 @@ function loadPreset.update(dt)
 end
 
 function loadPreset.onEnter()
+	-- Initialize input handler
+	input = inputHandler.create()
+
 	loadPresetsList()
 
-	-- Initialize the list with proper state management
-	if menuList then
-		menuList:setItems(presetItems)
-	end
+	-- Calculate available height for the list (full space between header and controls)
+	local availableHeight = state.screenHeight - header.getContentStartY() - controls.calculateHeight()
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = availableHeight,
+		items = presetItems,
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		wrap = false,
+	})
 end
 
 -- Clean up resources when leaving the screen

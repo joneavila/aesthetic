@@ -2,11 +2,8 @@
 local love = require("love")
 
 local controls = require("controls")
-local errorHandler = require("error_handler")
-local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
-local system = require("utils.system")
 local otaUpdate = require("utils.ota_update")
 local presets = require("utils.presets")
 
@@ -22,9 +19,6 @@ local Modal = modalModule.Modal
 -- Screen module
 local settings = {}
 
--- Last selected index for persistence
-local lastSelectedIndex = 1
-
 -- Modal state tracking
 local presetName = nil
 local menuList = nil
@@ -36,11 +30,9 @@ local updateCheckInProgress = false
 local downloadInProgress = false
 local updateInfo = nil
 local updateCheckScheduled = false
-local downloadScheduled = false
 local updateCheckTimer = 0
 local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
 local downloadThread = nil -- LÖVE thread for downloading
-local downloadStartTime = 0
 
 -- Function to handle OTA update check
 local function checkForUpdates()
@@ -53,13 +45,12 @@ local function checkForUpdates()
 end
 
 -- Function to handle update download
-function downloadUpdate()
+local function downloadUpdate()
 	if not updateInfo or downloadInProgress then
 		return
 	end
 
 	downloadInProgress = true
-	downloadStartTime = love.timer.getTime()
 
 	-- Start the threaded download
 	local success, threadOrError = otaUpdate.startThreadedDownload(updateInfo.downloadUrl, updateInfo.assetName)
@@ -153,27 +144,6 @@ local function createMenuButtons()
 			end,
 		}),
 	}
-end
-
-function settings.load()
-	input = inputHandler.create()
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
-		items = createMenuButtons(),
-		onItemSelect = function(item)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		wrap = false,
-	})
-	-- Create modal instance
-	modalInstance = Modal:new({
-		font = fonts.loaded.body,
-	})
 end
 
 function settings.draw()
@@ -356,11 +326,33 @@ end
 
 -- Handle entry to this screen
 function settings.onEnter(params)
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Create modal
+	modalInstance = Modal:new({
+		font = fonts.loaded.body,
+	})
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		wrap = false,
+	})
+
 	-- Reset modal state
 	if modalInstance then
 		modalInstance:hide()
 	end
-	modalMode = "none"
 
 	-- Check if returning from virtual keyboard with a preset name
 	if params and params.inputValue and params.inputValue ~= "" then
@@ -404,7 +396,6 @@ function settings.onExit()
 	if modalInstance then
 		modalInstance:hide()
 	end
-	modalMode = "none"
 
 	-- Reset OTA update state
 	updateCheckInProgress = false
@@ -412,20 +403,10 @@ function settings.onExit()
 	updateInfo = nil
 	updateCheckScheduled = false
 	updateCheckTimer = 0
-	downloadStartTime = 0
 
 	-- Clean up download thread if still running
 	if downloadThread then
-		if downloadThread:isRunning() then
-			-- Note: We can't easily stop LÖVE threads, but we can clear our reference
-			-- The thread will finish its work and exit naturally
-		end
 		downloadThread = nil
-	end
-
-	-- Save the current selected index
-	if menuList then
-		lastSelectedIndex = menuList.selectedIndex
 	end
 end
 

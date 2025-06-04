@@ -105,36 +105,13 @@ local function handleOptionCycle(button, direction)
 	return false
 end
 
-function box_art_width.load()
-	input = inputHandler.create()
-	generateWidthOptions()
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
-		items = createMenuButtons(),
-		onItemSelect = function(_item)
-			-- No-op for this screen
-		end,
-		onItemOptionCycle = handleOptionCycle,
-		wrap = false,
-	})
-	local boxArtWidth = state.boxArtWidth
-	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
-	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
-	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
-	animatedLeftWidth = tweenObj.leftWidth
-	animatedRightWidth = tweenObj.rightWidth
-end
-
 function box_art_width.draw()
 	background.draw()
 	header.draw("box art width")
 
 	-- Draw information text below header
-	local infoText =
-		'This setting applies to the Content, Collection, and History screens and assumes you have set muOS\' "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
+	local infoText = "This setting applies to the Content, Collection, and History screens and assumes you have\n"
+		.. ' set muOS "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
 	love.graphics.setFont(fonts.loaded.caption)
 	love.graphics.setColor(colors.ui.subtext)
 	local infoY = header.getContentStartY() + 2
@@ -152,12 +129,10 @@ function box_art_width.draw()
 	end
 
 	-- Calculate the bottom Y of the last button in the menuList
-	local previewY = nil
+	local previewY = header.getContentStartY() + infoHeight + 40
 	if menuList then
 		local listBottom = menuList.y + menuList:getContentHeight()
 		previewY = listBottom + 40
-	else
-		previewY = header.getContentStartY() + infoHeight + 40
 	end
 
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
@@ -242,10 +217,32 @@ function box_art_width.update(dt)
 end
 
 function box_art_width.onEnter()
+	-- Initialize input handler
+	input = inputHandler.create()
+
 	generateWidthOptions()
-	if menuList then
-		menuList:setItems(createMenuButtons())
-	end
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		onItemSelect = function(_item)
+			-- No-op for this screen
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+	})
+
+	-- Initialize animation state
+	local boxArtWidth = state.boxArtWidth
+	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+	tweenObj.leftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
+	animatedLeftWidth = tweenObj.leftWidth
+	animatedRightWidth = tweenObj.rightWidth
 end
 
 function box_art_width.onExit() end

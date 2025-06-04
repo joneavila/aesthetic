@@ -131,49 +131,6 @@ local function formatColorContext(context)
 	end
 end
 
-function colorPicker.load()
-	-- Calculate tab widths
-	local availableWidth = state.screenWidth - (TAB_CONTAINER_PADDING * 2)
-	local tabWidth = availableWidth / #tabs
-
-	for i, tab in ipairs(tabs) do
-		tab.x = TAB_CONTAINER_PADDING + (i - 1) * tabWidth
-		tab.width = tabWidth
-	end
-
-	-- Initialize the tab indicator
-	local activeTab = getActiveTab()
-	tabIndicator.x = activeTab.x
-	tabIndicator.width = activeTab.width
-
-	-- Initialize text colors
-	initializeTextColors()
-
-	-- Set initial text colors
-	for i, tab in ipairs(tabs) do
-		if tab.active then
-			tabTextColors[i].color = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }
-		else
-			tabTextColors[i].color = { colors.ui.subtext[1], colors.ui.subtext[2], colors.ui.subtext[3], 1 }
-		end
-	end
-
-	-- Set up initial animation state
-	updateTabAnimations()
-
-	-- Load all sub-screens
-	for _, tab in ipairs(tabs) do
-		if tab.screen.load then
-			tab.screen.load()
-		end
-
-		-- Initialize onEnter for palette screen
-		if tab.name == "Palette" and tab.screen.onEnter then
-			tab.screen.onEnter()
-		end
-	end
-end
-
 function colorPicker.draw()
 	-- Draw the active sub-screen first, underneath the tabs
 	local activeTab = getActiveTab()
@@ -300,6 +257,31 @@ end
 
 -- Function called when entering this screen
 function colorPicker.onEnter(tabName)
+	-- Initialize tab layout
+	-- Calculate tab widths
+	local availableWidth = state.screenWidth - (TAB_CONTAINER_PADDING * 2)
+	local tabWidth = availableWidth / #tabs
+
+	for i, tab in ipairs(tabs) do
+		tab.x = TAB_CONTAINER_PADDING + (i - 1) * tabWidth
+		tab.width = tabWidth
+	end
+
+	-- Initialize the tab indicator
+	local activeTab = getActiveTab()
+	tabIndicator.x = activeTab.x
+	tabIndicator.width = activeTab.width
+
+	-- Initialize text colors
+	initializeTextColors()
+
+	-- Load all sub-screens
+	for _, tab in ipairs(tabs) do
+		if tab.screen.load then
+			tab.screen.load()
+		end
+	end
+
 	-- If a specific tab is requested, switch to it
 	if tabName then
 		switchToTab(tabName)
@@ -322,7 +304,7 @@ function colorPicker.onEnter(tabName)
 		tabIndicator.width = tabs[1].width
 
 		-- Set text colors directly without animation - palette active, others inactive
-		for i, tab in ipairs(tabs) do
+		for i, _ in ipairs(tabs) do
 			if i == 1 then -- Palette tab
 				tabTextColors[i].color =
 					{ colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }

@@ -17,7 +17,6 @@ local BUTTON_CONFIG = {
 }
 
 local ICON_SIZE = 14
-local LARGE_ICON_SIZE = 21
 local COLOR_DISPLAY_SIZE = 30
 local CHEVRON_PADDING = 16
 

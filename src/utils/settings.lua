@@ -5,8 +5,6 @@ local errorHandler = require("error_handler")
 local state = require("state")
 local paths = require("paths")
 
-local fonts = require("ui.fonts")
-
 local system = require("utils.system")
 
 local settings = {}

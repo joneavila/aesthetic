@@ -14,7 +14,6 @@ local love = require("love")
 local colors = require("colors")
 local input = require("input")
 local state = require("state")
-local font_calibration = require("font_calibration")
 
 local fonts = require("ui.fonts")
 
@@ -51,7 +50,12 @@ function love.load()
 
 	-- Load UI components that require initialization
 	screens = require("screens")
-	screens.load()
+	screens.load() -- Register all screens
+
+	-- Explicitly load the splash screen since it's the first screen and needs immediate resources
+	local splashScreen = require("screens.splash")
+	splashScreen.load()
+	splashScreen._loadedLazily = true -- Mark as already loaded to prevent double loading
 
 	-- Start with the splash screen
 	screens.switchTo("splash")

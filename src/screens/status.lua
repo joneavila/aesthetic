@@ -22,7 +22,6 @@ local alignmentButton = nil
 local input = nil
 
 -- Constants
-local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
 local WARNING_TEXT = "Note: Status alignment setting may conflict with time alignment and header alignment settings."
@@ -64,22 +63,6 @@ local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	local _, wrappedLines = fonts.loaded.caption:getWrap(WARNING_TEXT, warningWidth)
 	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
-end
-
-function statusScreen.load()
-	input = inputHandler.create()
-
-	-- Calculate positions
-	local startY = header.getContentStartY()
-	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
-
-	-- Create alignment button
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
-
-	-- Set focus on the button
-	alignmentButton:setFocused(true)
 end
 
 function statusScreen.draw()
@@ -177,12 +160,16 @@ function statusScreen.update(dt)
 	end
 end
 
-function statusScreen.onEnter(data)
-	-- Recreate components in case state changed
+function statusScreen.onEnter(_data)
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Calculate positions
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING
+	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
 
+	-- Create alignment button
 	alignmentButton = createAlignmentButton()
 	alignmentButton.y = buttonY
 

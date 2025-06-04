@@ -16,6 +16,10 @@ local List = require("ui.list").List
 -- Module table to export public functions
 local font = {}
 
+-- Local variables for this module
+local menuList
+local input
+
 -- Constants specific to the font preview
 local FONT_PREVIEW = {
 	PREVIEW_TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+-=[]{}|;':\",./<>?",
@@ -108,23 +112,6 @@ local function createMenuButtons()
 	return buttons
 end
 
-function font.load()
-	input = inputHandler.create()
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 120,
-		items = createMenuButtons(),
-		onItemSelect = function(item)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		itemHeight = 40,
-	})
-end
-
 function font.draw()
 	-- Set background
 	background.draw()
@@ -145,8 +132,11 @@ function font.draw()
 	end
 
 	-- Calculate the maximum preview height for fixed positioning
-	local maxPreviewHeight = calculateMaxPreviewHeight()
-	local previewY = state.screenHeight - controls.HEIGHT - maxPreviewHeight - FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
+	local calculatedMaxPreviewHeight = calculateMaxPreviewHeight()
+	local previewY = state.screenHeight
+		- controls.HEIGHT
+		- calculatedMaxPreviewHeight
+		- FONT_PREVIEW.PREVIEW_BOTTOM_MARGIN
 
 	-- Draw the list using our list component
 	if menuList then
@@ -163,7 +153,7 @@ function font.draw()
 		32,
 		previewY,
 		state.screenWidth - (32 * 2),
-		maxPreviewHeight,
+		calculatedMaxPreviewHeight,
 		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
 	)
 
@@ -202,9 +192,23 @@ function font.update(dt)
 end
 
 function font.onEnter()
-	if menuList then
-		menuList:setItems(createMenuButtons())
-	end
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 120,
+		items = createMenuButtons(),
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		itemHeight = 40,
+	})
 end
 
 function font.onExit()

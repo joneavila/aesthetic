@@ -14,7 +14,6 @@
 
 local love = require("love")
 local tove = require("tove")
-local colors = require("colors")
 local errorHandler = require("error_handler")
 
 local svg = {}

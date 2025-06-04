@@ -121,18 +121,6 @@ local paletteState = {
 	visibleGridHeight = 0,
 }
 
-function palette.load()
-	local dimensions = calculateGridDimensions()
-	paletteState.paletteColors = dimensions.paletteColors
-	paletteState.gridSize = dimensions.gridSize
-	paletteState.squareSize = dimensions.squareSize
-	paletteState.visibleRows = dimensions.visibleRows
-	paletteState.totalGridHeight = dimensions.totalGridHeight
-	paletteState.visibleGridHeight = dimensions.visibleGridHeight
-	paletteState.offsetX = dimensions.offsetX
-	paletteState.offsetY = dimensions.offsetY
-end
-
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
 	local contentArea = constants.calculateContentArea()
@@ -273,7 +261,6 @@ function palette.update(dt)
 		if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
 			currentState.selectedRow = newRow
 			currentState.selectedCol = newCol
-			moved = true
 
 			-- Start new hover animation
 			paletteState.currentScale = 1

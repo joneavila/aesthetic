@@ -127,58 +127,6 @@ local function startWiggleAnimation()
 	}, "outElastic")
 end
 
-function hsv.load()
-	local contentArea = constants.calculateContentArea()
-
-	-- Calculate available space
-	local availableHeight = contentArea.height - (EDGE_PADDING * 2)
-	local availableWidth = contentArea.width - (EDGE_PADDING * 2)
-
-	-- Calculate SV square size - should be a perfect square that fits the available height
-	pickerState.squareSize = availableHeight
-
-	-- Calculate total width needed for SV square and hue slider with triangles and spacing
-	local totalFixedWidth = pickerState.squareSize -- SV square
-		+ HUE_SLIDER_WIDTH -- Hue slider
-		+ (CURSOR.TRIANGLE_HEIGHT * 2) -- Space for triangles on both sides of hue slider
-		+ (ELEMENT_SPACING * 2) -- Spacing between elements
-
-	-- Calculate remaining width for preview squares
-	pickerState.previewWidth = availableWidth - totalFixedWidth
-
-	pickerState.sliderWidth = HUE_SLIDER_WIDTH
-	pickerState.contentHeight = availableHeight
-
-	-- Calculate preview height
-	local labelHeight = 20
-	local labelPadding = 15 -- Match the value used in draw function
-	PREVIEW_HEIGHT = math.floor((availableHeight - PREVIEW_SQUARE_SPACING - labelPadding - (labelHeight * 2)) / 2)
-
-	-- Calculate positions for all elements (left to right)
-	-- Preview squares position (leftmost)
-	local previewX = EDGE_PADDING
-	-- Hue slider position (after preview)
-	local hueSliderX = previewX + pickerState.previewWidth + ELEMENT_SPACING + CURSOR.TRIANGLE_HEIGHT
-	-- SV square position (rightmost, ensuring consistent right edge padding)
-	pickerState.startX = contentArea.width - EDGE_PADDING - pickerState.squareSize
-	-- Store all positions
-	pickerState.startY = contentArea.y + EDGE_PADDING
-	pickerState.hueSliderX = hueSliderX
-	pickerState.previewX = previewX
-
-	-- Get current color type state
-	local currentState = getCurrentHsvState()
-
-	-- Initialize cursor positions
-	currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
-	currentState.cursor.svY = pickerState.startY + ((1 - currentState.val) * pickerState.squareSize)
-	currentState.cursor.hueY = pickerState.startY + ((360 - currentState.hue) / 360 * pickerState.squareSize)
-	initializeCachedTextures()
-
-	-- Start with a wiggle animation on the hue slider to indicate focus
-	startWiggleAnimation()
-end
-
 function hsv.draw()
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
@@ -566,7 +514,6 @@ function hsv.update(dt)
 
 		-- Left joystick Y-axis controls for hue
 		if leftY ~= 0 then
-			local newHue = currentState.hue
 			newHue = (newHue - leftY * step) % 360
 
 			currentState.hue = newHue
@@ -612,19 +559,56 @@ function hsv.update(dt)
 end
 
 function hsv.onEnter()
+	-- Initialize layout if not already done
+	if not pickerState.squareSize then
+		local contentArea = constants.calculateContentArea()
+
+		-- Calculate available space
+		local availableHeight = contentArea.height - (EDGE_PADDING * 2)
+		local availableWidth = contentArea.width - (EDGE_PADDING * 2)
+
+		-- Calculate SV square size - should be a perfect square that fits the available height
+		pickerState.squareSize = availableHeight
+
+		-- Calculate total width needed for SV square and hue slider with triangles and spacing
+		local totalFixedWidth = pickerState.squareSize -- SV square
+			+ HUE_SLIDER_WIDTH -- Hue slider
+			+ (CURSOR.TRIANGLE_HEIGHT * 2) -- Space for triangles on both sides of hue slider
+			+ (ELEMENT_SPACING * 2) -- Spacing between elements
+
+		-- Calculate remaining width for preview squares
+		pickerState.previewWidth = availableWidth - totalFixedWidth
+
+		pickerState.sliderWidth = HUE_SLIDER_WIDTH
+		pickerState.contentHeight = availableHeight
+
+		-- Calculate preview height
+		local labelHeight = 20
+		local labelPadding = 15 -- Match the value used in draw function
+		PREVIEW_HEIGHT = math.floor((availableHeight - PREVIEW_SQUARE_SPACING - labelPadding - (labelHeight * 2)) / 2)
+
+		-- Calculate positions for all elements (left to right)
+		-- Preview squares position (leftmost)
+		local previewX = EDGE_PADDING
+		-- Hue slider position (after preview)
+		local hueSliderX = previewX + pickerState.previewWidth + ELEMENT_SPACING + CURSOR.TRIANGLE_HEIGHT
+		-- SV square position (rightmost, ensuring consistent right edge padding)
+		pickerState.startX = contentArea.width - EDGE_PADDING - pickerState.squareSize
+		-- Store all positions
+		pickerState.startY = contentArea.y + EDGE_PADDING
+		pickerState.hueSliderX = hueSliderX
+		pickerState.previewX = previewX
+
+		initializeCachedTextures()
+	end
+
 	-- Get current color type state
 	local currentState = getCurrentHsvState()
 
-	-- Initialize cursor positions if they haven't been set
-	if currentState.cursor.svX == nil then
-		currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
-	end
-	if currentState.cursor.svY == nil then
-		currentState.cursor.svY = pickerState.startY + ((1 - currentState.val) * pickerState.squareSize)
-	end
-	if currentState.cursor.hueY == nil then
-		currentState.cursor.hueY = pickerState.startY + ((360 - currentState.hue) / 360 * pickerState.squareSize)
-	end
+	-- Initialize cursor positions
+	currentState.cursor.svX = pickerState.startX + (currentState.sat * pickerState.squareSize)
+	currentState.cursor.svY = pickerState.startY + ((1 - currentState.val) * pickerState.squareSize)
+	currentState.cursor.hueY = pickerState.startY + ((360 - currentState.hue) / 360 * pickerState.squareSize)
 
 	-- Update the SV square texture based on the current hue
 	updateSVSquare()

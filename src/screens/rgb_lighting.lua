@@ -237,24 +237,6 @@ local function handleOptionCycle(button, direction)
 	return false
 end
 
-function rgb_lighting.load()
-	input = inputHandler.create()
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
-		items = createMenuButtons(),
-		onItemSelect = function(item)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		onItemOptionCycle = handleOptionCycle,
-		wrap = false,
-	})
-end
-
 function rgb_lighting.draw()
 	-- Set background
 	background.draw()
@@ -289,9 +271,25 @@ function rgb_lighting.update(dt)
 end
 
 function rgb_lighting.onEnter()
-	if menuList then
-		menuList:setItems(createMenuButtons())
-	end
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+	})
+
 	if state.hasRGBSupport then
 		rgbUtils.updateConfig()
 	end

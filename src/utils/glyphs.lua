@@ -339,7 +339,8 @@ function glyphs.generateMuxLaunchGlyphs()
 
 	logger.debug(
 		string.format(
-			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: %.2fpx, padding: %dpx)",
+			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: "
+				.. "%.2fpx, padding: %dpx)",
 			#muxLaunchGlyphMap,
 			targetCanvasSize,
 			glyphRenderHeight,

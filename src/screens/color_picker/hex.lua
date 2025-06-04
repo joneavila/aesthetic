@@ -21,7 +21,6 @@ local EDGE_PADDING = 20
 local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
 local GRID_PADDING = 10
-local LAST_COLUMN_EXTRA_PADDING = 20 -- Extra padding before the last column
 local BUTTON_CORNER_RADIUS = 8
 local BUTTON_HOVER_OUTLINE_WIDTH = 4
 local INPUT_RECT_WIDTH = 30
@@ -121,15 +120,6 @@ local function getButtonPosition(row, col)
 	return x, y, buttonWidth, buttonHeight
 end
 
--- Helper function to get necessary fonts (either from state or passed as parameter)
-local function getFonts()
-	local fonts = {
-		monoHeader = fonts and fonts.loaded.monoHeader,
-		body = fonts and fonts.loaded.body,
-	}
-	return fonts
-end
-
 -- Helper function to start confirm button wobble animation
 local function startConfirmButtonWobble()
 	if hexState.confirmButtonTween then
@@ -146,13 +136,6 @@ local function startConfirmButtonWobble()
 		confirmButtonScale = 1 + ANIMATION_SCALE,
 		confirmButtonFlash = 1,
 	}, tween.easing.outQuad)
-end
-
-function hex.load()
-	-- Default context values are set in `state.lua`, nothing to do here
-
-	-- Preload icons
-	svg.preloadIcons({ "delete", "check" }, ICON_SIZE)
 end
 
 function hex.draw()
@@ -197,27 +180,28 @@ function hex.draw()
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Get fonts
-	local fonts = getFonts()
+	local monoHeaderFont = fonts.loaded.monoHeader
+	local bodyFont = fonts.loaded.body
 
 	-- Draw # symbol
 	love.graphics.setColor(textColor)
-	if fonts.monoHeader then
-		love.graphics.setFont(fonts.monoHeader)
-		local hashWidth = fonts.monoHeader:getWidth("#")
+	if monoHeaderFont then
+		love.graphics.setFont(monoHeaderFont)
+		local hashWidth = monoHeaderFont:getWidth("#")
 		love.graphics.print(
 			"#",
 			inputStartX - hashWidth - 10,
-			inputY + (INPUT_RECT_HEIGHT - fonts.monoHeader:getHeight()) / 2
+			inputY + (INPUT_RECT_HEIGHT - monoHeaderFont:getHeight()) / 2
 		)
 
 		-- Draw input characters or underscores for empty positions
 		for i = 1, 6 do
 			local rectX = inputStartX + (i - 1) * (INPUT_RECT_WIDTH + INPUT_RECT_SPACING)
-			local charY = inputY + (INPUT_RECT_HEIGHT - fonts.monoHeader:getHeight()) / 2
+			local charY = inputY + (INPUT_RECT_HEIGHT - monoHeaderFont:getHeight()) / 2
 
 			-- Draw character if entered, otherwise draw underscore
 			local char = (i <= #currentState.input) and currentState.input:sub(i, i):upper() or "_"
-			local charWidth = fonts.monoHeader:getWidth(char)
+			local charWidth = monoHeaderFont:getWidth(char)
 			local charX = rectX + (INPUT_RECT_WIDTH - charWidth) / 2
 
 			love.graphics.setColor(textColor)
@@ -238,7 +222,6 @@ function hex.draw()
 				-- Apply animation to confirm button
 				if isConfirmButton then
 					local scale = hexState.confirmButtonScale
-					local flashAlpha = hexState.confirmButtonFlash
 
 					-- Calculate scaled dimensions
 					local scaledWidth = width * scale
@@ -351,10 +334,10 @@ function hex.draw()
 				else
 					-- Regular text button - set color for text
 					love.graphics.setColor(colors.ui.foreground)
-					if fonts.body then
-						love.graphics.setFont(fonts.body)
-						local textWidth = fonts.body:getWidth(buttonText)
-						local textHeight = fonts.body:getHeight()
+					if bodyFont then
+						love.graphics.setFont(bodyFont)
+						local textWidth = bodyFont:getWidth(buttonText)
+						local textHeight = bodyFont:getHeight()
 						love.graphics.print(buttonText, x + (width - textWidth) / 2, y + (height - textHeight) / 2)
 					end
 				end
@@ -371,7 +354,7 @@ function hex.draw()
 	})
 end
 
-function hex.update(_dt)
+function hex.update(dt)
 	local virtualJoystick = require("input").virtualJoystick
 
 	-- Get current color type state
@@ -379,7 +362,7 @@ function hex.update(_dt)
 
 	-- Update confirm button animation
 	if hexState.confirmButtonTween then
-		local isComplete = hexState.confirmButtonTween:update(_dt)
+		local isComplete = hexState.confirmButtonTween:update(dt)
 		if isComplete then
 			if hexState.animationPhase == "expanding" then
 				-- Start contracting phase
@@ -473,8 +456,10 @@ end
 
 -- Function to be called when entering this screen
 function hex.onEnter()
-	-- No additional initialization needed as state is managed centrally
-	-- If hex-specific state needs to be initialized, do it here
+	-- Preload icons if not already done
+	if not svg.isIconLoaded("delete") or not svg.isIconLoaded("check") then
+		svg.preloadIcons({ "delete", "check" }, ICON_SIZE)
+	end
 end
 
 return hex

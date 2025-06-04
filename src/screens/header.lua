@@ -25,7 +25,6 @@ local input = nil
 local focusedComponent = 1 -- 1 = button, 2 = slider
 
 -- Constants
-local CONTROLS_HEIGHT = controls.calculateHeight()
 local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
 local WARNING_TEXT = "Note: Header alignment setting may conflict with time alignment and status alignment settings."
@@ -121,27 +120,6 @@ local function calculateWarningHeight()
 	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
 end
 
-function headerScreen.load()
-	input = inputHandler.create()
-
-	-- Calculate positions
-	local startY = header.getContentStartY()
-	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
-
-	-- Create alignment button first to get its height
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
-
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Set initial focus
-	updateFocusStates()
-end
-
 function headerScreen.draw()
 	background.draw()
 	header.draw("header")
@@ -165,7 +143,7 @@ function headerScreen.draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = opacitySlider.y + opacitySlider:getTotalHeight() + 20
+	local previewY = opacitySlider.y + Slider.getTotalHeight() + 20
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 
@@ -247,11 +225,6 @@ function headerScreen.update(dt)
 		elseif input.isPressed("dpright") then
 			handleAlignmentOptionCycle(1)
 		end
-	elseif focusedComponent == 2 and opacitySlider then
-		-- Handle slider input
-		if opacitySlider:handleInput(input) then
-			-- Slider value was changed
-		end
 	end
 
 	-- Update components
@@ -268,12 +241,16 @@ function headerScreen.update(dt)
 	end
 end
 
-function headerScreen.onEnter(data)
-	-- Recreate components in case state changed
+function headerScreen.onEnter(_data)
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Calculate positions
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING
+	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
 
+	-- Create alignment button first to get its height
 	alignmentButton = createAlignmentButton()
 	alignmentButton.y = buttonY
 

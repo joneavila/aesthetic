@@ -37,19 +37,19 @@ Slider.BOTTOM_PADDING = 10
 Slider.TWEEN_DURATION = 0.25 -- Duration in seconds for slider animation
 Slider.TWEEN_EASING = "outQuad" -- Easing function for slider animation
 
-function Slider:new(config)
-	local self = setmetatable(component.Component:new(config), Slider)
-	self.x = config.x or 0
-	self.y = config.y or 0
-	self.width = config.width or 200
-	self.values = config.values or { 0, 100 }
-	self.valueIndex = config.valueIndex or 1
-	self.label = config.label
-	self.onValueChanged = config.onValueChanged
-	self.valueFormatter = config.valueFormatter -- Custom formatter function
-	self.animatedValue = self.valueIndex
-	self.currentTween = nil
-	return self
+function Slider.new(_, config)
+	local instance = setmetatable(component.Component:new(config), Slider)
+	instance.x = config.x or 0
+	instance.y = config.y or 0
+	instance.width = config.width or 200
+	instance.values = config.values or { 0, 100 }
+	instance.valueIndex = config.valueIndex or 1
+	instance.label = config.label
+	instance.onValueChanged = config.onValueChanged
+	instance.valueFormatter = config.valueFormatter -- Custom formatter function
+	instance.animatedValue = instance.valueIndex
+	instance.currentTween = nil
+	return instance
 end
 
 function Slider:setValueIndex(idx, animate)
@@ -77,7 +77,7 @@ function Slider:update(dt)
 	end
 end
 
-function Slider:getTotalHeight()
+function Slider.getTotalHeight()
 	local baseHeight = Slider.LABEL_OFFSET_Y + Slider.HEIGHT + Slider.BOTTOM_PADDING
 	return baseHeight + Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
 end
@@ -91,7 +91,7 @@ function Slider:draw()
 	if self.focused then
 		local backgroundPadding = 0
 		local backgroundY = self.y - Slider.FOCUS_BACKGROUND_TOP_MARGIN
-		local backgroundHeight = self:getTotalHeight() + Slider.FOCUS_BACKGROUND_TOP_MARGIN
+		local backgroundHeight = Slider.getTotalHeight() + Slider.FOCUS_BACKGROUND_TOP_MARGIN
 		love.graphics.setColor(colors.ui.surface)
 		love.graphics.rectangle(
 			"fill",

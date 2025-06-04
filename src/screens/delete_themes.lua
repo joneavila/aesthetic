@@ -3,7 +3,6 @@ local love = require("love")
 
 local colors = require("colors")
 local controls = require("controls")
-local input = require("input")
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
@@ -15,14 +14,12 @@ local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
 
-local commands = require("utils.commands")
 local svg = require("utils.svg")
 local system = require("utils.system")
 
 local delete_themes = {}
 
 local themeItems = {}
-local modalMode = "none"
 local themeList = nil
 local inputObj = nil
 local modalInstance = nil
@@ -35,7 +32,7 @@ local SQUARE_CHECK_ICON = svg.loadIcon("square-check", 24)
 local CheckboxItem = {}
 CheckboxItem.__index = CheckboxItem
 
-function CheckboxItem:new(text, index)
+function CheckboxItem.new(_self, text, index)
 	local instance = {
 		text = text,
 		index = index,
@@ -114,25 +111,6 @@ local function scanThemes()
 		local item = createThemeCheckboxItem(file, i)
 		table.insert(themeItems, item)
 	end
-end
-
-function delete_themes.load()
-	inputObj = inputHandler.create()
-	scanThemes()
-	themeList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - controls.calculateHeight(),
-		items = themeItems,
-		itemHeight = fonts.loaded.body:getHeight() + 24,
-		onItemSelect = function(item, _idx)
-			-- Toggle checked state
-			item.checked = not item.checked
-		end,
-		wrap = false,
-	})
-	modalInstance = Modal:new({ font = fonts.loaded.body })
 end
 
 function delete_themes.draw()
@@ -223,14 +201,12 @@ function delete_themes.update(dt)
 			return
 		end
 
-		modalMode = "confirm_delete"
 		local message = string.format("Delete %d selected theme%s?", checkedCount, checkedCount > 1 and "s" or "")
 		modalInstance:show(message, {
 			{
 				text = "Cancel",
 				onSelect = function()
 					modalInstance:hide()
-					modalMode = "none"
 				end,
 			},
 			{
@@ -270,7 +246,6 @@ function delete_themes.update(dt)
 							},
 						})
 					end
-					modalMode = "none"
 				end,
 			},
 		})
@@ -278,17 +253,34 @@ function delete_themes.update(dt)
 end
 
 function delete_themes.onEnter(_data)
+	-- Initialize input handler
+	inputObj = inputHandler.create()
+
+	-- Create modal
+	modalInstance = Modal:new({ font = fonts.loaded.body })
+
 	scanThemes()
-	if themeList then
-		themeList:setItems(themeItems)
-	end
+
+	-- Create theme list
+	themeList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - controls.calculateHeight(),
+		items = themeItems,
+		itemHeight = fonts.loaded.body:getHeight() + 24,
+		onItemSelect = function(item, _idx)
+			-- Toggle checked state
+			item.checked = not item.checked
+		end,
+		wrap = false,
+	})
 end
 
 function delete_themes.onExit()
 	if modalInstance then
 		modalInstance:hide()
 	end
-	modalMode = "none"
 end
 
 return delete_themes

@@ -57,24 +57,6 @@ local function handleOptionCycle(button, direction)
 	return false
 end
 
-function iconsToggle.load()
-	input = inputHandler.create()
-	loadPreviewImages()
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
-		items = createMenuButtons(),
-		onItemSelect = function(item)
-			if item.onClick then
-				item.onClick()
-			end
-		end,
-		onItemOptionCycle = handleOptionCycle,
-	})
-end
-
 function iconsToggle.draw()
 	-- Draw the background first
 	background.draw()
@@ -158,12 +140,27 @@ function iconsToggle.onExit()
 	previewImages = {}
 end
 
-function iconsToggle.onEnter(data)
-	-- Reload images and recreate buttons in case state changed
+function iconsToggle.onEnter(_data)
+	-- Initialize input handler
+	input = inputHandler.create()
+
+	-- Load preview images
 	loadPreviewImages()
-	if menuList then
-		menuList:setItems(createMenuButtons())
-	end
+
+	-- Create menu list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = state.screenHeight - header.getContentStartY() - 60,
+		items = createMenuButtons(),
+		onItemSelect = function(item)
+			if item.onClick then
+				item.onClick()
+			end
+		end,
+		onItemOptionCycle = handleOptionCycle,
+	})
 end
 
 return iconsToggle

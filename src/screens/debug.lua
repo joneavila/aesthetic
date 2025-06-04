@@ -26,10 +26,6 @@ local function getTextHeight(padding)
 	return font:getHeight() + padding
 end
 
-function debug.load()
-	-- Initialize debug screen
-end
-
 function debug.draw()
 	-- Draw background and header
 	background.draw()

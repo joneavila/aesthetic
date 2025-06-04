@@ -17,48 +17,48 @@ ListSelect.__index = ListSelect
 local SQUARE = svg.loadIcon("square", 24)
 local SQUARE_CHECK_ICON = svg.loadIcon("square-check", 24)
 
-function ListSelect:new(config)
-	local self = setmetatable(component.Component:new(config), ListSelect)
-	self.items = config.items or {}
-	self.actions = config.actions or {}
-	self.x = config.x or 0
-	self.y = config.y or 0
-	self.width = config.width or love.graphics.getWidth()
-	self.height = config.height or love.graphics.getHeight()
-	self.itemHeight = config.itemHeight or 60
-	self.selectedCount = 0
-	self.onItemChecked = config.onItemChecked
-	self.onActionSelected = config.onActionSelected
-	self.onItemSelect = config.onItemSelect
-	self.onItemFocus = config.onItemFocus
-	self.wrap = config.wrap or false
-	self.paddingX = config.paddingX or 16
-	self.paddingY = config.paddingY or 8
-	self.list = List:new({
-		x = self.x,
-		y = self.y,
-		width = self.width,
-		height = self.height,
-		items = self.items,
+function ListSelect.new(_self, config)
+	local instance = setmetatable(component.Component:new(config), ListSelect)
+	instance.items = config.items or {}
+	instance.actions = config.actions or {}
+	instance.x = config.x or 0
+	instance.y = config.y or 0
+	instance.width = config.width or love.graphics.getWidth()
+	instance.height = config.height or love.graphics.getHeight()
+	instance.itemHeight = config.itemHeight or 60
+	instance.selectedCount = 0
+	instance.onItemChecked = config.onItemChecked
+	instance.onActionSelected = config.onActionSelected
+	instance.onItemSelect = config.onItemSelect
+	instance.onItemFocus = config.onItemFocus
+	instance.wrap = config.wrap or false
+	instance.paddingX = config.paddingX or 16
+	instance.paddingY = config.paddingY or 8
+	instance.list = List:new({
+		x = instance.x,
+		y = instance.y,
+		width = instance.width,
+		height = instance.height,
+		items = instance.items,
 		onItemSelect = function(item, idx)
-			if self.onItemSelect then
-				self.onItemSelect(item, idx)
+			if instance.onItemSelect then
+				instance.onItemSelect(item, idx)
 			end
 			if item and item._isAction then
-				if self.onActionSelected then
-					self.onActionSelected(item, idx)
+				if instance.onActionSelected then
+					instance.onActionSelected(item, idx)
 				end
 			else
 				item.checked = not item.checked
-				if self.onItemChecked then
-					self.onItemChecked(item, idx)
+				if instance.onItemChecked then
+					instance.onItemChecked(item, idx)
 				end
 			end
 		end,
-		onItemFocus = self.onItemFocus,
-		wrap = self.wrap,
+		onItemFocus = instance.onItemFocus,
+		wrap = instance.wrap,
 	})
-	return self
+	return instance
 end
 
 function ListSelect:setItems(items)

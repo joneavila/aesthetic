@@ -3,9 +3,9 @@
 --- (load, enter, exit, update, draw).
 --- It automatically loads screens from the `screens` directory and supports returning value passing between screens.
 --- The function `screens.load` must be called explicitly by the application after initializing state and fonts.
---- This function discovers and registers all screen modules in the screens directory, and calls their load() methods
---- if present.
---- This ensures that all necessary state (such as screen dimensions and fonts) is set up before screens are loaded.
+--- This function discovers and registers all screen modules in the screens directory.
+--- Screen resources are loaded lazily when screens are first accessed via switchTo(),
+--- except for critical screens that should be loaded explicitly in main.lua (e.g., splash screen).
 local love = require("love")
 
 local logger = require("utils.logger")
@@ -58,10 +58,20 @@ function screens.switchTo(screenName, tabName, retVal)
 	-- Reset input cooldown timer when switching screens
 	inputCooldownTimer = INPUT_COOLDOWN_DURATION
 
-	-- Call enter handler on new screen if it exists
+	-- Lazy load resources if the screen hasn't been loaded yet
 	local newModule = registeredScreens[currentScreen]
-	if newModule and newModule.onEnter then
-		newModule.onEnter(tabName, returnValue)
+	if newModule then
+		-- Check if screen needs lazy loading (has load function but hasn't been loaded)
+		if newModule.load and not newModule._loadedLazily then
+			logger.debug("Lazy loading resources for screen: " .. tostring(screenName))
+			newModule.load()
+			newModule._loadedLazily = true
+		end
+
+		-- Call enter handler on new screen if it exists
+		if newModule.onEnter then
+			newModule.onEnter(tabName, returnValue)
+		end
 	end
 
 	-- Set default font to ensure consistent rendering across screens
@@ -110,14 +120,6 @@ function screens.load()
 		if screenName then
 			local screenModule = require("screens." .. screenName)
 			screens.register(screenName, screenModule)
-		end
-	end
-
-	-- Load all registered screens
-	for screenName, module in pairs(registeredScreens) do
-		logger.debug("Calling 'load' for screen: " .. tostring(screenName))
-		if module.load then
-			module.load()
 		end
 	end
 end

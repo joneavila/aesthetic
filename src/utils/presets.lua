@@ -13,8 +13,6 @@ local logger = require("utils.logger")
 local paths = require("paths")
 local state = require("state")
 
-local fonts = require("ui.fonts")
-
 local system = require("utils.system")
 
 local presets = {}

@@ -64,11 +64,11 @@ function Component:update(dt)
 	end
 end
 
-function Component:draw()
+function Component.draw(_self)
 	-- Override in subclasses
 end
 
-function Component:handleInput(_input)
+function Component.handleInput(_self, _input)
 	-- Override in subclasses
 	return false
 end

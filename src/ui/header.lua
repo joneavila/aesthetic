@@ -30,7 +30,7 @@ function Header:new(config)
 	return instance
 end
 
-function Header:calculateHeight()
+function Header.calculateHeight(_self)
 	return fonts.loaded.header:getHeight() + (HEADER_CONFIG.VERTICAL_PADDING * 2)
 end
 

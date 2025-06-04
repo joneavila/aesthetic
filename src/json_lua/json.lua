@@ -78,7 +78,7 @@ local function encode_table(val, stack)
       error("invalid table: sparse array")
     end
     -- Encode
-    for i, v in ipairs(val) do
+    for _, v in ipairs(val) do
       table.insert(res, encode(v, stack))
     end
     stack[val] = nil

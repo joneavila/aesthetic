@@ -29,7 +29,7 @@ local KOFI_TEXT = "Support the project, donate via Ko-Fi"
 -- Store screen switching function
 local qrCodeImage = nil
 
-function about.load()
+function about.onEnter()
 	-- Load QR code image
 	qrCodeImage = love.graphics.newImage(paths.KOFI_QR_CODE_IMAGE)
 end

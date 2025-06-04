@@ -30,7 +30,7 @@ function font_calibration.run()
 	logger.debug("Font Calibration Results (matching Inter 24pt)")
 	logger.debug(string.format("%-16s %-8s %-8s %-8s %-8s %-8s", "Font", "Size", "Ascent", "Descent", "Height", "Sum"))
 
-	for i, font in ipairs(fonts) do
+	for _, font in ipairs(fonts) do
 		if font.name == reference_font_name then
 			results[font.name] = {
 				best_size = reference_size,

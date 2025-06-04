@@ -72,31 +72,6 @@ local function handleOptionCycle(button, direction)
 	return true
 end
 
-function homeScreenLayout.load()
-	-- Initialize button component
-	require("ui.button").init()
-
-	-- Create input handler
-	input = inputHandler.create()
-
-	-- Load preview images
-	previewImage = loadPreviewImages()
-
-	-- Create the layout button
-	local buttons = { createLayoutButton() }
-
-	-- Create the main list
-	menuList = List:new({
-		x = 0,
-		y = header.getContentStartY(),
-		width = state.screenWidth,
-		height = 80, -- Just enough for the button
-		items = buttons,
-		onItemOptionCycle = handleOptionCycle,
-		wrap = false,
-	})
-end
-
 function homeScreenLayout.draw()
 	background.draw()
 	header.draw("home screen layout")
@@ -180,12 +155,27 @@ end
 
 function homeScreenLayout.onExit() end
 
-function homeScreenLayout.onEnter(data)
-	-- Rebuild the button with current state
+function homeScreenLayout.onEnter(_data)
+	-- Initialize components
+	require("ui.button").init()
+	input = inputHandler.create()
+
+	-- Load preview images
+	previewImage = loadPreviewImages()
+
+	-- Create the layout button
 	local buttons = { createLayoutButton() }
-	if menuList then
-		menuList:setItems(buttons)
-	end
+
+	-- Create the main list
+	menuList = List:new({
+		x = 0,
+		y = header.getContentStartY(),
+		width = state.screenWidth,
+		height = 80, -- Just enough for the button
+		items = buttons,
+		onItemOptionCycle = handleOptionCycle,
+		wrap = false,
+	})
 end
 
 return homeScreenLayout

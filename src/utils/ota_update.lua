@@ -1,7 +1,6 @@
 --- OTA Update utility
 --- Handles checking for and downloading GitHub .muxupd/.muxzip releases
 local logger = require("utils.logger")
-local errorHandler = require("error_handler")
 local commands = require("utils.commands")
 local system = require("utils.system")
 local version = require("version")
@@ -118,13 +117,13 @@ function otaUpdate.checkForUpdates()
 
 	-- Parse JSON using json.lua library
 	local releaseData
-	local success, result = pcall(json.decode, jsonContent)
+	local success, decodeResult = pcall(json.decode, jsonContent)
 	if not success then
-		local error = "Failed to parse GitHub API response as JSON: " .. tostring(result)
+		local error = "Failed to parse GitHub API response as JSON: " .. tostring(decodeResult)
 		logger.error(error)
 		return { error = error }
 	end
-	releaseData = result
+	releaseData = decodeResult
 
 	-- Extract tag name
 	local tagName = releaseData.tag_name
