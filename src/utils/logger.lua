@@ -42,8 +42,8 @@ local function getTimestamp()
 end
 
 -- Internal function to write log message
-local function writeLog(level, message)
-	local moduleName = getCallerModule()
+local function writeLog(level, message, moduleName)
+	local moduleName = moduleName or getCallerModule()
 	local logLine = string.format("[%s] [%s] [%s] %s", getTimestamp(), level, moduleName, message)
 
 	-- Get session log file from environment variable
@@ -87,6 +87,6 @@ for level, levelStr in pairs(LOG_LEVELS) do
 end
 
 -- Log that the logger module has been initialized
-writeLog(LOG_LEVELS.DEBUG, "Logger module initialized")
+writeLog(LOG_LEVELS.DEBUG, "Logger module initialized", "logger")
 
 return logger
