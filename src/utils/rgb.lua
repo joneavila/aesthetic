@@ -81,7 +81,15 @@ end
 -- Function to build the RGB command string based on current settings
 function rgb.buildCommand(forceOff)
 	-- Base command for led_control.sh
-	local command = paths.LED_CONTROL_SCRIPT
+	local command
+	if system.isFile(paths.LED_CONTROL_SCRIPT_GOOSE) then
+		command = paths.LED_CONTROL_SCRIPT_GOOSE
+	elseif system.isFile(paths.LED_CONTROL_SCRIPT_PIXIE) then
+		command = paths.LED_CONTROL_SCRIPT_PIXIE
+	else
+		logger.error("LED control script not found")
+		return false
+	end
 
 	-- Special case for "Off" mode or when forceOff is true
 	if state.rgbMode == "Off" or forceOff then
