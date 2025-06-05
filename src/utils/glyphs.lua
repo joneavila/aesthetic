@@ -1,207 +1,97 @@
---- TODO: Address glyph sizing discrepancy between sips and TÖVE/LÖVE rendering at a fixed pixel height.
---- TODO: Re-implement glyph height calculation to ensure consistent visual size across different screen resolutions.
-
 --- Glyph generation utilities
 --
 -- This module dynamically converts SVG icons to PNG format based on the mapping in glyph_map.txt
 -- It replaces the static pre-generated PNGs with dynamically sized ones appropriate for the screen resolution
 --
 local love = require("love")
-local system = require("utils.system")
-local paths = require("paths")
-local colorUtils = require("utils.color")
-local state = require("state")
-local logger = require("utils.logger")
+local tove = require("tove")
+
 local errorHandler = require("error_handler")
+local paths = require("paths")
+local state = require("state")
+
+local colorUtils = require("utils.color")
+local logger = require("utils.logger")
+local system = require("utils.system")
 
 local glyphs = {}
 
 local GLYPH_HEIGHT = 22
-local FIXED_STROKE_WIDTH = 1.5
-local GLYPH_MAPPINGS_DIR = paths.SOURCE_DIR .. "/utils/glyph_mappings"
-local BASE_VERSION = "2502.0_PIXIE"
+local GLYPH_MAPPING_FILE = paths.SOURCE_DIR .. "/utils/glyph_mapping.txt"
+local STROKE_WIDTH = 1.5
 
--- Helper function to load and parse a single glyph map file
-local function loadMapFile(mapFilePath)
-	local mapContent = system.readFile(mapFilePath)
-
+-- Read the glyph mapping file and return the map
+function glyphs.readGlyphMap()
+	local mapContent = system.readFile(GLYPH_MAPPING_FILE)
 	if not mapContent then
 		return nil
 	end
 
 	local mapEntries = {}
 
-	-- Parse each line
+	-- Parse each line, skipping comments and empty lines
 	for line in mapContent:gmatch("[^\r\n]+") do
-		-- Skip comments and empty lines
-		if not line:match("^%s*#") and not line:match("^%s*$") then
-			-- Check for removal entry (starts with -)
-			if line:match("^%s*%-(.+)") then
-				local outputPathToRemove = line:match("^%s*%-(.+)")
-				table.insert(mapEntries, { type = "remove", outputPath = outputPathToRemove:match("^%s*(.-)%s*$") })
-			else
-				-- Assume addition or override entry
-				local outputPath, inputFilename = line:match("([^,]+),%s*(.+)")
-				if outputPath and inputFilename then
-					-- Trim whitespace
-					table.insert(mapEntries, {
-						type = "add_or_override",
-						outputPath = outputPath:match("^%s*(.-)%s*$"),
-						inputFilename = inputFilename:match("^%s*(.-)%s*$"),
-					})
-				else
-					logger.warning("Skipping malformed line in glyph map: " .. line)
-				end
-			end
+		if line:match("^%s*#") or line:match("^%s*$") then
+			goto continue
 		end
+		local outputPath, inputFilename = line:match("^%s*(.-)%s*,%s*(.-)%s*$")
+		if outputPath and inputFilename then
+			table.insert(mapEntries, {
+				outputPath = outputPath,
+				inputFilename = inputFilename,
+			})
+		else
+			logger.warning("Skipping malformed line in glyph mapping: " .. line)
+		end
+		::continue::
 	end
 
-	logger.debug(string.format("Loaded %d entries from glyph map file '%s'", #mapEntries, mapFilePath))
-
+	logger.debug(string.format("Loaded %d entries from glyph mapping file '%s'", #mapEntries, GLYPH_MAPPING_FILE))
 	return mapEntries
 end
 
--- Read the glyph mapping files and return the merged map
-function glyphs.readGlyphMap()
-	local normalizedSystemVersion = system.getNormalizedSystemVersion()
-	local baseMapPath = GLYPH_MAPPINGS_DIR .. "/" .. BASE_VERSION .. ".txt"
-	local baseMapEntries = loadMapFile(baseMapPath)
-
-	if not baseMapEntries then
-		-- Cannot proceed without the base map
-		errorHandler.setError("Failed to read base glyph map file: " .. baseMapPath)
-		return nil
-	end
-
-	-- Convert base map entries to a dictionary for easier merging
-	local mergedMap = {}
-	for _, entry in ipairs(baseMapEntries) do
-		if entry.type == "add_or_override" then
-			mergedMap[entry.outputPath] = entry
-		end
-		-- Removal entries in the base map should theoretically not exist,
-		-- but we'll ignore them just in case.
-	end
-
-	if normalizedSystemVersion and normalizedSystemVersion ~= BASE_VERSION then
-		logger.debug("Extracted normalized version name: " .. normalizedSystemVersion)
-		local versionMapPath = GLYPH_MAPPINGS_DIR .. "/" .. normalizedSystemVersion .. ".txt"
-		local versionMapEntries = loadMapFile(versionMapPath)
-
-		if versionMapEntries then
-			logger.debug("Merging glyph map for version: " .. normalizedSystemVersion)
-			-- Merge version-specific entries
-			local additions = 0
-			local removals = 0
-			local overrides = 0
-
-			for _, entry in ipairs(versionMapEntries) do
-				if entry.type == "remove" then
-					if mergedMap[entry.outputPath] then
-						logger.debug("Removing glyph mapping: " .. entry.outputPath)
-						removals = removals + 1
-					else
-						logger.debug("Attempted to remove non-existent glyph mapping: " .. entry.outputPath)
-					end
-					mergedMap[entry.outputPath] = nil -- Remove the entry
-				elseif entry.type == "add_or_override" then
-					if mergedMap[entry.outputPath] then
-						logger.debug(
-							"Overriding glyph mapping: " .. entry.outputPath .. " with " .. entry.inputFilename
-						)
-						overrides = overrides + 1
-					else
-						additions = additions + 1
-					end
-					mergedMap[entry.outputPath] = entry -- Add or override the entry
-				end
-			end
-			logger.debug(
-				string.format("Merge summary: Additions=%d, Removals=%d, Overrides=%d", additions, removals, overrides)
-			)
-		else
-			logger.warning(
-				"Version-specific glyph map not found or unreadable for "
-					.. normalizedSystemVersion
-					.. ", using base map"
-			)
-		end
-	elseif normalizedSystemVersion and normalizedSystemVersion == BASE_VERSION then
-		logger.debug("Using base glyph map")
-	else
-		logger.warning(string.format("systemVersion: '%s', BASE_VERSION: '%s'", normalizedSystemVersion, BASE_VERSION))
-		return nil
-	end
-
-	-- Convert merged map dictionary back to a list (order doesn't strictly matter for generation)
-	local finalGlyphMap = {}
-	for _, entry in pairs(mergedMap) do
-		table.insert(finalGlyphMap, { outputPath = entry.outputPath, inputFilename = entry.inputFilename })
-	end
-
-	logger.debug(string.format("Final merged glyph map contains %d entries", #finalGlyphMap))
-
-	return finalGlyphMap
-end
-
--- Utility to override stroke-width in SVG XML string
-local function overrideStrokeWidth(svgContent, strokeWidth)
-	-- Replace any stroke-width attribute (with or without units)
-	-- Handles: stroke-width="2.5", stroke-width='2.5', stroke-width="2.5px", etc.
-	svgContent = svgContent:gsub('stroke%-width%s*=%s*"[^"]*"', 'stroke-width="' .. strokeWidth .. '"')
-	svgContent = svgContent:gsub("stroke%-width%s*=%s*'[^']*'", "stroke-width='" .. strokeWidth .. "'")
-	return svgContent
-end
-
--- Convert a single SVG icon to PNG with fixed stroke width, using TÖVE's prescale for sharpness
+-- Convert a single SVG icon to PNG with fixed stroke width
 -- Optionally accepts a padding value to use instead of the fixed stroke width for canvas size.
 -- The glyphHeight parameter should be the size the glyph itself is rendered at *before* padding.
-function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, padding)
-	-- Ensure parent directory exists
-	if not system.ensurePath(pngPath) then
-		logger.error("Failed to create directory for glyph: " .. pngPath)
-		return false
-	end
-
+-- Canvas parameter should be pre-created and appropriately sized.
+function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, canvas, padding)
 	-- Read SVG content
 	local svgContent = system.readFile(svgPath)
 	if not svgContent then
-		logger.error("Failed to read SVG file: " .. svgPath)
 		return false
 	end
 
 	-- Override stroke-width in SVG XML
-	-- Always use the FIXED_STROOKE_WIDTH for the SVG stroke itself
-	svgContent = overrideStrokeWidth(svgContent, FIXED_STROKE_WIDTH)
+	-- Replace any stroke-width attribute (with or without units)
+	-- Handles: stroke-width="2.5", stroke-width='2.5', stroke-width="2.5px", etc.
+	svgContent = svgContent:gsub('stroke%-width%s*=%s*"[^"]*"', 'stroke-width="' .. STROKE_WIDTH .. '"')
+	svgContent = svgContent:gsub("stroke%-width%s*=%s*'[^']*'", "stroke-width='" .. STROKE_WIDTH .. "'")
 
-	-- Use provided padding or default to FIXED_STROKE_WIDTH for canvas size
-	local effectivePad = padding or FIXED_STROKE_WIDTH
-	-- The canvas size is the render height plus padding
-	local canvasSize = glyphRenderHeight + effectivePad
+	-- Use provided padding or default to STROKE_WIDTH for canvas size
+	local effectivePad = padding or STROKE_WIDTH
 
 	-- Use TÖVE's prescale parameter to rasterize at the target render size
-	local tove = require("tove")
 	-- tove.newGraphics scales to the provided glyphRenderHeight based on the SVG's viewbox/size
 	local graphics = tove.newGraphics(svgContent, glyphRenderHeight)
-	-- Keep the line width consistent with the override performed above
-	graphics:setLineWidth(FIXED_STROKE_WIDTH)
+	graphics:setLineWidth(STROKE_WIDTH)
 
-	-- Create a canvas for drawing at the correct size (with padding)
-	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
+	-- Clear and use the provided canvas
 	local prevCanvas = love.graphics.getCanvas()
-
 	love.graphics.setCanvas(canvas)
 	love.graphics.clear(0, 0, 0, 0)
-
 	love.graphics.push()
-	love.graphics.setColor(fgColor)
+
+	-- Use black for glyphs (glyphs are recolored by muOS)
+	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setBlendMode("alpha")
+
 	-- Draw the SVG centered, accounting for padding
 	love.graphics.translate(effectivePad / 2, effectivePad / 2)
+
 	-- Draw the graphic scaled to fit the glyphRenderHeight within the padded canvas
 	graphics:draw(glyphRenderHeight / 2, glyphRenderHeight / 2)
-	love.graphics.pop()
 
+	love.graphics.pop()
 	love.graphics.setCanvas(prevCanvas)
 
 	-- Get image data and encode as PNG
@@ -209,70 +99,10 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, pa
 	local pngData = imageData:encode("png")
 
 	if not system.writeFile(pngPath, pngData:getString()) then
-		logger.error("Failed to write PNG file: " .. pngPath)
 		return false
 	end
 
 	return true
-end
-
--- Copy header icons directory
-function glyphs.copyHeaderIcons(sourceDir, targetDir)
-	logger.debug(string.format("Copying header icons from '%s' to '%s'", sourceDir, targetDir))
-
-	-- Ensure the target directory exists (header directory should be at same level as other category dirs)
-	local headerDir = targetDir .. "/header"
-	if not system.ensurePath(headerDir) then
-		logger.error("Failed to create header directory: " .. headerDir)
-		return false
-	end
-
-	-- Use system.copyDir for direct directory copy if available
-	if system.copyDir then
-		local success = system.copyDir(sourceDir, headerDir)
-		if success then
-			logger.debug("Successfully copied header directory using system.copyDir")
-			return true
-		else
-			logger.warning("Failed to copy header directory using system.copyDir, falling back to file-by-file copy")
-		end
-	end
-
-	-- Get list of files in the source directory
-	local files = system.listFiles(sourceDir, "*")
-	if not files or #files == 0 then
-		logger.error("Failed to read source directory or no files found: " .. sourceDir)
-		return false
-	end
-
-	logger.debug("Found " .. #files .. " files to copy from " .. sourceDir)
-
-	-- Copy each file from source to target
-	local successCount = 0
-	for _, filename in ipairs(files) do
-		local sourcePath = sourceDir .. "/" .. filename
-		local targetPath = headerDir .. "/" .. filename
-
-		logger.debug("Copying header icon file: " .. filename .. " from " .. sourcePath .. " to " .. targetPath)
-
-		-- Read source file
-		local fileData = system.readFile(sourcePath)
-		if not fileData then
-			logger.warning("Failed to read header icon: " .. sourcePath)
-		else
-			-- Write to target path
-			if not system.writeFile(targetPath, fileData) then
-				logger.warning("Failed to write header icon: " .. targetPath)
-			else
-				successCount = successCount + 1
-			end
-		end
-	end
-
-	logger.debug(
-		string.format("Copied %d of %d header icons from %s to %s", successCount, #files, sourceDir, headerDir)
-	)
-	return successCount > 0
 end
 
 -- Generate all glyphs based on glyph map
@@ -282,27 +112,23 @@ function glyphs.generateGlyphs(targetDir)
 		return false
 	end
 
-	local svgBaseDir = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
-	local baseOutputDir = targetDir
+	local canvasSize = GLYPH_HEIGHT + STROKE_WIDTH
 
-	local glyphHeight = GLYPH_HEIGHT
-
-	-- Get foreground color for icons
-	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
-
-	logger.debug(
-		string.format("Generating glyphs with height %dpx and stroke width %.2fpx", glyphHeight, FIXED_STROKE_WIDTH)
-	)
+	-- Create canvas once and reuse it
+	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
 
 	for _, entry in ipairs(glyphMap) do
-		local svgPath = svgBaseDir .. "/" .. entry.inputFilename .. ".svg"
-		local pngPath = baseOutputDir .. "/" .. entry.outputPath .. ".png"
-
-		glyphs.convertSvgToPng(svgPath, pngPath, glyphHeight, fgColor)
+		local svgPath = paths.THEME_GLYPH_SOURCE_DIR .. "/" .. entry.inputFilename .. ".svg"
+		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
+		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT, canvas)
 	end
 
 	-- Copy header icons directly
-	glyphs.copyHeaderIcons(paths.HEADER_GLYPHS_SOURCE_DIR, baseOutputDir)
+	local headerDir = targetDir .. "/header"
+	logger.debug(string.format("Copying header icons from '%s' to '%s'", paths.HEADER_GLYPHS_SOURCE_DIR, headerDir))
+	if not system.copyDir(paths.HEADER_GLYPHS_SOURCE_DIR, headerDir) then
+		return false
+	end
 
 	return true
 end
@@ -315,7 +141,6 @@ end
 function glyphs.generateMuxLaunchGlyphs()
 	local glyphMap = glyphs.readGlyphMap()
 	if not glyphMap then
-		logger.error("Failed to read glyph map for muxlaunch glyph generation")
 		return false
 	end
 
@@ -326,7 +151,6 @@ function glyphs.generateMuxLaunchGlyphs()
 		end
 	end
 
-	local svgBaseDir = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
 
 	local targetCanvasSize = 120 -- Desired final image size (with padding)
@@ -334,30 +158,28 @@ function glyphs.generateMuxLaunchGlyphs()
 	-- Calculate the render height needed for the glyph itself
 	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 
-	-- Get foreground color for icons
-	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
+	-- Create canvas once and reuse it
+	local canvas = love.graphics.newCanvas(targetCanvasSize, targetCanvasSize)
 
 	logger.debug(
 		string.format(
-			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, stroke width: "
-				.. "%.2fpx, padding: %dpx)",
+			"Generating %d muxlaunch glyphs targeting %dpx canvas size (render height: %dpx, padding: %dpx)",
 			#muxLaunchGlyphMap,
 			targetCanvasSize,
 			glyphRenderHeight,
-			FIXED_STROKE_WIDTH,
 			muxLaunchPadding
 		)
 	)
 
 	local successCount = 0
 	for _, entry in ipairs(muxLaunchGlyphMap) do
-		local svgPath = svgBaseDir .. "/" .. entry.inputFilename .. ".svg"
+		local svgPath = paths.THEME_GLYPH_SOURCE_DIR .. "/" .. entry.inputFilename .. ".svg"
 		-- Remove the "muxlaunch/" prefix from the outputPath before joining
 		local cleanOutputPath = entry.outputPath:gsub("^muxlaunch/", "")
 		local pngPath = baseOutputDir .. "/" .. cleanOutputPath .. ".png"
 
 		-- Call convertSvgToPng with the calculated render height and specific padding
-		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, fgColor, muxLaunchPadding) then
+		if not glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, canvas, muxLaunchPadding) then
 			logger.warning("Failed to convert muxlaunch glyph: " .. entry.inputFilename)
 		else
 			successCount = successCount + 1
@@ -392,6 +214,11 @@ function glyphs.generateFooterGlyphs()
 	local sourceDir = paths.FOOTER_GLYPHS_SOURCE_DIR
 	local targetDir = paths.FOOTER_GLYPHS_TARGET_DIR
 
+	local canvasSize = height + STROKE_WIDTH
+
+	-- Create canvas once and reuse it
+	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
+
 	-- Get foreground color for icons
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
@@ -404,16 +231,7 @@ function glyphs.generateFooterGlyphs()
 		local svgPath = sourceDir .. "/" .. mapping.sourceFile
 		local pngPath = targetDir .. "/" .. mapping.outputFile
 
-		logger.debug(
-			string.format(
-				"Converting footer glyph: %s (height: %d) -> %s",
-				mapping.sourceFile,
-				mapping.height,
-				mapping.outputFile
-			)
-		)
-
-		if not glyphs.convertSvgToPng(svgPath, pngPath, mapping.height, fgColor) then
+		if not glyphs.convertSvgToPng(svgPath, pngPath, mapping.height, canvas) then
 			logger.warning("Failed to convert footer glyph: " .. mapping.sourceFile)
 		else
 			successCount = successCount + 1

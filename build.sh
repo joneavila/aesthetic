@@ -183,7 +183,7 @@ rsync -aq lib/ "${BUILD_DIR}/${APP_SOURCE_DIR}/lib" || { echoError "Failed to co
 
 # Copy glyph mapping files
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/utils" || { echoError "Failed to create utils directory"; exit 1; }
-rsync -aq utils/glyph_mappings/ "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_mappings/" || { echoError "Failed to copy glyph mapping files"; exit 1; }
+rsync -aq utils/glyph_mapping.txt "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_mapping.txt" || { echoError "Failed to copy glyph mapping file"; exit 1; }
 
 # assets/fonts (.bin and .ttf files)
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts"

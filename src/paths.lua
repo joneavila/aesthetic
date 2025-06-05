@@ -177,6 +177,8 @@ end
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"
 
+paths.THEME_GLYPH_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
+
 -- Theme `image` directory and files
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
 paths.THEME_REBOOT_IMAGE = paths.THEME_IMAGE_DIR .. "/reboot.png"

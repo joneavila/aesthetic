@@ -13,9 +13,56 @@
 # Comments begin with # and are ignored
 # Blank lines are also ignored
 #
-# Note: Not listed here are glyphs in footer/ and header/ subdirectories, seen throughout the system.
+# Note: Not listed here are glyphs in header/ subdirectories, seen throughout the UI.
+
+# TODO: Add footer glyphs
+# footer – Seen throughout the UI
+# footer/a
+# footer/b
+# footer/c
+# footer/lr
+# footer/menu
+# footer/x
+# footer/y
+# footer/z
+
+# TODO: Add muxtester glyphs
+# muxtester – Information > Input Tester
+# muxtester/btn_a
+# muxtester/btn_b
+# muxtester/btn_c
+# muxtester/btn_l1
+# muxtester/btn_l2
+# muxtester/btn_l3
+# muxtester/btn_menu
+# muxtester/btn_r1
+# muxtester/btn_r2
+# muxtester/btn_r3
+# muxtester/btn_select
+# muxtester/btn_start
+# muxtester/btn_x
+# muxtester/btn_y
+# muxtester/btn_z
+# muxtester/dpad_down
+# muxtester/dpad_left
+# muxtester/dpad_right
+# muxtester/dpad_up
+# muxtester/ls_down
+# muxtester/ls_left
+# muxtester/ls_right
+# muxtester/ls_up
+# muxtester/rs_down
+# muxtester/rs_left
+# muxtester/rs_right
+# muxtester/rs_up
+# muxtester/vol_down
+# muxtester/vol_up
 
 # bar – (Press Vol. Up/Down for volume or Menu + Vol. Up/Down for brightness)
+bar/bright_0, sun-dim
+bar/bright_1, sun-dim
+bar/bright_2, sun-medium
+bar/bright_3, sun
 bar/brightness, sun
 bar/volume_0, volume-x
 bar/volume_1, volume
@@ -97,19 +144,29 @@ muxconnect/usbfunction, usb
 muxcustom/backgroundanimation, clapperboard
 muxcustom/bgm, music
 muxcustom/blackfade, presentation
+muxcustom/bootlogo, image
 muxcustom/boxart, image
 muxcustom/boxartalign, scan
 muxcustom/catalogue, book-text
+muxcustom/chime, bell
 muxcustom/config, file-sliders
 muxcustom/font, type
 muxcustom/launchsplash, circle-play
 muxcustom/sound, volume-2
+muxcustom/theme_resolution, proportions
 muxcustom/theme, palette
 muxcustom/themealternate, palette
 
 # muxgov – (Press Select on content) > System Governor
+muxgov/conservative, shield
 muxgov/default, star
 muxgov/governor, circle-gauge
+muxgov/interactive, zap
+muxgov/ondemand, activity
+muxgov/performance, flame
+muxgov/powersave, leaf
+muxgov/schedutil, bot
+muxgov/userspace, user-round-cog
 
 # muxhdmi – Configuration > General Settings > HDMI Output
 muxhdmi/audio, speaker
@@ -127,11 +184,25 @@ muxhistory/history, file-check-2
 
 # muxinfo – Information
 muxinfo/credit, users-round
+muxinfo/netinfo, network
 muxinfo/screenshot, images
 muxinfo/space, hard-drive
+muxinfo/sysinfo, computer
 muxinfo/system, text
 muxinfo/tester, circle-arrow-down
 muxinfo/tracker, locate
+
+# muxnetinfo – Information > Network Details
+muxnetinfo/actraffic, shrink
+muxnetinfo/channel, antenna
+muxnetinfo/dns, hash
+muxnetinfo/gateway, hash
+muxnetinfo/hostname, letter-text
+muxnetinfo/ip, router
+muxnetinfo/mac, cpu
+muxnetinfo/signal, signal-high
+muxnetinfo/ssid, globe
+muxnetinfo/tptraffic, arrow-left-right
 
 # muxlanguage – Configuration > Language
 muxlanguage/language, languages
@@ -172,6 +243,24 @@ muxoption/folder, folder
 muxoption/governor, circle-gauge
 muxoption/rom, file
 muxoption/search, search
+muxoption/tag, tag
+
+# muxoption – (Press Select on content) > Assign Tag
+muxtag/abandoned, circle-x
+muxtag/alternate, files
+muxtag/backlog, scroll
+muxtag/complected, circle-help
+muxtag/completed, circle-check
+muxtag/cursed, ghost
+muxtag/default, tag
+muxtag/experimental, flask-conical
+muxtag/homebrew, coffee
+muxtag/inprogress, loader-circle
+muxtag/none, ban
+muxtag/patched, bandage
+muxtag/replay, rotate-ccw
+muxtag/romhack, wand-sparkles
+muxtag/translated, globe
 
 # muxpicker – Configuration > Customisation
 muxpicker/catalogue, book-text
@@ -257,6 +346,7 @@ muxtask/backup, database-backup
 muxtask/clear, trash
 muxtask/diagnostic, stethoscope
 muxtask/ethernet, ethernet-port
+muxtask/folder, folder
 muxtask/junk, regex
 muxtask/network, network
 muxtask/retroarch, joystick
