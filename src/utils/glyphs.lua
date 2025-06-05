@@ -6,11 +6,8 @@
 local love = require("love")
 local tove = require("tove")
 
-local errorHandler = require("error_handler")
 local paths = require("paths")
-local state = require("state")
 
-local colorUtils = require("utils.color")
 local logger = require("utils.logger")
 local system = require("utils.system")
 
@@ -218,9 +215,6 @@ function glyphs.generateFooterGlyphs()
 
 	-- Create canvas once and reuse it
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
-
-	-- Get foreground color for icons
-	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
 	logger.debug(
 		string.format("Generating %d footer glyphs from '%s' to '%s'", #footerGlyphMappings, sourceDir, targetDir)
