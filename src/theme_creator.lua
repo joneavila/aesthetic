@@ -83,10 +83,10 @@ local function resetGraphicsState()
 end
 
 -- Function to create `name.txt` containing the theme's name
-local function createNameFile()
-	-- Use the theme name from state
-	local name = state.themeName
-	logger.debug("Using theme name: " .. name)
+local function createNameFile(finalArchivePath)
+	-- Extract the base name without extension from the archive path
+	local name = finalArchivePath:match("([^/]+)%.muxthm$") or finalArchivePath
+	logger.debug(string.format("Creating theme name file with name '%s'", name))
 	return system.createTextFile(paths.THEME_NAME, name)
 end
 
@@ -556,9 +556,6 @@ function themeCreator.createThemeCoroutine()
 			if not createVersionFile() then
 				return false
 			end
-			if not createNameFile() then
-				return false
-			end
 
 			if state.hasRGBSupport then
 				coroutine.yield("Setting up RGB configuration...")
@@ -575,6 +572,11 @@ function themeCreator.createThemeCoroutine()
 			coroutine.yield("Creating theme archive...")
 			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 			if not outputThemePath then
+				return false
+			end
+
+			-- Now create name.txt with the final archive name
+			if not createNameFile(outputThemePath) then
 				return false
 			end
 
