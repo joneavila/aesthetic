@@ -255,14 +255,17 @@ scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCH
 echoHeader "Extracting on $HANDHELD_IP"
 ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
 
-if [ "$LAUNCH" = true ]; then
-    echoHeader "Launching application on $HANDHELD_IP"
-    ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
-        . /opt/muos/script/var/func.sh
-        killall -9 \$(GET_VAR \"system\" \"foreground_process\")
-        /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
-        echo \"0\" > /tmp/safe_quit
-    "
-else
-    echo "Skipping application launch. Use --launch flag to automatically launch after deployment."
-fi
+# if [ "$LAUNCH" = true ]; then
+#     echoHeader "Launching application on $HANDHELD_IP"
+#     # ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+#     #     . /opt/muos/script/var/func.sh
+#     #     killall -9 \$(GET_VAR \"system\" \"foreground_process\")
+#     #     /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
+#     #     echo \"0\" > /tmp/safe_quit
+#     # "
+#     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+#         ps aux | grep muxfrontend | grep -v grep | awk '{print \$1}' | xargs kill -9 &&
+#         echo 'aesthetic' > /tmp/app_go && echo 'app' > /tmp/act_go &&
+#         /opt/muos/script/mux/frontend.sh app
+#     "
+# fi
