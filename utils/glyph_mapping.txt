@@ -21,7 +21,7 @@ footer/a, kenney_input_prompts/steam_button_a
 footer/b, kenney_input_prompts/steam_button_b
 footer/c, kenney_input_prompts/steam_button_c_custom
 footer/lr, kenney_input_prompts/playstation_dpad_horizontal_outline
-footer/menu, kenney_input_prompts/steamdeck_button_quickaccess
+footer/menu, kenney_input_prompts/steamdeck_button_menu_custom
 footer/x, kenney_input_prompts/steam_button_x
 footer/y, kenney_input_prompts/steam_button_y
 footer/z, kenney_input_prompts/steam_button_z_custom
