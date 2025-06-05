@@ -84,11 +84,6 @@ fonts.uiDefinitions = {
 	},
 }
 
-fonts.nameToKey = {}
-for key, def in pairs(fonts.themeDefinitions) do
-	fonts.nameToKey[def.name] = key
-end
-
 -- Initialize font size options with dynamic calculation
 fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
@@ -101,6 +96,22 @@ fonts.initializeFonts = function()
 		["Large"] = 28,
 		["Extra Large"] = 32,
 	}
+
+	for key, def in pairs(fonts.themeDefinitions) do
+		fonts.nameToKey[def.name] = key
+	end
+
+	-- Load theme fonts into fonts.loaded using font name as key
+	for _, def in ipairs(fonts.themeDefinitions) do
+		local success, result = pcall(function()
+			return love.graphics.newFont(def.path, fonts.themeFontSizeOptions["Default"] or 24)
+		end)
+		if success then
+			fonts.loaded[def.name] = result
+		else
+			logger.error("Failed to load theme font: " .. def.name .. " - " .. tostring(result))
+		end
+	end
 
 	for key, def in pairs(fonts.uiDefinitions) do
 		local success, result = pcall(function()
@@ -119,12 +130,7 @@ end
 
 -- Helper function to get a font by name
 fonts.getByName = function(fontName)
-	local fontKey = fonts.nameToKey[fontName]
-	local font = nil
-	if fontKey then
-		font = fonts.loaded[fontKey]
-	end
-
+	local font = fonts.loaded[fontName]
 	if font then
 		return font
 	else
