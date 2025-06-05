@@ -20,7 +20,6 @@ function system.fileExists(path)
 		return true
 	end
 	logger.warning("File does not exist: " .. path)
-	errorHandler.setError("File does not exist: " .. path)
 	return false
 end
 
@@ -331,7 +330,6 @@ end
 function system.readFile(filePath)
 	-- Check if file exists to provide better error message
 	if not system.fileExists(filePath) then
-		errorHandler.setError("File does not exist for reading: " .. filePath)
 		return nil
 	end
 
