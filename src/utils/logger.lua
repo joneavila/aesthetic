@@ -43,8 +43,8 @@ end
 
 -- Internal function to write log message
 local function writeLog(level, message, moduleName)
-	local moduleName = moduleName or getCallerModule()
-	local logLine = string.format("[%s] [%s] [%s] %s", getTimestamp(), level, moduleName, message)
+	local moduleNameGet = moduleName or getCallerModule()
+	local logLine = string.format("[%s] [%s] [%s] %s", getTimestamp(), level, moduleNameGet, message)
 
 	-- Get session log file from environment variable
 	local sessionLogFile = os.getenv("SESSION_LOG_FILE")

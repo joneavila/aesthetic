@@ -14,53 +14,50 @@ local glyphs = {}
 
 local GLYPH_HEIGHT = 22
 local GLYPH_HEIGHT_TESTER = 128
+local DEFAULT_PADDING = 4 -- Default padding around glyphs
+
 local STROKE_WIDTH = 1.5
+local STROKE_PATTERN = "stroke%-width%s*=%s*[\"'][^\"']*[\"']"
+local STROKE_REPLACEMENT = 'stroke-width="' .. STROKE_WIDTH .. '"'
+
+local function replaceStrokeWidthSingle(svgContent)
+	if not svgContent:find("stroke%-width") then
+		return svgContent
+	end
+	return svgContent:gsub(STROKE_PATTERN, STROKE_REPLACEMENT)
+end
 
 -- Convert a single SVG icon to PNG with fixed stroke width
 -- Optionally accepts a padding value to use instead of the fixed stroke width for canvas size.
 -- The glyphHeight parameter should be the size the glyph itself is rendered at *before* padding.
 -- Canvas parameter should be pre-created and appropriately sized.
 function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, canvas, padding)
-	-- Read SVG content
+	local lg = love.graphics
+	local tv = tove
+
 	local svgContent = system.readFile(svgPath)
 	if not svgContent then
 		return false
 	end
 
-	-- Override stroke-width in SVG XML
-	-- Replace any stroke-width attribute (with or without units)
-	-- Handles: stroke-width="2.5", stroke-width='2.5', stroke-width="2.5px", etc.
-	svgContent = svgContent:gsub('stroke%-width%s*=%s*"[^"]*"', 'stroke-width="' .. STROKE_WIDTH .. '"')
-	svgContent = svgContent:gsub("stroke%-width%s*=%s*'[^']*'", "stroke-width='" .. STROKE_WIDTH .. "'")
+	svgContent = replaceStrokeWidthSingle(svgContent)
 
-	-- Use provided padding or default to STROKE_WIDTH for canvas size
-	local effectivePad = padding or STROKE_WIDTH
+	local effectivePad = padding or DEFAULT_PADDING
+	local graphics = tv.newGraphics(svgContent, glyphRenderHeight)
 
-	-- Use TÖVE's prescale parameter to rasterize at the target render size
-	-- tove.newGraphics scales to the provided glyphRenderHeight based on the SVG's viewbox/size
-	local graphics = tove.newGraphics(svgContent, glyphRenderHeight)
-	graphics:setLineWidth(STROKE_WIDTH)
+	local prevCanvas = lg.getCanvas()
+	lg.setCanvas(canvas)
+	lg.clear(0, 0, 0, 0)
+	lg.push()
 
-	-- Clear and use the provided canvas
-	local prevCanvas = love.graphics.getCanvas()
-	love.graphics.setCanvas(canvas)
-	love.graphics.clear(0, 0, 0, 0)
-	love.graphics.push()
-
-	-- Use black for glyphs (glyphs are recolored by muOS)
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.setBlendMode("alpha")
-
-	-- Draw the SVG centered, accounting for padding
-	love.graphics.translate(effectivePad / 2, effectivePad / 2)
-
-	-- Draw the graphic scaled to fit the glyphRenderHeight within the padded canvas
+	lg.setColor(1, 1, 1, 1)
+	lg.setBlendMode("alpha")
+	lg.translate(effectivePad / 2, effectivePad / 2)
 	graphics:draw(glyphRenderHeight / 2, glyphRenderHeight / 2)
 
-	love.graphics.pop()
-	love.graphics.setCanvas(prevCanvas)
+	lg.pop()
+	lg.setCanvas(prevCanvas)
 
-	-- Get image data and encode as PNG
 	local imageData = canvas:newImageData()
 	local pngData = imageData:encode("png")
 
@@ -73,12 +70,12 @@ end
 
 -- Generate all primary glyphs (not muxlaunch or footer) based on glyph map
 function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
-	local canvasSize = GLYPH_HEIGHT + STROKE_WIDTH
+	local canvasSize = GLYPH_HEIGHT + DEFAULT_PADDING
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
 	for _, entry in ipairs(primaryGlyphMap) do
 		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
 		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
-		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT, canvas)
+		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT, canvas, DEFAULT_PADDING)
 	end
 
 	-- Copy header icons which are not in SVG
@@ -123,14 +120,14 @@ function glyphs.generateFooterGlyphs(footerGlyphMap)
 	local height = 23
 	local sourceDir = paths.FOOTER_GLYPHS_SOURCE_DIR
 	local targetDir = paths.FOOTER_GLYPHS_TARGET_DIR
-	local canvasSize = height + STROKE_WIDTH
+	local canvasSize = height + DEFAULT_PADDING
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
 	logger.debug(string.format("Generating %d footer glyphs from '%s' to '%s'", #footerGlyphMap, sourceDir, targetDir))
 	local successCount = 0
 	for _, entry in ipairs(footerGlyphMap) do
 		local svgPath = sourceDir .. "/" .. entry.sourceFile
 		local pngPath = targetDir .. "/" .. entry.outputFile
-		if not glyphs.convertSvgToPng(svgPath, pngPath, height, canvas) then
+		if not glyphs.convertSvgToPng(svgPath, pngPath, height, canvas, DEFAULT_PADDING) then
 			logger.warning("Failed to convert footer glyph: " .. entry.sourceFile)
 		else
 			successCount = successCount + 1
@@ -141,12 +138,12 @@ end
 
 -- Generate tester glyphs (muxtester/) at a larger height
 function glyphs.generateTesterGlyphs(targetDir, testerGlyphMap)
-	local canvasSize = GLYPH_HEIGHT_TESTER + STROKE_WIDTH
+	local canvasSize = GLYPH_HEIGHT_TESTER + DEFAULT_PADDING
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
 	for _, entry in ipairs(testerGlyphMap) do
 		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
 		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
-		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT_TESTER, canvas)
+		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT_TESTER, canvas, DEFAULT_PADDING)
 	end
 	return true
 end

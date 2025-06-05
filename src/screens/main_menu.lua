@@ -16,7 +16,6 @@ local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
-local logger = require("utils.logger")
 local Modal = require("ui.modal").Modal
 
 local menu = {}
