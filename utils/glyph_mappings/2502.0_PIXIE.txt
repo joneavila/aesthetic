@@ -25,7 +25,7 @@ bar/volume_3, volume-2
 # muxapp – Applications
 # Built-in applications
 muxapp/app, play
-muxapp/archive, archive
+muxapp/archive, file-archive
 muxapp/dingux, folder-search
 muxapp/flip, clock
 muxapp/moonlight, tv-minimal-play
@@ -66,8 +66,8 @@ muxtask/Hotspot_Start, wifi
 muxtask/Hotspot_Stop, wifi
 
 # muxarchive – Applications > Archive Manager
-muxarchive/archive, package
-muxarchive/installed, package-open
+muxarchive/archive, file-archive
+muxarchive/installed, file-check-2
 
 # muxassign – (Press Select on content) > Assign Core
 muxassign/core, box
