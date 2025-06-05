@@ -12,7 +12,6 @@ local logger = require("utils.logger")
 local splash = {}
 
 function splash.load()
-	logger.debug("Splash screen load started")
 	-- Animation settings
 	splash.title = state.applicationName
 	splash.typingDelay = 0.07 -- Delay between revealing each character
@@ -49,12 +48,9 @@ function splash.load()
 	splash.background = {
 		color = { colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 },
 	}
-
-	logger.debug("Splash screen load completed")
 end
 
 function splash.onEnter()
-	logger.debug("Entering splash screen")
 	-- Reset animation state when entering the screen
 	splash.currentIndex = 0
 	splash.letterTimer = 0
@@ -64,8 +60,6 @@ function splash.onEnter()
 	splash.holdTimer = 0
 	splash.fadeTimer = 0
 	splash.state = "waiting"
-
-	logger.debug("Splash animation state reset to waiting")
 end
 
 function splash.draw()
@@ -144,12 +138,8 @@ function splash.update(dt)
 		splash.alpha = math.max(0, 1 - (splash.fadeTimer / splash.fadeOutDuration))
 		if splash.alpha <= 0 then
 			splash.state = "done"
-			-- When done, switch to the menu screen
-			logger.debug("Splash completed, switching to main_menu")
-			-- Initialize the fade effect before switching
 			state.fading = true
 			state.fadeTimer = 0
-
 			screens.switchTo("main_menu")
 		end
 	end
