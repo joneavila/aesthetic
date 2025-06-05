@@ -75,7 +75,7 @@ paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
 paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
-paths.FOOTER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
+paths.FOOTER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons"
 paths.FOOTER_GLYPHS_TARGET_DIR = paths.WORKING_THEME_DIR .. "/glyph/footer"
 
 -- `scheme` directory and files
@@ -179,6 +179,7 @@ end
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"
 
+paths.GLYPH_MAPPING_FILE = paths.SOURCE_DIR .. "/utils/glyph_mapping.txt"
 paths.THEME_GLYPH_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
 
 -- Theme `image` directory and files

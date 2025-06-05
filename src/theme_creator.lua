@@ -446,18 +446,8 @@ function themeCreator.createThemeCoroutine()
 
 			local glyphs = require("utils.glyphs")
 
-			coroutine.yield("Generating primary glyphs...")
+			coroutine.yield("Generating glyphs...")
 			if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
-				return false
-			end
-
-			coroutine.yield("Generating home screen grid glyphs...")
-			if not glyphs.generateMuxLaunchGlyphs() then
-				return false
-			end
-
-			coroutine.yield("Generating footer glyphs...")
-			if not glyphs.generateFooterGlyphs() then
 				return false
 			end
 
