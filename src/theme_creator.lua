@@ -368,10 +368,6 @@ function themeCreator.createThemeCoroutine()
 		local status, result = xpcall(function()
 			logger.debug("Starting coroutine-based theme creation")
 
-			coroutine.yield("Preparing workspace...")
-			-- Clean up old theme files
-			system.removeDir(paths.WORKING_THEME_DIR)
-
 			coroutine.yield("Copying scheme template files...")
 			-- Copy template directory contents to working directory
 			local templateItems = system.listDir(paths.TEMPLATE_DIR)
@@ -582,7 +578,10 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
-			coroutine.yield("Finalizing theme...")
+			coroutine.yield("Cleaning up...")
+			system.removeDir(paths.WORKING_THEME_DIR)
+
+			coroutine.yield("Syncing filesystem...")
 			commands.executeCommand("sync")
 
 			resetGraphicsState()
