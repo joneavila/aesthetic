@@ -110,8 +110,6 @@ end
 
 -- Helper function to create archive
 function system.createArchive(sourceDir, outputPath)
-	logger.debug("Creating archive from " .. sourceDir .. " to " .. outputPath)
-
 	-- Get next available filename
 	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
@@ -120,12 +118,11 @@ function system.createArchive(sourceDir, outputPath)
 		return false
 	end
 
-	logger.debug("Using archive path: " .. finalPath)
+	logger.debug(string.format("Using archive path '%s'", finalPath))
 
 	-- Note: 7zip would be nice here but the system does not support the -tzip option
 	-- Naming the file .zip and renaming to .muxthm will not work
 	local cmd = string.format('cd "%s" && zip -r "%s" * -x "*.DS_Store"', sourceDir, finalPath)
-	logger.debug("Archive command: " .. cmd)
 
 	-- Execute command and capture output
 	local handle = io.popen(cmd .. " 2>&1")
@@ -143,8 +140,6 @@ function system.createArchive(sourceDir, outputPath)
 		errorHandler.setError("Archive creation failed: " .. result)
 		return false
 	end
-
-	logger.debug("Created archive using zip at " .. finalPath)
 
 	-- Execute sync to ensure filesystem catches up
 	commands.executeCommand("sync")
@@ -262,7 +257,7 @@ function system.getEnvironmentVariable(name)
 		errorHandler.setError("Environment variable not found: " .. name)
 		return nil
 	end
-	logger.debug(string.format("Environment variable '%s' has value '%s'", name, value))
+	logger.info(string.format("Environment variable [%s] = '%s'", name, value))
 	return value
 end
 

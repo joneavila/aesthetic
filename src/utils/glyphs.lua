@@ -183,10 +183,6 @@ function glyphs.generateMuxLaunchGlyphs()
 		end
 	end
 
-	logger.debug(string.format("Generated %d of %d muxlaunch glyphs.", successCount, #muxLaunchGlyphMap))
-
-	-- Muxlaunch icons don't have a separate header category to copy directly
-
 	return successCount > 0
 end
 
@@ -231,8 +227,6 @@ function glyphs.generateFooterGlyphs()
 			successCount = successCount + 1
 		end
 	end
-
-	logger.debug(string.format("Generated %d of %d footer glyphs.", successCount, #footerGlyphMappings))
 
 	return successCount > 0
 end

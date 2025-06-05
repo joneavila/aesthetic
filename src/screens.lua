@@ -28,8 +28,6 @@ function screens.register(screenName, screenModule)
 	end
 
 	registeredScreens[screenName] = screenModule
-
-	logger.debug("Registered screen: " .. tostring(screenName))
 end
 
 function screens.getCurrentScreen()

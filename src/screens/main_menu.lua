@@ -389,8 +389,6 @@ end
 -- Handle theme installation process using coroutines
 local function handleThemeInstallation()
 	if not activeCoroutine then
-		logger.debug("waitingThemePath: " .. waitingThemePath)
-		logger.debug("waitingThemePath:match: " .. (waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")))
 		local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
 		if not filename_only then
 			modal:show("Failed to apply theme (no valid filename).", { { text = "Close", selected = true } })
@@ -595,7 +593,6 @@ function menu.onEnter(data)
 			elseif button and button.text == "Apply theme now" then
 				if type(createdThemePath) == "string" and createdThemePath ~= "" then
 					waitingThemePath = createdThemePath
-					logger.debug("waitingThemePath set to: " .. tostring(waitingThemePath))
 					modal:show("Applying theme...")
 					waitingState = "install_theme"
 				else

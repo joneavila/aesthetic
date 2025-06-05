@@ -89,8 +89,6 @@ fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
 -- Function to set fonts based on screen dimensions
 fonts.initializeFonts = function()
-	logger.debug("Initializing fonts")
-
 	fonts.themeFontSizeOptions = {
 		["Default"] = 24,
 		["Large"] = 28,

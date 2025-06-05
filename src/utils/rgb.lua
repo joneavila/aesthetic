@@ -66,8 +66,6 @@ function rgb.updateConfig()
 	-- Generate the command
 	local command = rgb.buildCommand()
 
-	logger.debug("Generated command: " .. command)
-
 	-- Create the configuration file for persistence
 	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF) then
 		-- Execute the command directly
@@ -139,7 +137,7 @@ end
 function rgb.writeCommandToFile(command, rgbConfPath)
 	-- Write directly to the target file using command
 	system.writeFile(rgbConfPath, command)
-	logger.debug("Writing command to file: " .. rgbConfPath)
+	logger.debug(string.format("Writing command '%s' to '%s'", command, rgbConfPath))
 	commands.executeCommand(string.format('echo "%s" > "%s"', command, rgbConfPath))
 	return true
 end
@@ -296,7 +294,7 @@ function rgb.installFromTheme()
 	end
 
 	-- Execute the command directly
-	logger.debug("[rgb.installFromTheme] Executing command: " .. command)
+	logger.debug(string.format("Setting RGB lighting with command '%s'", command))
 	commands.executeCommand(command)
 
 	return true

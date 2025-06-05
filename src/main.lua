@@ -107,7 +107,7 @@ end
 
 -- Handle application exit
 function love.quit()
-	logger.debug("Application quitting")
+	logger.debug("Exiting application")
 	settings.saveToFile()
 
 	-- Restore original RGB configuration if no theme was applied

@@ -605,7 +605,7 @@ end
 -- Coroutine-based theme installation that yields control for animations
 function themeCreator.installThemeCoroutine(themeName)
 	return coroutine.create(function()
-		logger.debug("Starting coroutine-based theme installation: " .. themeName)
+		logger.debug("Starting coroutine-based theme installation")
 
 		local status, result = xpcall(function()
 			coroutine.yield("Preparing installation...")
