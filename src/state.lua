@@ -19,7 +19,6 @@ local logger = require("utils.logger")
 ---   3. State for the HSV color picker
 ---   4. State for the hex color picker
 local function createColorContext(defaultColor)
-	logger.debug("Creating color context with default color: " .. defaultColor)
 	return {
 		-- Palette state
 		palette = {
