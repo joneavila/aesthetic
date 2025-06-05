@@ -45,9 +45,6 @@ function love.load()
 		rgbUtils.updateConfig()
 	end
 
-	-- Initialize system version state
-	state.systemVersion = system.getSystemVersion()
-
 	-- Load UI components that require initialization
 	screens = require("screens")
 	screens.load() -- Register all screens

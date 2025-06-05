@@ -235,11 +235,19 @@ end
 -- Function to create `version.txt` file containing the compatible muOS version
 -- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
-	-- Read the content from the source file
-	local content = system.readFile(paths.MUOS_VERSION)
+	-- Try primary version file
+	local content
+	if system.fileExists(paths.MUOS_VERSION_PIXIE) then
+		content = system.readFile(paths.MUOS_VERSION_PIXIE)
+	elseif system.fileExists(paths.MUOS_VERSION_GOOSE) then
+		content = system.readFile(paths.MUOS_VERSION_GOOSE)
+	else
+		errorHandler.setError("muOS version file not found in any known location")
+		return false
+	end
 
 	-- Extract just the version number using pattern matching (digits with zero or more periods followed by underscore)
-	local parsedVersion = content:match("(%d[%d%.]+)_")
+	local parsedVersion = content and content:match("(%d[%d%.]+)_")
 	if not parsedVersion then
 		errorHandler.setError("muOS version could not be parsed from version file")
 		return false

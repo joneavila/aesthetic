@@ -440,38 +440,6 @@ function system.listFiles(dir, pattern)
 	return files
 end
 
--- Read the system version from the MUOS version file
-function system.getSystemVersion()
-	local paths = require("paths")
-	local versionFilePath = paths.MUOS_VERSION
-	local versionFileContent = system.readFile(versionFilePath)
-	if versionFileContent == nil then
-		logger.error("Failed to read system version from " .. versionFilePath)
-		return "Unknown"
-	end
-	-- Replace all newlines with spaces, trim leading/trailing whitespace, and replace spaces with underscores
-	local versionString = versionFileContent:gsub("[\r\n]+", " "):gsub("^%s*(.-)%s*$", "%1"):gsub(" ", "_")
-	logger.debug(string.format("Read version '%s'", versionString))
-	return versionString
-end
-
--- Returns the normalized base system version (e.g., '2502.0_PIXIE_54c85a0f' -> '2502.0_PIXIE')
-function system.getNormalizedSystemVersion()
-	local versionString = system.getSystemVersion()
-	if not versionString or versionString == "" then
-		return versionString
-	end
-	local base = versionString:match("^(%d+%.%d+_%u+)")
-	if base then
-		return base
-	end
-	base = versionString:match("^(%d+%.%d+_%a+)")
-	if base then
-		return base
-	end
-	return versionString
-end
-
 -- Function to list contents of a directory
 function system.listDir(dir)
 	if not dir then

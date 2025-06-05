@@ -47,9 +47,9 @@ local deviceScriptDir = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR")
 paths.DEVICE_SCRIPT_DIR = deviceScriptDir
 paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR .. "/led_control.sh"
 
--- muOS version file path (contains version info)
-local muosConfigDir = deviceScriptDir:gsub("/device/current/script", "/config")
-paths.MUOS_VERSION = muosConfigDir .. "/version.txt"
+-- muOS version file paths
+paths.MUOS_VERSION_PIXIE = "/opt/muos/config/version.txt"
+paths.MUOS_VERSION_GOOSE = "/opt/muos/config/system/version"
 
 paths.THEME_INSTALL_SCRIPT = "/opt/muos/script/package/theme.sh"
 
