@@ -108,42 +108,24 @@ function system.replaceColor(filepath, replacements)
 	return true
 end
 
--- Helper function to create archive
+-- Helper function to create archive with no compression (faster, larger file)
+-- @param sourceDir (string): Directory to archive
+-- @param outputPath (string): Output archive path (should end with .muxthm)
 function system.createArchive(sourceDir, outputPath)
-	-- Get next available filename
 	local finalPath = system.getNextAvailableFilename(outputPath)
 	if not finalPath then
-		logger.error("Failed to get available filename for archive")
 		errorHandler.setError("Failed to get available filename")
 		return false
 	end
-
 	logger.debug(string.format("Using archive path '%s'", finalPath))
-
-	-- Note: 7zip would be nice here but the system does not support the -tzip option
-	-- Naming the file .zip and renaming to .muxthm will not work
-	local cmd = string.format('cd "%s" && zip -r "%s" * -x "*.DS_Store"', sourceDir, finalPath)
-
-	-- Execute command and capture output
-	local handle = io.popen(cmd .. " 2>&1")
-	if not handle then
-		logger.error("Failed to execute archive command")
-		errorHandler.setError("Failed to execute archive command")
+	local zipFlags = "-qr0" -- quiet, recursive, no compression
+	local cmd = string.format('cd "%s" && zip %s "%s" . -x "*.DS_Store"', sourceDir, zipFlags, finalPath)
+	local result = commands.executeCommand(cmd)
+	if result ~= 0 then
+		errorHandler.setError("Archive creation failed: " .. tostring(result))
 		return false
 	end
-
-	local result = handle:read("*a")
-	local success = handle:close()
-
-	if not success then
-		logger.error("Archive creation failed: " .. result)
-		errorHandler.setError("Archive creation failed: " .. result)
-		return false
-	end
-
-	-- Execute sync to ensure filesystem catches up
 	commands.executeCommand("sync")
-
 	return finalPath
 end
 
