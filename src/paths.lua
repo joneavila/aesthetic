@@ -44,10 +44,13 @@ end
 
 -- Device script directory for LED control
 paths.DEVICE_SCRIPT_DIR_PIXIE = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR_PIXIE")
-paths.LED_CONTROL_SCRIPT_PIXIE = paths.DEVICE_SCRIPT_DIR_PIXIE .. "/led_control.sh"
-
 paths.DEVICE_SCRIPT_DIR_GOOSE = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR_GOOSE")
-paths.LED_CONTROL_SCRIPT_GOOSE = paths.DEVICE_SCRIPT_DIR_GOOSE .. "/led_control.sh"
+
+if paths.DEVICE_SCRIPT_DIR_PIXIE then
+	paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR_PIXIE .. "/led_control.sh"
+else
+	paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR_GOOSE .. "/led_control.sh"
+end
 
 -- muOS version file paths
 paths.MUOS_VERSION_PIXIE = "/opt/muos/config/version.txt"

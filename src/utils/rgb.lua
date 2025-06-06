@@ -80,10 +80,8 @@ end
 function rgb.buildCommand(forceOff)
 	-- Base command for led_control.sh
 	local command
-	if system.isFile(paths.LED_CONTROL_SCRIPT_GOOSE) then
-		command = paths.LED_CONTROL_SCRIPT_GOOSE
-	elseif system.isFile(paths.LED_CONTROL_SCRIPT_PIXIE) then
-		command = paths.LED_CONTROL_SCRIPT_PIXIE
+	if system.isFile(paths.LED_CONTROL_SCRIPT) then
+		command = paths.LED_CONTROL_SCRIPT
 	else
 		logger.error("LED control script not found")
 		return false
@@ -135,7 +133,10 @@ end
 
 -- Function to write command to config file
 function rgb.writeCommandToFile(command, rgbConfPath)
-	-- Write directly to the target file using command
+	if type(command) ~= "string" or command == "" then
+		errorHandler.setError("Invalid command passed to writeCommandToFile: " .. tostring(command))
+		return false
+	end
 	system.writeFile(rgbConfPath, command)
 	logger.debug(string.format("Writing command '%s' to '%s'", command, rgbConfPath))
 	commands.executeCommand(string.format('echo "%s" > "%s"', command, rgbConfPath))
