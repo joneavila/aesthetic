@@ -4,7 +4,7 @@ local colors = require("colors")
 local state = require("state")
 local tween = require("tween")
 local colorUtils = require("utils.color")
-local controls = require("controls")
+local controls = require("control_hints")
 local constants = require("screens.color_picker.constants")
 local screens = require("screens")
 local fonts = require("ui.fonts")
@@ -328,7 +328,7 @@ function hsv.draw()
 	-- Draw controls
 	controls.draw({
 		{
-			button = { "l1", "r1" },
+			button = { "leftshoulder", "rightshoulder" },
 			text = "Switch Tabs",
 		},
 		{

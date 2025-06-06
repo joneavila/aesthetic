@@ -2,7 +2,7 @@
 --- Uses the new component system for better maintainability
 local love = require("love")
 
-local controls = require("controls")
+local controls = require("control_hints")
 local errorHandler = require("error_handler")
 local rgbUtils = require("utils.rgb")
 local screens = require("screens")

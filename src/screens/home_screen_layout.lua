@@ -1,7 +1,7 @@
 --- Home Screen Layout Selection Screen
 local love = require("love")
 
-local controls = require("controls")
+local controls = require("control_hints")
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")

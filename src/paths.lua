@@ -80,6 +80,7 @@ paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
 paths.FOOTER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons"
 paths.FOOTER_GLYPHS_TARGET_DIR = paths.WORKING_THEME_DIR .. "/glyph/footer"
+paths.CONTROL_HINTS_SVG_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
 
 -- `scheme` directory and files
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"

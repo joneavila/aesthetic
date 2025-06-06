@@ -24,7 +24,7 @@ end
 
 -- Function to calculate the content area dimensions for sub-screens (tab views)
 constants.calculateContentArea = function()
-	local controls = require("controls")
+	local controls = require("control_hints")
 	-- Ensure HEIGHT is calculated before using it
 	controls.calculateHeight()
 	return {

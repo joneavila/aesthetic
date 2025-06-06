@@ -31,7 +31,6 @@ end
 
 -- Load an SVG icon from file
 function svg.loadIcon(name, size, basePath)
-	-- Default to UI icons path if not specified
 	basePath = basePath or "assets/icons/lucide/ui/"
 	size = size or 24
 
@@ -40,6 +39,14 @@ function svg.loadIcon(name, size, basePath)
 	if not iconCache[cacheKey] then
 		local svgPath = basePath .. name .. ".svg"
 		local svgContent = love.filesystem.read(svgPath)
+		if not svgContent then
+			-- Try to read from the real filesystem
+			local f = io.open(svgPath, "r")
+			if f then
+				svgContent = f:read("*a")
+				f:close()
+			end
+		end
 		if svgContent then
 			iconCache[cacheKey] = tove.newGraphics(svgContent, size)
 		else

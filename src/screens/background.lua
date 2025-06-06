@@ -1,7 +1,7 @@
 --- Background color/gradient screen with Solid/Gradient options
 local love = require("love")
 
-local controls = require("controls")
+local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 

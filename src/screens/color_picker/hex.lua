@@ -2,7 +2,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("controls")
+local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 
@@ -347,7 +347,7 @@ function hex.draw()
 
 	-- Draw controls
 	controls.draw({
-		{ button = { "l1", "r1" }, text = "Switch Tabs" },
+		{ button = { "leftshoulder", "rightshoulder" }, text = "Switch Tabs" },
 		{ button = "a", text = "Select" },
 		{ button = "y", text = "Clear" },
 		{ button = "b", text = "Back" },

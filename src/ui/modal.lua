@@ -230,7 +230,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	if not self.visible then
 		return
 	end
-	local controls = require("controls")
+	local controls = require("control_hints")
 	local fonts = require("ui.fonts")
 	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
 	local padding = 40

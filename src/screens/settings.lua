@@ -1,7 +1,7 @@
 --- Settings screen
 local love = require("love")
 
-local controls = require("controls")
+local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 local otaUpdate = require("utils.ota_update")
