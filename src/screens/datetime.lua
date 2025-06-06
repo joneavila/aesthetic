@@ -227,6 +227,10 @@ function datetimeScreen.update(dt)
 		end
 	end
 
+	if opacitySlider then
+		opacitySlider:handleInputIfFocused(input)
+	end
+
 	-- Update components
 	if alignmentButton then
 		alignmentButton:update(dt)

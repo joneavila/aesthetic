@@ -163,6 +163,13 @@ function Slider:handleInput(input)
 	return false
 end
 
+function Slider:handleInputIfFocused(input)
+	if self.focused then
+		return self:handleInput(input)
+	end
+	return false
+end
+
 return {
 	Slider = Slider,
 }
