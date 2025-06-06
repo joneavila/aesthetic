@@ -21,6 +21,14 @@ local svg = {}
 -- Icon cache to prevent reloading SVGs
 local iconCache = {}
 
+-- Check if an icon is loaded in the cache
+function svg.isIconLoaded(name, size, basePath)
+	basePath = basePath or "assets/icons/lucide/ui/"
+	size = size or 24
+	local cacheKey = basePath .. name .. "_" .. size
+	return iconCache[cacheKey] ~= nil
+end
+
 -- Load an SVG icon from file
 function svg.loadIcon(name, size, basePath)
 	-- Default to UI icons path if not specified
