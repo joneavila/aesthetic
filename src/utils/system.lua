@@ -357,38 +357,54 @@ end
 -- Check if RGB lighting is supported on the current device
 -- by reading the RGB setting from the device config file
 function system.hasRGBSupport()
-	local configPath = "/opt/muos/device/current/config.ini"
-	local file = io.open(configPath, "r")
-
-	-- Default to true if we can't read the config file, to preserve existing behavior
-	if not file then
-		logger.warning("Could not read device config file: " .. configPath)
-		return true
-	end
-
-	local content = file:read("*all")
-	file:close()
-
-	-- Find the [led] section and check for rgb=1
-	local inLedSection = false
-	for line in content:gmatch("([^\n]*)\n?") do
-		-- Check for section header
-		local section = line:match("^%[(.+)%]$")
-		if section then
-			inLedSection = (section == "led")
-		elseif inLedSection then
-			-- Look for rgb setting in [led] section
-			local key, value = line:match("^%s*([%w_]+)%s*=%s*(%d+)%s*$")
-			if key == "rgb" then
-				logger.debug("Found RGB setting in device config: " .. value)
-				return value == "1"
+	-- New CFW: /opt/muos/device/config (no extension, contains '0' or '1')
+	local newConfigPath = "/opt/muos/device/config"
+	local file = io.open(newConfigPath, "r")
+	if file then
+		local content = file:read("*all")
+		file:close()
+		if content then
+			content = content:match("^%s*(.-)%s*$") -- trim whitespace
+			if content == "1" then
+				logger.debug("RGB supported (new config, value=1)")
+				return true
+			elseif content == "0" then
+				logger.debug("RGB not supported (new config, value=0)")
+				return false
+			else
+				logger.warning("Unknown value in new RGB config: " .. tostring(content))
+				return false
 			end
 		end
 	end
 
-	-- Default to true if setting not found, to maintain compatibility
-	logger.debug("RGB setting not found in config file, defaulting to enabled")
-	return true
+	-- Old CFW: /opt/muos/device/current/config.ini ([led] section, rgb=1)
+	local oldConfigPath = "/opt/muos/device/current/config.ini"
+	file = io.open(oldConfigPath, "r")
+	if file then
+		local content = file:read("*all")
+		file:close()
+		if content then
+			-- Find the [led] section and check for rgb=1
+			local inLedSection = false
+			for line in content:gmatch("([^\n]*)\n?") do
+				local section = line:match("^%[(.+)%]$")
+				if section then
+					inLedSection = (section == "led")
+				elseif inLedSection then
+					local key, value = line:match("^%s*([%w_]+)%s*=%s*(%d+)%s*$")
+					if key == "rgb" then
+						logger.debug("Found RGB setting in old config: " .. value)
+						return value == "1"
+					end
+				end
+			end
+		end
+	end
+
+	-- If neither config found, default to false (no RGB support)
+	logger.debug("No RGB config found, defaulting to not supported")
+	return false
 end
 
 -- List files in a directory matching a pattern (returns table of filenames, not full paths)
