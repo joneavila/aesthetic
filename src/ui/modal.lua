@@ -329,7 +329,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	if isScrollable then
 		local drawContent = function()
 			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-			love.graphics.printf(self.message, x + padding, y + padding, availableTextWidth, "left")
+			love.graphics.printf(self.message, 0, 0, availableTextWidth, "left")
 		end
 		local metrics = scrollable.drawContent({
 			x = x + padding,
