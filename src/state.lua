@@ -60,7 +60,7 @@ local themeDefaults = {
 	},
 	rgbMode = "Solid",
 	rgbBrightness = 5,
-	rgbSpeed = 5,
+	rgbSpeed = 2,
 	glyphsEnabled = true,
 	headerAlignment = 2,
 	headerOpacity = 0,
