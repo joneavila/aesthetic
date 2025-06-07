@@ -36,11 +36,14 @@ local downloadThread = nil -- LÖVE thread for downloading
 
 -- Function to handle OTA update check
 local function checkForUpdates()
-	if updateCheckInProgress or downloadInProgress then
+	if updateCheckInProgress or downloadInProgress or updateCheckScheduled then
 		return
 	end
 
 	updateCheckScheduled = true
+	updateCheckInProgress = false
+	updateCheckTimer = 0
+	updateInfo = nil
 	modalInstance:show("Checking for updates...", {})
 end
 
@@ -178,15 +181,15 @@ function settings.update(dt)
 	if updateCheckScheduled then
 		updateCheckTimer = updateCheckTimer + dt
 
-		-- Start the actual check immediately but don't show results until minimum time
-		if not updateCheckInProgress then
+		-- Only perform the check after minimum time has passed
+		if not updateCheckInProgress and updateCheckTimer >= updateCheckMinTime then
 			updateCheckInProgress = true
 			-- Perform the check and store result
 			updateInfo = otaUpdate.checkForUpdates()
 		end
 
-		-- Only show results after minimum time has passed
-		if updateCheckTimer >= updateCheckMinTime then
+		-- Only show results after minimum time has passed and check is done
+		if updateCheckInProgress and updateInfo then
 			updateCheckScheduled = false
 			updateCheckInProgress = false
 			updateCheckTimer = 0
