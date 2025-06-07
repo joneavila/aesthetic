@@ -12,7 +12,7 @@ local system = require("utils.system")
 
 local glyphs = {}
 
-local GLYPH_HEIGHT = 22
+local GLYPH_HEIGHT = 22 -- Average "mux" glyph height is 41 (1.863)
 local GLYPH_HEIGHT_TESTER = 128
 local DEFAULT_PADDING = 4 -- Default padding around glyphs
 
@@ -70,12 +70,24 @@ end
 
 -- Generate all primary glyphs (not muxlaunch or footer) based on glyph map
 function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
+	-- Generate standard glyphs (height 22)
 	local canvasSize = GLYPH_HEIGHT + DEFAULT_PADDING
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
 	for _, entry in ipairs(primaryGlyphMap) do
 		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
 		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
 		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT, canvas, DEFAULT_PADDING)
+	end
+
+	-- Generate additional set for 1024x768 (height 25, padding 7)
+	local GLYPH_HEIGHT_1024x768 = 25
+	local DEFAULT_PADDING_1024x768 = 7
+	local canvasSize1024x768 = GLYPH_HEIGHT_1024x768 + DEFAULT_PADDING_1024x768
+	local canvas1024x768 = love.graphics.newCanvas(canvasSize1024x768, canvasSize1024x768)
+	for _, entry in ipairs(primaryGlyphMap) do
+		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
+		local pngPath = paths.THEME_GLYPH_DIR_1024x768 .. "/" .. entry.outputPath .. ".png"
+		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT_1024x768, canvas1024x768, DEFAULT_PADDING_1024x768)
 	end
 	return true
 end

@@ -54,6 +54,7 @@ paths.THEME_CREDITS = paths.WORKING_THEME_DIR .. "/credits.txt"
 paths.THEME_NAME = paths.WORKING_THEME_DIR .. "/name.txt"
 paths.THEME_VERSION = paths.WORKING_THEME_DIR .. "/version.txt"
 paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
+paths.THEME_GLYPH_DIR_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
 paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
