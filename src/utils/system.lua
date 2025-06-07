@@ -125,7 +125,6 @@ function system.createArchive(sourceDir, outputPath)
 		errorHandler.setError("Archive creation failed: " .. tostring(result))
 		return false
 	end
-	commands.executeCommand("sync")
 	return finalPath
 end
 
