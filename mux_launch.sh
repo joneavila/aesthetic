@@ -6,6 +6,8 @@
 # Source muOS system functions
 . /opt/muos/script/var/func.sh # For `GET_VAR`, `SET_VAR`
 
+echo "app" > /tmp/act_go
+
 # Define paths
 # `$(GET_VAR "device" "storage/rom/mount")` will resolve to either `/mnt/mmc` (SD1) or `/mnt/sdcard` (SD2)
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic"

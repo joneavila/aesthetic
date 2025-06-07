@@ -255,17 +255,26 @@ scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCH
 echoHeader "Extracting on $HANDHELD_IP"
 ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
 
-# if [ "$LAUNCH" = true ]; then
-#     echoHeader "Launching application on $HANDHELD_IP"
-#     # ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
-#     #     . /opt/muos/script/var/func.sh
-#     #     killall -9 \$(GET_VAR \"system\" \"foreground_process\")
-#     #     /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
-#     #     echo \"0\" > /tmp/safe_quit
-#     # "
-#     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
-#         ps aux | grep muxfrontend | grep -v grep | awk '{print \$1}' | xargs kill -9 &&
-#         echo 'aesthetic' > /tmp/app_go && echo 'app' > /tmp/act_go &&
-#         /opt/muos/script/mux/frontend.sh app
-#     "
-# fi
+if [ "$LAUNCH" = true ]; then
+    echoHeader "Launching application on $HANDHELD_IP"
+    # Check for version files and run the appropriate launch command
+    if ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/version.txt ]"; then
+        echo "Launching for Pixie"
+        ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+            . /opt/muos/script/var/func.sh
+            killall -9 \$(GET_VAR 'system' 'foreground_process')
+            /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
+            echo '0' > /tmp/safe_quit
+        "
+    elif ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/system/version ]"; then
+        echo "Launching for Goose"
+        ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+            . /opt/muos/script/var/func.sh
+            FRONTEND stop
+            /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
+            FRONTEND start
+        "
+    else
+        echoError "Could not find a supported muOS version file on the device. Launch aborted."
+    fi
+fi
