@@ -93,35 +93,28 @@ end
 -- Helper function to execute boot image creation for all supported resolutions with color caching
 -- This optimized version caches color conversions outside the resolution loop since colors are resolution-independent
 local function executeBootImageForAllResolutions()
-	-- Store original dimensions
-	local originalWidth, originalHeight = state.screenWidth, state.screenHeight
-
 	-- Cache color conversions once since they don't change between resolutions
 	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
-	-- Execute for all supported resolutions
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local width, height = resolution:match("(%d+)x(%d+)")
 		width, height = tonumber(width), tonumber(height)
 
-		-- Set screen dimensions for this resolution
-		state.screenWidth, state.screenHeight = width, height
-
-		-- Create boot image with cached colors
 		if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE) then
-			-- Restore original dimensions before returning
-			state.screenWidth, state.screenHeight = originalWidth, originalHeight
 			return false
 		end
 
+		-- Generate PNG first
+		local pngOutputPath = string.format("%s/%dx%d/image/bootlogo.png", paths.WORKING_THEME_DIR, width, height)
+		local bmpOutputPath = string.format("%s/%dx%d/image/bootlogo.bmp", paths.WORKING_THEME_DIR, width, height)
+
 		local options = {
-			width = state.screenWidth,
-			height = state.screenHeight,
+			width = width,
+			height = height,
 			iconPath = paths.THEME_BOOTLOGO_SOURCE,
 			iconSize = 180,
-			outputPath = paths.getThemeBootlogoImagePath(),
-			saveAsBmp = true,
+			outputPath = pngOutputPath,
 			bgColor = bgColor,
 			fgColor = fgColor,
 		}
@@ -129,15 +122,19 @@ local function executeBootImageForAllResolutions()
 		local result = imageGenerator.createIconImage(options)
 		resetGraphicsState()
 		if result == false then
-			errorHandler.setError("Failed to create boot logo image")
-			-- Restore original dimensions before returning
-			state.screenWidth, state.screenHeight = originalWidth, originalHeight
+			errorHandler.setError("Failed to create boot logo PNG image")
+			return false
+		end
+
+		-- Convert PNG to BMP using ImageMagick
+		local convertCmd = string.format('magick convert "%s" "%s"', pngOutputPath, bmpOutputPath)
+		local convertResult = commands.executeCommand(convertCmd)
+		if convertResult ~= 0 then
+			errorHandler.setError("Failed to convert PNG to BMP for boot logo: " .. bmpOutputPath)
 			return false
 		end
 	end
 
-	-- Restore original dimensions
-	state.screenWidth, state.screenHeight = originalWidth, originalHeight
 	return true
 end
 
@@ -152,7 +149,6 @@ local function createRebootImage()
 		backgroundLogoSize = 180,
 		text = "Rebooting",
 		outputPath = paths.THEME_REBOOT_IMAGE,
-		saveAsBmp = false,
 		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
@@ -178,7 +174,6 @@ local function createShutdownImage()
 		backgroundLogoSize = 180,
 		text = "Shutting down",
 		outputPath = paths.THEME_SHUTDOWN_IMAGE,
-		saveAsBmp = false,
 		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
@@ -204,7 +199,6 @@ local function createChargeImage()
 		backgroundLogoSize = 180,
 		text = "Charging",
 		outputPath = paths.THEME_CHARGE_IMAGE,
-		saveAsBmp = false,
 		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}

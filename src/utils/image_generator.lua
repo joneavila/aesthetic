@@ -20,7 +20,6 @@ local state = require("state")
 
 local fonts = require("ui.fonts")
 
-local bmp = require("utils.bmp")
 local colorUtils = require("utils.color")
 local logger = require("utils.logger")
 local svg = require("utils.svg")
@@ -58,7 +57,6 @@ function imageGenerator.createIconImage(options)
 	local backgroundLogoSize = options.backgroundLogoSize or 180
 	local text = options.text
 	local outputPath = options.outputPath
-	local saveAsBmp = options.saveAsBmp or false
 
 	-- Ensure output path parent directory exists
 	if not system.ensurePath(outputPath) then
@@ -113,35 +111,17 @@ function imageGenerator.createIconImage(options)
 		love.graphics.rectangle("fill", 0, 0, width, height)
 	end
 
-	-- Special handling for boot image (BMP format)
-	if saveAsBmp then
-		-- For BMP images, use "alpha" blend mode but ensure full opacity
-		love.graphics.setBlendMode("alpha")
-		love.graphics.setColor(1, 1, 1, 1)
-	end
-
 	-- Draw background logo if provided
 	local iconX = width / 2
 	local iconY = height / 2 - (text and 50 or 0)
 
 	if backgroundSvgContent then
-		if saveAsBmp then
-			local r, g, b = fgColor[1], fgColor[2], fgColor[3]
-			svg.drawIconOnCanvas(backgroundSvgContent, backgroundLogoSize, iconX, iconY, { r, g, b }, false)
-		else
-			svg.drawIconOnCanvas(backgroundSvgContent, backgroundLogoSize, iconX, iconY, fgColor, true)
-		end
+		svg.drawIconOnCanvas(backgroundSvgContent, backgroundLogoSize, iconX, iconY, fgColor, true)
 	end
 
 	-- Draw foreground icon
 	if svgContent then
-		if saveAsBmp then
-			-- For BMP format, we need to ensure full opacity
-			local r, g, b = fgColor[1], fgColor[2], fgColor[3]
-			svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, { r, g, b }, false)
-		else
-			svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, fgColor, true)
-		end
+		svg.drawIconOnCanvas(svgContent, iconSize, iconX, iconY, fgColor, true)
 	end
 
 	-- Draw text if provided
@@ -188,22 +168,16 @@ function imageGenerator.createIconImage(options)
 	-- Get image data
 	local imageData = canvas:newImageData()
 
-	-- Save file
-	if saveAsBmp then
-		if not bmp.saveToFile(imageData, outputPath) then
-			return false
-		end
-	else
-		local pngData = imageData:encode("png")
-		if not pngData then
-			errorHandler.setError("Failed to encode PNG")
-			return false
-		end
+	-- Save file (always as PNG)
+	local pngData = imageData:encode("png")
+	if not pngData then
+		errorHandler.setError("Failed to encode PNG")
+		return false
+	end
 
-		if not system.writeFile(outputPath, pngData:getString()) then
-			errorHandler.setError("Failed to write PNG")
-			return false
-		end
+	if not system.writeFile(outputPath, pngData:getString()) then
+		errorHandler.setError("Failed to write PNG")
+		return false
 	end
 
 	return imageData
