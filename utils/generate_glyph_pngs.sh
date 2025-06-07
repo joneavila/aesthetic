@@ -30,7 +30,7 @@ SIZE_1024x768=34
 SIZE_MUXLAUNCH=120
 SIZE_MUXLAUNCH_1024x768=192
 SIZE_MUXTESTER=128
-PADDING_MUXLAUNCH=40 # Subtracted from size to get final icon size
+PADDING_MUXLAUNCH=30 # Subtracted from size to get final icon size
 PADDING_MUXLAUNCH_1024x768=72 # Subtracted from size to get final icon size
 
 # Clean output directory
