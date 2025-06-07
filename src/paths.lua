@@ -10,20 +10,8 @@ paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
 
--- Get dev directory if in development mode
-local devDir = nil
-if state.isDevelopment then
-	devDir = system.getEnvironmentVariable("DEV_DIR")
-	if not devDir then
-		errorHandler.setError("DEV_DIR environment variable not set but isDevelopment is true")
-	end
-end
-
 -- Working theme directory where files are written before archiving into a theme
-paths.WORKING_THEME_DIR = paths.SOURCE_DIR .. "/theme_working"
-if state.isDevelopment then
-	paths.WORKING_THEME_DIR = devDir .. "/theme_working"
-end
+paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
 -- muOS themes directory and files
 paths.THEME_DIR = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
@@ -42,19 +30,15 @@ function paths.getThemeOutputPath()
 	return paths.THEME_DIR .. "/" .. state.themeName .. ".muxthm"
 end
 
--- Device script directory for LED control
-paths.DEVICE_SCRIPT_DIR_PIXIE = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR_PIXIE")
-paths.DEVICE_SCRIPT_DIR_GOOSE = system.getEnvironmentVariable("MUOS_DEVICE_SCRIPT_DIR_GOOSE")
+local DEVICE_SCRIPT_DIR_1 = "/opt/muos/device/current/script/led_control.sh" -- Pixie
+local DEVICE_SCRIPT_DIR_2 = "/opt/muos/device/script/led_control.sh" -- Goose
+paths.LED_CONTROL_SCRIPT = system.isFile(DEVICE_SCRIPT_DIR_1) and DEVICE_SCRIPT_DIR_1
+	or system.isFile(DEVICE_SCRIPT_DIR_2) and DEVICE_SCRIPT_DIR_2
 
-if paths.DEVICE_SCRIPT_DIR_PIXIE then
-	paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR_PIXIE .. "/led_control.sh"
-else
-	paths.LED_CONTROL_SCRIPT = paths.DEVICE_SCRIPT_DIR_GOOSE .. "/led_control.sh"
-end
-
--- muOS version file paths
-paths.MUOS_VERSION_PIXIE = "/opt/muos/config/version.txt"
-paths.MUOS_VERSION_GOOSE = "/opt/muos/config/system/version"
+local MUOS_VERSION_FILE_1 = "/opt/muos/config/version.txt" -- Pixie
+local MUOS_VERSION_FILE_2 = "/opt/muos/config/system/version" -- Goose
+paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_1) and MUOS_VERSION_FILE_1
+	or system.isFile(MUOS_VERSION_FILE_2) and MUOS_VERSION_FILE_2
 
 paths.THEME_INSTALL_SCRIPT = "/opt/muos/script/package/theme.sh"
 
@@ -65,11 +49,6 @@ paths.THEME_SOUND_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/sounds"
 
 paths.KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
 paths.PRESETS_IMAGES_DIR = "assets/images/presets"
-
--- Get preset image path for a specific preset
-function paths.getPresetImagePath(presetName)
-	return paths.PRESETS_IMAGES_DIR .. "/" .. presetName .. ".png"
-end
 
 paths.THEME_CREDITS = paths.WORKING_THEME_DIR .. "/credits.txt"
 paths.THEME_NAME = paths.WORKING_THEME_DIR .. "/name.txt"
@@ -102,7 +81,7 @@ paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 -- Create getter functions for resolution-dependent paths so they update with screen dimensions
 -- Get resolution directory path
 function paths.getThemeResolutionDir()
-	return paths.WORKING_THEME_DIR .. "/" .. state.screenWidth .. "x" .. state.screenHeight
+	return string.format("%s/%dx%d", paths.WORKING_THEME_DIR, state.screenWidth, state.screenHeight)
 end
 
 -- Get preview image path
@@ -125,60 +104,10 @@ function paths.getThemeResolutionMuxlaunchIniPath()
 	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
 end
 
--- Hardcoded paths for each supported resolution
-function paths.getTheme640x480Dir()
-	return paths.WORKING_THEME_DIR .. "/640x480"
-end
+paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
 
-function paths.getTheme720x480Dir()
-	return paths.WORKING_THEME_DIR .. "/720x480"
-end
-
-function paths.getTheme720x576Dir()
-	return paths.WORKING_THEME_DIR .. "/720x576"
-end
-
-function paths.getTheme720x720Dir()
-	return paths.WORKING_THEME_DIR .. "/720x720"
-end
-
-function paths.getTheme1024x768Dir()
-	return paths.WORKING_THEME_DIR .. "/1024x768"
-end
-
-function paths.getTheme1280x720Dir()
-	return paths.WORKING_THEME_DIR .. "/1280x720"
-end
-
--- Get boot logo image path for specific resolution
-function paths.getThemeBootlogoImagePathForResolution(width, height)
-	return paths.WORKING_THEME_DIR .. "/" .. width .. "x" .. height .. "/image/bootlogo.bmp"
-end
-
-function paths.getUserdataPath()
-	local baseDir = state.isDevelopment and system.getEnvironmentVariable("DEV_DIR")
-		or system.getEnvironmentVariable("ROOT_DIR")
-	if not baseDir then
-		return nil
-	end
-	return baseDir .. "/userdata"
-end
-
-function paths.getUserThemePresetsPath()
-	local userdataPath = paths.getUserdataPath()
-	if not userdataPath then
-		return nil
-	end
-	return userdataPath .. "/presets"
-end
-
-function paths.getSettingsFilePath()
-	local userdataPath = paths.getUserdataPath()
-	if not userdataPath then
-		return nil
-	end
-	return userdataPath .. "/settings.lua"
-end
+paths.USER_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
+paths.SETTINGS_FILE = paths.USERDATA_DIR .. "/settings.lua"
 
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"

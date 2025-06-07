@@ -77,7 +77,6 @@ local state = {
 	applicationName = "Aesthetic",
 	screenWidth = 0, -- Set in `main.lua`
 	screenHeight = 0, -- Set in `main.lua`
-	isDevelopment = os.getenv("DEV_DIR") ~= nil, -- Development mode flag
 
 	previousScreen = "main_menu", -- Default screen to return to after color picker
 	themeApplied = false, -- Whether the theme has been applied

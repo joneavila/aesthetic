@@ -20,7 +20,7 @@ local presets = {}
 -- Helper to get all preset directories (user first, then default)
 local function getPresetDirectories()
 	local dirs = {}
-	local userDir = paths.getUserThemePresetsPath()
+	local userDir = paths.USER_THEME_PRESETS_DIR
 	if userDir then
 		table.insert(dirs, userDir)
 	end
@@ -37,7 +37,7 @@ local function getPresetFilePath(presetName)
 		end
 	end
 	-- Default to user dir for saving
-	local userDir = paths.getUserThemePresetsPath() or paths.PRESETS_DIR
+	local userDir = paths.USER_THEME_PRESETS_DIR
 	return userDir .. "/" .. presetName .. ".lua"
 end
 
@@ -74,7 +74,7 @@ function presets.savePreset(presetName)
 		presetName = "preset1"
 	end
 	local sanitizedName = presetName:gsub("[%s%p]", "_")
-	local presetsDir = paths.getUserThemePresetsPath() or paths.PRESETS_DIR
+	local presetsDir = paths.USER_THEME_PRESETS_DIR
 	os.execute("test -d " .. presetsDir .. " || mkdir -p " .. presetsDir)
 	local filePath = presetsDir .. "/" .. sanitizedName .. ".lua"
 	local file, err = io.open(filePath, "w")

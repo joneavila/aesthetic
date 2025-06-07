@@ -12,8 +12,6 @@ ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic"
 SOURCE_DIR="$ROOT_DIR/.aesthetic"
 LOG_DIR="$SOURCE_DIR/logs"
 MUOS_STORAGE_THEME_DIR="/run/muos/storage/theme"
-MUOS_DEVICE_SCRIPT_DIR_PIXIE="/opt/muos/device/current/script"
-MUOS_DEVICE_SCRIPT_DIR_GOOSE="/opt/muos/device/script"
 
 # Make sure the directory exists
 mkdir -p "$LOG_DIR"
@@ -36,8 +34,6 @@ export SESSION_LOG_FILE
 export LD_LIBRARY_PATH="$SOURCE_DIR/lib:$SOURCE_DIR/tove:$LD_LIBRARY_PATH" # Add libraries to the library path
 export TEMPLATE_DIR="$SOURCE_DIR/scheme_templates"
 export MUOS_STORAGE_THEME_DIR
-export MUOS_DEVICE_SCRIPT_DIR_PIXIE
-export MUOS_DEVICE_SCRIPT_DIR_GOOSE
 export WIDTH
 export HEIGHT
 

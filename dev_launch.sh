@@ -52,22 +52,22 @@ esac
 
 # Define project directories
 SOURCE_DIR="$(pwd)"
-DEV_DIR="$SOURCE_DIR/.dev"
-LOG_DIR="$DEV_DIR/logs"
+ROOT_DIR="$SOURCE_DIR/.dev"
+LOG_DIR="$ROOT_DIR/logs"
 TEMPLATE_DIR="$SOURCE_DIR/src/scheme_templates"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"
-mkdir -p "$DEV_DIR/theme_working"
+mkdir -p "$ROOT_DIR/theme_working"
 
 # Generate a unique session ID based on timestamp
 SESSION_ID=$(date +%Y%m%d_%H%M%S)
 SESSION_LOG_FILE="$LOG_DIR/$SESSION_ID.log"
 
 # Create local development directories that emulate handheld paths
-LOCAL_MUOS_STORAGE_DIR="$DEV_DIR/run/muos/storage"
-LOCAL_MUOS_DEVICE_DIR="$DEV_DIR/opt/muos/device"
-LOCAL_MUOS_CONFIG_DIR="$DEV_DIR/opt/muos/config"
+LOCAL_MUOS_STORAGE_DIR="$ROOT_DIR/run/muos/storage"
+LOCAL_MUOS_DEVICE_DIR="$ROOT_DIR/opt/muos/device"
+LOCAL_MUOS_CONFIG_DIR="$ROOT_DIR/opt/muos/config"
 
 MUOS_VERSION="2502.0"
 
@@ -84,9 +84,8 @@ chmod +x "$LOCAL_MUOS_DEVICE_DIR/current/script/led_control.sh"
 echo "1.0.0-dev" > "$LOCAL_MUOS_CONFIG_DIR/version.txt"
 
 # Export environment variables
-export ROOT_DIR
 export SOURCE_DIR
-export DEV_DIR
+export ROOT_DIR
 export LOG_DIR
 export SESSION_ID
 export SESSION_LOG_FILE
@@ -114,9 +113,8 @@ fi
 echo "Starting Aesthetic in development mode..."
 echo "DETECTED OS: $OS"
 echo "USING LÖVE PATH: $LOVE_PATH"
-echo "ROOT_DIR: $ROOT_DIR"
 echo "SOURCE_DIR: $SOURCE_DIR"
-echo "DEV_DIR: $DEV_DIR"
+echo "ROOT_DIR: $ROOT_DIR"
 echo "LOG_DIR: $LOG_DIR"
 echo "SESSION_LOG_FILE: $SESSION_LOG_FILE"
 echo "MUOS_STORAGE_THEME_DIR: $MUOS_STORAGE_THEME_DIR"

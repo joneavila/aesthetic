@@ -235,17 +235,7 @@ end
 -- Function to create `version.txt` file containing the compatible muOS version
 -- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
-	-- Try primary version file
-	local content
-	if system.fileExists(paths.MUOS_VERSION_PIXIE) then
-		content = system.readFile(paths.MUOS_VERSION_PIXIE)
-	elseif system.fileExists(paths.MUOS_VERSION_GOOSE) then
-		content = system.readFile(paths.MUOS_VERSION_GOOSE)
-	else
-		errorHandler.setError("muOS version file not found in any known location")
-		return false
-	end
-
+	local content = system.readFile(paths.MUOS_VERSION_FILE)
 	-- Extract just the version number using pattern matching (digits with zero or more periods followed by underscore)
 	local parsedVersion = content and content:match("(%d[%d%.]+)_")
 	if not parsedVersion then
@@ -333,10 +323,7 @@ end
 function themeCreator.installTheme(themeName)
 	logger.debug("Installing theme: " .. themeName)
 	local status, err = xpcall(function()
-		if state.isDevelopment then
-			logger.info("Skipping theme installation: Running in development environment")
-			return true -- Return success but don't actually install
-		end
+		-- TODO: Skip installation if in development mode
 
 		if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
 			return true -- Return success but don't actually install
@@ -602,11 +589,7 @@ function themeCreator.installThemeCoroutine(themeName)
 		local status, result = xpcall(function()
 			coroutine.yield("Preparing installation...")
 
-			if state.isDevelopment then
-				logger.info("Skipping theme installation: Running in development environment")
-				coroutine.yield("Development mode - skipping...")
-				return true
-			end
+			--
 
 			if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
 				coroutine.yield("Install script not found - skipping...")

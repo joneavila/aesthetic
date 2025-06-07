@@ -11,19 +11,6 @@ local otaUpdate = {}
 -- GitHub repository information
 local GITHUB_API_URL = "https://api.github.com/repos/joneavila/aesthetic/releases/latest"
 
--- Function to get archive path based on environment (development vs production)
-local function getArchivePath()
-	local devDir = os.getenv("DEV_DIR")
-	if devDir then
-		-- Development environment - use local dev directory
-		local archivePath = devDir .. "/ARCHIVE"
-		return archivePath
-	else
-		-- Production environment - use absolute path to actual handheld location
-		return "/mnt/mmc/ARCHIVE"
-	end
-end
-
 --- Parse version string into components for comparison
 --- @param versionStr string Version string like "v1.6.0"
 --- @return table Version components {major, minor, patch}
@@ -191,7 +178,7 @@ function otaUpdate.startThreadedDownload(downloadUrl, assetName)
 	local love = require("love")
 
 	-- Get the appropriate archive path for current environment
-	local ARCHIVE_PATH = getArchivePath()
+	local ARCHIVE_PATH = "/mnt/mmc/ARCHIVE"
 
 	-- Ensure archive directory exists using system utilities
 	if not system.ensurePath(ARCHIVE_PATH .. "/") then -- Add trailing slash to ensure it's treated as directory
