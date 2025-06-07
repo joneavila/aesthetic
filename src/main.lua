@@ -93,7 +93,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.origin() -- TODO: Reset coordinate system to default does not fix TrimUI Brick GOOSE bug
 	screens.draw()
 
 	-- Apply the fade-in overlay
