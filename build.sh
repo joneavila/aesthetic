@@ -174,6 +174,10 @@ if [ "$CLEAN" = true ]; then
     
 fi
 
+# Generate PNG glyphs from SVGs before building
+echoHeader "Generating glyph PNGs"
+bash utils/generate_glyph_pngs.sh || { echo "Failed to generate glyph PNGs"; exit 1; }
+
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
 rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || { echoError "Failed to copy mux_launch.sh"; exit 1; }

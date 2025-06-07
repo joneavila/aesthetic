@@ -359,12 +359,18 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
-			local glyphs = require("utils.glyphs")
-
-			coroutine.yield("Generating glyphs...")
-			if not glyphs.generateGlyphs(paths.THEME_GLYPH_DIR) then
-				return false
-			end
+			-- Copy pre-generated glyphs
+			coroutine.yield("Copying glyphs...")
+			local glyphSourceDir = paths.SOURCE_DIR .. "/assets/icons/glyph"
+			local glyphDestDir = paths.THEME_GLYPH_DIR
+			system.copyDir(glyphSourceDir, glyphDestDir)
+			-- Copy muxlaunch grid icons for default and 1024x768 resolutions
+			local muxlaunchGridSource = paths.SOURCE_DIR .. "/assets/image/grid/muxlaunch"
+			local muxlaunchGridDest = paths.WORKING_THEME_DIR .. "/image/grid/muxlaunch"
+			system.copyDir(muxlaunchGridSource, muxlaunchGridDest)
+			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
+			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
+			system.copyDir(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
 
 			coroutine.yield("Creating boot images...")
 			if not executeBootImageForAllResolutions() then
