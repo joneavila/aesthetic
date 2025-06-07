@@ -358,7 +358,7 @@ end
 -- by reading the RGB setting from the device config file
 function system.hasRGBSupport()
 	-- New CFW: /opt/muos/device/config (no extension, contains '0' or '1')
-	local newConfigPath = "/opt/muos/device/config"
+	local newConfigPath = "/opt/muos/device/config/led/rgb"
 	local file = io.open(newConfigPath, "r")
 	if file then
 		local content = file:read("*all")
