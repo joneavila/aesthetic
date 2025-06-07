@@ -319,36 +319,6 @@ local function copySoundFiles()
 	return system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
 end
 
--- Function to install the theme to muOS active theme directory
-function themeCreator.installTheme(themeName)
-	logger.debug("Installing theme: " .. themeName)
-	local status, err = xpcall(function()
-		-- TODO: Skip installation if in development mode
-
-		if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
-			return true -- Return success but don't actually install
-		end
-
-		-- If script exists, proceed with installation
-		local cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
-		local result = commands.executeCommand(cmd)
-		return result == 0
-	end, debug.traceback)
-
-	if not status then
-		errorHandler.setError("Error during installation: " .. tostring(err))
-		return false
-	end
-
-	return status
-end
-
--- Clean up working directory
-function themeCreator.cleanup()
-	system.removeDir(paths.WORKING_THEME_DIR)
-	resetGraphicsState()
-end
-
 -- Coroutine-based theme creation that yields control for animations
 function themeCreator.createThemeCoroutine()
 	return coroutine.create(function()
@@ -589,17 +559,26 @@ function themeCreator.installThemeCoroutine(themeName)
 		local status, result = xpcall(function()
 			coroutine.yield("Preparing installation...")
 
-			--
-
 			if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
 				coroutine.yield("Install script not found - skipping...")
 				return true
 			end
 
-			coroutine.yield("Installing theme files...")
+			local systemVersion = system.getSystemVersion()
+			logger.debug("System version: " .. tostring(systemVersion))
+			if not systemVersion then
+				return false
+			end
 
-			-- If script exists, proceed with installation
-			local cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
+			local cmd
+			if systemVersion == "GOOSE" then
+				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName)
+			else
+				cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
+			end
+			logger.debug("Command: " .. cmd)
+
+			coroutine.yield("Installing theme files...")
 			local installResult = commands.executeCommand(cmd)
 
 			coroutine.yield("Finalizing installation...")
