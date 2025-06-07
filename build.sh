@@ -189,9 +189,9 @@ rsync -aq utils/glyph_mapping.txt "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_ma
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts"
 rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
 
-# assets/icons/lucide/glyph (SVG source files for dynamic glyph generation)
-mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/glyph"
-rsync -aq assets/icons/lucide/glyph/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/glyph/" || { echoError "Failed to copy SVG glyph source files"; exit 1; }
+# assets/icons/material_symbols
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/material_symbols"
+rsync -aq assets/icons/material_symbols/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/material_symbols/" || { echoError "Failed to copy material symbols"; exit 1; }
 
 # assets/icons/lucide/ui
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui"

@@ -77,13 +77,6 @@ function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
 		glyphs.convertSvgToPng(svgPath, pngPath, GLYPH_HEIGHT, canvas, DEFAULT_PADDING)
 	end
-
-	-- Copy header icons which are not in SVG
-	local headerDir = targetDir .. "/header"
-	logger.debug(string.format("Copying header icons from '%s' to '%s'", paths.HEADER_GLYPHS_SOURCE_DIR, headerDir))
-	if not system.copyDir(paths.HEADER_GLYPHS_SOURCE_DIR, headerDir) then
-		return false
-	end
 	return true
 end
 
@@ -116,19 +109,17 @@ function glyphs.generateMuxLaunchGlyphs(muxLaunchGlyphMap)
 	return successCount > 0
 end
 
-function glyphs.generateFooterGlyphs(footerGlyphMap)
-	local height = 23
-	local sourceDir = paths.FOOTER_GLYPHS_SOURCE_DIR
-	local targetDir = paths.FOOTER_GLYPHS_TARGET_DIR
+function glyphs.generateFooterGlyphs(footerGlyphMap, targetDir)
+	local height = GLYPH_HEIGHT
 	local canvasSize = height + DEFAULT_PADDING
 	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
-	logger.debug(string.format("Generating %d footer glyphs from '%s' to '%s'", #footerGlyphMap, sourceDir, targetDir))
+	logger.debug(string.format("Generating %d footer glyphs to '%s'", #footerGlyphMap, targetDir))
 	local successCount = 0
 	for _, entry in ipairs(footerGlyphMap) do
-		local svgPath = sourceDir .. "/" .. entry.sourceFile
-		local pngPath = targetDir .. "/" .. entry.outputFile
+		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
+		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
 		if not glyphs.convertSvgToPng(svgPath, pngPath, height, canvas, DEFAULT_PADDING) then
-			logger.warning("Failed to convert footer glyph: " .. entry.sourceFile)
+			logger.warning("Failed to convert footer glyph: " .. entry.inputFilename)
 		else
 			successCount = successCount + 1
 		end
@@ -184,8 +175,8 @@ function glyphs.generateGlyphs(targetDir)
 			table.insert(muxLaunchGlyphMap, entry)
 		elseif entry.outputPath:match("^footer/") then
 			table.insert(footerGlyphMap, {
-				sourceFile = entry.inputFilename .. ".svg",
-				outputFile = entry.outputPath:gsub("^footer/", "") .. ".png",
+				inputFilename = entry.inputFilename,
+				outputPath = entry.outputPath,
 			})
 		elseif entry.outputPath:match("^muxtester/") then
 			table.insert(testerGlyphMap, entry)
@@ -195,7 +186,7 @@ function glyphs.generateGlyphs(targetDir)
 	end
 	local ok1 = glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 	local ok2 = glyphs.generateMuxLaunchGlyphs(muxLaunchGlyphMap)
-	local ok3 = glyphs.generateFooterGlyphs(footerGlyphMap)
+	local ok3 = glyphs.generateFooterGlyphs(footerGlyphMap, targetDir)
 	local ok4 = glyphs.generateTesterGlyphs(targetDir, testerGlyphMap)
 	return ok1 and ok2 and ok3 and ok4
 end
