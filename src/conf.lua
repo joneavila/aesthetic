@@ -9,6 +9,7 @@ function love.conf(t)
 	t.window.title = "Aesthetic"
 	t.version = "11.5"
 	t.accelerometerjoystick = false
+	t.window.fullscreen = true
 	t.gammacorrect = true -- Enable gamma correction (when supported) for better color accuracy
 	-- "Setting unused modules to false is encouraged when you release your game. It reduces startup time slightly
 	-- (especially if the joystick module is disabled) and reduces memory usage (slightly)."
