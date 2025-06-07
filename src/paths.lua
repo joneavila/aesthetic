@@ -58,8 +58,6 @@ paths.THEME_GLYPH_DIR_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
 paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
-paths.FOOTER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons"
-paths.FOOTER_GLYPHS_TARGET_DIR = paths.WORKING_THEME_DIR .. "/glyph/footer"
 paths.CONTROL_HINTS_SVG_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
 
 -- `scheme` directory and files
@@ -125,6 +123,7 @@ paths.THEME_SHUTDOWN_ICON_SOURCE = "assets/icons/lucide/ui/power.svg"
 paths.THEME_CHARGE_IMAGE = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
 paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
 paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
+paths.THEME_GRID_MUXLAUNCH_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
 
 -- Theme presets directory
 paths.PRESETS_DIR = paths.SOURCE_DIR .. "/presets"

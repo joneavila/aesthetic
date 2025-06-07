@@ -12,9 +12,9 @@ local system = require("utils.system")
 
 local glyphs = {}
 
-local GLYPH_HEIGHT = 22 -- Average "mux" glyph height is 41 (1.863)
-local GLYPH_HEIGHT_TESTER = 128
-local DEFAULT_PADDING = 4 -- Default padding around glyphs
+local GLYPH_HEIGHT = 22 -- Most glyphs are 20x20 in the default theme, 32x32 for the 1024x768 theme
+local GLYPH_HEIGHT_TESTER = 128 -- 256x256 for the default theme, 192x192 for the 1024x768 theme
+local DEFAULT_PADDING = 4
 
 local STROKE_WIDTH = 1.5
 local STROKE_PATTERN = "stroke%-width%s*=%s*[\"'][^\"']*[\"']"
@@ -68,7 +68,7 @@ function glyphs.convertSvgToPng(svgPath, pngPath, glyphRenderHeight, canvas, pad
 	return true
 end
 
--- Generate all primary glyphs (not muxlaunch or footer) based on glyph map
+-- Generate all primary glyphs (header, footer, etc.; not muxlaunch or muxtester) based on glyph map
 function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 	-- Generate standard glyphs (height 22)
 	local canvasSize = GLYPH_HEIGHT + DEFAULT_PADDING
@@ -80,7 +80,7 @@ function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 	end
 
 	-- Generate additional set for 1024x768 (height 25, padding 7)
-	local GLYPH_HEIGHT_1024x768 = 25
+	local GLYPH_HEIGHT_1024x768 = 35
 	local DEFAULT_PADDING_1024x768 = 7
 	local canvasSize1024x768 = GLYPH_HEIGHT_1024x768 + DEFAULT_PADDING_1024x768
 	local canvas1024x768 = love.graphics.newCanvas(canvasSize1024x768, canvasSize1024x768)
@@ -94,8 +94,8 @@ end
 
 function glyphs.generateMuxLaunchGlyphs(muxLaunchGlyphMap)
 	local baseOutputDir = paths.THEME_GRID_MUXLAUNCH
-	local targetCanvasSize = 120
-	local muxLaunchPadding = 45
+	local targetCanvasSize = 120 -- Grid glyphs are 120x120 for the default theme, 192x192 for the 1024x768 theme
+	local muxLaunchPadding = 45 -- So increase padding for 1024x768 to 72 (x1.6)
 	local glyphRenderHeight = targetCanvasSize - muxLaunchPadding
 	local canvas = love.graphics.newCanvas(targetCanvasSize, targetCanvasSize)
 	logger.debug(
@@ -118,24 +118,41 @@ function glyphs.generateMuxLaunchGlyphs(muxLaunchGlyphMap)
 			successCount = successCount + 1
 		end
 	end
-	return successCount > 0
-end
 
-function glyphs.generateFooterGlyphs(footerGlyphMap, targetDir)
-	local height = GLYPH_HEIGHT
-	local canvasSize = height + DEFAULT_PADDING
-	local canvas = love.graphics.newCanvas(canvasSize, canvasSize)
-	logger.debug(string.format("Generating %d footer glyphs to '%s'", #footerGlyphMap, targetDir))
-	local successCount = 0
-	for _, entry in ipairs(footerGlyphMap) do
+	-- Generate additional set for 1024x768 (canvas size 192, padding 72)
+	local baseOutputDir1024x768 = paths.THEME_GRID_MUXLAUNCH_1024x768
+	local targetCanvasSize1024x768 = 192
+	local muxLaunchPadding1024x768 = 72
+	local glyphRenderHeight1024x768 = targetCanvasSize1024x768 - muxLaunchPadding1024x768
+	local canvas1024x768 = love.graphics.newCanvas(targetCanvasSize1024x768, targetCanvasSize1024x768)
+	logger.debug(
+		string.format(
+			"Generating %d muxlaunch glyphs for 1024x768 theme (canvas size: %dpx, render height: %dpx, padding: %dpx)",
+			#muxLaunchGlyphMap,
+			targetCanvasSize1024x768,
+			glyphRenderHeight1024x768,
+			muxLaunchPadding1024x768
+		)
+	)
+	for _, entry in ipairs(muxLaunchGlyphMap) do
 		local svgPath = paths.SOURCE_DIR .. "/assets/icons/" .. entry.inputFilename .. ".svg"
-		local pngPath = targetDir .. "/" .. entry.outputPath .. ".png"
-		if not glyphs.convertSvgToPng(svgPath, pngPath, height, canvas, DEFAULT_PADDING) then
-			logger.warning("Failed to convert footer glyph: " .. entry.inputFilename)
+		local cleanOutputPath = entry.outputPath:gsub("^muxlaunch/", "")
+		local pngPath = baseOutputDir1024x768 .. "/" .. cleanOutputPath .. ".png"
+		if
+			not glyphs.convertSvgToPng(
+				svgPath,
+				pngPath,
+				glyphRenderHeight1024x768,
+				canvas1024x768,
+				muxLaunchPadding1024x768
+			)
+		then
+			logger.warning("Failed to convert muxlaunch glyph for 1024x768: " .. entry.inputFilename)
 		else
 			successCount = successCount + 1
 		end
 	end
+
 	return successCount > 0
 end
 
@@ -180,16 +197,11 @@ function glyphs.generateGlyphs(targetDir)
 		return false
 	end
 
-	-- Split glyph map into primary, muxlaunch, footer, and tester glyphs
-	local primaryGlyphMap, muxLaunchGlyphMap, footerGlyphMap, testerGlyphMap = {}, {}, {}, {}
+	-- Split glyph map into primary, muxlaunch, and tester glyphs
+	local primaryGlyphMap, muxLaunchGlyphMap, testerGlyphMap = {}, {}, {}
 	for _, entry in ipairs(glyphMap) do
 		if entry.outputPath:match("^muxlaunch/") then
 			table.insert(muxLaunchGlyphMap, entry)
-		elseif entry.outputPath:match("^footer/") then
-			table.insert(footerGlyphMap, {
-				inputFilename = entry.inputFilename,
-				outputPath = entry.outputPath,
-			})
 		elseif entry.outputPath:match("^muxtester/") then
 			table.insert(testerGlyphMap, entry)
 		else
@@ -198,9 +210,8 @@ function glyphs.generateGlyphs(targetDir)
 	end
 	local ok1 = glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 	local ok2 = glyphs.generateMuxLaunchGlyphs(muxLaunchGlyphMap)
-	local ok3 = glyphs.generateFooterGlyphs(footerGlyphMap, targetDir)
-	local ok4 = glyphs.generateTesterGlyphs(targetDir, testerGlyphMap)
-	return ok1 and ok2 and ok3 and ok4
+	local ok3 = glyphs.generateTesterGlyphs(targetDir, testerGlyphMap)
+	return ok1 and ok2 and ok3
 end
 
 return glyphs

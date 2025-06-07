@@ -3,22 +3,22 @@
 # Prints the average dimensions of PNG glyphs in a directory.
 # Useful for finding the average dimensions of a glyph in the default muOS theme.
 #
-# Usage: print_average_glyph_dimensions.sh [--mux-only] <path-to-glyph-directory>
-#   --mux-only   Only include PNG files under directories beginning with "mux"
+# Usage: print_average_glyph_dimensions.sh [--primary-only] <path-to-glyph-directory>
+#   --primary-only   Only include PNG files under directories beginning with "mux", excluding any in "muxtester"
 
 total_width=0
 total_height=0
 count=0
-mux_only=0
+primary_only=0
 
 display_usage() {
-    echo "Usage: $0 [--mux-only] <directory>"
-    echo "  --mux-only   Only include PNG files under directories beginning with 'mux'"
+    echo "Usage: $0 [--primary-only] <directory>"
+    echo "  --primary-only   Only include PNG files under directories beginning with 'mux', excluding any in 'muxtester'"
 }
 
 # Parse arguments
-if [ "$1" == "--mux-only" ]; then
-    mux_only=1
+if [ "$1" == "--primary-only" ]; then
+    primary_only=1
     shift
 fi
 
@@ -35,10 +35,10 @@ fi
 
 find_png_files_recurse() {
     local directory="$1"
-    if [ "$mux_only" -eq 1 ]; then
-        # Only search in subdirectories starting with mux*
+    if [ "$primary_only" -eq 1 ]; then
+        # Only search in subdirectories starting with mux*, but exclude any in 'muxtester'
         find "$directory" -type d -name "mux*" | while IFS= read -r muxdir; do
-            find "$muxdir" -type f -iname "*.png"
+            find "$muxdir" -type f -iname "*.png" | grep -v "/muxtester/"
         done
     else
         find "$directory" -type f -iname "*.png"
