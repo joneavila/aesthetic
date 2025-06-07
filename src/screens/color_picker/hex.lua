@@ -95,16 +95,13 @@ local function getGridStartPosition()
 	local totalGridWidth = (buttonSize * 6) + (GRID_PADDING * 5)
 	local totalGridHeight = (buttonSize * 3) + (GRID_PADDING * 2)
 
-	-- Calculate available space for the grid
+	-- Calculate available space for the grid (between preview and controls)
 	local availableWidth = contentArea.width
 	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
 
-	-- Center the grid horizontally and vertically
+	-- Center the grid horizontally and vertically in the available area
 	local startX = (availableWidth - totalGridWidth) / 2
-	local startY = contentArea.y
-		+ TOP_PADDING
-		+ PREVIEW_HEIGHT
-		+ (availableHeight - PREVIEW_HEIGHT - totalGridHeight) / 2
+	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + (availableHeight - totalGridHeight) / 2
 
 	return startX, startY
 end
