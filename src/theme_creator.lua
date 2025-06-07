@@ -248,7 +248,6 @@ end
 
 -- Function to find and copy the selected font file to theme directory
 local function copySelectedFont()
-	-- TEMPORARILY SIMPLIFIED: Using single .bin file per font while making font size feature more robust
 	-- Find the selected font definition
 	local fontFamilyDefinition
 	for _, font in ipairs(fonts.themeDefinitions) do
@@ -262,56 +261,21 @@ local function copySelectedFont()
 		return false
 	end
 
-	-- Extract the directory from the TTF path and combine with the .bin filename
-	local fontDirectory = fontFamilyDefinition.path:match("^(.+)/[^/]+$")
-	local fontSourcePath = fontDirectory .. "/" .. fontFamilyDefinition.file
+	-- Extract the directory from the TTF path and combine with the correct .bin filename
+	local fontDirectory = fontFamilyDefinition.ttf:match("^(.+)/[^/]+$")
+	local binFile
+	if tostring(state.screenWidth) == "1024" and tostring(state.screenHeight) == "768" then
+		binFile = fontFamilyDefinition.bin1024x768
+	else
+		binFile = fontFamilyDefinition.binDefault
+	end
+	local fontSourcePath = fontDirectory .. "/" .. binFile
 	logger.debug("Copying font file: " .. fontSourcePath)
 	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
 		return false
 	end
 
 	return true
-
-	--[[ ORIGINAL CODE: Commented out while making font size feature more robust
-	-- Find and copy the selected font file
-	local fontFamilyFile
-	for _, font in ipairs(fonts.themeDefinitions) do
-		if font.name == fonts.getSelectedFont() then
-			fontFamilyFile = font.file
-			break
-		end
-	end
-	if not fontFamilyFile then
-		errorHandler.setError("Selected font not found: " .. tostring(fonts.getSelectedFont()))
-		return false
-	end
-
-	-- Get the font size directory
-	local fontSizeDir
-	local existingFontSize, result = pcall(function()
-		return fonts.themeFontSizeOptions[fonts.getFontSize()]
-	end)
-	if not existingFontSize or not result then
-		errorHandler.setError("Failed to get font size: " .. tostring(fonts.getFontSize()))
-		return false
-	end
-	fontSizeDir = result
-
-	-- Copy the selected font file as default.bin
-	local fontSourcePath = "assets/fonts/"
-		.. fontFamilyFile:gsub("%.bin$", "")
-		.. "/"
-		.. fontFamilyFile:gsub("%.bin$", "")
-		.. "_"
-		.. fontSizeDir
-		.. ".bin"
-	logger.debug("Copying font file: " .. fontSourcePath .. " for font size option: " .. tostring(fonts.getFontSize()))
-	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
-		return false
-	end
-
-	return true
-	--]]
 end
 
 -- Function to copy sound files to the theme

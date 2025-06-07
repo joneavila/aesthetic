@@ -163,7 +163,7 @@ function imageGenerator.createIconImage(options)
 			errorHandler.setError("Font definition not found")
 			return false
 		end
-		local largerFont = love.graphics.newFont(fontDef.path, imageFontSize)
+		local largerFont = love.graphics.newFont(fontDef.ttf, imageFontSize)
 
 		-- Set the font and color
 		love.graphics.setFont(largerFont)

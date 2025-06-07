@@ -16,70 +16,77 @@ fonts.nameToKey = {}
 fonts.themeDefinitions = {
 	{
 		name = "Inter",
-		file = "inter_semibold_default.bin",
-		path = "assets/fonts/inter/inter_24pt_semibold.ttf",
+		binDefault = "inter_semibold_24.bin",
+		bin1024x768 = "inter_semibold_36.bin",
+		ttf = "assets/fonts/inter/inter_24pt_semibold.ttf",
 	},
 	{
 		name = "Montserrat",
-		file = "montserrat_semibold_default.bin",
-		path = "assets/fonts/montserrat/montserrat_semibold.ttf",
+		binDefault = "montserrat_semibold_25.bin",
+		bin1024x768 = "montserrat_semibold_37.bin",
+		ttf = "assets/fonts/montserrat/montserrat_semibold.ttf",
 	},
 	{
 		name = "Nunito",
-		file = "nunito_bold_default.bin",
-		path = "assets/fonts/nunito/nunito_bold.ttf",
+		binDefault = "nunito_bold_27.bin",
+		bin1024x768 = "nunito_bold_39.bin",
+		ttf = "assets/fonts/nunito/nunito_bold.ttf",
 	},
 	{
 		name = "JetBrains Mono",
-		file = "jetbrains_mono_bold_default.bin",
-		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		binDefault = "jetbrains_mono_bold_25.bin",
+		bin1024x768 = "jetbrains_mono_bold_36.bin",
+		ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 	},
 	{
 		name = "Cascadia Code",
-		file = "cascadia_code_bold_default.bin",
-		path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
+		binDefault = "cascadia_code_bold_25.bin",
+		bin1024x768 = "cascadia_code_bold_37.bin",
+		ttf = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
 	},
 	{
 		name = "Retro Pixel",
-		file = "retro_pixel_thick_default.bin",
-		path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf",
+		binDefault = "retro_pixel_thick_28.bin",
+		bin1024x768 = "retro_pixel_thick_41.bin",
+		ttf = "assets/fonts/retro_pixel/retro_pixel_thick.ttf",
 	},
 	{
 		name = "Bitter",
-		file = "bitter_semibold_default.bin",
-		path = "assets/fonts/bitter/bitter_semibold.ttf",
+		binDefault = "bitter_semibold_26.bin",
+		bin1024x768 = "bitter_semibold_39.bin",
+		ttf = "assets/fonts/bitter/bitter_semibold.ttf",
 	},
 }
 
 -- Font definitions mapping
 local bodySize = 22
 fonts.uiDefinitions = {
-	header = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
-	body = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = bodySize },
-	bodyBold = { name = "Inter", path = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = bodySize },
-	caption = { name = "Inter", path = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 18 },
-	monoTitle = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 48 },
+	header = { name = "Inter", ttf = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 16 },
+	body = { name = "Inter", ttf = "assets/fonts/inter/inter_24pt_semibold.ttf", size = bodySize },
+	bodyBold = { name = "Inter", ttf = "assets/fonts/inter/inter_24pt_extrabold.ttf", size = bodySize },
+	caption = { name = "Inter", ttf = "assets/fonts/inter/inter_24pt_semibold.ttf", size = 18 },
+	monoTitle = { name = "JetBrains Mono", ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 48 },
 	monoHeader = {
 		name = "JetBrains Mono",
-		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 		size = 32,
 	},
 	monoBody = {
 		name = "JetBrains Mono",
-		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 		size = 22,
 	},
 	console = {
 		name = "JetBrains Mono",
-		path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
+		ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
 		size = 16,
 	},
-	error = { name = "JetBrains Mono", path = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 16 },
-	nunito = { name = "Nunito", path = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
-	retroPixel = { name = "Retro Pixel", path = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = bodySize },
+	error = { name = "JetBrains Mono", ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf", size = 16 },
+	nunito = { name = "Nunito", ttf = "assets/fonts/nunito/nunito_bold.ttf", size = 24 },
+	retroPixel = { name = "Retro Pixel", ttf = "assets/fonts/retro_pixel/retro_pixel_thick.ttf", size = bodySize },
 	cascadiaCode = {
 		name = "Cascadia Code",
-		path = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
+		ttf = "assets/fonts/cascadia_code/cascadia_code_bold.ttf",
 		size = bodySize,
 	},
 }
@@ -102,7 +109,7 @@ fonts.initializeFonts = function()
 	-- Load theme fonts into fonts.loaded using font name as key
 	for _, def in ipairs(fonts.themeDefinitions) do
 		local success, result = pcall(function()
-			return love.graphics.newFont(def.path, fonts.themeFontSizeOptions["Default"] or 24)
+			return love.graphics.newFont(def.ttf, fonts.themeFontSizeOptions["Default"] or 24)
 		end)
 		if success then
 			fonts.loaded[def.name] = result
@@ -113,7 +120,7 @@ fonts.initializeFonts = function()
 
 	for key, def in pairs(fonts.uiDefinitions) do
 		local success, result = pcall(function()
-			return love.graphics.newFont(def.path, def.size)
+			return love.graphics.newFont(def.ttf, def.size)
 		end)
 
 		if success then

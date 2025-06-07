@@ -80,7 +80,7 @@ function glyphs.generatePrimaryGlyphs(targetDir, primaryGlyphMap)
 	end
 
 	-- Generate additional set for 1024x768 (height 25, padding 7)
-	local GLYPH_HEIGHT_1024x768 = 35
+	local GLYPH_HEIGHT_1024x768 = 34
 	local DEFAULT_PADDING_1024x768 = 7
 	local canvasSize1024x768 = GLYPH_HEIGHT_1024x768 + DEFAULT_PADDING_1024x768
 	local canvas1024x768 = love.graphics.newCanvas(canvasSize1024x768, canvasSize1024x768)
