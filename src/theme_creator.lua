@@ -48,7 +48,7 @@ end
 -- Copies all resolution directories from templates
 local function copyAllResolutionTemplates()
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
-		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution
+		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution .. "/"
 		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
 		local success, err = system.copy(sourcePath, destPath)
 		if not success then
@@ -247,7 +247,11 @@ end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	local success, err = system.copy(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
+	local soundSource = paths.THEME_SOUND_SOURCE_DIR
+	if system.isDir(soundSource) then
+		soundSource = soundSource .. "/"
+	end
+	local success, err = system.copy(soundSource, paths.THEME_SOUND_DIR)
 	if not success then
 		return false, err or "Failed to copy sound files."
 	end
@@ -278,6 +282,9 @@ function themeCreator.createThemeCoroutine()
 				end
 
 				if item ~= "scheme" and not isResolutionDir then
+					if system.isDir(sourcePath) then
+						sourcePath = sourcePath .. "/" -- Add trailing slash to copy contents only
+					end
 					local success, err = system.copy(sourcePath, destPath)
 					if not success then
 						return false, err
@@ -299,6 +306,9 @@ function themeCreator.createThemeCoroutine()
 			for _, item in ipairs(schemeItems) do
 				local sourcePath = paths.THEME_SCHEME_SOURCE_DIR .. "/" .. item
 				local destPath = paths.THEME_SCHEME_DIR .. "/" .. item
+				if system.isDir(sourcePath) then
+					sourcePath = sourcePath .. "/"
+				end
 				local success, err = system.copy(sourcePath, destPath)
 				if not success then
 					return false, err
@@ -317,18 +327,27 @@ function themeCreator.createThemeCoroutine()
 			coroutine.yield("Copying glyphs...")
 			local glyphSourceDir = paths.SOURCE_DIR .. "/assets/icons/glyph"
 			local glyphDestDir = paths.THEME_GLYPH_DIR
+			if system.isDir(glyphSourceDir) then
+				glyphSourceDir = glyphSourceDir .. "/"
+			end
 			local glyphSuccess, glyphErr = system.copy(glyphSourceDir, glyphDestDir)
 			if not glyphSuccess then
 				return false, glyphErr or ("Failed to copy glyphs from: " .. glyphSourceDir)
 			end
 			local muxlaunchGridSource = paths.SOURCE_DIR .. "/assets/image/grid/muxlaunch"
 			local muxlaunchGridDest = paths.WORKING_THEME_DIR .. "/image/grid/muxlaunch"
+			if system.isDir(muxlaunchGridSource) then
+				muxlaunchGridSource = muxlaunchGridSource .. "/"
+			end
 			local gridCopySuccess, gridCopyErr = system.copy(muxlaunchGridSource, muxlaunchGridDest)
 			if not gridCopySuccess then
 				return false, gridCopyErr or "Failed to copy muxlaunch grid icons."
 			end
 			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
 			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
+			if system.isDir(muxlaunchGrid1024Source) then
+				muxlaunchGrid1024Source = muxlaunchGrid1024Source .. "/"
+			end
 			local grid1024Success, grid1024Err = system.copy(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
 			if not grid1024Success then
 				return false, grid1024Err or "Failed to copy 1024x768 muxlaunch grid icons."
