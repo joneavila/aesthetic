@@ -129,35 +129,45 @@ function system.createArchive(sourceDir, outputPath)
 	return finalPath
 end
 
--- Helper function to copy directory contents
-function system.copyDir(src, dest)
-	if not src:match("/$") then
-		src = src .. "/"
+-- Copy a file or directory using rsync, creating parent directories as needed
+function system.copy(sourcePath, destinationPath)
+	if not sourcePath or not destinationPath then
+		return fail("Source and destination paths required for copy")
 	end
 
-	if not system.ensurePath(dest) then
-		return fail("Failed to create destination directory: " .. dest)
+	if not system.fileExists(sourcePath) and not system.isDir(sourcePath) then
+		return fail("Source does not exist: " .. tostring(sourcePath))
 	end
 
-	local checkCmd = string.format('test -d "%s"', src:sub(1, -2))
-	if commands.executeCommand(checkCmd) ~= 0 then
-		return fail("Source directory does not exist: " .. src)
+	-- Ensure parent directory of destination exists
+	if not system.ensurePath(destinationPath) then
+		return fail("Failed to create destination directory: " .. destinationPath)
 	end
 
-	local rsyncCmd
 	local osType = environment.getOS()
-
+	local rsyncCmd
 	if osType == "macos" then
-		rsincCmd = string.format('rsync -aq "%s" "%s"', src, dest)
+		rsyncCmd = string.format('rsync -aq "%s" "%s"', sourcePath, destinationPath)
 	else
-		rsincCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
+		rsyncCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', sourcePath, destinationPath)
 	end
 
-	if commands.executeCommand(rsincCmd) ~= 0 then
-		return fail("rsync command failed: " .. rsincCmd)
+	if commands.executeCommand(rsyncCmd) ~= 0 then
+		return fail("rsync command failed: " .. rsyncCmd)
 	end
 
 	return true
+end
+
+-- Deprecated: Use system.copy instead
+function system.copyFile(sourcePath, destinationPath)
+	logger.warning("system.copyFile is deprecated. Use system.copy instead.")
+	return system.copy(sourcePath, destinationPath)
+end
+
+function system.copyDir(src, dest)
+	logger.warning("system.copyDir is deprecated. Use system.copy instead.")
+	return system.copy(src, dest)
 end
 
 --- Ensures a directory exists, creating it if necessary
@@ -185,24 +195,6 @@ function system.ensurePath(path)
 		errorHandler.setError("Failed to create directory (" .. dir .. "): " .. tostring(result))
 		return false
 	end
-	return true
-end
-
--- Copy a file and create destination directory if needed
-function system.copyFile(sourcePath, destinationPath)
-	if not system.fileExists(sourcePath) then
-		return fail("Source file does not exist: " .. sourcePath)
-	end
-
-	if not system.ensurePath(destinationPath) then
-		return fail("Failed to create destination directory: " .. destinationPath)
-	end
-
-	local cmd = string.format('cp "%s" "%s"', sourcePath, destinationPath)
-	if commands.executeCommand(cmd) ~= 0 then
-		return fail("cp command failed: " .. cmd)
-	end
-
 	return true
 end
 

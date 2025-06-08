@@ -50,7 +50,7 @@ local function copyAllResolutionTemplates()
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution
 		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
-		local success, err = system.copyDir(sourcePath, destPath)
+		local success, err = system.copy(sourcePath, destPath)
 		if not success then
 			return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
 		end
@@ -108,76 +108,71 @@ local function executeBootImageForAllResolutions()
 	return true
 end
 
--- Function to create reboot image shown during reboot
-local function createRebootImage()
+-- Helper to copy either a file or directory
+local function copyItem(sourcePath, destPath)
+	if system.isDir(sourcePath) then
+		local success, err = system.copyDir(sourcePath, destPath)
+		if not success then
+			return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
+		end
+	elseif system.isFile(sourcePath) then
+		local success, err = system.copyFile(sourcePath, destPath)
+		if not success then
+			return false, err or ("Failed to copy file: " .. tostring(sourcePath))
+		end
+	else
+		return false, "Source path does not exist: " .. sourcePath
+	end
+	return true
+end
+
+-- Helper to create status images (reboot, shutdown, charge)
+local function createStatusImage(opts)
 	local options = {
 		width = state.screenWidth,
 		height = state.screenHeight,
-		iconPath = paths.THEME_REBOOT_ICON_SOURCE,
+		iconPath = opts.iconPath,
 		iconSize = 50,
 		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
 		backgroundLogoSize = 180,
-		text = "Rebooting",
-		outputPath = paths.THEME_REBOOT_IMAGE,
+		text = opts.text,
+		outputPath = opts.outputPath,
 		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
-
 	local success, err = imageGenerator.createIconImage(options)
 	resetGraphicsState()
 	if not success then
-		return fail("Failed to create reboot image: " .. tostring(err))
+		return fail("Failed to create " .. opts.text:lower() .. " image: " .. tostring(err))
 	end
-
 	return true
+end
+
+-- Function to create reboot image shown during reboot
+local function createRebootImage()
+	return createStatusImage({
+		iconPath = paths.THEME_REBOOT_ICON_SOURCE,
+		text = "Rebooting",
+		outputPath = paths.THEME_REBOOT_IMAGE,
+	})
 end
 
 -- Function to create shutdown image shown during shutdown
 local function createShutdownImage()
-	local options = {
-		width = state.screenWidth,
-		height = state.screenHeight,
+	return createStatusImage({
 		iconPath = paths.THEME_SHUTDOWN_ICON_SOURCE,
-		iconSize = 50,
-		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
-		backgroundLogoSize = 180,
 		text = "Shutting down",
 		outputPath = paths.THEME_SHUTDOWN_IMAGE,
-		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
-		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
-	}
-
-	local success, err = imageGenerator.createIconImage(options)
-	resetGraphicsState()
-	if not success then
-		return fail("Failed to create shutdown image: " .. tostring(err))
-	end
-
-	return true
+	})
 end
 
 -- Function to create charge image shown during charging
 local function createChargeImage()
-	local options = {
-		width = state.screenWidth,
-		height = state.screenHeight,
+	return createStatusImage({
 		iconPath = paths.THEME_CHARGE_ICON_SOURCE,
-		iconSize = 50,
-		backgroundLogoPath = paths.THEME_LOGO_OUTLINE_SOURCE,
-		backgroundLogoSize = 180,
 		text = "Charging",
 		outputPath = paths.THEME_CHARGE_IMAGE,
-		bgColor = colorUtils.hexToLove(state.getColorValue("background")),
-		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
-	}
-
-	local success, err = imageGenerator.createIconImage(options)
-	resetGraphicsState()
-	if not success then
-		return fail("Failed to create charge image: " .. tostring(err))
-	end
-
-	return true
+	})
 end
 
 -- Function to create preview image displayed in muOS theme selection menu
@@ -242,7 +237,7 @@ local function copySelectedFont()
 	end
 	local fontSourcePath = fontDirectory .. "/" .. binFile
 	logger.debug("Copying font file: " .. fontSourcePath)
-	local success, err = system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT)
+	local success, err = system.copy(fontSourcePath, paths.THEME_DEFAULT_FONT)
 	if not success then
 		return fail(err or ("Failed to copy font file: " .. tostring(fontSourcePath)))
 	end
@@ -252,7 +247,7 @@ end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	local success, err = system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
+	local success, err = system.copy(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
 	if not success then
 		return false, err or "Failed to copy sound files."
 	end
@@ -283,18 +278,9 @@ function themeCreator.createThemeCoroutine()
 				end
 
 				if item ~= "scheme" and not isResolutionDir then
-					if system.isDir(sourcePath) then
-						local success, err = system.copyDir(sourcePath, destPath)
-						if not success then
-							return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
-						end
-					elseif system.isFile(sourcePath) then
-						local success, err = system.copyFile(sourcePath, destPath)
-						if not success then
-							return false, err or ("Failed to copy file: " .. tostring(sourcePath))
-						end
-					else
-						return false, "Source path does not exist: " .. sourcePath
+					local success, err = system.copy(sourcePath, destPath)
+					if not success then
+						return false, err
 					end
 				end
 			end
@@ -313,18 +299,9 @@ function themeCreator.createThemeCoroutine()
 			for _, item in ipairs(schemeItems) do
 				local sourcePath = paths.THEME_SCHEME_SOURCE_DIR .. "/" .. item
 				local destPath = paths.THEME_SCHEME_DIR .. "/" .. item
-				if system.isDir(sourcePath) then
-					local success, err = system.copyDir(sourcePath, destPath)
-					if not success then
-						return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
-					end
-				elseif system.isFile(sourcePath) then
-					local success, err = system.copyFile(sourcePath, destPath)
-					if not success then
-						return false, err or ("Failed to copy file: " .. tostring(sourcePath))
-					end
-				else
-					return false, "Source path does not exist: " .. sourcePath
+				local success, err = system.copy(sourcePath, destPath)
+				if not success then
+					return false, err
 				end
 			end
 
@@ -340,19 +317,19 @@ function themeCreator.createThemeCoroutine()
 			coroutine.yield("Copying glyphs...")
 			local glyphSourceDir = paths.SOURCE_DIR .. "/assets/icons/glyph"
 			local glyphDestDir = paths.THEME_GLYPH_DIR
-			local glyphSuccess, glyphErr = system.copyDir(glyphSourceDir, glyphDestDir)
+			local glyphSuccess, glyphErr = system.copy(glyphSourceDir, glyphDestDir)
 			if not glyphSuccess then
 				return false, glyphErr or ("Failed to copy glyphs from: " .. glyphSourceDir)
 			end
 			local muxlaunchGridSource = paths.SOURCE_DIR .. "/assets/image/grid/muxlaunch"
 			local muxlaunchGridDest = paths.WORKING_THEME_DIR .. "/image/grid/muxlaunch"
-			local gridCopySuccess, gridCopyErr = system.copyDir(muxlaunchGridSource, muxlaunchGridDest)
+			local gridCopySuccess, gridCopyErr = system.copy(muxlaunchGridSource, muxlaunchGridDest)
 			if not gridCopySuccess then
 				return false, gridCopyErr or "Failed to copy muxlaunch grid icons."
 			end
 			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
 			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
-			local grid1024Success, grid1024Err = system.copyDir(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
+			local grid1024Success, grid1024Err = system.copy(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
 			if not grid1024Success then
 				return false, grid1024Err or "Failed to copy 1024x768 muxlaunch grid icons."
 			end
