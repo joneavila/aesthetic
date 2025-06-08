@@ -1,17 +1,17 @@
-# Glyph
+# GLYPH MAPPING
 #
-# This file maps output paths for glyph images (relative to `assets/icons/glyph`) to input SVG files
-# (relative to `assets/icons/`) for the glyph generation done by `utils/generate_template_glyphs.py`.
+# This file defines the mapping between output glyph image paths and their corresponding input SVG sources.
+# It is used by the glyph generation script `utils/generate_glyph_pngs.sh`.
 #
 # Format:
-#   output/path/filename, input_svg_name
+#   output/path/filename, input_svg_path
 #
 # Where:
-#   - output/path/filename: Destination path relative to `assets/icons/glyph` (without .png extension)
-#   - input_svg_name: Source SVG file path relative to `assets/icons/` (without .svg extension)
+#   - output/path/filename: Destination path relative to `assets/icons/glyph` (omit the `.png` extension)
+#   - input_svg_path: Source path relative to `assets/icons/` (omit the `.svg` extension)
 #
-# Comments begin with # and are ignored
-# Blank lines are also ignored
+# Lines beginning with `#` are treated as comments and ignored.
+# Blank lines are also ignored.
 
 # header - Seen throughout the UI
 header/bluetooth, material_symbols/bluetooth_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
