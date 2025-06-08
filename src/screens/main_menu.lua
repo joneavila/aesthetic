@@ -28,8 +28,8 @@ local modal = nil
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
-local ACTION_BUTTON_HEIGHT = 40
-local ACTION_BUTTON_SPACING = 12
+local ACTION_BUTTON_HEIGHT = 50
+local ACTION_BUTTON_SPACING = 8
 local TOTAL_BOTTOM_AREA_HEIGHT = CONTROLS_HEIGHT + ACTION_BUTTON_HEIGHT + ACTION_BUTTON_SPACING
 
 -- IO operation states
