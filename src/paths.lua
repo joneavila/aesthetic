@@ -79,28 +79,28 @@ paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgbconf.sh"
 
 -- Create getter functions for resolution-dependent paths so they update with screen dimensions
 -- Get resolution directory path
-function paths.getThemeResolutionDir()
-	return string.format("%s/%dx%d", paths.WORKING_THEME_DIR, state.screenWidth, state.screenHeight)
+function paths.getThemeResolutionDir(width, height)
+	return string.format("%s/%dx%d", paths.WORKING_THEME_DIR, width, height)
 end
 
 -- Get preview image path
-function paths.getThemePreviewImagePath()
-	return paths.getThemeResolutionDir() .. "/preview.png"
+function paths.getThemePreviewImagePath(width, height)
+	return paths.getThemeResolutionDir(width, height) .. "/preview.png"
 end
 
 -- Get resolution image directory path
-function paths.getThemeResolutionImageDir()
-	return paths.getThemeResolutionDir() .. "/image"
+function paths.getThemeResolutionImageDir(width, height)
+	return paths.getThemeResolutionDir(width, height) .. "/image"
 end
 
 -- Get boot logo image path
-function paths.getThemeBootlogoImagePath()
-	return paths.getThemeResolutionImageDir() .. "/bootlogo.bmp"
+function paths.getThemeBootlogoImagePath(width, height)
+	return paths.getThemeResolutionImageDir(width, height) .. "/bootlogo.bmp"
 end
 
 -- Get muxlaunch.ini path in the resolution directory
-function paths.getThemeResolutionMuxlaunchIniPath()
-	return paths.getThemeResolutionDir() .. "/scheme/muxlaunch.ini"
+function paths.getThemeResolutionMuxlaunchIniPath(width, height)
+	return paths.getThemeResolutionDir(width, height) .. "/scheme/muxlaunch.ini"
 end
 
 paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"

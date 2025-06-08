@@ -29,31 +29,16 @@ local SUPPORTED_RESOLUTIONS = {
 }
 
 -- Helper function to execute a function for all supported resolutions
--- Executes the function for each supported resolution, temporarily setting screen dimensions
--- The function receives no parameters and should use state.screenWidth/screenHeight
+-- Executes the function for each supported resolution, passing width and height to the callback
 local function executeForAllResolutions(func)
-	-- Store original dimensions
-	local originalWidth, originalHeight = state.screenWidth, state.screenHeight
-
-	-- Execute for all supported resolutions
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local width, height = resolution:match("(%d+)x(%d+)")
 		width, height = tonumber(width), tonumber(height)
-
-		-- Set screen dimensions for this resolution
-		state.screenWidth, state.screenHeight = width, height
-
-		-- Execute the function
-		local success = func()
+		local success = func(width, height)
 		if not success then
-			-- Restore original dimensions before returning
-			state.screenWidth, state.screenHeight = originalWidth, originalHeight
 			return false
 		end
 	end
-
-	-- Restore original dimensions
-	state.screenWidth, state.screenHeight = originalWidth, originalHeight
 	return true
 end
 
@@ -64,11 +49,8 @@ local function copyAllResolutionTemplates()
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution
 		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
-
-		if system.isDir(sourcePath) then
-			if not system.copyDir(sourcePath, destPath) then
-				return false
-			end
+		if not system.copyDir(sourcePath, destPath) then
+			return false
 		end
 	end
 	return true
@@ -90,10 +72,8 @@ local function createNameFile(finalArchivePath)
 	return system.createTextFile(paths.THEME_NAME, name)
 end
 
--- Helper function to execute boot image creation for all supported resolutions with color caching
--- This optimized version caches color conversions outside the resolution loop since colors are resolution-independent
+-- Helper function to execute boot image creation for all supported resolutions
 local function executeBootImageForAllResolutions()
-	-- Cache color conversions once since they don't change between resolutions
 	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
@@ -119,18 +99,14 @@ local function executeBootImageForAllResolutions()
 			fgColor = fgColor,
 		}
 
-		local result = imageGenerator.createIconImage(options)
 		resetGraphicsState()
-		if result == false then
-			errorHandler.setError("Failed to create boot logo PNG image")
+		if not imageGenerator.createIconImage(options) then
 			return false
 		end
 
 		-- Convert PNG to BMP using ImageMagick
 		local convertCmd = string.format('magick convert "%s" "%s"', pngOutputPath, bmpOutputPath)
-		local convertResult = commands.executeCommand(convertCmd)
-		if convertResult ~= 0 then
-			errorHandler.setError("Failed to convert PNG to BMP for boot logo: " .. bmpOutputPath)
+		if not commands.executeCommand(convertCmd) then
 			return false
 		end
 	end
@@ -214,8 +190,9 @@ local function createChargeImage()
 end
 
 -- Function to create preview image displayed in muOS theme selection menu
-local function createPreviewImage()
-	local result = imageGenerator.createPreviewImage(paths.getThemePreviewImagePath())
+local function createPreviewImage(width, height)
+	local outputPath = paths.getThemePreviewImagePath(width, height)
+	local result = imageGenerator.createPreviewImage(outputPath)
 	resetGraphicsState()
 	return result
 end
@@ -351,8 +328,8 @@ function themeCreator.createThemeCoroutine()
 			-- Apply grid settings to muxlaunch.ini in the resolution-specific directory
 			coroutine.yield("Configuring grid settings...")
 			if
-				not executeForAllResolutions(function()
-					local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath()
+				not executeForAllResolutions(function(width, height)
+					local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath(width, height)
 					return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
 				end)
 			then
@@ -396,7 +373,11 @@ function themeCreator.createThemeCoroutine()
 			resetGraphicsState()
 
 			coroutine.yield("Creating preview images...")
-			if not executeForAllResolutions(createPreviewImage) then
+			if
+				not executeForAllResolutions(function(width, height)
+					return createPreviewImage(width, height)
+				end)
+			then
 				return false
 			end
 
@@ -545,12 +526,9 @@ function themeCreator.installThemeCoroutine(themeName)
 			else
 				cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
 			end
-			logger.debug("Command: " .. cmd)
 
 			coroutine.yield("Installing theme files...")
 			local installResult = commands.executeCommand(cmd)
-
-			coroutine.yield("Finalizing installation...")
 
 			return installResult == 0
 		end, debug.traceback)
