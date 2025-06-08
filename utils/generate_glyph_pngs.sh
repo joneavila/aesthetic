@@ -34,6 +34,8 @@ PADDING_MUXLAUNCH=30 # Subtracted from size to get final icon size
 PADDING_MUXLAUNCH_1024x768=72 # Subtracted from size to get final icon size
 SIZE_HEADER=26
 SIZE_HEADER_1024x768=38
+SIZE_FOOTER=28
+SIZE_FOOTER_1024x768=38
 
 # Clean output directory
 if [ -d "$OUT_DIR" ]; then
@@ -116,6 +118,29 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     # (2) assets/1024x768/image/grid/header (SIZE_HEADER_1024x768)
     grid_1024_output_png="assets/1024x768/image/grid/header/${output_path#header/}.png"
     size="$SIZE_HEADER_1024x768"
+    mkdir -p "$(dirname "$grid_1024_output_png")"
+    if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size"; then
+      echo "[ERROR] Failed to convert $input_svg to $grid_1024_output_png" >&2
+      exit 1
+    fi
+    continue
+  fi
+
+  if [[ "$output_path" == footer/* ]]; then
+    # (1) Default glyph output directory (SIZE_FOOTER)
+    size="$SIZE_FOOTER"
+    if [[ ! -f "$input_svg" ]]; then
+      echo "[WARN] Missing SVG: $input_svg (for $output_png)" >&2
+      continue
+    fi
+    mkdir -p "$(dirname "$output_png")"
+    if ! convert_svg_to_png "$input_svg" "$output_png" "$size"; then
+      echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
+      exit 1
+    fi
+    # (2) assets/1024x768/image/grid/footer (SIZE_FOOTER_1024x768)
+    grid_1024_output_png="assets/1024x768/image/grid/footer/${output_path#footer/}.png"
+    size="$SIZE_FOOTER_1024x768"
     mkdir -p "$(dirname "$grid_1024_output_png")"
     if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size"; then
       echo "[ERROR] Failed to convert $input_svg to $grid_1024_output_png" >&2
