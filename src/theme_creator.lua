@@ -14,6 +14,7 @@ local logger = require("utils.logger")
 local rgb = require("utils.rgb")
 local schemeConfigurator = require("utils.scheme_configurator")
 local system = require("utils.system")
+local themePackager = require("utils.theme_packager")
 
 -- Module table to export public functions
 local themeCreator = {}
@@ -62,14 +63,6 @@ local function resetGraphicsState()
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setCanvas()
 	love.graphics.setColor(1, 1, 1, 1)
-end
-
--- Function to create `name.txt` containing the theme's name
-local function createNameFile(finalArchivePath)
-	-- Extract the base name without extension from the archive path
-	local name = finalArchivePath:match("([^/]+)%.muxthm$") or finalArchivePath
-	logger.debug(string.format("Creating theme name file with name '%s'", name))
-	return system.createTextFile(paths.THEME_NAME, name)
 end
 
 -- Helper function to execute boot image creation for all supported resolutions
@@ -467,18 +460,19 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Creating theme archive...")
-			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
+			local outputThemePath =
+				themePackager.createThemeArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 			if not outputThemePath then
 				return false
 			end
 
 			-- Now create name.txt with the final archive name
-			if not createNameFile(outputThemePath) then
+			if not themePackager.createNameFile(outputThemePath, paths.THEME_NAME) then
 				return false
 			end
 
 			coroutine.yield("Cleaning up...")
-			system.removeDir(paths.WORKING_THEME_DIR)
+			themePackager.cleanupWorkingDir(paths.WORKING_THEME_DIR)
 
 			coroutine.yield("Syncing filesystem...")
 			commands.executeCommand("sync")
