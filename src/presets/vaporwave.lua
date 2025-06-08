@@ -35,4 +35,5 @@ return {
 	source = "built-in",
 	batteryActive = "#4ADE80",
 	batteryLow = "#F87171",
+	batteryOpacity = 255,
 }

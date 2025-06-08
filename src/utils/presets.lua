@@ -91,6 +91,7 @@ function presets.savePreset(presetName)
 	file:write("  },\n")
 	file:write('  batteryActive = "' .. state.getColorValue("batteryActive") .. '",\n')
 	file:write('  batteryLow = "' .. state.getColorValue("batteryLow") .. '",\n')
+	file:write("  batteryOpacity = " .. state.batteryOpacity .. ",\n")
 	file:write("  rgb = {\n")
 	file:write('    value = "' .. state.getColorValue("rgb") .. '",\n')
 	file:write('    mode = "' .. state.rgbMode .. '",\n')
@@ -352,6 +353,9 @@ function presets.loadPreset(presetName)
 	end, "Left", "string")
 	loadField(loadedPreset, presetName, "datetimeOpacity", function(v)
 		state.datetimeOpacity = v
+	end, 255, "number")
+	loadField(loadedPreset, presetName, "batteryOpacity", function(v)
+		state.batteryOpacity = v
 	end, 255, "number")
 
 	-- OPTIONAL FIELDS - UI features

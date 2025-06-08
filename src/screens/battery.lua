@@ -88,6 +88,59 @@ function battery.draw()
 	if menuList then
 		menuList:draw()
 	end
+
+	-- Find the slider in the menuList
+	local slider = menuList and menuList.items and menuList.items[3]
+	local previewY = (slider and slider.y + Slider.getTotalHeight() + 20) or 200
+	local previewHeight = 100
+	local previewWidth = state.screenWidth - 80
+	local previewX = 40
+
+	-- Get background color from state
+	local colorUtils = require("utils.color")
+	local svg = require("utils.svg")
+	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
+	love.graphics.setColor(bgColor)
+	love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, 8, 8)
+
+	-- Draw border
+	love.graphics.setColor(0.7, 0.7, 0.7, 1)
+	love.graphics.setLineWidth(1)
+	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
+
+	-- Draw two SVG icons centered in the rectangle
+	local iconSize = 48
+	local iconSpacing = 36 -- increased by 4px
+	local centerX = previewX + previewWidth / 2
+	local centerY = previewY + previewHeight / 2
+
+	-- Load icons
+	local batteryActiveIcon = svg.loadIcon(
+		"battery_android_5_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24",
+		iconSize,
+		"assets/icons/material_symbols/"
+	)
+	local batteryLowIcon = svg.loadIcon(
+		"battery_android_1_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24",
+		iconSize,
+		"assets/icons/material_symbols/"
+	)
+
+	-- Get colors
+	local batteryActiveColor = colorUtils.hexToLove(state.getColorValue("batteryActive"))
+	local batteryLowColor = colorUtils.hexToLove(state.getColorValue("batteryLow"))
+
+	-- Get opacity from state (0-255 scaled to 0-1)
+	local opacity = (state.batteryOpacity or 255) / 255
+
+	-- Draw icons if loaded
+	if batteryActiveIcon then
+		svg.drawIcon(batteryActiveIcon, centerX - iconSpacing, centerY, batteryActiveColor, opacity)
+	end
+	if batteryLowIcon then
+		svg.drawIcon(batteryLowIcon, centerX + iconSpacing, centerY, batteryLowColor, opacity)
+	end
+
 	controlHints.draw({
 		{ button = "b", text = "Back" },
 		{ button = "a", text = "Select" },

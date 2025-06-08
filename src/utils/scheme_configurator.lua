@@ -328,7 +328,19 @@ function themeSettings.applyBatterySettings(schemeFilePath)
 		["battery-active"] = state.getColorValue("batteryActive"):gsub("^#", ""),
 		["battery-low"] = state.getColorValue("batteryLow"):gsub("^#", ""),
 	}
-	return system.replaceColor(schemeFilePath, batteryReplacements)
+	-- Replace color placeholders
+	system.replaceColor(schemeFilePath, batteryReplacements)
+
+	-- Replace battery opacity placeholder
+	return system.modifyFile(schemeFilePath, function(content)
+		local alphaValue = state.batteryOpacity or 255
+		local batteryAlphaCount
+		content, batteryAlphaCount = content:gsub("%%{%s*battery%-alpha%s*}", tostring(alphaValue))
+		if batteryAlphaCount == 0 then
+			return fail("Failed to replace battery alpha setting in template")
+		end
+		return content, true
+	end)
 end
 
 return themeSettings

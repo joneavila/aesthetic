@@ -85,6 +85,9 @@ function settings.saveToFile()
 	-- Datetime opacity
 	file:write("  datetimeOpacity = " .. state.datetimeOpacity .. ",\n")
 
+	-- Battery opacity
+	file:write("  batteryOpacity = " .. state.batteryOpacity .. ",\n")
+
 	-- Header text alignment
 	file:write("  headerAlignment = " .. state.headerAlignment .. ",\n")
 
@@ -331,6 +334,11 @@ function settings.loadFromFile()
 	-- Datetime opacity
 	if loadedSettings.datetimeOpacity then
 		state.datetimeOpacity = loadedSettings.datetimeOpacity
+	end
+
+	-- Battery opacity
+	if loadedSettings.batteryOpacity then
+		state.batteryOpacity = loadedSettings.batteryOpacity
 	end
 
 	-- Header text alignment
