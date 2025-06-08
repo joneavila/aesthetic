@@ -117,6 +117,22 @@ local function createMenuButtons()
 		})
 	)
 
+	-- Battery button
+	table.insert(
+		buttons,
+		Button:new({
+			text = "Battery",
+			type = ButtonTypes.DUAL_COLOR,
+			color1Hex = state.getColorValue("batteryActive"),
+			color2Hex = state.getColorValue("batteryLow"),
+			monoFont = fonts.loaded.monoBody,
+			screenWidth = state.screenWidth,
+			onClick = function()
+				screens.switchTo("battery")
+			end,
+		})
+	)
+
 	-- RGB Lighting button (if supported)
 	if state.hasRGBSupport then
 		table.insert(
@@ -701,6 +717,9 @@ function menu.onEnter(data)
 			end
 		elseif button.text == "Status" then
 			button:setPreviewText(state.statusAlignment)
+		elseif button.text == "Battery" then
+			button.color1Hex = state.getColorValue("batteryActive")
+			button.color2Hex = state.getColorValue("batteryLow")
 		end
 	end
 end

@@ -33,4 +33,6 @@ return {
 	datetimeOpacity = 255,
 	glyphsEnabled = true,
 	source = "built-in",
+	batteryActive = "#4ADE80",
+	batteryLow = "#F87171",
 }

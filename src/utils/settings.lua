@@ -49,6 +49,12 @@ function settings.saveToFile()
 	file:write('    value = "' .. state.getColorValue("foreground") .. '",\n')
 	file:write("  },\n")
 
+	-- Battery active
+	file:write('  batteryActive = "' .. state.getColorValue("batteryActive") .. '",\n')
+
+	-- Battery low
+	file:write('  batteryLow = "' .. state.getColorValue("batteryLow") .. '",\n')
+
 	-- RGB lighting
 	file:write("  rgb = {\n")
 	file:write('    value = "' .. state.getColorValue("rgb") .. '",\n')
@@ -254,6 +260,16 @@ function settings.loadFromFile()
 	-- Foreground
 	if loadedSettings.foreground and loadedSettings.foreground.value then
 		state.setColorValue("foreground", loadedSettings.foreground.value)
+	end
+
+	-- Battery active
+	if loadedSettings.batteryActive then
+		state.setColorValue("batteryActive", loadedSettings.batteryActive)
+	end
+
+	-- Battery low
+	if loadedSettings.batteryLow then
+		state.setColorValue("batteryLow", loadedSettings.batteryLow)
 	end
 
 	-- RGB settings

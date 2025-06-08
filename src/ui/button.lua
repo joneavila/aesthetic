@@ -28,6 +28,7 @@ local BUTTON_TYPES = {
 	TEXT_PREVIEW = "text_preview",
 	INDICATORS = "indicators",
 	ACCENTED = "accented",
+	DUAL_COLOR = "dual_color",
 }
 
 -- Button class
@@ -362,6 +363,69 @@ function Button:drawAccented()
 	end
 end
 
+function Button:drawDualColor()
+	self:drawBackground()
+	self:drawText()
+
+	if not (self.color1Hex and self.color2Hex) then
+		return
+	end
+
+	local font = love.graphics.getFont()
+	local originalFont = font
+	if self.monoFont then
+		love.graphics.setFont(self.monoFont)
+		font = self.monoFont
+	end
+
+	local colorBoxWidth = COLOR_DISPLAY_SIZE
+	local colorBoxHeight = COLOR_DISPLAY_SIZE
+	local colorBoxSpacing = 10
+	local hexSpacing = 10
+
+	local hex1 = self.color1Hex
+	local hex2 = self.color2Hex
+	local hex1Width = font:getWidth(hex1)
+	local hex2Width = font:getWidth(hex2)
+	local previewY = self.y + (self.height - colorBoxHeight) / 2
+	local hexY = self.y + (self.height - font:getHeight()) / 2
+	local opacity = self.disabled and 0.5 or 1
+
+	-- Calculate total width for right alignment
+	local totalWidth = hex1Width + colorBoxWidth + hexSpacing + hex2Width + colorBoxWidth + colorBoxSpacing * 2
+	local rightEdge = self.x + self.width - BUTTON_CONFIG.HORIZONTAL_PADDING
+	local x = rightEdge - totalWidth
+
+	-- Draw hex1
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.print(hex1, x, hexY)
+	x = x + hex1Width + hexSpacing
+
+	-- Draw color1 preview
+	local r1, g1, b1 = colorUtils.hexToRgb(self.color1Hex)
+	love.graphics.setColor(r1, g1, b1, opacity)
+	love.graphics.rectangle("fill", x, previewY, colorBoxWidth, colorBoxHeight, BUTTON_CONFIG.CORNER_RADIUS / 2)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.setLineWidth(1)
+	love.graphics.rectangle("line", x, previewY, colorBoxWidth, colorBoxHeight, BUTTON_CONFIG.CORNER_RADIUS / 2)
+	x = x + colorBoxWidth + colorBoxSpacing
+
+	-- Draw hex2
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.print(hex2, x, hexY)
+	x = x + hex2Width + hexSpacing
+
+	-- Draw color2 preview
+	local r2, g2, b2 = colorUtils.hexToRgb(self.color2Hex)
+	love.graphics.setColor(r2, g2, b2, opacity)
+	love.graphics.rectangle("fill", x, previewY, colorBoxWidth, colorBoxHeight, BUTTON_CONFIG.CORNER_RADIUS / 2)
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.setLineWidth(1)
+	love.graphics.rectangle("line", x, previewY, colorBoxWidth, colorBoxHeight, BUTTON_CONFIG.CORNER_RADIUS / 2)
+
+	love.graphics.setFont(originalFont)
+end
+
 function Button:draw()
 	if not self.visible then
 		return
@@ -379,6 +443,8 @@ function Button:draw()
 		self:drawGradient()
 	elseif self.type == BUTTON_TYPES.ACCENTED then
 		self:drawAccented()
+	elseif self.type == BUTTON_TYPES.DUAL_COLOR then
+		self:drawDualColor()
 	else
 		self:drawBasic()
 	end

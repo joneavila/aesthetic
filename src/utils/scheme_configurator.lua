@@ -337,4 +337,12 @@ function themeSettings.applyContentPaddingLeft(schemeFilePath)
 	end)
 end
 
+function themeSettings.applyBatterySettings(schemeFilePath)
+	local batteryReplacements = {
+		["battery-active"] = state.getColorValue("batteryActive"):gsub("^#", ""),
+		["battery-low"] = state.getColorValue("batteryLow"):gsub("^#", ""),
+	}
+	return system.replaceColor(schemeFilePath, batteryReplacements)
+end
+
 return themeSettings

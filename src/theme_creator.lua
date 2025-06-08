@@ -405,6 +405,11 @@ function themeCreator.createThemeCoroutine()
 				return false
 			end
 
+			coroutine.yield("Applying battery settings...")
+			if not schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL) then
+				return false
+			end
+
 			if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL) then
 				return false
 			end
