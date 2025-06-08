@@ -9,14 +9,23 @@ local ButtonTypes = require("ui.button").TYPES
 local List = require("ui.list").List
 local background = require("ui.background")
 local controlHints = require("control_hints")
+local Slider = require("ui.slider").Slider
 
 local battery = {}
 
 local menuList = nil
 local input = nil
 
-local function createMenuButtons()
-	return {
+local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
+local function formatSliderValue(value)
+	if value == 0 then
+		return "0% (Hidden)"
+	else
+		return value .. "%"
+	end
+end
+local function createBatteryListItems()
+	local items = {
 		Button:new({
 			text = "Active",
 			type = ButtonTypes.COLOR,
@@ -42,6 +51,34 @@ local function createMenuButtons()
 			end,
 		}),
 	}
+	-- Find closest index for batteryOpacity
+	local closestIndex = 11
+	local minDiff = 255
+	local percent = state.batteryOpacity or 255
+	for i, value in ipairs(opacityValues) do
+		local scaled = value * 2.55
+		local diff = math.abs(percent - scaled)
+		if diff < minDiff then
+			minDiff = diff
+			closestIndex = i
+		end
+	end
+	table.insert(
+		items,
+		Slider:new({
+			x = 0,
+			y = 0, -- List will set position
+			width = state.screenWidth - 36,
+			values = opacityValues,
+			valueIndex = closestIndex,
+			label = "Opacity",
+			valueFormatter = formatSliderValue,
+			onValueChanged = function(val, _idx)
+				state.batteryOpacity = math.floor(val * 2.55 + 0.5)
+			end,
+		})
+	)
+	return items
 end
 
 function battery.draw()
@@ -76,7 +113,7 @@ function battery.onEnter()
 		y = header.getContentStartY(),
 		width = state.screenWidth,
 		height = state.screenHeight - header.getContentStartY() - 60,
-		items = createMenuButtons(),
+		items = createBatteryListItems(),
 		onItemSelect = function(item)
 			if item.onClick then
 				item.onClick()

@@ -15,6 +15,7 @@ local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
+local List = require("ui.list").List
 
 local navigationScreen = {}
 
@@ -22,7 +23,6 @@ local navigationScreen = {}
 local alignmentButton = nil
 local opacitySlider = nil
 local input = nil
-local focusedComponent = 1 -- 1 = button, 2 = slider
 
 -- Constants
 local EDGE_PADDING = 18
@@ -84,57 +84,19 @@ local function createOpacitySlider(y)
 	})
 end
 
--- Handle option cycling for alignment button
-local function handleAlignmentOptionCycle(direction)
-	if not alignmentButton then
-		return false
-	end
-
-	local changed = alignmentButton:cycleOption(direction)
-	if not changed then
-		return false
-	end
-
-	local newValue = alignmentButton:getCurrentOption()
-	state.navigationAlignment = newValue
-
-	return true
-end
-
--- Update focus states
-local function updateFocusStates()
-	if alignmentButton then
-		alignmentButton:setFocused(focusedComponent == 1)
-	end
-	if opacitySlider then
-		opacitySlider:setFocused(focusedComponent == 2)
-	end
-end
-
 function navigationScreen.draw()
 	background.draw()
 	header.draw("navigation")
 	love.graphics.setFont(fonts.loaded.body)
-
-	-- Draw alignment button
-	if alignmentButton then
-		alignmentButton:draw()
+	if navigationScreen.list then
+		navigationScreen.list:draw()
 	end
-
-	-- Draw slider
-	if opacitySlider then
-		opacitySlider:draw()
-	end
-
-	-- Draw preview rectangle
-	local previewY = opacitySlider.y + Slider.getTotalHeight() + 20
+	-- Draw preview rectangle (same as before, but get opacity from slider)
+	local opacitySlider = navigationScreen.list and navigationScreen.list.items[2]
+	local previewY = (opacitySlider and opacitySlider.y + Slider.getTotalHeight() + 20) or 200
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
-
-	-- Calculate alpha from current slider value (0-100 to 0-1)
 	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1
-
-	-- Get background color from state and draw rectangle at full opacity
 	local bgColor = state.getColorValue("background")
 	local bgR, bgG, bgB = love.math.colorFromBytes(
 		tonumber(bgColor:sub(2, 3), 16),
@@ -143,8 +105,6 @@ function navigationScreen.draw()
 	)
 	love.graphics.setColor(bgR, bgG, bgB, 1.0)
 	love.graphics.rectangle("fill", 40, previewY, previewWidth, previewHeight, 8, 8)
-
-	-- Draw "Preview" text with alignment matching the current setting
 	local fgColor = state.getColorValue("foreground")
 	local fgR, fgG, fgB = love.math.colorFromBytes(
 		tonumber(fgColor:sub(2, 3), 16),
@@ -152,108 +112,62 @@ function navigationScreen.draw()
 		tonumber(fgColor:sub(6, 7), 16)
 	)
 	love.graphics.setColor(fgR, fgG, fgB, alpha)
-
-	-- Determine text alignment based on navigation alignment setting
-	local textAlign = "center" -- default
+	local textAlign = "center"
 	local textPadding = 0
 	local currentAlignment = state.navigationAlignment or "Center"
 	if currentAlignment == "Left" then
 		textAlign = "left"
-		textPadding = 16 -- Add left padding
+		textPadding = 16
 	elseif currentAlignment == "Center" then
 		textAlign = "center"
 	elseif currentAlignment == "Right" then
 		textAlign = "right"
-		textPadding = 16 -- Add right padding by reducing width
+		textPadding = 16
 	end
-
 	love.graphics.printf(
 		"Preview",
 		40 + textPadding,
 		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
-		previewWidth - (textPadding * 2), -- Reduce width for both left and right padding
+		previewWidth - (textPadding * 2),
 		textAlign
 	)
-
-	-- Draw border around preview
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
-
-	-- Draw controls
 	controls.draw({
 		{ button = "b", text = "Back" },
 	})
 end
 
 function navigationScreen.update(dt)
-	-- Handle navigation between components
-	if input.isPressed("dpup") then
-		if focusedComponent > 1 then
-			focusedComponent = focusedComponent - 1
-			updateFocusStates()
-		end
-	elseif input.isPressed("dpdown") then
-		if focusedComponent < 2 then
-			focusedComponent = focusedComponent + 1
-			updateFocusStates()
-		end
+	if navigationScreen.list then
+		navigationScreen.list:handleInput(input)
+		navigationScreen.list:update(dt)
 	end
-
-	-- Handle component-specific input
-	if focusedComponent == 1 and alignmentButton then
-		-- Handle alignment button input
-		if input.isPressed("dpleft") then
-			handleAlignmentOptionCycle(-1)
-		elseif input.isPressed("dpright") then
-			handleAlignmentOptionCycle(1)
-		end
-	end
-
-	if opacitySlider then
-		opacitySlider:handleInputIfFocused(input)
-	end
-
-	-- Update components
-	if alignmentButton then
-		alignmentButton:update(dt)
-	end
-	if opacitySlider then
-		opacitySlider:update(dt)
-	end
-
-	-- Handle B button press to go back
 	if input.isPressed("b") then
 		screens.switchTo("main_menu")
 	end
 end
 
 function navigationScreen.onEnter(_data)
-	-- Initialize input handler
 	input = inputHandler.create()
-
-	-- Calculate positions
+	local EDGE_PADDING = 18
+	local COMPONENT_SPACING = 18
 	local startY = header.getContentStartY()
-	local buttonY = startY + COMPONENT_SPACING - 2
-
-	-- Create alignment button first to get its height
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
-
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Reset focus to first component
-	focusedComponent = 1
-	updateFocusStates()
+	local alignmentButton = createAlignmentButton()
+	alignmentButton.y = 0 -- List will set position
+	local opacitySlider = createOpacitySlider(0) -- List will set position
+	navigationScreen.list = List:new({
+		x = 0,
+		y = startY,
+		width = state.screenWidth,
+		height = state.screenHeight - startY - 60,
+		items = { alignmentButton, opacitySlider },
+	})
 end
 
 function navigationScreen.onExit()
-	-- Clean up
-	alignmentButton = nil
-	opacitySlider = nil
+	navigationScreen.list = nil
 end
 
 return navigationScreen

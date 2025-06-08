@@ -73,6 +73,7 @@ local themeDefaults = {
 	statusAlignment = "Right",
 	timeAlignment = "Left",
 	datetimeOpacity = 255,
+	batteryOpacity = 255,
 }
 
 --- Main state table containing all global application state
@@ -114,6 +115,7 @@ local state = {
 	statusAlignment = themeDefaults.statusAlignment,
 	timeAlignment = themeDefaults.timeAlignment,
 	datetimeOpacity = themeDefaults.datetimeOpacity,
+	batteryOpacity = themeDefaults.batteryOpacity,
 	-- End: Theme configuration and defaults
 }
 
@@ -179,6 +181,7 @@ function state.resetToDefaults()
 	state.statusAlignment = themeDefaults.statusAlignment
 	state.timeAlignment = themeDefaults.timeAlignment
 	state.datetimeOpacity = themeDefaults.datetimeOpacity
+	state.batteryOpacity = themeDefaults.batteryOpacity
 
 	-- Reset color contexts
 	for contextKey, defaultColor in pairs(themeDefaults.colorContexts) do

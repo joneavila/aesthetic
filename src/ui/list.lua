@@ -9,7 +9,7 @@ local inputHandler = require("ui.input_handler")
 
 -- List constants
 local LIST_CONFIG = {
-	ITEM_SPACING = 12,
+	ITEM_SPACING = 14,
 	SCROLL_BAR_WIDTH = 9,
 }
 
@@ -134,7 +134,7 @@ function List:setSelectedIndex(index)
 end
 
 function List:updateSelection()
-	-- Update focused state for all items
+	-- Update focused state for all items (works for any component with setFocused)
 	for i, item in ipairs(self.items) do
 		if item.setFocused then
 			item:setFocused(i == self.selectedIndex and self.selectedIndex > 0)
@@ -248,38 +248,54 @@ function List:handleInput(input)
 		return true
 	end
 
+	local selectedItem = self:getSelectedItem()
+	-- If the selected item is a Slider, let it handle all input (left/right, etc.)
+	if
+		selectedItem
+		and selectedItem.handleInput
+		and selectedItem.__index
+		and selectedItem.__index == require("ui.slider").Slider
+	then
+		if selectedItem:handleInput(input) then
+			return true
+		end
+	end
+
 	-- Handle item selection
 	if input.isPressed("a") then
-		local selectedItem = self:getSelectedItem()
 		if selectedItem and self.onItemSelect then
 			self.onItemSelect(selectedItem, self.selectedIndex)
 			handled = true
 		end
 	end
 
-	-- Handle option cycling - left and right separately
+	-- Handle option cycling - left and right separately (for non-slider items)
 	if input.isPressed("dpleft") then
-		local selectedItem = self:getSelectedItem()
-		if selectedItem then
-			if selectedItem.handleInput and selectedItem:handleInput(input) then
+		if
+			selectedItem
+			and selectedItem.handleInput
+			and not (selectedItem.__index and selectedItem.__index == require("ui.slider").Slider)
+			and selectedItem:handleInput(input)
+		then
+			handled = true
+		elseif self.onItemOptionCycle then
+			local changed = self.onItemOptionCycle(selectedItem, -1)
+			if changed then
 				handled = true
-			elseif self.onItemOptionCycle then
-				local changed = self.onItemOptionCycle(selectedItem, -1)
-				if changed then
-					handled = true
-				end
 			end
 		end
 	elseif input.isPressed("dpright") then
-		local selectedItem = self:getSelectedItem()
-		if selectedItem then
-			if selectedItem.handleInput and selectedItem:handleInput(input) then
+		if
+			selectedItem
+			and selectedItem.handleInput
+			and not (selectedItem.__index and selectedItem.__index == require("ui.slider").Slider)
+			and selectedItem:handleInput(input)
+		then
+			handled = true
+		elseif self.onItemOptionCycle then
+			local changed = self.onItemOptionCycle(selectedItem, 1)
+			if changed then
 				handled = true
-			elseif self.onItemOptionCycle then
-				local changed = self.onItemOptionCycle(selectedItem, 1)
-				if changed then
-					handled = true
-				end
 			end
 		end
 	end
