@@ -6,6 +6,7 @@
 --- module to include these properties in the configuration file. The settings module handles saving and loading
 --- persistent application settings.
 local errorHandler = require("error_handler")
+local fail = require("utils.fail")
 
 local colorUtils = require("utils.color")
 local logger = require("utils.logger")
@@ -119,8 +120,7 @@ local state = {
 --- Helper function to get a color context
 function state.getColorContext(contextKey)
 	if not state.colorContexts[contextKey] then
-		local errorMessage = "Color context '" .. contextKey .. "' does not exist. Create it using createColorContext."
-		errorHandler.setError(errorMessage)
+		return fail("Color context '" .. contextKey .. "' does not exist. Create it using createColorContext.")
 	end
 	return state.colorContexts[contextKey]
 end
@@ -135,10 +135,10 @@ end
 function state.setColorValue(contextKey, colorValue)
 	-- Only accept hex color values
 	if colorValue:sub(1, 1) ~= "#" then
-		local errorMessage = "Failed to set color value. Only hex color strings starting with '#' are supported. Got: "
-			.. tostring(colorValue)
-		errorHandler.setError(errorMessage)
-		return
+		return fail(
+			"Failed to set color value. Only hex color strings starting with '#' are supported. Got: "
+				.. tostring(colorValue)
+		)
 	end
 	local context = state.getColorContext(contextKey)
 	context.currentColor = colorValue

@@ -5,6 +5,7 @@ local system = require("utils.system")
 local paths = require("paths")
 local errorHandler = require("error_handler")
 local logger = require("utils.logger")
+local fail = require("utils.fail")
 
 -- Module table to export public functions
 local rgb = {}
@@ -134,8 +135,7 @@ end
 -- Function to write command to config file
 function rgb.writeCommandToFile(command, rgbConfPath)
 	if type(command) ~= "string" or command == "" then
-		errorHandler.setError("Invalid command passed to writeCommandToFile: " .. tostring(command))
-		return false
+		return fail("Invalid command passed to writeCommandToFile: " .. tostring(command))
 	end
 	system.writeFile(rgbConfPath, command)
 	logger.debug(string.format("Writing command '%s' to '%s'", command, rgbConfPath))
@@ -164,7 +164,7 @@ function rgb.parseConfig(filePath)
 	local file = io.open(filePath, "r")
 	if not file then
 		logger.error("Failed to open RGB configuration file: " .. filePath)
-		errorHandler.setError("Failed to open RGB configuration file: " .. filePath)
+		fail("Failed to open RGB configuration file: " .. filePath)
 		return nil
 	end
 
@@ -260,19 +260,15 @@ end
 
 -- Function to backup the current RGB configuration if it exists
 function rgb.backupConfig()
-	-- Check if active config exists
 	if not system.fileExists(paths.ACTIVE_RGB_CONF) then
 		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
-		errorHandler.setError("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
-		return false
+		return fail("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 	end
 
-	-- Ensure backup directory exists
 	if not system.ensurePath(paths.ACTIVE_RGB_DIR) then
-		return false
+		return fail("Failed to create backup directory: " .. paths.ACTIVE_RGB_DIR)
 	end
 
-	-- Copy current config to backup location
 	return system.copyFile(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
 end
 
@@ -290,8 +286,7 @@ function rgb.installFromTheme()
 	-- Write command to config file for persistence
 	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
 	if not writeSuccess then
-		errorHandler.setError("Failed to write RGB command to config file")
-		return false
+		return fail("Failed to write RGB command to config file")
 	end
 
 	-- Execute the command directly

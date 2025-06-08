@@ -15,6 +15,7 @@
 local love = require("love")
 local tove = require("tove")
 local errorHandler = require("error_handler")
+local fail = require("utils.fail")
 
 local svg = {}
 
@@ -50,12 +51,7 @@ function svg.loadIcon(name, size, basePath)
 		if svgContent then
 			iconCache[cacheKey] = tove.newGraphics(svgContent, size)
 		else
-			if errorHandler then
-				errorHandler.setError("Failed to load SVG icon: " .. svgPath)
-			else
-				error("Failed to load SVG icon: " .. svgPath)
-			end
-			return nil
+			return fail("Failed to load SVG icon: " .. svgPath)
 		end
 	end
 

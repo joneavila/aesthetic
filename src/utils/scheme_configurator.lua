@@ -5,6 +5,7 @@
 -- state.
 local errorHandler = require("error_handler")
 local state = require("state")
+local fail = require("utils.fail")
 
 local system = require("utils.system")
 
@@ -28,12 +29,10 @@ function themeSettings.applyGlyphSettings(schemeFilePath)
 
 		-- Check if replacements were successful
 		if listPadCount == 0 then
-			errorHandler.setError("Failed to replace list pad left in template")
-			return content, false
+			return fail("Failed to replace list pad left in template")
 		end
 		if glyphAlphaCount == 0 then
-			errorHandler.setError("Failed to replace glyph alpha in template")
-			return content, false
+			return fail("Failed to replace glyph alpha in template")
 		end
 
 		return content, true
@@ -50,8 +49,7 @@ function themeSettings.applyContentPaddingLeftSettings(schemeFilePath, _screenWi
 		content, contentPaddingLeftCount =
 			content:gsub("%%{%s*content%-padding%-left%s*}", tostring(contentPaddingLeft))
 		if contentPaddingLeftCount == 0 then
-			errorHandler.setError("Failed to replace content padding settings in template")
-			return content, false
+			return fail("Failed to replace content padding settings in template")
 		end
 
 		return content, true
@@ -66,8 +64,7 @@ function themeSettings.applyContentWidthSettings(schemeFilePath, screenWidth)
 		local contentWidthCount
 		content, contentWidthCount = content:gsub("%%{%s*content%-width%s*}", tostring(contentWidth))
 		if contentWidthCount == 0 then
-			errorHandler.setError("Failed to replace content width settings in template")
-			return content, false
+			return fail("Failed to replace content width settings in template")
 		end
 		return content, true
 	end)
@@ -89,8 +86,7 @@ function themeSettings.applyNavigationAlignmentSettings(schemeFilePath)
 		local navigationAlignmentCount
 		content, navigationAlignmentCount = content:gsub("%%{%s*navigation%-alignment%s*}", tostring(alignmentValue))
 		if navigationAlignmentCount == 0 then
-			errorHandler.setError("Failed to replace navigation alignment setting in template")
-			return content, false
+			return fail("Failed to replace navigation alignment setting in template")
 		end
 
 		return content, true
@@ -118,8 +114,7 @@ function themeSettings.applyStatusAlignmentSettings(schemeFilePath)
 		local statusAlignCount
 		content, statusAlignCount = content:gsub("%%{%s*status%-align%s*}", tostring(alignmentValue))
 		if statusAlignCount == 0 then
-			errorHandler.setError("Failed to replace status alignment setting in template")
-			return content, false
+			return fail("Failed to replace status alignment setting in template")
 		end
 
 		return content, true
@@ -145,16 +140,14 @@ function themeSettings.applyDatetimeSettings(schemeFilePath)
 		local timeAlignCount
 		content, timeAlignCount = content:gsub("%%{%s*time%-align%s*}", tostring(alignmentValue))
 		if timeAlignCount == 0 then
-			errorHandler.setError("Failed to replace time alignment setting in template")
-			return content, false
+			return fail("Failed to replace time alignment setting in template")
 		end
 
 		-- Replace datetime-alpha placeholder
 		local datetimeAlphaCount
 		content, datetimeAlphaCount = content:gsub("%%{%s*datetime%-alpha%s*}", tostring(state.datetimeOpacity))
 		if datetimeAlphaCount == 0 then
-			errorHandler.setError("Failed to replace datetime alpha setting in template")
-			return content, false
+			return fail("Failed to replace datetime alpha setting in template")
 		end
 
 		return content, true
@@ -168,8 +161,7 @@ function themeSettings.applyHeaderOpacity(schemeFilePath)
 		local headerAlphaCount
 		content, headerAlphaCount = content:gsub("%%{%s*header%-text%-alpha%s*}", tostring(alphaValue))
 		if headerAlphaCount == 0 then
-			errorHandler.setError("Failed to replace header text alpha setting in template")
-			return content, false
+			return fail("Failed to replace header text alpha setting in template")
 		end
 		return content, true
 	end)
@@ -185,8 +177,7 @@ function themeSettings.applyHeaderAlignmentSettings(schemeFilePath)
 		local headerTextAlignCount
 		content, headerTextAlignCount = content:gsub("%%{%s*header%-text%-align%s*}", tostring(alignmentValue))
 		if headerTextAlignCount == 0 then
-			errorHandler.setError("Failed to replace header text alignment setting in template")
-			return content, false
+			return fail("Failed to replace header text alignment setting in template")
 		end
 
 		return content, true
@@ -206,8 +197,7 @@ function themeSettings.applyNavigationAlphaSettings(schemeFilePath)
 		local navigationOpacityCount
 		content, navigationOpacityCount = content:gsub("%%{%s*navigation%-alpha%s*}", tostring(alphaValue))
 		if navigationOpacityCount == 0 then
-			errorHandler.setError("Failed to replace navigation alpha setting in template")
-			return content, false
+			return fail("Failed to replace navigation alpha setting in template")
 		end
 
 		return content, true
@@ -240,8 +230,7 @@ function themeSettings.applyColorSettings(schemeFilePath)
 		local count
 		content, count = content:gsub("%%{%s*gradient%-direction%s*}", tostring(directionValue))
 		if count == 0 then
-			errorHandler.setError("Failed to replace gradient direction setting in template")
-			return content, false
+			return fail("Failed to replace gradient direction setting in template")
 		end
 		return content, true
 	end)
@@ -259,8 +248,7 @@ function themeSettings.applyGridSettings(muxlaunchIniPath)
 		local rowCountReplaced
 		content, rowCountReplaced = content:gsub("%%{%s*grid%-row%-count%s*}", tostring(rowCount))
 		if colCountReplaced == 0 or rowCountReplaced == 0 then
-			errorHandler.setError("Failed to replace grid column/row count in muxlaunch.ini")
-			return content, false
+			return fail("Failed to replace grid column/row count in muxlaunch.ini")
 		end
 		return content, true
 	end)
@@ -314,8 +302,7 @@ function themeSettings.applyFontListPaddingSettings(schemeFilePath)
 		local paddingCount
 		content, paddingCount = content:gsub("%%{%s*font%-list%-pad%-bottom%s*}", tostring(paddingValue))
 		if paddingCount == 0 then
-			errorHandler.setError("Failed to replace font list pad bottom setting in template")
-			return content, false
+			return fail("Failed to replace font list pad bottom setting in template")
 		end
 
 		return content, true
@@ -330,8 +317,7 @@ function themeSettings.applyContentPaddingLeft(schemeFilePath)
 		content, contentPaddingLeftCount =
 			content:gsub("%%{%s*content%-padding%-left%s*}", tostring(contentPaddingLeft))
 		if contentPaddingLeftCount == 0 then
-			errorHandler.setError("Failed to replace content padding left in template")
-			return content, false
+			return fail("Failed to replace content padding left in template")
 		end
 		return content, true
 	end)

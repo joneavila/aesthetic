@@ -3,23 +3,20 @@
 local logger = require("utils.logger")
 
 local errorHandler = {}
+local lastError = nil
 
--- Error state
-local errorMessage = nil
-
--- Function to set error message
+-- Function to log error message
 function errorHandler.setError(message)
-	logger.error("Error set: " .. tostring(message))
-	errorMessage = message
+	lastError = tostring(message)
+	logger.error("Error: " .. lastError)
 end
 
--- Function to get error message
-function errorHandler.getErrorMessage()
-	return errorMessage
+function errorHandler.getError()
+	return lastError
 end
 
-function errorHandler.update(_dt)
-	-- No timer logic needed
+function errorHandler.clearError()
+	lastError = nil
 end
 
 return errorHandler

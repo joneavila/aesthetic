@@ -24,6 +24,7 @@ local colorUtils = require("utils.color")
 local logger = require("utils.logger")
 local svg = require("utils.svg")
 local system = require("utils.system")
+local fail = require("utils.fail")
 
 local imageGenerator = {}
 
@@ -58,39 +59,28 @@ function imageGenerator.createIconImage(options)
 	local text = options.text
 	local outputPath = options.outputPath
 
-	-- Ensure output path parent directory exists
 	if not system.ensurePath(outputPath) then
-		return false
+		return fail("Failed to ensure output path: " .. tostring(outputPath))
 	end
 
-	-- Load icon SVG
 	local svgContent
 	if iconPath then
 		svgContent = system.readFile(iconPath)
 		if not svgContent then
-			errorHandler.setError("Failed to read SVG file: " .. iconPath)
-			return false
+			return fail("Failed to read SVG file: " .. iconPath)
 		end
 	end
 
-	-- Load background logo SVG if provided
 	local backgroundSvgContent
 	if backgroundLogoPath then
 		backgroundSvgContent = system.readFile(backgroundLogoPath)
 		if not backgroundSvgContent then
-			errorHandler.setError("Failed to read background SVG file: " .. backgroundLogoPath)
-			return false
+			return fail("Failed to read background SVG file: " .. backgroundLogoPath)
 		end
 	end
 
-	-- Create canvas with base background color
 	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, { 0, 0, 0, 0 })
-
-	-- Save current blend mode to restore later
-	-- This is crucial for proper alpha blending when drawing to canvas
-	-- See: https://www.love2d.org/wiki/Canvas#Notes
 	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
-
 	love.graphics.push()
 
 	-- Apply background based on background type
@@ -135,13 +125,11 @@ function imageGenerator.createIconImage(options)
 		local fontKey = fonts.nameToKey[state.fontFamily]
 		if not fontKey then
 			logger.debug("state.fontFamily: " .. state.fontFamily)
-			errorHandler.setError("Font mapping not found or initialized")
-			return false
+			return fail("Font mapping not found or initialized")
 		end
 		local fontDef = fonts.themeDefinitions[fontKey]
 		if not fontDef then
-			errorHandler.setError("Font definition not found")
-			return false
+			return fail("Font definition not found")
 		end
 		local largerFont = love.graphics.newFont(fontDef.ttf, imageFontSize)
 
@@ -171,16 +159,14 @@ function imageGenerator.createIconImage(options)
 	-- Save file (always as PNG)
 	local pngData = imageData:encode("png")
 	if not pngData then
-		errorHandler.setError("Failed to encode PNG")
-		return false
+		return fail("Failed to encode PNG")
 	end
 
 	if not system.writeFile(outputPath, pngData:getString()) then
-		errorHandler.setError("Failed to write PNG")
-		return false
+		return fail("Failed to write PNG")
 	end
 
-	return imageData
+	return true, imageData
 end
 
 -- Create a gradient mesh usable for various UI elements
@@ -292,8 +278,7 @@ function imageGenerator.createPreviewImage(outputPath)
 	local imageData = canvas:newImageData()
 	local pngData = imageData:encode("png")
 	if not pngData then
-		errorHandler.setError("Failed to encode preview image to PNG")
-		return false
+		return fail("Failed to encode preview image to PNG")
 	end
 
 	-- Save to file

@@ -4,6 +4,7 @@
 local errorHandler = require("error_handler")
 local state = require("state")
 local paths = require("paths")
+local fail = require("utils.fail")
 
 local system = require("utils.system")
 
@@ -15,17 +16,14 @@ settings.SOURCE_USER = "user"
 
 -- Function to save the current settings to a file
 function settings.saveToFile()
-	-- Get file path
 	local filePath = paths.SETTINGS_FILE
 	if not filePath then
-		return false
+		return fail("No settings file path provided.")
 	end
 
-	-- Create the file
 	local file, err = io.open(filePath, "w")
 	if not file then
-		errorHandler.setError("Failed to create settings file: " .. (err or "unknown error"))
-		return false
+		return fail("Failed to create settings file: " .. (err or "unknown error"))
 	end
 
 	-- Serialize the settings as Lua code

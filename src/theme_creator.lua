@@ -15,6 +15,7 @@ local rgb = require("utils.rgb")
 local schemeConfigurator = require("utils.scheme_configurator")
 local system = require("utils.system")
 local themePackager = require("utils.theme_packager")
+local fail = require("utils.fail")
 
 -- Module table to export public functions
 local themeCreator = {}
@@ -35,9 +36,9 @@ local function executeForAllResolutions(func)
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local width, height = resolution:match("(%d+)x(%d+)")
 		width, height = tonumber(width), tonumber(height)
-		local success = func(width, height)
+		local success, err = func(width, height)
 		if not success then
-			return false
+			return false, err
 		end
 	end
 	return true
@@ -46,12 +47,12 @@ end
 -- Helper function to copy resolution-specific template files
 -- Copies all resolution directories from templates
 local function copyAllResolutionTemplates()
-	-- Copy all resolution directories
 	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution
 		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
-		if not system.copyDir(sourcePath, destPath) then
-			return false
+		local success, err = system.copyDir(sourcePath, destPath)
+		if not success then
+			return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
 		end
 	end
 	return true
@@ -75,10 +76,9 @@ local function executeBootImageForAllResolutions()
 		width, height = tonumber(width), tonumber(height)
 
 		if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE) then
-			return false
+			return fail("Bootlogo source file does not exist: " .. tostring(paths.THEME_BOOTLOGO_SOURCE))
 		end
 
-		-- Generate PNG first
 		local pngOutputPath = string.format("%s/%dx%d/image/bootlogo.png", paths.WORKING_THEME_DIR, width, height)
 		local bmpOutputPath = string.format("%s/%dx%d/image/bootlogo.bmp", paths.WORKING_THEME_DIR, width, height)
 
@@ -93,14 +93,15 @@ local function executeBootImageForAllResolutions()
 		}
 
 		resetGraphicsState()
-		if not imageGenerator.createIconImage(options) then
-			return false
+		local success, err = imageGenerator.createIconImage(options)
+		if not success then
+			return fail(err or "Failed to create bootlogo PNG image.")
 		end
 
-		-- Convert PNG to BMP using ImageMagick
 		local convertCmd = string.format('magick convert "%s" "%s"', pngOutputPath, bmpOutputPath)
-		if not commands.executeCommand(convertCmd) then
-			return false
+		local cmdResult = commands.executeCommand(convertCmd)
+		if cmdResult ~= 0 then
+			return fail("ImageMagick convert command failed: " .. convertCmd)
 		end
 	end
 
@@ -122,11 +123,10 @@ local function createRebootImage()
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
-	local result = imageGenerator.createIconImage(options)
+	local success, err = imageGenerator.createIconImage(options)
 	resetGraphicsState()
-	if result == false then
-		errorHandler.setError("Failed to create reboot image")
-		return false
+	if not success then
+		return fail("Failed to create reboot image: " .. tostring(err))
 	end
 
 	return true
@@ -147,11 +147,10 @@ local function createShutdownImage()
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
-	local result = imageGenerator.createIconImage(options)
+	local success, err = imageGenerator.createIconImage(options)
 	resetGraphicsState()
-	if result == false then
-		errorHandler.setError("Failed to create shutdown image")
-		return false
+	if not success then
+		return fail("Failed to create shutdown image: " .. tostring(err))
 	end
 
 	return true
@@ -172,11 +171,10 @@ local function createChargeImage()
 		fgColor = colorUtils.hexToLove(state.getColorValue("foreground")),
 	}
 
-	local result = imageGenerator.createIconImage(options)
+	local success, err = imageGenerator.createIconImage(options)
 	resetGraphicsState()
-	if result == false then
-		errorHandler.setError("Failed to create charge image")
-		return false
+	if not success then
+		return fail("Failed to create charge image: " .. tostring(err))
 	end
 
 	return true
@@ -185,34 +183,45 @@ end
 -- Function to create preview image displayed in muOS theme selection menu
 local function createPreviewImage(width, height)
 	local outputPath = paths.getThemePreviewImagePath(width, height)
-	local result = imageGenerator.createPreviewImage(outputPath)
+	local success, err = imageGenerator.createPreviewImage(outputPath)
 	resetGraphicsState()
-	return result
+	if not success then
+		return fail("Failed to create preview image: " .. tostring(err))
+	end
+	return true
 end
 
 -- Function to create `credits.txt` file containing the theme's credits
 local function createCreditsFile()
 	local content = "Created using Aesthetic for muOS: https://github.com/joneavila/aesthetic"
-	return system.createTextFile(paths.THEME_CREDITS, content)
+	local success, err = system.createTextFile(paths.THEME_CREDITS, content)
+	if not success then
+		return fail("Failed to create credits file: " .. tostring(err))
+	end
+	return true
 end
 
 -- Function to create `version.txt` file containing the compatible muOS version
 -- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
 	local content = system.readFile(paths.MUOS_VERSION_FILE)
-	-- Extract just the version number using pattern matching (digits with zero or more periods followed by underscore)
+	if not content then
+		return fail("muOS version file could not be read")
+	end
 	local parsedVersion = content and content:match("(%d[%d%.]+)_")
 	if not parsedVersion then
-		errorHandler.setError("muOS version could not be parsed from version file")
-		return false
+		return fail("muOS version could not be parsed from version file")
 	end
 
-	return system.createTextFile(paths.THEME_VERSION, parsedVersion)
+	local success, err = system.createTextFile(paths.THEME_VERSION, parsedVersion)
+	if not success then
+		return fail("Failed to create version file: " .. tostring(err))
+	end
+	return true
 end
 
 -- Function to find and copy the selected font file to theme directory
 local function copySelectedFont()
-	-- Find the selected font definition
 	local fontFamilyDefinition
 	for _, font in ipairs(fonts.themeDefinitions) do
 		if font.name == state.fontFamily then
@@ -221,11 +230,9 @@ local function copySelectedFont()
 		end
 	end
 	if not fontFamilyDefinition then
-		errorHandler.setError("Selected font not found: " .. tostring(state.fontFamily))
-		return false
+		return fail("Selected font not found: " .. tostring(state.fontFamily))
 	end
 
-	-- Extract the directory from the TTF path and combine with the correct .bin filename
 	local fontDirectory = fontFamilyDefinition.ttf:match("^(.+)/[^/]+$")
 	local binFile
 	if tostring(state.screenWidth) == "1024" and tostring(state.screenHeight) == "768" then
@@ -235,8 +242,9 @@ local function copySelectedFont()
 	end
 	local fontSourcePath = fontDirectory .. "/" .. binFile
 	logger.debug("Copying font file: " .. fontSourcePath)
-	if not system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT) then
-		return false
+	local success, err = system.copyFile(fontSourcePath, paths.THEME_DEFAULT_FONT)
+	if not success then
+		return fail(err or ("Failed to copy font file: " .. tostring(fontSourcePath)))
 	end
 
 	return true
@@ -244,7 +252,11 @@ end
 
 -- Function to copy sound files to the theme
 local function copySoundFiles()
-	return system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
+	local success, err = system.copyDir(paths.THEME_SOUND_SOURCE_DIR, paths.THEME_SOUND_DIR)
+	if not success then
+		return false, err or "Failed to copy sound files."
+	end
+	return true
 end
 
 -- Coroutine-based theme creation that yields control for animations
@@ -254,17 +266,14 @@ function themeCreator.createThemeCoroutine()
 			logger.debug("Starting coroutine-based theme creation")
 
 			coroutine.yield("Copying scheme template files...")
-			-- Copy template directory contents to working directory
 			local templateItems = system.listDir(paths.TEMPLATE_DIR)
 			if not templateItems then
-				return false
+				return false, "Failed to list template directory: " .. tostring(paths.TEMPLATE_DIR)
 			end
 			for _, item in ipairs(templateItems) do
 				local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
 				local destPath = paths.WORKING_THEME_DIR .. "/" .. item
 
-				-- Skip resolution directories (they will be handled by copyResolutionTemplates)
-				-- and scheme directory (handled separately below)
 				local isResolutionDir = false
 				for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
 					if item == resolution then
@@ -275,200 +284,237 @@ function themeCreator.createThemeCoroutine()
 
 				if item ~= "scheme" and not isResolutionDir then
 					if system.isDir(sourcePath) then
-						if not system.copyDir(sourcePath, destPath) then
-							return false
+						local success, err = system.copyDir(sourcePath, destPath)
+						if not success then
+							return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
 						end
 					elseif system.isFile(sourcePath) then
-						if not system.copyFile(sourcePath, destPath) then
-							return false
+						local success, err = system.copyFile(sourcePath, destPath)
+						if not success then
+							return false, err or ("Failed to copy file: " .. tostring(sourcePath))
 						end
 					else
-						errorHandler.setError("Source path does not exist: " .. sourcePath)
-						return false
+						return false, "Source path does not exist: " .. sourcePath
 					end
 				end
 			end
 
-			-- Copy resolution-specific template files
 			coroutine.yield("Copying resolution templates...")
-			if not copyAllResolutionTemplates() then
-				return false
+			local success, err = copyAllResolutionTemplates()
+			if not success then
+				return false, err
 			end
 
-			-- Now handle the contents of the scheme directory, copying them to the working theme directory
 			coroutine.yield("Setting up theme structure...")
 			local schemeItems = system.listDir(paths.THEME_SCHEME_SOURCE_DIR)
 			if not schemeItems then
-				return false
+				return false, "Failed to list scheme source directory: " .. tostring(paths.THEME_SCHEME_SOURCE_DIR)
 			end
 			for _, item in ipairs(schemeItems) do
 				local sourcePath = paths.THEME_SCHEME_SOURCE_DIR .. "/" .. item
 				local destPath = paths.THEME_SCHEME_DIR .. "/" .. item
 				if system.isDir(sourcePath) then
-					if not system.copyDir(sourcePath, destPath) then
-						return false
+					local success, err = system.copyDir(sourcePath, destPath)
+					if not success then
+						return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
 					end
 				elseif system.isFile(sourcePath) then
-					if not system.copyFile(sourcePath, destPath) then
-						return false
+					local success, err = system.copyFile(sourcePath, destPath)
+					if not success then
+						return false, err or ("Failed to copy file: " .. tostring(sourcePath))
 					end
 				else
-					errorHandler.setError("Source path does not exist: " .. sourcePath)
-					return false
+					return false, "Source path does not exist: " .. sourcePath
 				end
 			end
 
-			-- Apply grid settings to muxlaunch.ini in the resolution-specific directory
 			coroutine.yield("Configuring grid settings...")
-			if
-				not executeForAllResolutions(function(width, height)
-					local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath(width, height)
-					return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
-				end)
-			then
-				return false
+			local gridSuccess, gridErr = executeForAllResolutions(function(width, height)
+				local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath(width, height)
+				return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
+			end)
+			if not gridSuccess then
+				return false, gridErr
 			end
 
-			-- Copy pre-generated glyphs
 			coroutine.yield("Copying glyphs...")
 			local glyphSourceDir = paths.SOURCE_DIR .. "/assets/icons/glyph"
 			local glyphDestDir = paths.THEME_GLYPH_DIR
-			system.copyDir(glyphSourceDir, glyphDestDir)
-			-- Copy muxlaunch grid icons for default and 1024x768 resolutions
+			local glyphSuccess, glyphErr = system.copyDir(glyphSourceDir, glyphDestDir)
+			if not glyphSuccess then
+				return false, glyphErr or ("Failed to copy glyphs from: " .. glyphSourceDir)
+			end
 			local muxlaunchGridSource = paths.SOURCE_DIR .. "/assets/image/grid/muxlaunch"
 			local muxlaunchGridDest = paths.WORKING_THEME_DIR .. "/image/grid/muxlaunch"
-			system.copyDir(muxlaunchGridSource, muxlaunchGridDest)
+			local gridCopySuccess, gridCopyErr = system.copyDir(muxlaunchGridSource, muxlaunchGridDest)
+			if not gridCopySuccess then
+				return false, gridCopyErr or "Failed to copy muxlaunch grid icons."
+			end
 			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
 			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
-			system.copyDir(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
+			local grid1024Success, grid1024Err = system.copyDir(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
+			if not grid1024Success then
+				return false, grid1024Err or "Failed to copy 1024x768 muxlaunch grid icons."
+			end
 
 			coroutine.yield("Creating boot images...")
-			if not executeBootImageForAllResolutions() then
-				return false
+			local bootSuccess, bootErr = executeBootImageForAllResolutions()
+			if not bootSuccess then
+				return false, bootErr
 			end
 
 			coroutine.yield("Creating shutdown image...")
-			if not createShutdownImage() then
-				return false
+			local shutdownSuccess, shutdownErr = createShutdownImage()
+			if not shutdownSuccess then
+				return false, shutdownErr
 			end
 
 			coroutine.yield("Creating charge image...")
-			if not createChargeImage() then
-				return false
+			local chargeSuccess, chargeErr = createChargeImage()
+			if not chargeSuccess then
+				return false, chargeErr
 			end
 
-			-- Reset graphics state before creating reboot image
 			coroutine.yield("Creating reboot image...")
 			resetGraphicsState()
-			if not createRebootImage() then
-				return false
+			local rebootSuccess, rebootErr = createRebootImage()
+			if not rebootSuccess then
+				return false, rebootErr
 			end
 			resetGraphicsState()
 
 			coroutine.yield("Creating preview images...")
-			if
-				not executeForAllResolutions(function(width, height)
-					return createPreviewImage(width, height)
-				end)
-			then
-				return false
+			local previewSuccess, previewErr = executeForAllResolutions(function(width, height)
+				return createPreviewImage(width, height)
+			end)
+			if not previewSuccess then
+				return false, previewErr
 			end
 
 			coroutine.yield("Applying color settings...")
-			if not schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local colorSuccess, colorErr = schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL)
+			if not colorSuccess then
+				return false, colorErr
 			end
 
 			coroutine.yield("Applying battery settings...")
-			if not schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local batterySuccess, batteryErr = schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL)
+			if not batterySuccess then
+				return false, batteryErr
 			end
 
-			if not schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local glyphSetSuccess, glyphSetErr = schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL)
+			if not glyphSetSuccess then
+				return false, glyphSetErr
 			end
 
 			coroutine.yield("Applying font padding settings...")
-			if not schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local fontPadSuccess, fontPadErr =
+				schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL)
+			if not fontPadSuccess then
+				return false, fontPadErr
 			end
 
 			coroutine.yield("Applying content padding left settings...")
-			if not schemeConfigurator.applyContentPaddingLeftSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
-				return false
+			local contentPadSuccess, contentPadErr =
+				schemeConfigurator.applyContentPaddingLeftSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
+			if not contentPadSuccess then
+				return false, contentPadErr
 			end
 
 			coroutine.yield("Applying content width settings...")
-			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth) then
-				return false
+			local contentWidthSuccess, contentWidthErr =
+				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
+			if not contentWidthSuccess then
+				return false, contentWidthErr
 			end
-			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXPLORE, state.screenWidth) then
-				return false
+			local muxploreWidthSuccess, muxploreWidthErr =
+				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXPLORE, state.screenWidth)
+			if not muxploreWidthSuccess then
+				return false, muxploreWidthErr
 			end
-			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXHISTORY, state.screenWidth) then
-				return false
+			local muxhistoryWidthSuccess, muxhistoryWidthErr =
+				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXHISTORY, state.screenWidth)
+			if not muxhistoryWidthSuccess then
+				return false, muxhistoryWidthErr
 			end
-			if not schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXCOLLECT, state.screenWidth) then
-				return false
+			local muxcollectWidthSuccess, muxcollectWidthErr =
+				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXCOLLECT, state.screenWidth)
+			if not muxcollectWidthSuccess then
+				return false, muxcollectWidthErr
 			end
 
 			coroutine.yield("Applying alignment settings...")
-			if not schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local navAlignSuccess, navAlignErr =
+				schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not navAlignSuccess then
+				return false, navAlignErr
 			end
-			if not schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local statusAlignSuccess, statusAlignErr =
+				schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not statusAlignSuccess then
+				return false, statusAlignErr
 			end
-			if not schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local headerAlignSuccess, headerAlignErr =
+				schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not headerAlignSuccess then
+				return false, headerAlignErr
 			end
-			if not schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local datetimeSuccess, datetimeErr = schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL)
+			if not datetimeSuccess then
+				return false, datetimeErr
 			end
 
 			coroutine.yield("Applying alpha settings...")
-			if not schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local headerOpacitySuccess, headerOpacityErr =
+				schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL)
+			if not headerOpacitySuccess then
+				return false, headerOpacityErr
 			end
-			if not schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL) then
-				return false
+			local navAlphaSuccess, navAlphaErr =
+				schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL)
+			if not navAlphaSuccess then
+				return false, navAlphaErr
 			end
 
 			coroutine.yield("Copying font files...")
-			if not copySelectedFont() then
-				return false
+			local fontSuccess, fontErr = copySelectedFont()
+			if not fontSuccess then
+				return false, fontErr
 			end
 
 			coroutine.yield("Creating text files...")
-			if not createCreditsFile() then
-				return false
+			local creditsSuccess, creditsErr = createCreditsFile()
+			if not creditsSuccess then
+				return false, creditsErr
 			end
-			if not createVersionFile() then
-				return false
+			local versionSuccess, versionErr = createVersionFile()
+			if not versionSuccess then
+				return false, versionErr
 			end
 
 			if state.hasRGBSupport then
 				coroutine.yield("Setting up RGB configuration...")
-				if not rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF) then
-					return false
+				local rgbSuccess, rgbErr = rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF)
+				if not rgbSuccess then
+					return false, rgbErr
 				end
 			end
 
 			coroutine.yield("Copying sound files...")
-			if not copySoundFiles() then
-				return false
+			local soundSuccess, soundErr = copySoundFiles()
+			if not soundSuccess then
+				return false, soundErr
 			end
 
 			coroutine.yield("Creating theme archive...")
-			local outputThemePath =
-				themePackager.createThemeArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
+			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
 			if not outputThemePath then
-				return false
+				return false, "Failed to create theme archive."
 			end
 
-			-- Now create name.txt with the final archive name
 			if not themePackager.createNameFile(outputThemePath, paths.THEME_NAME) then
-				return false
+				return false, "Failed to create name.txt for theme archive."
 			end
 
 			coroutine.yield("Cleaning up...")
@@ -483,14 +529,11 @@ function themeCreator.createThemeCoroutine()
 		end, debug.traceback)
 
 		if not status then
-			-- Always reset graphics state, even on error
 			resetGraphicsState()
 			logger.error("Coroutine error: " .. tostring(result))
-			errorHandler.setError(tostring(result))
-			return false, "Error: " .. tostring(result)
+			return false, tostring(result)
 		end
 
-		-- Return the path from the successful execution
 		return true, result
 	end)
 end
@@ -511,7 +554,7 @@ function themeCreator.installThemeCoroutine(themeName)
 			local systemVersion = system.getSystemVersion()
 			logger.debug("System version: " .. tostring(systemVersion))
 			if not systemVersion then
-				return false
+				return false, "Failed to get system version."
 			end
 
 			local cmd
@@ -524,11 +567,14 @@ function themeCreator.installThemeCoroutine(themeName)
 			coroutine.yield("Installing theme files...")
 			local installResult = commands.executeCommand(cmd)
 
-			return installResult == 0
+			if installResult ~= 0 then
+				return false, "Theme installation command failed."
+			end
+
+			return true
 		end, debug.traceback)
 
 		if not status then
-			errorHandler.setError("Error during installation: " .. tostring(result))
 			return false, "Installation failed: " .. tostring(result)
 		end
 

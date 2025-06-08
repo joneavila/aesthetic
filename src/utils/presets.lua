@@ -14,6 +14,7 @@ local paths = require("paths")
 local state = require("state")
 
 local system = require("utils.system")
+local fail = require("utils.fail")
 
 local presets = {}
 
@@ -53,17 +54,15 @@ function presets.validatePreset(presetName)
 	local success, loadedPreset = pcall(function()
 		local chunk, err = loadfile(filePath)
 		if not chunk then
-			error("Failed to load preset file: " .. (err or "unknown error"))
+			return fail("Failed to load preset file: " .. (err or "unknown error"))
 		end
 		return chunk()
 	end)
 	if not success or type(loadedPreset) ~= "table" then
-		errorHandler.setError("Invalid preset found: " .. presetName)
-		return false, nil
+		return fail("Invalid preset found: " .. presetName)
 	end
 	if not loadedPreset.background or not loadedPreset.foreground or not loadedPreset.rgb then
-		errorHandler.setError("Preset missing required properties: " .. presetName)
-		return false, nil
+		return fail("Preset missing required properties: " .. presetName)
 	end
 	return true, loadedPreset
 end
@@ -79,8 +78,7 @@ function presets.savePreset(presetName)
 	local filePath = presetsDir .. "/" .. sanitizedName .. ".lua"
 	local file, err = io.open(filePath, "w")
 	if not file then
-		errorHandler.setError("Failed to create preset file: " .. (err or "unknown error"))
-		return false
+		return fail("Failed to create preset file: " .. (err or "unknown error"))
 	end
 	file:write("-- Aesthetic preset file\n")
 	file:write("return {\n")

@@ -370,8 +370,8 @@ local function handleThemeCreation()
 		-- Coroutine error
 		activeCoroutine = nil
 		waitingState = "none"
-		local errorMessage = errorHandler.getErrorMessage()
-		local modalText = "Error creating theme: " .. (errorMessage or "Unknown error")
+		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
+		local modalText = "Error creating theme: " .. errorMessage
 		modal:show(modalText, { { text = "Exit", selected = true } })
 		return
 	end
@@ -389,7 +389,7 @@ local function handleThemeCreation()
 			})
 		else
 			-- Failure
-			local errorMessage = pathOrError or errorHandler.getErrorMessage() or "Unknown error"
+			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true } })
 		end
@@ -428,7 +428,8 @@ local function handleThemeInstallation()
 		activeCoroutine = nil
 		waitingState = "none"
 		waitingThemePath = nil
-		modal:show("Failed to apply theme.", { { text = "Close", selected = true } })
+		local errorMessage = errorHandler.getError() or result or "Unknown error"
+		modal:show("Failed to apply theme: " .. errorMessage, { { text = "Close", selected = true } })
 		return
 	end
 
@@ -441,7 +442,8 @@ local function handleThemeInstallation()
 		state.themeApplied = true
 
 		modal:show(
-			result and "Applied theme successfully." or "Failed to apply theme.",
+			result and "Applied theme successfully."
+				or ("Failed to apply theme: " .. (errorHandler.getError() or "Unknown error")),
 			{ { text = "Close", selected = true } }
 		)
 	else

@@ -5,6 +5,7 @@ local commands = require("utils.commands")
 local logger = require("utils.logger")
 local environment = require("utils.environment")
 local system = {}
+local fail = require("utils.fail")
 
 -- Helper function to escape pattern special characters
 function system.escapePattern(str)
@@ -130,43 +131,33 @@ end
 
 -- Helper function to copy directory contents
 function system.copyDir(src, dest)
-	-- Ensure source ends with a slash to copy contents rather than the directory itself
 	if not src:match("/$") then
 		src = src .. "/"
 	end
 
 	if not system.ensurePath(dest) then
-		errorHandler.setError("Failed to create destination directory: " .. dest)
-		return false
+		return fail("Failed to create destination directory: " .. dest)
 	end
 
-	-- Check if source directory exists
 	local checkCmd = string.format('test -d "%s"', src:sub(1, -2))
 	if commands.executeCommand(checkCmd) ~= 0 then
-		errorHandler.setError("Source directory does not exist: " .. src)
-		return false
+		return fail("Source directory does not exist: " .. src)
 	end
 
-	-- Determine which rsync command to use based on OS
 	local rsyncCmd
 	local osType = environment.getOS()
 
 	if osType == "macos" then
-		-- macOS compatible command (older rsync)
-		-- -a: archive mode (preserves permissions, etc.)
-		-- -q: quiet mode (suppresses non-error messages)
-		rsyncCmd = string.format('rsync -aq "%s" "%s"', src, dest)
+		rsincCmd = string.format('rsync -aq "%s" "%s"', src, dest)
 	else
-		-- Linux or other (assumes newer rsync with more options)
-		-- -a: archive mode (preserves permissions, etc.)
-		-- --no-whole-file: use delta-transfer algorithm (faster for existing files)
-		-- -W: For new files, whole files are sent without using delta algorithm (faster for new files)
-		-- -z0: disable compression (more CPU efficient)
-		-- --info=none: disable progress information (reduces overhead)
-		rsyncCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
+		rsincCmd = string.format('rsync -a -W -z0 --info=none "%s" "%s"', src, dest)
 	end
 
-	return commands.executeCommand(rsyncCmd) == 0
+	if commands.executeCommand(rsincCmd) ~= 0 then
+		return fail("rsync command failed: " .. rsincCmd)
+	end
+
+	return true
 end
 
 --- Ensures a directory exists, creating it if necessary
@@ -199,24 +190,20 @@ end
 
 -- Copy a file and create destination directory if needed
 function system.copyFile(sourcePath, destinationPath)
-	-- Check if source file exists
 	if not system.fileExists(sourcePath) then
-		errorHandler.setError("Source file does not exist: " .. sourcePath)
-		return false
+		return fail("Source file does not exist: " .. sourcePath)
 	end
 
-	-- Ensure destination directory exists
 	if not system.ensurePath(destinationPath) then
-		errorHandler.setError("Failed to create destination directory: " .. destinationPath)
-		return false
+		return fail("Failed to create destination directory: " .. destinationPath)
 	end
 
-	-- Use direct copy (faster for small files)
-	-- Note: For larger files, rsync would be more efficient with:
-	-- rsync -a -W --no-compress sourcePath destinationPath
 	local cmd = string.format('cp "%s" "%s"', sourcePath, destinationPath)
+	if commands.executeCommand(cmd) ~= 0 then
+		return fail("cp command failed: " .. cmd)
+	end
 
-	return commands.executeCommand(cmd)
+	return true
 end
 
 -- Function to check if a path is a directory using `test -d`
@@ -235,8 +222,7 @@ function system.getEnvironmentVariable(name)
 	local value = os.getenv(name)
 	if value == nil then
 		logger.error("Environment variable not found: " .. name)
-		errorHandler.setError("Environment variable not found: " .. name)
-		return nil
+		return fail("Environment variable not found: " .. name)
 	end
 	logger.info(string.format("Environment variable [%s] = '%s'", name, value))
 	return value
@@ -245,8 +231,7 @@ end
 -- Remove a directory and all its contents recursively
 function system.removeDir(dir)
 	if not dir then
-		errorHandler.setError("No directory path provided to removeDir")
-		return false
+		return fail("No directory path provided to removeDir")
 	end
 
 	-- Check if directory exists before attempting removal
@@ -333,21 +318,19 @@ end
 function system.writeFile(filePath, content)
 	-- Ensure the directory exists
 	if not system.ensurePath(filePath) then
-		return false
+		return fail("Failed to create directory for file: " .. filePath)
 	end
 
 	local file, err = io.open(filePath, "wb")
 	if not file then
-		errorHandler.setError("Failed to open file for writing (" .. filePath .. "): " .. err)
-		return false
+		return fail("Failed to open file for writing (" .. filePath .. "): " .. err)
 	end
 
 	local success = file:write(content)
 	file:close()
 
 	if not success then
-		errorHandler.setError("Failed to write content to file: " .. filePath)
-		return false
+		return fail("Failed to write content to file: " .. filePath)
 	end
 
 	return true
@@ -488,8 +471,7 @@ end
 -- Remove a file at the given path
 function system.removeFile(path)
 	if not path then
-		errorHandler.setError("No file path provided to removeFile")
-		return false
+		return fail("No file path provided to removeFile")
 	end
 	if not system.isFile(path) then
 		logger.warning("File does not exist for removal: " .. path)
@@ -497,9 +479,7 @@ function system.removeFile(path)
 	end
 	local ok, err = os.remove(path)
 	if not ok then
-		logger.error("Failed to remove file: " .. tostring(err))
-		errorHandler.setError("Failed to remove file: " .. tostring(err))
-		return false
+		return fail("Failed to remove file: " .. tostring(err))
 	end
 	return true
 end
@@ -509,18 +489,15 @@ function system.getSystemVersion()
 	local paths = require("paths")
 	local versionFile = paths.MUOS_VERSION_FILE
 	if not versionFile or not system.fileExists(versionFile) then
-		errorHandler.setError("MUOS version file not found")
-		return nil
+		return fail("MUOS version file not found")
 	end
 	local content = system.readFile(versionFile)
 	if not content then
-		errorHandler.setError("Failed to read MUOS version file")
-		return nil
+		return fail("Failed to read MUOS version file")
 	end
 	local variant = content:match("_(%u+)")
 	if not variant then
-		errorHandler.setError("Failed to parse system version from MUOS version file")
-		return nil
+		return fail("Failed to parse system version from MUOS version file")
 	end
 	return variant
 end
