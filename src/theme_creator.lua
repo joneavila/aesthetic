@@ -297,16 +297,25 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Copying icons...")
-			local glyphSourceDir = paths.GLYPHS_SOURCE_DIR
-			local glyphDestDir = paths.THEME_GLYPH_DIR
-
-			if system.isDir(glyphSourceDir) then
-				glyphSourceDir = glyphSourceDir .. "/"
+			local sourceDir = paths.GLYPHS_SOURCE_DIR
+			local destDir = paths.THEME_GLYPH_DIR
+			if system.isDir(sourceDir) then
+				sourceDir = sourceDir .. "/"
 			end
-			local glyphSuccess, glyphErr = system.copy(glyphSourceDir, glyphDestDir)
+			local success, err = system.copy(sourceDir, destDir)
+			if not success then
+				return false, err or ("Failed to copy icons from: " .. sourceDir)
+			end
 
-			if not glyphSuccess then
-				return false, glyphErr or ("Failed to copy glyphs from: " .. glyphSourceDir)
+			coroutine.yield("Copying icons (1024x768)...")
+			local sourceDir = paths.GLYPHS_SOURCE_DIR_1024x768
+			local destDir = paths.THEME_GLYPH_DIR_1024x768
+			if system.isDir(sourceDir) then
+				sourceDir = sourceDir .. "/"
+			end
+			local success, err = system.copy(sourceDir, destDir)
+			if not success then
+				return false, err or ("Failed to copy icons from: " .. sourceDir)
 			end
 
 			coroutine.yield("Copying home screen grid layout icons...")

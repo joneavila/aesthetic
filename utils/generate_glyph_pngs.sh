@@ -81,7 +81,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   }
 
   if [[ "$output_path" == muxlaunch/* ]]; then
-    # (1) Default glyph output directory (DEFAULT_SIZE)
+    # (1A) Default glyph output directory (DEFAULT_SIZE)
     size=$(adjust_size "$DEFAULT_SIZE" "$percent_adj")
     if [[ ! -f "$input_svg" ]]; then
       echo "[WARN] Missing SVG: $input_svg (for $output_png)" >&2
@@ -92,7 +92,16 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
-    # (2) assets/image/grid/muxlaunch (SIZE_MUXLAUNCH)
+    # (1B) Default glyph output directory for 1024x768 theme (DEFAULT_SIZE_1024x768)
+    output_1024x768_png="assets/1024x768/glyph/${output_path}.png"
+    size_1024x768=$(adjust_size "$SIZE_1024x768" "$percent_adj")
+    mkdir -p "$(dirname "$output_1024x768_png")"
+    if ! convert_svg_to_png "$input_svg" "$output_1024x768_png" "$size_1024x768" "$y_adjust"; then
+      echo "[ERROR] Failed to convert $input_svg to $output_1024x768_png" >&2
+      exit 1
+    fi
+
+    # (2A) assets/image/grid/muxlaunch (SIZE_MUXLAUNCH)
     grid_output_png="assets/image/grid/muxlaunch/${output_path#muxlaunch/}.png"
     size=$(adjust_size "$SIZE_MUXLAUNCH" "$percent_adj")
     padding="$PADDING_MUXLAUNCH"
@@ -108,7 +117,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       exit 1
     fi
     rm -f "$tmp_icon_png"
-    # (3) assets/1024x768/image/grid/muxlaunch (SIZE_MUXLAUNCH_1024x768)
+
+    # (2B) assets/1024x768/image/grid/muxlaunch (SIZE_MUXLAUNCH_1024x768)
     grid_1024_output_png="assets/1024x768/image/grid/muxlaunch/${output_path#muxlaunch/}.png"
     size=$(adjust_size "$SIZE_MUXLAUNCH_1024x768" "$percent_adj")
     padding="$PADDING_MUXLAUNCH_1024x768"
@@ -128,7 +138,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   if [[ "$output_path" == header/* ]]; then
-    # (1) Default glyph output directory (SIZE_HEADER)
+    # (1A) Default glyph output directory (SIZE_HEADER)
     size=$(adjust_size "$SIZE_HEADER" "$percent_adj")
     if [[ ! -f "$input_svg" ]]; then
       echo "[WARN] Missing SVG: $input_svg (for $output_png)" >&2
@@ -139,8 +149,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
-    # (2) assets/1024x768/image/grid/header (SIZE_HEADER_1024x768)
-    grid_1024_output_png="assets/1024x768/image/grid/header/${output_path#header/}.png"
+    # (1B) assets/1024x768/glyph/header (SIZE_HEADER_1024x768)
+    grid_1024_output_png="assets/1024x768/glyph/header/${output_path#header/}.png"
     size=$(adjust_size "$SIZE_HEADER_1024x768" "$percent_adj")
     mkdir -p "$(dirname "$grid_1024_output_png")"
     if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size" "$y_adjust"; then
@@ -151,7 +161,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   if [[ "$output_path" == footer/* ]]; then
-    # (1) Default glyph output directory (SIZE_FOOTER)
+    # (1A) Default glyph output directory (SIZE_FOOTER)
     size=$(adjust_size "$SIZE_FOOTER" "$percent_adj")
     if [[ ! -f "$input_svg" ]]; then
       echo "[WARN] Missing SVG: $input_svg (for $output_png)" >&2
@@ -162,8 +172,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
-    # (2) assets/1024x768/image/grid/footer (SIZE_FOOTER_1024x768)
-    grid_1024_output_png="assets/1024x768/image/grid/footer/${output_path#footer/}.png"
+    # (1B) assets/1024x768/glyph/footer (SIZE_FOOTER_1024x768)
+    grid_1024_output_png="assets/1024x768/glyph/footer/${output_path#footer/}.png"
     size=$(adjust_size "$SIZE_FOOTER_1024x768" "$percent_adj")
     mkdir -p "$(dirname "$grid_1024_output_png")"
     if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size" "$y_adjust"; then
@@ -185,8 +195,19 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     continue
   fi
   mkdir -p "$(dirname "$output_png")"
+
+  # (1A) Default glyph output directory (DEFAULT_SIZE)
   if ! convert_svg_to_png "$input_svg" "$output_png" "$size" "$y_adjust"; then
     echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
+    exit 1
+  fi
+
+  # (1B) assets/1024x768/glyph/<output_path> for 1024x768 theme (SIZE_1024x768)
+  output_1024x768_png="assets/1024x768/glyph/${output_path}.png"
+  size_1024x768=$(adjust_size "$SIZE_1024x768" "$percent_adj")
+  mkdir -p "$(dirname "$output_1024x768_png")"
+  if ! convert_svg_to_png "$input_svg" "$output_1024x768_png" "$size_1024x768" "$y_adjust"; then
+    echo "[ERROR] Failed to convert $input_svg to $output_1024x768_png" >&2
     exit 1
   fi
 
