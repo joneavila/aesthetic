@@ -262,12 +262,7 @@ function rgb.backupConfig()
 		logger.error("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 		return fail("Active RGB configuration file does not exist: " .. paths.ACTIVE_RGB_CONF)
 	end
-
-	if not system.ensurePath(paths.ACTIVE_RGB_DIR) then
-		return fail("Failed to create backup directory: " .. paths.ACTIVE_RGB_DIR)
-	end
-
-	return system.copyFile(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
+	return system.copy(paths.ACTIVE_RGB_CONF, paths.ACTIVE_RGB_CONF_BACKUP)
 end
 
 -- Function to install RGB config from theme to active config

@@ -2,13 +2,16 @@
 local system = require("utils.system")
 local state = require("state")
 local errorHandler = require("error_handler")
+local logger = require("utils.logger")
 
 local paths = {}
 
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
+logger.debug("ROOT_DIR: " .. paths.ROOT_DIR)
 
 paths.MUOS_THEME_SCRIPT = "/opt/muos/script/package/theme.sh"
+paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
 
 paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
 paths.USERDATA_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
@@ -16,10 +19,10 @@ paths.USERDATA_SETTINGS_FILE = paths.USERDATA_DIR .. "/settings.lua"
 
 paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
-paths.MUOS_THEMES_DIR = paths.ROOT_DIR .. "/storage/theme"
-
 paths.ACTIVE_THEME_DIR = paths.MUOS_THEMES_DIR .. "/active"
+logger.debug("ACTIVE_THEME_DIR: " .. paths.ACTIVE_THEME_DIR)
 paths.ACTIVE_RGB_CONF = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh"
+logger.debug("ACTIVE_RGB_CONF: " .. paths.ACTIVE_RGB_CONF)
 paths.ACTIVE_RGB_CONF_BACKUP = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh.bak"
 
 local LED_CONTROL_SCRIPT_PIXIE = "/opt/muos/device/current/script/led_control.sh"
@@ -54,10 +57,10 @@ paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
-paths.SCHEME_TEMPLATE_DIR = paths.ROOT_DIR .. "/scheme_templates"
+paths.SCHEME_TEMPLATE_DIR = paths.SOURCE_DIR .. "/scheme_templates"
 paths.THEME_SCHEME_SOURCE_DIR = paths.SCHEME_TEMPLATE_DIR .. "/scheme"
 
-paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgb/rgbconf.sh"
+paths.THEME_RGB_CONF = paths.WORKING_THEME_DIR .. "/rgb/rgbconf.sh"
 
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"
@@ -101,8 +104,7 @@ function paths.getThemePreviewImagePath(width, height)
 end
 
 function paths.getThemeBootlogoImagePath(width, height)
-	local imageDir = paths.getThemeResolutionDir(width, height) .. "/image"
-	return imageDir .. "/bootlogo.bmp"
+	return paths.getThemeResolutionDir(width, height) .. "/image/bootlogo.bmp"
 end
 
 function paths.getThemeMuxlaunchSchemePath(width, height)
