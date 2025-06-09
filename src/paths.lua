@@ -137,6 +137,29 @@ paths.HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png
 paths.ICONS_TOGGLE_ENABLED_IMAGE = "assets/images/icons_toggle_samples/icons_enabled.png"
 paths.ICONS_TOGGLE_DISABLED_IMAGE = "assets/images/icons_toggle_samples/icons_disabled.png"
 
+-- Supported resolutions for theme generation
+paths.SUPPORTED_RESOLUTIONS = {
+	"640x480",
+	"720x480",
+	"720x576",
+	"720x720",
+	"1024x768",
+	"1280x720",
+}
+
+-- Helper to execute a function for all supported resolutions
+function paths.forEachResolution(func)
+	for _, resolution in ipairs(paths.SUPPORTED_RESOLUTIONS) do
+		local width, height = resolution:match("(%d+)x(%d+)")
+		width, height = tonumber(width), tonumber(height)
+		local success, err = func(width, height)
+		if not success then
+			return false, err
+		end
+	end
+	return true
+end
+
 --- TEMPORARILY DISABLED: Font size directory calculation while making font size feature more robust
 --[[
 paths.getFontSizeDir = function(displayWidth, displayHeight)

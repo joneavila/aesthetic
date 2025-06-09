@@ -20,42 +20,18 @@ local fail = require("utils.fail")
 -- Module table to export public functions
 local themeCreator = {}
 
--- Supported resolutions for theme generation
-local SUPPORTED_RESOLUTIONS = {
-	"640x480",
-	"720x480",
-	"720x576",
-	"720x720",
-	"1024x768",
-	"1280x720",
-}
-
--- Helper function to execute a function for all supported resolutions
--- Executes the function for each supported resolution, passing width and height to the callback
-local function executeForAllResolutions(func)
-	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
-		local width, height = resolution:match("(%d+)x(%d+)")
-		width, height = tonumber(width), tonumber(height)
-		local success, err = func(width, height)
-		if not success then
-			return false, err
-		end
-	end
-	return true
-end
-
 -- Helper function to copy resolution-specific template files
 -- Copies all resolution directories from templates
 local function copyAllResolutionTemplates()
-	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
-		local sourcePath = paths.TEMPLATE_DIR .. "/" .. resolution .. "/"
-		local destPath = paths.WORKING_THEME_DIR .. "/" .. resolution
+	return paths.forEachResolution(function(width, height)
+		local sourcePath = paths.TEMPLATE_DIR .. "/" .. width .. "x" .. height .. "/"
+		local destPath = paths.WORKING_THEME_DIR .. "/" .. width .. "x" .. height
 		local success, err = system.copy(sourcePath, destPath)
 		if not success then
 			return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
 		end
-	end
-	return true
+		return true
+	end)
 end
 
 -- Helper function to reset graphics state between image generation calls
@@ -71,12 +47,9 @@ local function executeBootImageForAllResolutions()
 	local bgColor = colorUtils.hexToLove(state.getColorValue("background"))
 	local fgColor = colorUtils.hexToLove(state.getColorValue("foreground"))
 
-	for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
-		local width, height = resolution:match("(%d+)x(%d+)")
-		width, height = tonumber(width), tonumber(height)
-
+	return paths.forEachResolution(function(width, height)
 		if not system.fileExists(paths.THEME_BOOTLOGO_SOURCE) then
-			return fail("Bootlogo source file does not exist: " .. tostring(paths.THEME_BOOTLOGO_SOURCE))
+			return false, "Bootlogo source file does not exist: " .. tostring(paths.THEME_BOOTLOGO_SOURCE)
 		end
 
 		local pngOutputPath = string.format("%s/%dx%d/image/bootlogo.png", paths.WORKING_THEME_DIR, width, height)
@@ -95,17 +68,16 @@ local function executeBootImageForAllResolutions()
 		resetGraphicsState()
 		local success, err = imageGenerator.createIconImage(options)
 		if not success then
-			return fail(err or "Failed to create bootlogo PNG image.")
+			return false, err or "Failed to create bootlogo PNG image."
 		end
 
 		local convertCmd = string.format('magick convert "%s" "%s"', pngOutputPath, bmpOutputPath)
 		local cmdResult = commands.executeCommand(convertCmd)
 		if cmdResult ~= 0 then
-			return fail("ImageMagick convert command failed: " .. convertCmd)
+			return false, "ImageMagick convert command failed: " .. convertCmd
 		end
-	end
-
-	return true
+		return true
+	end)
 end
 
 -- Helper to copy either a file or directory
@@ -274,7 +246,7 @@ function themeCreator.createThemeCoroutine()
 				local destPath = paths.WORKING_THEME_DIR .. "/" .. item
 
 				local isResolutionDir = false
-				for _, resolution in ipairs(SUPPORTED_RESOLUTIONS) do
+				for _, resolution in ipairs(paths.SUPPORTED_RESOLUTIONS) do
 					if item == resolution then
 						isResolutionDir = true
 						break
@@ -316,7 +288,7 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Configuring grid settings...")
-			local gridSuccess, gridErr = executeForAllResolutions(function(width, height)
+			local gridSuccess, gridErr = paths.forEachResolution(function(width, height)
 				local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath(width, height)
 				return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
 			end)
@@ -380,7 +352,7 @@ function themeCreator.createThemeCoroutine()
 			resetGraphicsState()
 
 			coroutine.yield("Creating preview images...")
-			local previewSuccess, previewErr = executeForAllResolutions(function(width, height)
+			local previewSuccess, previewErr = paths.forEachResolution(function(width, height)
 				return createPreviewImage(width, height)
 			end)
 			if not previewSuccess then
