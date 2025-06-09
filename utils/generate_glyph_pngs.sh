@@ -11,7 +11,9 @@ convert_svg_to_png() {
   local input_svg="$1"
   local output_png="$2"
   local size="$3"
+  local y_adjust="${4:-0}"
   local tmp_svg="/tmp/$(basename "$input_svg" .svg)_stroke.svg"
+  local tmp_png="/tmp/$(basename "$output_png" .png)_raw.png"
   # Replace stroke-width value with $STROKE_WIDTH and count replacements
   local replace_count
   replace_count=$(grep -o 'stroke-width="[0-9.]*"' "$input_svg" | wc -l)
@@ -20,8 +22,15 @@ convert_svg_to_png() {
     echo "[WARN] No stroke-width replaced in $input_svg" >&2
   fi
   mkdir -p "$(dirname "$output_png")"
-  rsvg-convert -a -f png -w "$size" -h "$size" "$tmp_svg" -o "$output_png"
+  rsvg-convert -a -f png -w "$size" -h "$size" "$tmp_svg" -o "$tmp_png"
   rm -f "$tmp_svg"
+  if [ "${y_adjust}" != "0" ] && command -v magick >/dev/null 2>&1; then
+    # Shift the PNG vertically by y_adjust pixels (positive = down, negative = up)
+    magick convert -size ${size}x${size} canvas:none "$tmp_png" -geometry +0+${y_adjust} -gravity NorthWest -composite "$output_png"
+    rm -f "$tmp_png"
+  else
+    mv "$tmp_png" "$output_png"
+  fi
 }
 
 # Default size for most glyphs
@@ -54,6 +63,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   output_path=$(echo "$line" | cut -d, -f1 | xargs)
   input_svg_rel=$(echo "$line" | cut -d, -f2 | xargs)
   percent_adj=$(echo "$line" | cut -d, -f3 | xargs)
+  y_adjust=$(echo "$line" | cut -d, -f4 | xargs)
   input_svg="$SRC_DIR/$input_svg_rel.svg"
   output_png="$OUT_DIR/$output_path.png"
 
@@ -78,7 +88,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       continue
     fi
     mkdir -p "$(dirname "$output_png")"
-    if ! convert_svg_to_png "$input_svg" "$output_png" "$size"; then
+    if ! convert_svg_to_png "$input_svg" "$output_png" "$size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
@@ -89,7 +99,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     icon_size=$((size - padding))
     tmp_icon_png="/tmp/$(basename "$grid_output_png" .png)_icon.png"
     mkdir -p "$(dirname "$grid_output_png")"
-    if ! convert_svg_to_png "$input_svg" "$tmp_icon_png" "$icon_size"; then
+    if ! convert_svg_to_png "$input_svg" "$tmp_icon_png" "$icon_size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $tmp_icon_png" >&2
       exit 1
     fi
@@ -105,7 +115,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     icon_size=$((size - padding))
     tmp_icon_png="/tmp/$(basename "$grid_1024_output_png" .png)_icon.png"
     mkdir -p "$(dirname "$grid_1024_output_png")"
-    if ! convert_svg_to_png "$input_svg" "$tmp_icon_png" "$icon_size"; then
+    if ! convert_svg_to_png "$input_svg" "$tmp_icon_png" "$icon_size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $tmp_icon_png" >&2
       exit 1
     fi
@@ -125,7 +135,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       continue
     fi
     mkdir -p "$(dirname "$output_png")"
-    if ! convert_svg_to_png "$input_svg" "$output_png" "$size"; then
+    if ! convert_svg_to_png "$input_svg" "$output_png" "$size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
@@ -133,7 +143,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     grid_1024_output_png="assets/1024x768/image/grid/header/${output_path#header/}.png"
     size=$(adjust_size "$SIZE_HEADER_1024x768" "$percent_adj")
     mkdir -p "$(dirname "$grid_1024_output_png")"
-    if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size"; then
+    if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $grid_1024_output_png" >&2
       exit 1
     fi
@@ -148,7 +158,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       continue
     fi
     mkdir -p "$(dirname "$output_png")"
-    if ! convert_svg_to_png "$input_svg" "$output_png" "$size"; then
+    if ! convert_svg_to_png "$input_svg" "$output_png" "$size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
       exit 1
     fi
@@ -156,7 +166,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     grid_1024_output_png="assets/1024x768/image/grid/footer/${output_path#footer/}.png"
     size=$(adjust_size "$SIZE_FOOTER_1024x768" "$percent_adj")
     mkdir -p "$(dirname "$grid_1024_output_png")"
-    if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size"; then
+    if ! convert_svg_to_png "$input_svg" "$grid_1024_output_png" "$size" "$y_adjust"; then
       echo "[ERROR] Failed to convert $input_svg to $grid_1024_output_png" >&2
       exit 1
     fi
@@ -175,7 +185,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     continue
   fi
   mkdir -p "$(dirname "$output_png")"
-  if ! convert_svg_to_png "$input_svg" "$output_png" "$size"; then
+  if ! convert_svg_to_png "$input_svg" "$output_png" "$size" "$y_adjust"; then
     echo "[ERROR] Failed to convert $input_svg to $output_png" >&2
     exit 1
   fi

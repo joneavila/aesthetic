@@ -4,39 +4,41 @@
 # It is used by the glyph generation script `utils/generate_glyph_pngs.sh`.
 #
 # Format:
-#   output/path/filename, input_svg_path, percent_size_adjust
+#   output/path/filename, input_svg_path, percent_size_adjust, pixel_y_adjust
 #
 # Where:
 #   - output/path/filename: Destination path relative to `assets/icons/glyph` (omit the `.png` extension)
 #   - input_svg_path: Source path relative to `assets/icons/` (omit the `.svg` extension)
+#   - percent_size_adjust
+#   - pixel_y_adjust: Vertical adjustment (positive moves down, negative moves up)
 #
 # Lines beginning with `#` are treated as comments and ignored.
 # Blank lines are also ignored.
 
 # header - Seen throughout the UI
 header/bluetooth, material_symbols/bluetooth_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
-header/capacity_0, material_symbols/battery_android_0_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_10, material_symbols/battery_android_1_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_20, material_symbols/battery_android_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_30, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_40, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_50, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_60, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_70, material_symbols/battery_android_5_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_80, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_90, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_100, material_symbols/battery_android_full_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_0, material_symbols/battery_android_0_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_10, material_symbols/battery_android_1_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_20, material_symbols/battery_android_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_30, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_40, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_50, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_60, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_70, material_symbols/battery_android_5_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_80, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_90, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
-header/capacity_charging_100, material_symbols/battery_android_full_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34
+header/capacity_0, material_symbols/battery_android_0_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_10, material_symbols/battery_android_1_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_20, material_symbols/battery_android_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_30, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_40, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_50, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_60, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_70, material_symbols/battery_android_5_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_80, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_90, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_100, material_symbols/battery_android_full_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_0, material_symbols/battery_android_0_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_10, material_symbols/battery_android_1_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_20, material_symbols/battery_android_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_30, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_40, material_symbols/battery_android_3_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_50, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_60, material_symbols/battery_android_4_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_70, material_symbols/battery_android_5_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_80, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_90, material_symbols/battery_android_6_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
+header/capacity_charging_100, material_symbols/battery_android_full_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
 header/network_active, material_symbols/wifi_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
 header/network_normal, material_symbols/wifi_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
 
