@@ -105,7 +105,7 @@ end
 
 local function scanThemes()
 	themeItems = {}
-	local p = paths.THEME_DIR
+	local p = paths.MUOS_THEMES_DIR
 	local files = system.listFiles(p, "*.muxthm")
 	for i, file in ipairs(files) do
 		local item = createThemeCheckboxItem(file, i)
@@ -122,7 +122,7 @@ function delete_themes.draw()
 
 	-- Draw theme directory path in mono font between header and list
 	love.graphics.setFont(fonts.loaded.monoBody)
-	local dirText = "Theme directory: " .. paths.THEME_DIR
+	local dirText = "Theme directory: " .. paths.MUOS_THEMES_DIR
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.print(dirText, 32, header.getContentStartY() + 8)
 
@@ -214,7 +214,7 @@ function delete_themes.update(dt)
 				onSelect = function()
 					local deleteSuccess = true
 					for _, themeName in ipairs(checkedItems) do
-						local fullPath = paths.THEME_DIR .. "/" .. themeName .. ".muxthm"
+						local fullPath = paths.MUOS_THEMES_DIR .. "/" .. themeName .. ".muxthm"
 						if not system.removeFile(fullPath) then
 							deleteSuccess = false
 						end

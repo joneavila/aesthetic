@@ -61,7 +61,7 @@ function controlHints.draw(controls_list)
 	local function getButtonIcon(buttonKey)
 		local iconName = BUTTON_ICONS[buttonKey]
 		if iconName then
-			return svg.loadIcon(iconName, ICON_SIZE, paths.CONTROL_HINTS_SVG_DIR .. "/")
+			return svg.loadIcon(iconName, ICON_SIZE, paths.CONTROL_HINTS_SOURCE_DIR .. "/")
 		end
 		return nil
 	end

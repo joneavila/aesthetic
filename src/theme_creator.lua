@@ -24,7 +24,7 @@ local themeCreator = {}
 -- Copies all resolution directories from templates
 local function copyAllResolutionTemplates()
 	return paths.forEachResolution(function(width, height)
-		local sourcePath = paths.TEMPLATE_DIR .. "/" .. width .. "x" .. height .. "/"
+		local sourcePath = paths.SCHEME_TEMPLATE_DIR .. "/" .. width .. "x" .. height .. "/"
 		local destPath = paths.WORKING_THEME_DIR .. "/" .. width .. "x" .. height
 		local success, err = system.copy(sourcePath, destPath)
 		if not success then
@@ -237,16 +237,16 @@ function themeCreator.createThemeCoroutine()
 			logger.debug("Starting coroutine-based theme creation")
 
 			coroutine.yield("Copying scheme template files...")
-			local templateItems = system.listDir(paths.TEMPLATE_DIR)
+			local templateItems = system.listDir(paths.SCHEME_TEMPLATE_DIR)
 			if not templateItems then
-				return false, "Failed to list template directory: " .. tostring(paths.TEMPLATE_DIR)
+				return false, "Failed to list template directory: " .. tostring(paths.SCHEME_TEMPLATE_DIR)
 			end
 			for _, item in ipairs(templateItems) do
-				local sourcePath = paths.TEMPLATE_DIR .. "/" .. item
+				local sourcePath = paths.SCHEME_TEMPLATE_DIR .. "/" .. item
 				local destPath = paths.WORKING_THEME_DIR .. "/" .. item
 
 				local isResolutionDir = false
-				for _, resolution in ipairs(paths.SUPPORTED_RESOLUTIONS) do
+				for _, resolution in ipairs(paths.SUPPORTED_THEME_RESOLUTIONS) do
 					if item == resolution then
 						isResolutionDir = true
 						break
@@ -289,7 +289,7 @@ function themeCreator.createThemeCoroutine()
 
 			coroutine.yield("Configuring grid settings...")
 			local gridSuccess, gridErr = paths.forEachResolution(function(width, height)
-				local muxlaunchIniPath = paths.getThemeResolutionMuxlaunchIniPath(width, height)
+				local muxlaunchIniPath = paths.getThemeMuxlaunchSchemePath(width, height)
 				return schemeConfigurator.applyGridSettings(muxlaunchIniPath)
 			end)
 			if not gridSuccess then
@@ -463,7 +463,7 @@ function themeCreator.createThemeCoroutine()
 
 			if state.hasRGBSupport then
 				coroutine.yield("Setting up RGB configuration...")
-				local rgbSuccess, rgbErr = rgb.createConfigFile(paths.THEME_RGB_DIR, paths.THEME_RGB_CONF)
+				local rgbSuccess, rgbErr = rgb.createConfigFile(paths.THEME_RGB_CONF)
 				if not rgbSuccess then
 					return false, rgbErr
 				end
@@ -476,7 +476,8 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Creating theme archive...")
-			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, paths.getThemeOutputPath())
+			local candidateOutputPath = paths.MUOS_THEMES_DIR .. "/" .. state.themeName .. ".muxthm"
+			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, candidateOutputPath)
 			if not outputThemePath then
 				return false, "Failed to create theme archive."
 			end
@@ -514,7 +515,7 @@ function themeCreator.installThemeCoroutine(themeName)
 		local status, result = xpcall(function()
 			coroutine.yield("Preparing installation...")
 
-			if not system.fileExists(paths.THEME_INSTALL_SCRIPT) then
+			if not system.fileExists(paths.MUOS_THEME_SCRIPT) then
 				coroutine.yield("Install script not found - skipping...")
 				return true
 			end
@@ -529,7 +530,7 @@ function themeCreator.installThemeCoroutine(themeName)
 			if systemVersion == "GOOSE" then
 				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName)
 			else
-				cmd = string.format('%s install "%s"', paths.THEME_INSTALL_SCRIPT, themeName)
+				cmd = string.format('%s install "%s"', paths.MUOS_THEME_SCRIPT, themeName)
 			end
 
 			coroutine.yield("Installing theme files...")

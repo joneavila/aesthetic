@@ -23,8 +23,8 @@ local previewImages = {}
 
 -- Function to load preview images
 local function loadPreviewImages()
-	previewImages.enabled = love.graphics.newImage(paths.ICONS_TOGGLE_ENABLED_IMAGE)
-	previewImages.disabled = love.graphics.newImage(paths.ICONS_TOGGLE_DISABLED_IMAGE)
+	previewImages.enabled = love.graphics.newImage(paths.UI_ICONS_TOGGLE_ENABLED_IMAGE)
+	previewImages.disabled = love.graphics.newImage(paths.UI_ICONS_TOGGLE_DISABLED_IMAGE)
 end
 
 -- Function to create the toggle button

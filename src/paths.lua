@@ -5,51 +5,34 @@ local errorHandler = require("error_handler")
 
 local paths = {}
 
--- muOS themes directories
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 
-paths.TEMPLATE_DIR = paths.ROOT_DIR .. "/scheme_templates"
+paths.MUOS_THEME_SCRIPT = "/opt/muos/script/package/theme.sh"
 
--- Working theme directory where files are written before archiving into a theme
+paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
+paths.USERDATA_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
+paths.USERDATA_SETTINGS_FILE = paths.USERDATA_DIR .. "/settings.lua"
+
 paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
--- muOS themes directory and files
-paths.THEME_DIR = paths.ROOT_DIR .. "/storage/theme"
-paths.THEME_VERSION = paths.THEME_DIR .. "/version.txt"
+paths.MUOS_THEMES_DIR = paths.ROOT_DIR .. "/storage/theme"
 
-paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"
+paths.ACTIVE_THEME_DIR = paths.MUOS_THEMES_DIR .. "/active"
+paths.ACTIVE_RGB_CONF = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh"
+paths.ACTIVE_RGB_CONF_BACKUP = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh.bak"
 
--- `rgb` directory and files
-paths.ACTIVE_RGB_DIR = paths.THEME_ACTIVE_DIR .. "/rgb"
-paths.ACTIVE_RGB_CONF = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh"
-paths.ACTIVE_RGB_CONF_BACKUP = paths.ACTIVE_RGB_DIR .. "/rgbconf.sh.bak"
+local LED_CONTROL_SCRIPT_PIXIE = "/opt/muos/device/current/script/led_control.sh"
+local LED_CONTROL_SCRIPT_GOOSE = "/opt/muos/device/script/led_control.sh"
+paths.LED_CONTROL_SCRIPT = system.isFile(LED_CONTROL_SCRIPT_PIXIE) and LED_CONTROL_SCRIPT_PIXIE
+	or system.isFile(LED_CONTROL_SCRIPT_GOOSE) and LED_CONTROL_SCRIPT_GOOSE
 
--- Generated theme path where the generated theme is written
--- Use a function to get the current theme name at time of use
-function paths.getThemeOutputPath()
-	return paths.THEME_DIR .. "/" .. state.themeName .. ".muxthm"
-end
+local MUOS_VERSION_FILE_PIXIE = "/opt/muos/config/version.txt"
+local MUOS_VERSION_FILE_GOOSE = "/opt/muos/config/system/version"
+paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_PIXIE) and MUOS_VERSION_FILE_PIXIE
+	or system.isFile(MUOS_VERSION_FILE_GOOSE) and MUOS_VERSION_FILE_GOOSE
 
-local DEVICE_SCRIPT_DIR_1 = "/opt/muos/device/current/script/led_control.sh" -- Pixie
-local DEVICE_SCRIPT_DIR_2 = "/opt/muos/device/script/led_control.sh" -- Goose
-paths.LED_CONTROL_SCRIPT = system.isFile(DEVICE_SCRIPT_DIR_1) and DEVICE_SCRIPT_DIR_1
-	or system.isFile(DEVICE_SCRIPT_DIR_2) and DEVICE_SCRIPT_DIR_2
-
-local MUOS_VERSION_FILE_1 = "/opt/muos/config/version.txt" -- Pixie
-local MUOS_VERSION_FILE_2 = "/opt/muos/config/system/version" -- Goose
-paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_1) and MUOS_VERSION_FILE_1
-	or system.isFile(MUOS_VERSION_FILE_2) and MUOS_VERSION_FILE_2
-
-paths.THEME_INSTALL_SCRIPT = "/opt/muos/script/package/theme.sh"
-
--- Assets used by the UI
-paths.THEME_FONT_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/fonts"
-paths.THEME_IMAGE_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/images"
 paths.THEME_SOUND_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/sounds"
-
-paths.KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
-paths.PRESETS_IMAGES_DIR = "assets/images/presets"
 
 paths.THEME_CREDITS = paths.WORKING_THEME_DIR .. "/credits.txt"
 paths.THEME_NAME = paths.WORKING_THEME_DIR .. "/name.txt"
@@ -59,55 +42,21 @@ paths.THEME_GLYPH_DIR_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
 paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
-paths.CONTROL_HINTS_SVG_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
+paths.CONTROL_HINTS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
 
--- `scheme` directory and files
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"
 paths.THEME_SCHEME_GLOBAL = paths.THEME_SCHEME_DIR .. "/global.ini"
 paths.THEME_SCHEME_MUXPLORE = paths.THEME_SCHEME_DIR .. "/muxplore.ini"
 paths.THEME_SCHEME_MUXHISTORY = paths.THEME_SCHEME_DIR .. "/muxhistory.ini"
 paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 
--- `font` directory and files
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
-paths.THEME_SCHEME_SOURCE_DIR = paths.TEMPLATE_DIR .. "/scheme"
+paths.SCHEME_TEMPLATE_DIR = paths.ROOT_DIR .. "/scheme_templates"
+paths.THEME_SCHEME_SOURCE_DIR = paths.SCHEME_TEMPLATE_DIR .. "/scheme"
 
--- `rgb` directory and files
-paths.THEME_RGB_DIR = paths.WORKING_THEME_DIR .. "/rgb"
-paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgbconf.sh"
-
--- Create getter functions for resolution-dependent paths so they update with screen dimensions
--- Get resolution directory path
-function paths.getThemeResolutionDir(width, height)
-	return string.format("%s/%dx%d", paths.WORKING_THEME_DIR, width, height)
-end
-
--- Get preview image path
-function paths.getThemePreviewImagePath(width, height)
-	return paths.getThemeResolutionDir(width, height) .. "/preview.png"
-end
-
--- Get resolution image directory path
-function paths.getThemeResolutionImageDir(width, height)
-	return paths.getThemeResolutionDir(width, height) .. "/image"
-end
-
--- Get boot logo image path
-function paths.getThemeBootlogoImagePath(width, height)
-	return paths.getThemeResolutionImageDir(width, height) .. "/bootlogo.bmp"
-end
-
--- Get muxlaunch.ini path in the resolution directory
-function paths.getThemeResolutionMuxlaunchIniPath(width, height)
-	return paths.getThemeResolutionDir(width, height) .. "/scheme/muxlaunch.ini"
-end
-
-paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
-
-paths.USER_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
-paths.SETTINGS_FILE = paths.USERDATA_DIR .. "/settings.lua"
+paths.THEME_RGB_CONF = paths.THEME_RGB_DIR .. "/rgb/rgbconf.sh"
 
 paths.THEME_BOOTLOGO_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo.svg"
 paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_outline.svg"
@@ -115,7 +64,6 @@ paths.THEME_LOGO_OUTLINE_SOURCE = paths.SOURCE_DIR .. "/assets/icons/muos/logo_o
 paths.GLYPH_MAPPING_FILE = paths.SOURCE_DIR .. "/utils/glyph_mapping.txt"
 paths.THEME_GLYPH_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/lucide/glyph"
 
--- Theme `image` directory and files
 paths.THEME_IMAGE_DIR = paths.WORKING_THEME_DIR .. "/image"
 paths.THEME_REBOOT_IMAGE = paths.THEME_IMAGE_DIR .. "/reboot.png"
 paths.THEME_REBOOT_ICON_SOURCE = "assets/icons/lucide/ui/refresh-cw.svg"
@@ -126,19 +74,15 @@ paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
 paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
 paths.THEME_GRID_MUXLAUNCH_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
 
--- Theme presets directory
-paths.PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
+paths.THEME_PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
 
--- Home screen layout images
-paths.HOME_SCREEN_LAYOUT_GRID_IMAGE = "assets/images/home_screen_layout/grid.png"
-paths.HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png"
+paths.UI_KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
+paths.UI_HOME_SCREEN_LAYOUT_GRID_IMAGE = "assets/images/home_screen_layout/grid.png"
+paths.UI_HOME_SCREEN_LAYOUT_LIST_IMAGE = "assets/images/home_screen_layout/list.png"
+paths.UI_ICONS_TOGGLE_ENABLED_IMAGE = "assets/images/icons_toggle_samples/icons_enabled.png"
+paths.UI_ICONS_TOGGLE_DISABLED_IMAGE = "assets/images/icons_toggle_samples/icons_disabled.png"
 
--- Icons toggle images
-paths.ICONS_TOGGLE_ENABLED_IMAGE = "assets/images/icons_toggle_samples/icons_enabled.png"
-paths.ICONS_TOGGLE_DISABLED_IMAGE = "assets/images/icons_toggle_samples/icons_disabled.png"
-
--- Supported resolutions for theme generation
-paths.SUPPORTED_RESOLUTIONS = {
+paths.SUPPORTED_THEME_RESOLUTIONS = {
 	"640x480",
 	"720x480",
 	"720x576",
@@ -147,9 +91,26 @@ paths.SUPPORTED_RESOLUTIONS = {
 	"1280x720",
 }
 
+function paths.getThemeResolutionDir(width, height)
+	return string.format("%s/%dx%d", paths.WORKING_THEME_DIR, width, height)
+end
+
+function paths.getThemePreviewImagePath(width, height)
+	return paths.getThemeResolutionDir(width, height) .. "/preview.png"
+end
+
+function paths.getThemeBootlogoImagePath(width, height)
+	local imageDir = paths.getThemeResolutionDir(width, height) .. "/image"
+	return imageDir .. "/bootlogo.bmp"
+end
+
+function paths.getThemeMuxlaunchSchemePath(width, height)
+	return paths.getThemeResolutionDir(width, height) .. "/scheme/muxlaunch.ini"
+end
+
 -- Helper to execute a function for all supported resolutions
 function paths.forEachResolution(func)
-	for _, resolution in ipairs(paths.SUPPORTED_RESOLUTIONS) do
+	for _, resolution in ipairs(paths.SUPPORTED_THEME_RESOLUTIONS) do
 		local width, height = resolution:match("(%d+)x(%d+)")
 		width, height = tonumber(width), tonumber(height)
 		local success, err = func(width, height)
@@ -159,12 +120,5 @@ function paths.forEachResolution(func)
 	end
 	return true
 end
-
---- TEMPORARILY DISABLED: Font size directory calculation while making font size feature more robust
---[[
-paths.getFontSizeDir = function(displayWidth, displayHeight)
-	return fonts.getFontSizeDir(displayWidth, displayHeight)
-end
---]]
 
 return paths

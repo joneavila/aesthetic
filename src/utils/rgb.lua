@@ -144,9 +144,7 @@ function rgb.writeCommandToFile(command, rgbConfPath)
 end
 
 -- Function to create RGB configuration file at the specified path
-function rgb.createConfigFile(rgbDir, rgbConfPath)
-	system.ensurePath(rgbDir)
-
+function rgb.createConfigFile(rgbConfPath)
 	-- Build the command
 	local command = rgb.buildCommand()
 

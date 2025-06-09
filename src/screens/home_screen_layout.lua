@@ -31,13 +31,13 @@ local function loadPreviewImages()
 	local images = {}
 
 	-- Load grid image
-	if love.filesystem.getInfo(paths.HOME_SCREEN_LAYOUT_GRID_IMAGE) then
-		images.grid = love.graphics.newImage(paths.HOME_SCREEN_LAYOUT_GRID_IMAGE)
+	if love.filesystem.getInfo(paths.UI_HOME_SCREEN_LAYOUT_GRID_IMAGE) then
+		images.grid = love.graphics.newImage(paths.UI_HOME_SCREEN_LAYOUT_GRID_IMAGE)
 	end
 
 	-- Load list image
-	if love.filesystem.getInfo(paths.HOME_SCREEN_LAYOUT_LIST_IMAGE) then
-		images.list = love.graphics.newImage(paths.HOME_SCREEN_LAYOUT_LIST_IMAGE)
+	if love.filesystem.getInfo(paths.UI_HOME_SCREEN_LAYOUT_LIST_IMAGE) then
+		images.list = love.graphics.newImage(paths.UI_HOME_SCREEN_LAYOUT_LIST_IMAGE)
 	end
 
 	return images

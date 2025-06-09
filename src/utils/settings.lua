@@ -16,7 +16,7 @@ settings.SOURCE_USER = "user"
 
 -- Function to save the current settings to a file
 function settings.saveToFile()
-	local filePath = paths.SETTINGS_FILE
+	local filePath = paths.USERDATA_SETTINGS_FILE
 	if not filePath then
 		return fail("No settings file path provided.")
 	end
@@ -194,7 +194,7 @@ end
 -- Function to load settings from file
 function settings.loadFromFile()
 	-- Get file path
-	local filePath = paths.SETTINGS_FILE
+	local filePath = paths.USERDATA_SETTINGS_FILE
 	if not filePath then
 		return false
 	end
