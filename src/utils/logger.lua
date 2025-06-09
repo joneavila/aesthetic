@@ -48,7 +48,6 @@ local function writeLog(level, message, moduleName)
 
 	-- Get session log file from environment variable
 	local sessionLogFile = os.getenv("SESSION_LOG_FILE")
-	local logDir = os.getenv("LOG_DIR")
 
 	-- Always print to console in development mode
 	if CONSOLE_LOGGING or level == LOG_LEVELS.ERROR or level == LOG_LEVELS.CRITICAL then
@@ -56,16 +55,8 @@ local function writeLog(level, message, moduleName)
 	end
 
 	if not sessionLogFile or sessionLogFile == "" then
-		-- Fallback to LOG_DIR if SESSION_LOG_FILE is not set
-		if not logDir or logDir == "" then
-			-- Last fallback if neither variable is set
-			print("WARNING: SESSION_LOG_FILE and LOG_DIR environment variables not set, logging to stdout only")
-			return
-		else
-			-- Create session ID if not already set
-			local sessionId = os.getenv("SESSION_ID") or os.date("%Y%m%d_%H%M%S")
-			sessionLogFile = logDir .. "/" .. sessionId .. ".log"
-		end
+		print("WARNING: SESSION_LOG_FILE environment variable not set, logging to stdout only")
+		return
 	end
 
 	-- Append to log file

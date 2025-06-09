@@ -8,13 +8,14 @@ local paths = {}
 -- muOS themes directories
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
-paths.TEMPLATE_DIR = system.getEnvironmentVariable("TEMPLATE_DIR")
+
+paths.TEMPLATE_DIR = paths.ROOT_DIR .. "/scheme_templates"
 
 -- Working theme directory where files are written before archiving into a theme
 paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
 -- muOS themes directory and files
-paths.THEME_DIR = system.getEnvironmentVariable("MUOS_STORAGE_THEME_DIR")
+paths.THEME_DIR = paths.ROOT_DIR .. "/storage/theme"
 paths.THEME_VERSION = paths.THEME_DIR .. "/version.txt"
 
 paths.THEME_ACTIVE_DIR = paths.THEME_DIR .. "/active"

@@ -2,7 +2,7 @@
 # Development launch script for Aesthetic
 # Use this script to run Aesthetic locally for development
 
-set -e  # Exit on error
+set -e # Exit on error
 
 # Default window dimensions
 WIDTH=640
@@ -27,27 +27,27 @@ fi
 # Detect OS
 OS="$(uname -s)"
 case "$OS" in
-  Darwin*)  
-    LOVE_PATH="/Applications/love.app/Contents/MacOS/love"
-    ;;
-  Linux*)   
-    # Check for possible Linux love executable locations
-    if command -v love &> /dev/null; then
-      LOVE_PATH="love"
-    elif [ -x "/usr/bin/love" ]; then
-      LOVE_PATH="/usr/bin/love"
-    elif [ -x "/usr/local/bin/love" ]; then
-      LOVE_PATH="/usr/local/bin/love"
-    else
-      echo "Error: LÖVE executable not found. Please install LÖVE (https://love2d.org)"
-      exit 1
-    fi
-    ;;
-  *)
-    echo "Error: Unsupported operating system: $OS"
-    echo "This script currently supports macOS and Linux only."
+Darwin*)
+  LOVE_PATH="/Applications/love.app/Contents/MacOS/love"
+  ;;
+Linux*)
+  # Check for possible Linux love executable locations
+  if command -v love &>/dev/null; then
+    LOVE_PATH="love"
+  elif [ -x "/usr/bin/love" ]; then
+    LOVE_PATH="/usr/bin/love"
+  elif [ -x "/usr/local/bin/love" ]; then
+    LOVE_PATH="/usr/local/bin/love"
+  else
+    echo "Error: LÖVE executable not found. Please install LÖVE (https://love2d.org)"
     exit 1
-    ;;
+  fi
+  ;;
+*)
+  echo "Error: Unsupported operating system: $OS"
+  echo "This script currently supports macOS and Linux only."
+  exit 1
+  ;;
 esac
 
 # Define project directories
@@ -61,8 +61,7 @@ mkdir -p "$LOG_DIR"
 mkdir -p "$ROOT_DIR/theme_working"
 
 # Generate a unique session ID based on timestamp
-SESSION_ID=$(date +%Y%m%d_%H%M%S)
-SESSION_LOG_FILE="$LOG_DIR/$SESSION_ID.log"
+SESSION_LOG_FILE="$LOG_DIR/$(date +%Y%m%d_%H%M%S).log"
 
 # Create local development directories that emulate handheld paths
 LOCAL_MUOS_STORAGE_DIR="$ROOT_DIR/run/muos/storage"
@@ -81,16 +80,13 @@ touch "$LOCAL_MUOS_DEVICE_DIR/current/script/led_control.sh"
 chmod +x "$LOCAL_MUOS_DEVICE_DIR/current/script/led_control.sh"
 
 # Create version.txt file for development
-echo "1.0.0-dev" > "$LOCAL_MUOS_CONFIG_DIR/version.txt"
+echo "1.0.0-dev" >"$LOCAL_MUOS_CONFIG_DIR/version.txt"
 
 # Export environment variables
 export SOURCE_DIR
 export ROOT_DIR
-export LOG_DIR
-export SESSION_ID
 export SESSION_LOG_FILE
 export TEMPLATE_DIR
-export MUOS_STORAGE_THEME_DIR="$LOCAL_MUOS_STORAGE_DIR/theme"
 export MUOS_DEVICE_SCRIPT_DIR_GOOSE="$LOCAL_MUOS_DEVICE_DIR/script"
 export WIDTH
 export HEIGHT
@@ -109,6 +105,11 @@ if [ ! -L "$SOURCE_DIR/src/assets" ]; then
   ln -s "$SOURCE_DIR/assets" "$SOURCE_DIR/src/assets"
 fi
 
+# Set up symlink for scheme_templates
+if [ ! -L "$ROOT_DIR/scheme_templates" ]; then
+  ln -s "$SOURCE_DIR/src/scheme_templates" "$ROOT_DIR/scheme_templates"
+fi
+
 # Print environment info for debugging
 echo "Starting Aesthetic in development mode..."
 echo "DETECTED OS: $OS"
@@ -117,7 +118,6 @@ echo "SOURCE_DIR: $SOURCE_DIR"
 echo "ROOT_DIR: $ROOT_DIR"
 echo "LOG_DIR: $LOG_DIR"
 echo "SESSION_LOG_FILE: $SESSION_LOG_FILE"
-echo "MUOS_STORAGE_THEME_DIR: $MUOS_STORAGE_THEME_DIR"
 echo "MUOS_DEVICE_SCRIPT_DIR: $MUOS_DEVICE_SCRIPT_DIR"
 echo "WINDOW DIMENSIONS: ${WIDTH}x${HEIGHT}"
 
@@ -130,5 +130,5 @@ echo ""
 # Launch application with LÖVE and pass screen dimensions
 cd "$SOURCE_DIR" || exit
 # Launch with explicit width and height arguments
-"$LOVE_PATH" src --width $WIDTH --height $HEIGHT 2>&1 | tee -a "$SESSION_LOG_FILE" 
-# "$LOVE_PATH" src 2>&1 | tee -a "$SESSION_LOG_FILE" 
+"$LOVE_PATH" src --width $WIDTH --height $HEIGHT 2>&1 | tee -a "$SESSION_LOG_FILE"
+# "$LOVE_PATH" src 2>&1 | tee -a "$SESSION_LOG_FILE"
