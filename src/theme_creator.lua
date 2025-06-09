@@ -296,33 +296,40 @@ function themeCreator.createThemeCoroutine()
 				return false, gridErr
 			end
 
-			coroutine.yield("Copying glyphs...")
-			local glyphSourceDir = paths.SOURCE_DIR .. "/assets/icons/glyph"
+			coroutine.yield("Copying icons...")
+			local glyphSourceDir = paths.GLYPHS_SOURCE_DIR
 			local glyphDestDir = paths.THEME_GLYPH_DIR
+
 			if system.isDir(glyphSourceDir) then
 				glyphSourceDir = glyphSourceDir .. "/"
 			end
 			local glyphSuccess, glyphErr = system.copy(glyphSourceDir, glyphDestDir)
+
 			if not glyphSuccess then
 				return false, glyphErr or ("Failed to copy glyphs from: " .. glyphSourceDir)
 			end
+
+			coroutine.yield("Copying home screen grid layout icons...")
 			local muxlaunchGridSource = paths.SOURCE_DIR .. "/assets/image/grid/muxlaunch"
 			local muxlaunchGridDest = paths.WORKING_THEME_DIR .. "/image/grid/muxlaunch"
 			if system.isDir(muxlaunchGridSource) then
 				muxlaunchGridSource = muxlaunchGridSource .. "/"
 			end
-			local gridCopySuccess, gridCopyErr = system.copy(muxlaunchGridSource, muxlaunchGridDest)
-			if not gridCopySuccess then
-				return false, gridCopyErr or "Failed to copy muxlaunch grid icons."
+			local success, err = system.copy(muxlaunchGridSource, muxlaunchGridDest)
+			if not success then
+				return false, err or "Failed to copy muxlaunch grid icons."
 			end
+
+			coroutine.yield("Copying 1024x768 home screen grid layout icons...")
 			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
 			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
+
 			if system.isDir(muxlaunchGrid1024Source) then
 				muxlaunchGrid1024Source = muxlaunchGrid1024Source .. "/"
 			end
-			local grid1024Success, grid1024Err = system.copy(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
-			if not grid1024Success then
-				return false, grid1024Err or "Failed to copy 1024x768 muxlaunch grid icons."
+			local success, err = system.copy(muxlaunchGrid1024Source, muxlaunchGrid1024Dest)
+			if not success then
+				return false, err or "Failed to copy 1024x768 muxlaunch grid icons."
 			end
 
 			coroutine.yield("Creating boot images...")
@@ -360,141 +367,139 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Applying color settings...")
-			local colorSuccess, colorErr = schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL)
-			if not colorSuccess then
-				return false, colorErr
+			local success, error = schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Applying battery settings...")
-			local batterySuccess, batteryErr = schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL)
-			if not batterySuccess then
-				return false, batteryErr
+			local success, error = schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
-			local glyphSetSuccess, glyphSetErr = schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL)
-			if not glyphSetSuccess then
-				return false, glyphSetErr
+			coroutine.yield("Applying glyph settings...")
+			local success, error = schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Applying font padding settings...")
-			local fontPadSuccess, fontPadErr =
-				schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL)
-			if not fontPadSuccess then
-				return false, fontPadErr
+			local success, error = schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Applying content padding left settings...")
-			local contentPadSuccess, contentPadErr =
+			local success, error =
 				schemeConfigurator.applyContentPaddingLeftSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
-			if not contentPadSuccess then
-				return false, contentPadErr
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Applying content width settings...")
-			local contentWidthSuccess, contentWidthErr =
+			local success, error =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
-			if not contentWidthSuccess then
-				return false, contentWidthErr
+			if not success then
+				return false, error
 			end
-			local muxploreWidthSuccess, muxploreWidthErr =
+			local success, error =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXPLORE, state.screenWidth)
-			if not muxploreWidthSuccess then
-				return false, muxploreWidthErr
+			if not success then
+				return false, error
 			end
-			local muxhistoryWidthSuccess, muxhistoryWidthErr =
+			local success, error =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXHISTORY, state.screenWidth)
-			if not muxhistoryWidthSuccess then
-				return false, muxhistoryWidthErr
+			if not success then
+				return false, error
 			end
-			local muxcollectWidthSuccess, muxcollectWidthErr =
+			local success, error =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXCOLLECT, state.screenWidth)
-			if not muxcollectWidthSuccess then
-				return false, muxcollectWidthErr
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Applying alignment settings...")
-			local navAlignSuccess, navAlignErr =
-				schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not navAlignSuccess then
-				return false, navAlignErr
+			local success, error = schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
-			local statusAlignSuccess, statusAlignErr =
-				schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not statusAlignSuccess then
-				return false, statusAlignErr
+			local success, error = schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
-			local headerAlignSuccess, headerAlignErr =
-				schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not headerAlignSuccess then
-				return false, headerAlignErr
+			local success, error = schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
-			local datetimeSuccess, datetimeErr = schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL)
-			if not datetimeSuccess then
-				return false, datetimeErr
+			local success, error = schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
-			coroutine.yield("Applying alpha settings...")
-			local headerOpacitySuccess, headerOpacityErr =
-				schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL)
-			if not headerOpacitySuccess then
-				return false, headerOpacityErr
-			end
-			local navAlphaSuccess, navAlphaErr =
-				schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL)
-			if not navAlphaSuccess then
-				return false, navAlphaErr
+			coroutine.yield("Applying header opacity settings...")
+			local success, error = schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
-			coroutine.yield("Copying font files...")
-			local fontSuccess, fontErr = copySelectedFont()
-			if not fontSuccess then
-				return false, fontErr
+			coroutine.yield("Applying navigation opacity settings...")
+			local success, error = schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL)
+			if not success then
+				return false, error
 			end
 
-			coroutine.yield("Creating text files...")
-			local creditsSuccess, creditsErr = createCreditsFile()
-			if not creditsSuccess then
-				return false, creditsErr
+			coroutine.yield("Copying font file...")
+			local success, error = copySelectedFont()
+			if not success then
+				return false, error
 			end
-			local versionSuccess, versionErr = createVersionFile()
-			if not versionSuccess then
-				return false, versionErr
+
+			coroutine.yield("Creating credits file...")
+			local success, error = createCreditsFile()
+			if not success then
+				return false, error
+			end
+
+			coroutine.yield("Creating version file...")
+			local success, error = createVersionFile()
+			if not success then
+				return false, error
 			end
 
 			if state.hasRGBSupport then
 				coroutine.yield("Setting up RGB configuration...")
-				local rgbSuccess, rgbErr = rgb.createConfigFile(paths.THEME_RGB_CONF)
-				if not rgbSuccess then
-					return false, rgbErr
+				local success, error = rgb.createConfigFile(paths.THEME_RGB_CONF)
+				if not success then
+					return false, error
 				end
 			end
 
 			coroutine.yield("Copying sound files...")
-			local soundSuccess, soundErr = copySoundFiles()
-			if not soundSuccess then
-				return false, soundErr
+			local success, error = copySoundFiles()
+			if not success then
+				return false, error
 			end
 
 			coroutine.yield("Creating theme archive...")
 			local candidateOutputPath = paths.MUOS_THEMES_DIR .. "/" .. state.themeName .. ".muxthm"
-			local outputThemePath = system.createArchive(paths.WORKING_THEME_DIR, candidateOutputPath)
-			if not outputThemePath then
+			local finalOutputPath = system.createArchive(paths.WORKING_THEME_DIR, candidateOutputPath)
+			if not finalOutputPath then
 				return false, "Failed to create theme archive."
 			end
-
-			if not themePackager.createNameFile(outputThemePath, paths.THEME_NAME) then
+			if not themePackager.createNameFile(finalOutputPath, paths.THEME_NAME) then
 				return false, "Failed to create name.txt for theme archive."
 			end
 
 			coroutine.yield("Cleaning up...")
 			themePackager.cleanupWorkingDir(paths.WORKING_THEME_DIR)
 
-			coroutine.yield("Syncing filesystem...")
-			commands.executeCommand("sync")
+			-- coroutine.yield("Syncing filesystem...")
+			-- commands.executeCommand("sync")
 
 			resetGraphicsState()
 
-			return outputThemePath
+			return finalOutputPath
 		end, debug.traceback)
 
 		if not status then
@@ -515,28 +520,18 @@ function themeCreator.installThemeCoroutine(themeName)
 		local status, result = xpcall(function()
 			coroutine.yield("Preparing installation...")
 
-			if not system.fileExists(paths.MUOS_THEME_SCRIPT) then
-				coroutine.yield("Install script not found - skipping...")
-				return true
+			local muosCodename = system.getMuosCodename()
+			if not muosCodename then
+				return false, "Failed to get muOS codename."
 			end
 
-			local systemVersion = system.getSystemVersion()
-			logger.debug("System version: " .. tostring(systemVersion))
-			if not systemVersion then
-				return false, "Failed to get system version."
-			end
-
-			local cmd
-			if systemVersion == "GOOSE" then
-				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName)
-			else
-				cmd = string.format('%s install "%s"', paths.MUOS_THEME_SCRIPT, themeName)
+			local cmd = string.format('%s install "%s"', paths.MUOS_THEME_SCRIPT, themeName)
+			if muosCodename == "GOOSE" then
+				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName) -- Use custom script for Goose
 			end
 
 			coroutine.yield("Installing theme files...")
-			local installResult = commands.executeCommand(cmd)
-
-			if installResult ~= 0 then
+			if commands.executeCommand(cmd) ~= 0 then
 				return false, "Theme installation command failed."
 			end
 

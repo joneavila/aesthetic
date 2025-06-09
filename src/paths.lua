@@ -41,7 +41,8 @@ paths.THEME_GLYPH_DIR = paths.WORKING_THEME_DIR .. "/glyph"
 paths.THEME_GLYPH_DIR_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/glyph"
 paths.THEME_SOUND_DIR = paths.WORKING_THEME_DIR .. "/sound"
 
-paths.HEADER_GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph/header"
+paths.GLYPHS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/glyph"
+paths.HEADER_GLYPHS_SOURCE_DIR = paths.GLYPHS_SOURCE_DIR .. "/header"
 paths.CONTROL_HINTS_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/icons/kenney_input_prompts"
 
 paths.THEME_SCHEME_DIR = paths.WORKING_THEME_DIR .. "/scheme"

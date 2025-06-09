@@ -476,22 +476,21 @@ function system.removeFile(path)
 	return true
 end
 
--- Function to get the system version (GOOSE or PIXIE)
-function system.getSystemVersion()
+function system.getMuosCodename()
 	local paths = require("paths")
 	local versionFile = paths.MUOS_VERSION_FILE
 	if not versionFile or not system.fileExists(versionFile) then
-		return fail("MUOS version file not found")
+		return fail("muOS version file not found")
 	end
 	local content = system.readFile(versionFile)
 	if not content then
-		return fail("Failed to read MUOS version file")
+		return fail("Failed to read muOS version file")
 	end
-	local variant = content:match("_(%u+)")
-	if not variant then
-		return fail("Failed to parse system version from MUOS version file")
+	local codename = content:match("_(%u+)")
+	if not codename then
+		return fail("Failed to parse system version from muOS version file")
 	end
-	return variant
+	return codename
 end
 
 return system
