@@ -45,6 +45,11 @@ local inputFieldHeight = 50
 local inputFieldPadding = 10
 local screenPadding = 10 -- Padding from screen edges
 
+-- Cursor blink variables
+local cursorVisible = true
+local cursorBlinkTimer = 0
+local CURSOR_BLINK_INTERVAL = 0.5 -- seconds
+
 -- Keyboard layouts for different layers
 local keyboardLayouts = {
 	-- Layer 1: Lowercase
@@ -281,8 +286,15 @@ local function handleKeySelection()
 end
 
 -- Handle user input
-function virtual_keyboard.update(_dt)
+function virtual_keyboard.update(dt)
 	local virtualJoystick = input.virtualJoystick
+
+	-- Cursor blinking logic
+	cursorBlinkTimer = cursorBlinkTimer + (dt or 0)
+	if cursorBlinkTimer >= CURSOR_BLINK_INTERVAL then
+		cursorBlinkTimer = cursorBlinkTimer - CURSOR_BLINK_INTERVAL
+		cursorVisible = not cursorVisible
+	end
 
 	-- D-pad navigation
 	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
@@ -405,21 +417,29 @@ function virtual_keyboard.draw()
 	-- Draw header
 	header.draw(headerTitle)
 
-	-- Draw input field
-	love.graphics.setColor(colors.ui.surface)
+	-- Calculate input field position and size to match keyboard edge padding
+	local inputFieldX = screenPadding
+	local inputFieldWidth = state.screenWidth - (screenPadding * 2)
 	local inputFieldY = header.getContentStartY() + 10
-	love.graphics.rectangle("fill", 40, inputFieldY, state.screenWidth - 80, inputFieldHeight, 5, 5)
 
-	-- Draw input text
+	-- Draw input field background and outline
+	love.graphics.setColor(colors.ui.surface_focus)
+	love.graphics.rectangle("fill", inputFieldX, inputFieldY, inputFieldWidth, inputFieldHeight, 5, 5)
+	love.graphics.setColor(colors.ui.surface_focus_outline)
+	love.graphics.setLineWidth(1)
+	love.graphics.rectangle("line", inputFieldX, inputFieldY, inputFieldWidth, inputFieldHeight, 5, 5)
+
+	-- Draw input text with blinking cursor
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(fonts.loaded.body)
-	love.graphics.printf(
-		inputValue,
-		40 + inputFieldPadding,
-		inputFieldY + (inputFieldHeight - fonts.loaded.body:getHeight()) / 2,
-		state.screenWidth - 80 - (inputFieldPadding * 2),
-		"left"
-	)
+	local textX = inputFieldX + inputFieldPadding
+	local textY = inputFieldY + (inputFieldHeight - fonts.loaded.body:getHeight()) / 2
+	local textWidth = state.screenWidth - (screenPadding * 2) - (inputFieldPadding * 2)
+	local displayValue = inputValue
+	if cursorVisible then
+		displayValue = displayValue .. "|"
+	end
+	love.graphics.printf(displayValue, textX, textY, textWidth, "left")
 
 	-- Check keyboard row units before drawing
 	local totalUnits = checkKeyboardRowUnits(keyboard)
