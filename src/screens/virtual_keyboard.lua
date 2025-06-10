@@ -7,6 +7,9 @@ local controls = require("control_hints")
 local background = require("ui.background")
 local input = require("input")
 local screens = require("screens")
+local Button = require("ui.button").Button
+local ButtonTypes = require("ui.button").TYPES
+local logger = require("utils.logger")
 
 -- Virtual keyboard screen module
 -- Its layout closely follows muOS's virtual keyboard layout
@@ -32,45 +35,6 @@ local returnScreen = nil
 local lastRow4X = nil -- Track the last X position in Row 4
 local currentLayer = 1 -- Track current keyboard layer (1, 2, or 3)
 
--- Keyboard layouts for different layers
-local keyboardLayouts = {
-	-- Layer 1: Lowercase
-	{
-		-- Row 1: Digits
-		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
-		-- Row 2: QWERTY
-		{ "q", "w", "e", "r", "t", "y", "u", "i", "o", "p" },
-		-- Row 3: ASDF
-		{ "a", "s", "d", "f", "g", "h", "j", "k", "l", "-" },
-		-- Row 4: ZXCV
-		{ "z", "x", "c", "v", "b", "n", "m", "(", ")", "_" },
-		-- Row 5: Special keys
-		{ "ABC", "", "OK" },
-	},
-	-- Layer 2: Uppercase
-	{
-		-- Row 1: Digits
-		{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
-		-- Row 2: QWERTY uppercase
-		{ "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" },
-		-- Row 3: ASDF uppercase
-		{ "A", "S", "D", "F", "G", "H", "J", "K", "L", "-" },
-		-- Row 4: ZXCV uppercase
-		{ "Z", "X", "C", "V", "B", "N", "M", "(", ")", "_" },
-		-- Row 5: Special keys
-		{ "abc", "", "OK" },
-	},
-}
-
--- Variable to store the current keyboard layout
-local keyboard = keyboardLayouts[1]
-
--- Function to switch keyboard layer
-local function switchKeyboardLayer()
-	currentLayer = currentLayer % 2 + 1 -- Cycle through layers
-	keyboard = keyboardLayouts[currentLayer]
-end
-
 -- Key dimensions and layout
 local keyWidth = 40
 local keyHeight = 40
@@ -79,37 +43,185 @@ local keyboardX = 0
 local keyboardY = 0
 local inputFieldHeight = 50
 local inputFieldPadding = 10
-local screenPadding = 40 -- Padding from screen edges
+local screenPadding = 10 -- Padding from screen edges
 
--- Initialize the keyboard position
-local function initializeKeyboard()
-	-- Find the maximum row length
-	local maxRowLength = 0
-	for _, row in ipairs(keyboard) do
-		if #row > maxRowLength then
-			maxRowLength = #row
+-- Keyboard layouts for different layers
+local keyboardLayouts = {
+	-- Layer 1: Lowercase
+	{
+		-- Row 1: Digits
+		{
+			{ label = "1", units = 1 },
+			{ label = "2", units = 1 },
+			{ label = "3", units = 1 },
+			{ label = "4", units = 1 },
+			{ label = "5", units = 1 },
+			{ label = "6", units = 1 },
+			{ label = "7", units = 1 },
+			{ label = "8", units = 1 },
+			{ label = "9", units = 1 },
+			{ label = "0", units = 1 },
+		},
+		-- Row 2: QWERTY
+		{
+			{ label = "q", units = 1 },
+			{ label = "w", units = 1 },
+			{ label = "e", units = 1 },
+			{ label = "r", units = 1 },
+			{ label = "t", units = 1 },
+			{ label = "y", units = 1 },
+			{ label = "u", units = 1 },
+			{ label = "i", units = 1 },
+			{ label = "o", units = 1 },
+			{ label = "p", units = 1 },
+		},
+		-- Row 3: ASDF
+		{
+			{ label = "a", units = 1 },
+			{ label = "s", units = 1 },
+			{ label = "d", units = 1 },
+			{ label = "f", units = 1 },
+			{ label = "g", units = 1 },
+			{ label = "h", units = 1 },
+			{ label = "j", units = 1 },
+			{ label = "k", units = 1 },
+			{ label = "l", units = 1 },
+			{ label = "-", units = 1 },
+		},
+		-- Row 4: ZXCV
+		{
+			{ label = "z", units = 1 },
+			{ label = "x", units = 1 },
+			{ label = "c", units = 1 },
+			{ label = "v", units = 1 },
+			{ label = "b", units = 1 },
+			{ label = "n", units = 1 },
+			{ label = "m", units = 1 },
+			{ label = "(", units = 1 },
+			{ label = ")", units = 1 },
+			{ label = "_", units = 1 },
+		},
+		-- Row 5: Special keys (ABC, SPACE, OK)
+		{
+			{ label = "ABC", units = 2 },
+			{ label = "", units = 5 },
+			{ label = "OK", units = 3 },
+		},
+	},
+	-- Layer 2: Uppercase
+	{
+		-- Row 1: Digits
+		{
+			{ label = "1", units = 1 },
+			{ label = "2", units = 1 },
+			{ label = "3", units = 1 },
+			{ label = "4", units = 1 },
+			{ label = "5", units = 1 },
+			{ label = "6", units = 1 },
+			{ label = "7", units = 1 },
+			{ label = "8", units = 1 },
+			{ label = "9", units = 1 },
+			{ label = "0", units = 1 },
+		},
+		-- Row 2: QWERTY uppercase
+		{
+			{ label = "Q", units = 1 },
+			{ label = "W", units = 1 },
+			{ label = "E", units = 1 },
+			{ label = "R", units = 1 },
+			{ label = "T", units = 1 },
+			{ label = "Y", units = 1 },
+			{ label = "U", units = 1 },
+			{ label = "I", units = 1 },
+			{ label = "O", units = 1 },
+			{ label = "P", units = 1 },
+		},
+		-- Row 3: ASDF uppercase
+		{
+			{ label = "A", units = 1 },
+			{ label = "S", units = 1 },
+			{ label = "D", units = 1 },
+			{ label = "F", units = 1 },
+			{ label = "G", units = 1 },
+			{ label = "H", units = 1 },
+			{ label = "J", units = 1 },
+			{ label = "K", units = 1 },
+			{ label = "L", units = 1 },
+			{ label = "-", units = 1 },
+		},
+		-- Row 4: ZXCV uppercase
+		{
+			{ label = "Z", units = 1 },
+			{ label = "X", units = 1 },
+			{ label = "C", units = 1 },
+			{ label = "V", units = 1 },
+			{ label = "B", units = 1 },
+			{ label = "N", units = 1 },
+			{ label = "M", units = 1 },
+			{ label = "(", units = 1 },
+			{ label = ")", units = 1 },
+			{ label = "_", units = 1 },
+		},
+		-- Row 5: Special keys (abc, SPACE, OK)
+		{
+			{ label = "abc", units = 2 },
+			{ label = "", units = 5 },
+			{ label = "OK", units = 3 },
+		},
+	},
+}
+
+-- Variable to store the current keyboard layout
+local keyboard = keyboardLayouts[1]
+
+local keyButtons = nil -- 2D array of Button objects
+
+local function buildKeyButtons()
+	keyButtons = {}
+	for y, row in ipairs(keyboard) do
+		keyButtons[y] = {}
+		for x, key in ipairs(row) do
+			local button = Button:new({
+				type = ButtonTypes.KEY,
+				text = key.label,
+				visible = true,
+				enabled = true,
+				fullWidth = false,
+			})
+			keyButtons[y][x] = button
 		end
 	end
+end
 
-	-- Calculate key width based on available width
-	local availableWidth = state.screenWidth - (screenPadding * 2)
-	keyWidth = (availableWidth - ((maxRowLength - 1) * keySpacing)) / maxRowLength
+-- Update positions and sizes for all key buttons (called in draw)
+local function updateKeyButtonLayout(unitSize, keyboardX, keyboardY)
+	for y, row in ipairs(keyboard) do
+		local xOffset = 0
+		for x, key in ipairs(row) do
+			local keyUnits = key.units or 1
+			local actualKeyWidth = unitSize * keyUnits + keySpacing * (keyUnits - 1)
+			local posX = keyboardX + xOffset
+			local posY = keyboardY + (y - 1) * (unitSize + keySpacing)
+			local button = keyButtons[y][x]
+			button.x = posX
+			button.y = posY
+			button.width = actualKeyWidth
+			button.height = unitSize
+			xOffset = xOffset + actualKeyWidth + keySpacing
+		end
+	end
+end
 
-	-- Make keys square by setting height equal to width
-	keyHeight = keyWidth
-
-	-- Position keyboard at left edge + padding
-	keyboardX = screenPadding
-
-	-- Position keyboard below input field
-	keyboardY = header.getContentStartY() + inputFieldHeight + 30
+-- Function to switch keyboard layer
+local function switchKeyboardLayer()
+	currentLayer = currentLayer % 2 + 1 -- Cycle through layers
+	keyboard = keyboardLayouts[currentLayer]
+	buildKeyButtons()
 end
 
 -- Handle screen entry
 function virtual_keyboard.onEnter(params)
-	-- Initialize keyboard positioning
-	initializeKeyboard()
-
+	logger.debug("onEnter")
 	-- Reset state
 	inputValue = ""
 	selectedX = 1
@@ -127,6 +239,8 @@ function virtual_keyboard.onEnter(params)
 			inputValue = params.inputValue
 		end
 	end
+
+	buildKeyButtons()
 end
 
 -- Handle screen exit
@@ -142,8 +256,9 @@ local BUTTON_CORNER_RADIUS = 5
 -- Handle key selection
 local function handleKeySelection()
 	local selectedKey = keyboard[selectedY][selectedX]
+	local keyLabel = selectedKey.label
 
-	if selectedKey == "OK" then
+	if keyLabel == "OK" then
 		-- Pass the necessary data: preventImmediateInput, inputValue, title, and returnScreen
 		screens.switchTo(returnScreen, {
 			preventImmediateInput = true,
@@ -151,17 +266,17 @@ local function handleKeySelection()
 			title = headerTitle,
 			returnScreen = returnScreen,
 		})
-	elseif selectedKey == "" then
+	elseif keyLabel == "" then
 		-- Space key (empty text)
 		inputValue = inputValue .. " "
-	elseif selectedKey == "ABC" or selectedKey == "abc" then
+	elseif keyLabel == "ABC" or keyLabel == "abc" then
 		switchKeyboardLayer()
-	elseif selectedKey == "BACKSPACE" then
+	elseif keyLabel == "BACKSPACE" then
 		if #inputValue > 0 then
 			inputValue = string.sub(inputValue, 1, -2)
 		end
-	elseif selectedKey ~= "" then
-		inputValue = inputValue .. selectedKey
+	elseif keyLabel ~= "" then
+		inputValue = inputValue .. keyLabel
 	end
 end
 
@@ -200,6 +315,7 @@ function virtual_keyboard.update(_dt)
 			lastRow4X = selectedX
 
 			-- Moving down from the letter/number rows to special keys
+			local keyLabel = keyboard[4][selectedX].label
 			if selectedX <= 2 then -- "z" or "x"
 				selectedY = 5
 				selectedX = 1 -- ABC/layer switch key
@@ -256,6 +372,31 @@ function virtual_keyboard.update(_dt)
 	end
 end
 
+-- Helper: Check that all rows have the same total units
+local function checkKeyboardRowUnits(layout)
+	local expectedUnits = nil
+	for rowIdx, row in ipairs(layout) do
+		local rowUnits = 0
+		for _, key in ipairs(row) do
+			rowUnits = rowUnits + (key.units or 1)
+		end
+		if not expectedUnits then
+			expectedUnits = rowUnits
+		elseif rowUnits ~= expectedUnits then
+			print(
+				"[virtual_keyboard] Error: Row "
+					.. rowIdx
+					.. " has "
+					.. rowUnits
+					.. " units, expected "
+					.. expectedUnits
+			)
+			assert(false, "All keyboard rows must have the same total units")
+		end
+	end
+	return expectedUnits
+end
+
 -- Draw the virtual keyboard
 function virtual_keyboard.draw()
 	-- Draw background
@@ -280,83 +421,33 @@ function virtual_keyboard.draw()
 		"left"
 	)
 
+	-- Check keyboard row units before drawing
+	local totalUnits = checkKeyboardRowUnits(keyboard)
+	local numRows = #keyboard
+
+	-- Calculate available width and height for the keyboard grid
+	local availableWidth = state.screenWidth - (screenPadding * 2)
+	local availableHeight = state.screenHeight - (inputFieldY + inputFieldHeight + 30) - screenPadding
+
+	-- Determine the size of a unit so that keys are square and fit the grid
+	local unitWidth = (availableWidth - ((totalUnits - 1) * keySpacing)) / totalUnits
+	local unitHeight = (availableHeight - ((numRows - 1) * keySpacing)) / numRows
+	local unitSize = math.floor(math.min(unitWidth, unitHeight))
+
+	-- Update keyboardX and keyboardY to center the keyboard grid
+	local keyboardGridWidth = totalUnits * unitSize + (totalUnits - 1) * keySpacing
+	local keyboardGridHeight = numRows * unitSize + (numRows - 1) * keySpacing
+	local keyboardX = math.floor((state.screenWidth - keyboardGridWidth) / 2)
+	local keyboardY = inputFieldY + inputFieldHeight + math.floor((availableHeight - keyboardGridHeight) / 2)
+
+	updateKeyButtonLayout(unitSize, keyboardX, keyboardY)
+
 	-- Draw keyboard
 	for y, row in ipairs(keyboard) do
-		local xOffset = 0
 		for x, key in ipairs(row) do
-			-- Calculate key position
-			local posX = keyboardX + xOffset
-			local posY = keyboardY + (y - 1) * (keyHeight + keySpacing)
-
-			-- Draw all keys, including empty space key
-			-- Determine key width for special keys
-			local actualKeyWidth = keyWidth
-			if x == 2 and y == 5 then -- SPACE (now checking by position instead of label)
-				actualKeyWidth = keyWidth * 5 + keySpacing * 4
-			elseif x == 1 and y == 5 then -- ABC/layer switch key
-				actualKeyWidth = keyWidth * 2 + keySpacing
-			elseif x == 3 and y == 5 then -- OK
-				actualKeyWidth = keyWidth * 3 + keySpacing * 2
-			elseif key == "BACKSPACE" then
-				actualKeyWidth = keyWidth
-			end
-
-			-- Draw key background
-			local isSelected = (x == selectedX and y == selectedY)
-
-			-- Set background color
-			if isSelected then
-				love.graphics.setColor(colors.ui.surface)
-			else
-				love.graphics.setColor(colors.ui.background)
-			end
-
-			-- Draw key background
-			love.graphics.rectangle(
-				"fill",
-				posX,
-				posY,
-				actualKeyWidth,
-				keyHeight,
-				BUTTON_CORNER_RADIUS,
-				BUTTON_CORNER_RADIUS
-			)
-
-			-- Draw key outline (matching hex.lua)
-			love.graphics.setLineWidth(isSelected and SELECTED_OUTLINE_WIDTH or OUTLINE_WIDTH)
-			love.graphics.setColor(colors.ui.surface)
-			love.graphics.rectangle(
-				"line",
-				posX,
-				posY,
-				actualKeyWidth,
-				keyHeight,
-				BUTTON_CORNER_RADIUS,
-				BUTTON_CORNER_RADIUS
-			)
-
-			-- Draw key text, if it has any
-			if key ~= "" then
-				love.graphics.setColor(colors.ui.foreground)
-				love.graphics.setFont(fonts.loaded.body)
-
-				local textX = posX + (actualKeyWidth - fonts.loaded.body:getWidth(key)) / 2
-				local textY = posY + (keyHeight - fonts.loaded.body:getHeight()) / 2
-
-				love.graphics.print(key, textX, textY)
-			end
-
-			-- Increment xOffset based on key width
-			local keyStep = keyWidth + keySpacing
-			if x == 2 and y == 5 then -- SPACE
-				xOffset = xOffset + keyWidth * 5 + keySpacing * 5
-			elseif x == 1 and y == 5 then -- ABC/layer switch key
-				xOffset = xOffset + keyWidth * 2 + keySpacing * 2
-			elseif x == 3 and y == 5 then -- OK
-				xOffset = xOffset + keyWidth * 3 + keySpacing * 3
-			else
-				xOffset = xOffset + keyStep
-			end
+			local button = keyButtons[y][x]
+			button:setFocused(x == selectedX and y == selectedY)
+			button:draw()
 		end
 	end
 

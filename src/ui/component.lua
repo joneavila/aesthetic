@@ -1,5 +1,6 @@
 --- Base UI Component
 --- Provides common functionality for all UI components
+local love = require("love")
 
 local component = {}
 

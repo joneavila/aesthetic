@@ -6,6 +6,7 @@ local colorUtils = require("utils.color")
 local svg = require("utils.svg")
 local gradientPreview = require("ui.gradient_preview")
 local Component = require("ui.component").Component
+local logger = require("utils.logger")
 
 -- Button constants
 local BUTTON_CONFIG = {
@@ -29,6 +30,7 @@ local BUTTON_TYPES = {
 	INDICATORS = "indicators",
 	ACCENTED = "accented",
 	DUAL_COLOR = "dual_color",
+	KEY = "key",
 }
 
 -- Button class
@@ -77,14 +79,26 @@ end
 
 function Button:calculateDimensions()
 	local font = love.graphics.getFont()
-	if not self.height then
-		self.height = font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2)
-	end
 	if self.fullWidth then
+		if not self.height then
+			self.height = font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2)
+		end
 		self.width = self.screenWidth - (BUTTON_CONFIG.EDGE_MARGIN * 2)
-	end
-	if self.width then
 		self.x = BUTTON_CONFIG.EDGE_MARGIN
+		-- y is set by caller or layout
+	else
+		-- For fullWidth == false, do not override x, y, width, height
+		-- If width/height are not set, fallback to minimum size
+		if not self.width then
+			logger.debug(
+				"width not set, setting to " .. font:getWidth(self.text) + (BUTTON_CONFIG.HORIZONTAL_PADDING * 2)
+			)
+			self.width = font:getWidth(self.text) + (BUTTON_CONFIG.HORIZONTAL_PADDING * 2)
+		end
+		if not self.height then
+			logger.debug("height not set, setting to " .. font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2))
+			self.height = font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2)
+		end
 	end
 end
 
@@ -415,6 +429,23 @@ function Button:drawDualColor()
 	love.graphics.setFont(originalFont)
 end
 
+function Button:drawKey()
+	if self.focused then
+		self:drawBackground()
+	else
+		love.graphics.setColor(colors.ui.background_dim)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, 8)
+	end
+	local font = love.graphics.getFont()
+	local textWidth = font:getWidth(self.text)
+	local textHeight = font:getHeight()
+	local textX = self.x + (self.width - textWidth) / 2
+	local textY = self.y + (self.height - textHeight) / 2
+	local opacity = self.disabled and 0.3 or 1
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.print(self.text, textX, textY)
+end
+
 function Button:draw()
 	if not self.visible then
 		return
@@ -434,6 +465,8 @@ function Button:draw()
 		self:drawAccented()
 	elseif self.type == BUTTON_TYPES.DUAL_COLOR then
 		self:drawDualColor()
+	elseif self.type == BUTTON_TYPES.KEY then
+		self:drawKey()
 	else
 		self:drawBasic()
 	end
