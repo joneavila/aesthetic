@@ -91,7 +91,7 @@ function battery.draw()
 
 	-- Find the slider in the menuList
 	local slider = menuList and menuList.items and menuList.items[3]
-	local previewY = (slider and slider.y + Slider.getTotalHeight() + 20) or 200
+	local previewY = (slider and slider.y + slider:getHeight() + 20) or 200
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 	local previewX = 40

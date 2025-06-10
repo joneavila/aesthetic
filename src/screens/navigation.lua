@@ -93,7 +93,7 @@ function navigationScreen.draw()
 	end
 	-- Draw preview rectangle (same as before, but get opacity from slider)
 	local opacitySlider = navigationScreen.list and navigationScreen.list.items[2]
-	local previewY = (opacitySlider and opacitySlider.y + Slider.getTotalHeight() + 20) or 200
+	local previewY = (opacitySlider and opacitySlider.y + opacitySlider:getHeight() + 20) or 200
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1

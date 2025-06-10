@@ -24,6 +24,8 @@ local MENU_SCREEN = "main_menu"
 -- Box art width options will be generated dynamically in load()
 local BOX_ART_WIDTH_OPTIONS = { 0 }
 
+local WARNING_TEXT_FONT = fonts.loaded.caption
+
 -- Display constants
 local EDGE_PADDING = 10
 -- This value should match padding applied in `scheme_configurator.lua`, `applyContentWidth` function
@@ -110,9 +112,9 @@ function box_art_width.draw()
 	header.draw("box art width")
 
 	-- Draw information text below header
-	local infoText = "This setting applies to the Content, Collection, and History screens and assumes you have\n"
-		.. ' set muOS "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
-	love.graphics.setFont(fonts.loaded.caption)
+	local infoText =
+		'This setting applies to the Content, Collection, and History screens and assumes you have set muOS "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
+	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
 	local infoY = header.getContentStartY() + 2
 	local infoWidth = state.screenWidth - EDGE_PADDING * 2
@@ -123,9 +125,9 @@ function box_art_width.draw()
 	-- Calculate dynamic height for info text
 	local font = love.graphics.getFont()
 	local _, wrappedLines = font:getWrap(infoText, infoWidth)
-	local infoHeight = #wrappedLines * font:getHeight() + 10
+	local infoHeight = #wrappedLines * font:getHeight()
 	if menuList then
-		menuList.y = header.getContentStartY() + infoHeight + 6
+		menuList.y = header.getContentStartY() + infoHeight
 		menuList:draw()
 	end
 
@@ -167,7 +169,7 @@ function box_art_width.draw()
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
-			previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
+			previewY + previewHeight / 2 - WARNING_TEXT_FONT:getHeight() / 2,
 			animatedLeftWidth,
 			"center"
 		)
@@ -175,7 +177,7 @@ function box_art_width.draw()
 			love.graphics.printf(
 				"Box art",
 				EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
-				previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
+				previewY + previewHeight / 2 - WARNING_TEXT_FONT:getHeight() / 2,
 				animatedRightWidth,
 				"center"
 			)
@@ -185,7 +187,7 @@ function box_art_width.draw()
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
-			previewY + previewHeight / 2 - fonts.loaded.caption:getHeight() / 2,
+			previewY + previewHeight / 2 - WARNING_TEXT_FONT:getHeight() / 2,
 			previewWidth,
 			"center"
 		)

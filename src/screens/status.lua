@@ -23,8 +23,9 @@ local input = nil
 
 -- Constants
 local EDGE_PADDING = 18
-local COMPONENT_SPACING = 18
+local COMPONENT_SPACING = 10
 local WARNING_TEXT = "Note: Status alignment setting may conflict with time alignment and header alignment settings."
+local WARNING_TEXT_FONT = fonts.loaded.caption
 
 -- Add menuList variable
 local menuList = nil
@@ -64,8 +65,8 @@ end
 -- Calculate warning text height properly accounting for wrapping
 local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	local _, wrappedLines = fonts.loaded.caption:getWrap(WARNING_TEXT, warningWidth)
-	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
+	local _, wrappedLines = WARNING_TEXT_FONT:getWrap(WARNING_TEXT, warningWidth)
+	return #wrappedLines * WARNING_TEXT_FONT:getHeight()
 end
 
 function statusScreen.draw()
@@ -73,7 +74,7 @@ function statusScreen.draw()
 	header.draw("status")
 
 	-- Draw warning text below header
-	love.graphics.setFont(fonts.loaded.caption)
+	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
 	local warningY = header.getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
@@ -162,7 +163,7 @@ function statusScreen.onEnter(_data)
 
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local listY = startY + warningHeight + COMPONENT_SPACING - 2
+	local listY = startY + warningHeight + COMPONENT_SPACING
 
 	local items = {
 		createAlignmentButton(),

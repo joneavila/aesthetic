@@ -16,10 +16,9 @@ local SQUARE_SPACING = 20
 
 -- Scrollbar constants
 local SCROLLBAR = {
-	WIDTH = 8,
+	WIDTH = 6,
 	PADDING = 10,
 	CORNER_RADIUS = 4,
-	OPACITY = 0.7,
 	HANDLE_MIN_HEIGHT = 30,
 }
 
@@ -128,10 +127,6 @@ local function drawScrollbar()
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 	local scrollbarY = contentArea.y + PADDING
 
-	-- Draw scrollbar background
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 0.2)
-	love.graphics.rectangle("fill", scrollbarX, scrollbarY, SCROLLBAR.WIDTH, scrollbarHeight, SCROLLBAR.CORNER_RADIUS)
-
 	-- Calculate handle position and size
 	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
 	local handleHeight = math.max(SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
@@ -143,8 +138,8 @@ local function drawScrollbar()
 
 	local handleY = scrollbarY + (scrollbarHeight - handleHeight) * scrollRatio
 
-	-- Draw handle
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], SCROLLBAR.OPACITY)
+	-- Draw handle (no background, match list.lua)
+	love.graphics.setColor(colors.ui.scrollbar)
 	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
 end
 

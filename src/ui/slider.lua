@@ -15,10 +15,10 @@ Slider.HANDLE_HEIGHT = 32
 Slider.CORNER_RADIUS = 8
 Slider.TICK_HEIGHT = 10
 Slider.TICK_WIDTH = 2
-Slider.LABEL_OFFSET_Y = 38
+Slider.LABEL_GAP = 8 -- vertical gap between label and track
 
 -- Focus background constants
-Slider.FOCUS_BACKGROUND_TOP_MARGIN = 6
+Slider.FOCUS_BACKGROUND_TOP_MARGIN = 12
 Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN = 12
 
 -- Label positioning constants
@@ -49,6 +49,15 @@ function Slider.new(_, config)
 	instance.valueFormatter = config.valueFormatter -- Custom formatter function
 	instance.animatedValue = instance.valueIndex
 	instance.currentTween = nil
+	-- Height: label + gap + track/handle + ticks + bottom padding + focus margin
+	local labelHeight = love.graphics.getFont():getHeight()
+	instance.height = labelHeight
+		+ Slider.LABEL_GAP
+		+ math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT)
+		+ Slider.TICK_VERTICAL_OFFSET
+		+ Slider.TICK_HEIGHT
+		+ Slider.BOTTOM_PADDING
+		+ Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
 	return instance
 end
 
@@ -77,9 +86,16 @@ function Slider:update(dt)
 	end
 end
 
-function Slider.getTotalHeight()
-	local baseHeight = Slider.LABEL_OFFSET_Y + Slider.HEIGHT + Slider.BOTTOM_PADDING
-	return baseHeight + Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
+function Slider:getHeight()
+	local labelHeight = love.graphics.getFont():getHeight()
+	return labelHeight
+		+ Slider.FOCUS_BACKGROUND_TOP_MARGIN
+		+ Slider.LABEL_GAP
+		+ math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT)
+		+ Slider.TICK_VERTICAL_OFFSET
+		+ Slider.TICK_HEIGHT
+		+ Slider.BOTTOM_PADDING
+		+ Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
 end
 
 function Slider:draw()
@@ -93,29 +109,45 @@ function Slider:draw()
 		})
 	end
 	local clampedCurrentIndex = math.max(1, math.min(self.valueIndex, #self.values))
+	local font = love.graphics.getFont()
+	local labelHeight = font:getHeight()
+	local currentY = self.y + Slider.FOCUS_BACKGROUND_TOP_MARGIN
+	-- Draw label (left) and value (right)
+	if self.label then
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.print(self.label, self.x + Slider.LABEL_LEFT_PADDING, currentY)
+	end
+	local currentValue = self.values[clampedCurrentIndex]
+	local valueText = self.valueFormatter and self.valueFormatter(currentValue) or tostring(currentValue)
+	local textWidth = font:getWidth(valueText)
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.print(valueText, self.x + self.width - Slider.PADDING - textWidth, currentY)
+	currentY = currentY + labelHeight + Slider.LABEL_GAP
+	-- Draw track
 	local trackX = self.x + Slider.PADDING
-	local trackY = self.y + Slider.LABEL_OFFSET_Y + (Slider.HEIGHT / 2) - (Slider.TRACK_HEIGHT / 2)
+	local trackY = currentY + (math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT) - Slider.TRACK_HEIGHT) / 2
 	local trackWidth = self.width - (Slider.PADDING * 2)
-
-	-- Draw track background - use overlay color when focused for better contrast
 	local trackBackgroundColor = self.focused and colors.ui.overlay or colors.ui.surface
 	love.graphics.setColor(trackBackgroundColor)
 	love.graphics.rectangle("fill", trackX, trackY, trackWidth, Slider.TRACK_HEIGHT, Slider.TRACK_HEIGHT / 2)
+	-- Draw ticks
 	love.graphics.setColor(colors.ui.overlay)
 	for i = 1, #self.values do
 		local tickX = trackX + ((i - 1) / (#self.values - 1)) * trackWidth - (Slider.TICK_WIDTH / 2)
 		local tickY = trackY + Slider.TRACK_HEIGHT + Slider.TICK_VERTICAL_OFFSET
 		love.graphics.rectangle("fill", tickX, tickY, Slider.TICK_WIDTH, Slider.TICK_HEIGHT, 1)
 	end
+	-- Draw fill
 	local rawPercent = (self.animatedValue - 1) / math.max(1, #self.values - 1)
 	local percent = math.max(0, math.min(1, rawPercent))
 	local fillWidth = trackWidth * percent
 	love.graphics.setColor(colors.ui.accent)
 	love.graphics.rectangle("fill", trackX, trackY, fillWidth, Slider.TRACK_HEIGHT, Slider.TRACK_HEIGHT / 2)
+	-- Draw handle
 	local handlePercent = (self.animatedValue - 1) / math.max(1, #self.values - 1)
 	local clampedHandlePercent = math.max(0, math.min(1, handlePercent))
 	local handleX = trackX + trackWidth * clampedHandlePercent - (Slider.HANDLE_WIDTH / 2)
-	local handleY = self.y + Slider.LABEL_OFFSET_Y + (Slider.HEIGHT / 2) - (Slider.HANDLE_HEIGHT / 2)
+	local handleY = currentY + (math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT) - Slider.HANDLE_HEIGHT) / 2
 	love.graphics.setColor(0, 0, 0, 0.3)
 	love.graphics.rectangle(
 		"fill",
@@ -127,17 +159,6 @@ function Slider:draw()
 	)
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.rectangle("fill", handleX, handleY, Slider.HANDLE_WIDTH, Slider.HANDLE_HEIGHT, Slider.CORNER_RADIUS)
-	if self.label then
-		love.graphics.setColor(colors.ui.foreground)
-		love.graphics.print(self.label, self.x + Slider.LABEL_LEFT_PADDING, self.y)
-	end
-	local currentValue = self.values[clampedCurrentIndex]
-	-- Use custom formatter if provided, otherwise fall back to tostring
-	local valueText = self.valueFormatter and self.valueFormatter(currentValue) or tostring(currentValue)
-	local font = love.graphics.getFont()
-	local textWidth = font:getWidth(valueText)
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(valueText, self.x + self.width - Slider.PADDING - textWidth, self.y)
 	love.graphics.pop()
 end
 

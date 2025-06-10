@@ -64,6 +64,10 @@ function Component:update(dt)
 	end
 end
 
+function Component:getHeight()
+	return self.height
+end
+
 function Component.draw(_self)
 	-- Override in subclasses
 end
@@ -81,7 +85,7 @@ function Component:drawBackground(params)
 	local x = self.x
 	local y = self.y
 	local width = self.width
-	local height = self.height
+	local height = self:getHeight()
 	local cornerRadius = 8
 
 	if self.focused then

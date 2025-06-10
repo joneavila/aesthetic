@@ -25,8 +25,9 @@ local input = nil
 
 -- Constants
 local EDGE_PADDING = 18
-local COMPONENT_SPACING = 18
+local COMPONENT_SPACING = 10
 local WARNING_TEXT = "Note: Header alignment setting may conflict with time alignment and status alignment settings."
+local WARNING_TEXT_FONT = fonts.loaded.caption
 
 -- Alpha values for the slider (0-100 in increments of 10)
 local alphaValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
@@ -101,8 +102,8 @@ end
 -- Calculate warning text height properly accounting for wrapping
 local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
-	local _, wrappedLines = fonts.loaded.caption:getWrap(WARNING_TEXT, warningWidth)
-	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
+	local _, wrappedLines = WARNING_TEXT_FONT:getWrap(WARNING_TEXT, warningWidth)
+	return #wrappedLines * WARNING_TEXT_FONT:getHeight()
 end
 
 function headerScreen.draw()
@@ -110,7 +111,7 @@ function headerScreen.draw()
 	header.draw("header")
 
 	-- Draw warning text below header
-	love.graphics.setFont(fonts.loaded.caption)
+	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
 	local warningY = header.getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
@@ -118,19 +119,16 @@ function headerScreen.draw()
 	love.graphics.setFont(fonts.loaded.body)
 	love.graphics.setColor(colors.ui.foreground)
 
+	local previewY = header.getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
 	if menuList then
+		menuList:calculateDimensions()
 		menuList:draw()
+		previewY = previewY + menuList.y + menuList:getContentHeight()
 	end
-
-	-- Draw preview rectangle
-	local previewY = 0
-	if menuList then
-		previewY = menuList.y + menuList:getContentHeight() + 20
-	else
-		previewY = header.getContentStartY() + 120
-	end
-	local previewHeight = 100
+	local previewX = 40
 	local previewWidth = state.screenWidth - 80
+	local controlsHeight = controls.calculateHeight()
+	local previewHeight = state.screenHeight - controlsHeight - previewY - 20
 
 	-- Calculate alpha from current slider value (0-100 to 0-1)
 	local alpha = 1
@@ -147,7 +145,7 @@ function headerScreen.draw()
 		tonumber(bgColor:sub(6, 7), 16)
 	)
 	love.graphics.setColor(bgR, bgG, bgB, 1.0)
-	love.graphics.rectangle("fill", 40, previewY, previewWidth, previewHeight, 8, 8)
+	love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw "Preview" text with alignment matching the current setting
 	local fgColor = state.getColorValue("foreground")
@@ -175,16 +173,16 @@ function headerScreen.draw()
 
 	love.graphics.printf(
 		"Preview",
-		40 + textPadding,
+		previewX + textPadding,
 		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
-		previewWidth - (textPadding * 2), -- Reduce width for both left and right padding
+		previewWidth - (textPadding * 2),
 		textAlign
 	)
 
 	-- Draw border around preview
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(1)
-	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
+	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw controls
 	controls.draw({
@@ -207,7 +205,7 @@ function headerScreen.onEnter(_data)
 
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local listY = startY + warningHeight + COMPONENT_SPACING - 2
+	local listY = startY + warningHeight + COMPONENT_SPACING
 
 	local items = {
 		createAlignmentButton(),

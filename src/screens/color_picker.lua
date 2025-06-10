@@ -173,7 +173,25 @@ function colorPicker.draw()
 				bottomColor[4] or 1,
 			},
 		}, "fan", "static")
+
+		-- Use stencil to clip mesh to rounded rectangle
+		love.graphics.stencil(function()
+			love.graphics.rectangle(
+				"fill",
+				indicatorX,
+				indicatorY,
+				indicatorWidth,
+				TAB_CONTAINER_HEIGHT,
+				TAB_CORNER_RADIUS,
+				TAB_CORNER_RADIUS
+			)
+		end, "replace", 1)
+		love.graphics.setStencilTest("equal", 1)
+
 		love.graphics.draw(mesh)
+
+		love.graphics.setStencilTest() -- Disable stencil
+
 		love.graphics.setColor(colors.ui.surface_focus_outline)
 		love.graphics.setLineWidth(2)
 		love.graphics.rectangle("line", indicatorX, indicatorY, indicatorWidth, TAB_CONTAINER_HEIGHT, TAB_CORNER_RADIUS)
