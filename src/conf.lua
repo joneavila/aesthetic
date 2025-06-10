@@ -2,6 +2,7 @@
 local love = require("love")
 
 function love.conf(t)
+	local dev_mode = os.getenv("DEV") == "true"
 	t.window.width = tonumber(os.getenv("WIDTH"))
 	t.window.height = tonumber(os.getenv("HEIGHT"))
 	t.window.resizable = false
@@ -9,7 +10,7 @@ function love.conf(t)
 	t.window.title = "Aesthetic"
 	t.version = "11.5"
 	t.accelerometerjoystick = false
-	t.window.fullscreen = true
+	t.window.fullscreen = not dev_mode
 	t.gammacorrect = true -- Enable gamma correction (when supported) for better color accuracy
 	-- "Setting unused modules to false is encouraged when you release your game. It reduces startup time slightly
 	-- (especially if the joystick module is disabled) and reduces memory usage (slightly)."

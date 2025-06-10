@@ -91,6 +91,7 @@ export MUOS_DEVICE_SCRIPT_DIR_GOOSE="$LOCAL_MUOS_DEVICE_DIR/script"
 export WIDTH
 export HEIGHT
 export MUOS_VERSION
+export DEV=true
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then
