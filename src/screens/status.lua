@@ -71,7 +71,7 @@ end
 
 function statusScreen.draw()
 	background.draw()
-	header.draw("status")
+	header.draw("Status")
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)

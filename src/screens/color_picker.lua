@@ -124,7 +124,7 @@ local function formatColorContext(context)
 	elseif context == "foreground" then
 		return "Foreground"
 	elseif context == "rgb" then
-		return "RGB lighting"
+		return "RGB Lighting"
 	else
 		-- Capitalize first letter
 		return context:sub(1, 1):upper() .. context:sub(2)

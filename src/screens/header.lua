@@ -108,7 +108,7 @@ end
 
 function headerScreen.draw()
 	background.draw()
-	header.draw("header")
+	header.draw("Header")
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)

@@ -117,7 +117,7 @@ function font.draw()
 	background.draw()
 
 	-- Draw header with title using the UI component
-	header.draw("font family")
+	header.draw("Font Family")
 
 	-- Make sure we restore the default UI font for the button list
 	love.graphics.setFont(fonts.loaded.body)

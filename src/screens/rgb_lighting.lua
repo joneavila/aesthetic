@@ -242,7 +242,7 @@ function rgb_lighting.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("rgb lighting")
+	header.draw("RGB Lighting")
 
 	love.graphics.setFont(fonts.loaded.body)
 

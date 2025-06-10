@@ -74,7 +74,7 @@ end
 
 function homeScreenLayout.draw()
 	background.draw()
-	header.draw("home screen layout")
+	header.draw("Home Screen Layout")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)

@@ -62,7 +62,7 @@ function iconsToggle.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("icons")
+	header.draw("Icons")
 
 	love.graphics.setFont(fonts.loaded.body)
 

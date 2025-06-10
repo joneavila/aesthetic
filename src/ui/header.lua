@@ -85,9 +85,6 @@ function header.getContentStartY()
 end
 
 function header.draw(title)
-	-- love.graphics.push("all")
-	local displayTitle = Header.title_case(title)
-
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), header.getHeight())
@@ -99,10 +96,9 @@ function header.draw(title)
 	-- Draw header title
 	love.graphics.setColor(colors.ui.foreground_dim)
 	love.graphics.setFont(fonts.loaded.body)
-	local titleWidth = fonts.loaded.body:getWidth(displayTitle)
+	local titleWidth = fonts.loaded.body:getWidth(title)
 	local titleX = (header.getWidth() - titleWidth) / 2
-	love.graphics.print(displayTitle, titleX, HEADER_CONFIG.VERTICAL_PADDING)
-	-- love.graphics.pop()
+	love.graphics.print(title, titleX, HEADER_CONFIG.VERTICAL_PADDING)
 end
 
 return header

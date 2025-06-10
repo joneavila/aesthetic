@@ -109,7 +109,7 @@ end
 
 function box_art_width.draw()
 	background.draw()
-	header.draw("box art width")
+	header.draw("Box Art Width")
 
 	-- Draw information text below header
 	local infoText =

@@ -456,7 +456,7 @@ end
 
 function menu.draw()
 	background.draw()
-	header.draw("main menu")
+	header.draw("Main Menu")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)

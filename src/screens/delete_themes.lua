@@ -118,7 +118,7 @@ function delete_themes.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("manage themes")
+	header.draw("Manage Themes")
 
 	-- Draw theme directory path in mono font between header and list
 	love.graphics.setFont(fonts.loaded.monoBody)

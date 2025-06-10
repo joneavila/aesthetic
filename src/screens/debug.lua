@@ -29,7 +29,7 @@ end
 function debug.draw()
 	-- Draw background and header
 	background.draw()
-	header.draw("debug")
+	header.draw("Debug")
 
 	-- Set default body font
 	love.graphics.setFont(fonts.loaded.body)

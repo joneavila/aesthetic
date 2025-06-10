@@ -82,7 +82,7 @@ local function createMenuButtons()
 			type = "basic",
 			onClick = function()
 				screens.switchTo("virtual_keyboard", {
-					title = "Enter Preset Name",
+					title = "Theme Preset Name",
 					returnScreen = "settings",
 					inputValue = "",
 				})
@@ -154,7 +154,7 @@ function settings.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("settings")
+	header.draw("Settings")
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)

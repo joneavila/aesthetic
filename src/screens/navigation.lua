@@ -86,7 +86,7 @@ end
 
 function navigationScreen.draw()
 	background.draw()
-	header.draw("navigation")
+	header.draw("Navigation")
 	love.graphics.setFont(fonts.loaded.body)
 	if navigationScreen.list then
 		navigationScreen.list:draw()
