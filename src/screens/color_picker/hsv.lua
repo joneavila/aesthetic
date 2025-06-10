@@ -1,12 +1,17 @@
 --- Color picker screen
 local love = require("love")
+
 local colors = require("colors")
+local controls = require("control_hints")
+local screens = require("screens")
 local state = require("state")
 local tween = require("tween")
+
 local colorUtils = require("utils.color")
-local controls = require("control_hints")
+
 local constants = require("screens.color_picker.constants")
-local screens = require("screens")
+
+local background = require("ui.background")
 local fonts = require("ui.fonts")
 
 local hsv = {}
@@ -128,9 +133,7 @@ local function startWiggleAnimation()
 end
 
 function hsv.draw()
-	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	-- Get current color type state
 	local currentState = getCurrentHsvState()

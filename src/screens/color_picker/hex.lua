@@ -6,6 +6,7 @@ local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 
+local background = require("ui.background")
 local fonts = require("ui.fonts")
 
 local colorUtils = require("utils.color")
@@ -136,9 +137,7 @@ local function startConfirmButtonWobble()
 end
 
 function hex.draw()
-	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
 
 	local contentArea = constants.calculateContentArea()
 

@@ -140,50 +140,57 @@ function colorPicker.draw()
 
 	-- Draw header with current color context
 	local contextTitle = formatColorContext(state.activeColorContext)
-	header.draw(string.upper(contextTitle))
+	header.draw(contextTitle)
 
-	-- Draw tab container (pill-shaped background)
-	love.graphics.setColor(
-		colors.ui.background[1] * 1.3,
-		colors.ui.background[2] * 1.3,
-		colors.ui.background[3] * 1.3,
-		0.9
-	)
-	love.graphics.rectangle(
-		"fill",
-		TAB_CONTAINER_PADDING,
-		header.getContentStartY(),
-		state.screenWidth - (TAB_CONTAINER_PADDING * 2),
-		TAB_CONTAINER_HEIGHT,
-		TAB_CORNER_RADIUS,
-		TAB_CORNER_RADIUS
-	)
+	-- Draw the sliding tab indicator as a gradient background with outline (animated)
+	local indicatorY = header.getContentStartY()
+	local indicatorX = tabIndicator.x
+	local indicatorWidth = tabIndicator.width
+	if indicatorWidth > 0 then
+		local topColor = colors.ui.surface_focus_start
+		local bottomColor = colors.ui.surface_focus_stop
+		local mesh = love.graphics.newMesh({
+			{ indicatorX, indicatorY, 0, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{ indicatorX + indicatorWidth, indicatorY, 1, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{
+				indicatorX + indicatorWidth,
+				indicatorY + TAB_CONTAINER_HEIGHT,
+				1,
+				1,
+				bottomColor[1],
+				bottomColor[2],
+				bottomColor[3],
+				bottomColor[4] or 1,
+			},
+			{
+				indicatorX,
+				indicatorY + TAB_CONTAINER_HEIGHT,
+				0,
+				1,
+				bottomColor[1],
+				bottomColor[2],
+				bottomColor[3],
+				bottomColor[4] or 1,
+			},
+		}, "fan", "static")
+		love.graphics.draw(mesh)
+		love.graphics.setColor(colors.ui.surface_focus_outline)
+		love.graphics.setLineWidth(2)
+		love.graphics.rectangle("line", indicatorX, indicatorY, indicatorWidth, TAB_CONTAINER_HEIGHT, TAB_CORNER_RADIUS)
+	end
 
-	-- Draw the sliding tab indicator
-	love.graphics.setColor(colors.ui.accent[1], colors.ui.accent[2], colors.ui.accent[3], 0.9)
-	love.graphics.rectangle(
-		"fill",
-		tabIndicator.x,
-		header.getContentStartY(),
-		tabIndicator.width,
-		TAB_CONTAINER_HEIGHT,
-		TAB_CORNER_RADIUS,
-		TAB_CORNER_RADIUS
-	)
-
-	-- Draw tabs (text only, since the background indicator is drawn separately)
+	-- Draw tabs (text only, on top of the animated indicator)
 	for i, tab in ipairs(tabs) do
 		local tabY = header.getContentStartY()
-
-		-- Calculate tab position to ensure it fits flush with the container
 		local tabX = tab.x
 		local tabWidth = tab.width
-
 		-- Adjust vertical position so its visually centered
 		tabY = tabY + (TAB_CONTAINER_HEIGHT - fonts.loaded.body:getHeight()) / 2 - 1
-
-		-- Use animated text color
-		love.graphics.setColor(tabTextColors[i].color)
+		if tab.active then
+			love.graphics.setColor(colors.ui.foreground)
+		else
+			love.graphics.setColor(tabTextColors[i].color)
+		end
 		love.graphics.setFont(fonts.loaded.body)
 		love.graphics.printf(tab.name, tabX, tabY, tabWidth, "center")
 	end

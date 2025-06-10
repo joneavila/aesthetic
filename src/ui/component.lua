@@ -85,6 +85,7 @@ function Component:drawBackground(params)
 	local cornerRadius = 8
 
 	if self.focused then
+		-- love.graphics.setColor(colors.ui.foreground_dim)
 		local topColor = colors.ui.surface_focus_start
 		local bottomColor = colors.ui.surface_focus_stop
 		-- Create mesh for vertical gradient
@@ -94,9 +95,19 @@ function Component:drawBackground(params)
 			{ x + width, y + height, 1, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
 			{ x, y + height, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
 		}, "fan", "static")
+
+		-- Use stencil to clip mesh to rounded rectangle
+		love.graphics.stencil(function()
+			love.graphics.rectangle("fill", x, y, width, height, cornerRadius, cornerRadius)
+		end, "replace", 1)
+		love.graphics.setStencilTest("equal", 1)
+
 		love.graphics.draw(mesh)
+
+		love.graphics.setStencilTest() -- Disable stencil
+
 		love.graphics.setColor(colors.ui.surface_focus_outline)
-		love.graphics.rectangle("line", x, y, width, height, cornerRadius)
+		love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
 	end
 end
 

@@ -92,7 +92,7 @@ colors.ui = {
 	blue = colorUtils.hexToLove("#26B5CE"),
 	violet = colorUtils.hexToLove("#5F6AD3"),
 }
-colors.ui.surface_focus_start = adjustColor(colors.ui.surface_focus, 0.02)
+colors.ui.surface_focus_start = adjustColor(colors.ui.surface_focus, 0.05)
 colors.ui.surface_focus_stop = adjustColor(colors.ui.surface_focus, -0.02)
 colors.ui.accent_start = adjustColor(colors.ui.accent, 0.02)
 colors.ui.accent_stop = adjustColor(colors.ui.accent, -0.02)
