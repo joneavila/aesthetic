@@ -386,7 +386,7 @@ end
 function Button:drawAccented()
 	local font = love.graphics.getFont()
 	local textWidth = font:getWidth(self.text)
-	local buttonWidth = textWidth + 360
+	local buttonWidth = self.screenWidth * 0.8
 	local buttonX = (self.screenWidth - buttonWidth) / 2
 	local scale = (self.focused and self._pulseScale) or 1.0
 	local cx = buttonX + buttonWidth / 2

@@ -633,7 +633,7 @@ function menu.onEnter(data)
 		x = 0,
 		y = header.getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT,
+		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT - 8,
 		items = buttons,
 		onItemSelect = function(item, _index)
 			if item.onClick then
