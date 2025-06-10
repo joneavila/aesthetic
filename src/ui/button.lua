@@ -7,6 +7,7 @@ local svg = require("utils.svg")
 local gradientPreview = require("ui.gradient_preview")
 local Component = require("ui.component").Component
 local logger = require("utils.logger")
+local tween = require("tween")
 
 -- Button constants
 local BUTTON_CONFIG = {
@@ -36,6 +37,11 @@ local BUTTON_TYPES = {
 -- Button class
 local Button = setmetatable({}, { __index = Component })
 Button.__index = Button
+
+-- Pulse animation config
+local PULSE_SCALE_MIN = 1.0
+local PULSE_SCALE_MAX = 1.02
+local PULSE_DURATION = 1.1
 
 function Button:new(config)
 	-- Initialize base component
@@ -74,6 +80,11 @@ function Button:new(config)
 	-- Calculate dimensions (will use custom height/width if set)
 	instance:calculateDimensions()
 
+	-- Animation state for pulsing
+	instance._pulseScale = 1.0
+	instance._pulseTween = nil
+	instance._pulseDirection = 1 -- 1: up, -1: down
+
 	return instance
 end
 
@@ -104,6 +115,38 @@ end
 
 function Button:setFocused(focused)
 	Component.setFocused(self, focused)
+	if self.type == BUTTON_TYPES.ACCENTED then
+		if focused and not self._pulseTween then
+			self:_startPulseTween(1)
+		elseif not focused and self._pulseTween then
+			self:_stopPulseTween()
+			self._pulseScale = 1.0
+		end
+	end
+end
+
+function Button:_startPulseTween(direction)
+	self._pulseDirection = direction or 1
+	local fromScale = self._pulseScale
+	local toScale = (self._pulseDirection == 1) and PULSE_SCALE_MAX or PULSE_SCALE_MIN
+	self._pulseTween = tween.new(PULSE_DURATION / 2, self, { _pulseScale = toScale }, "inOutSine")
+end
+
+function Button:_stopPulseTween()
+	self._pulseTween = nil
+end
+
+function Button:update(dt)
+	if self.type == BUTTON_TYPES.ACCENTED and self.focused and self._pulseTween then
+		local complete = self._pulseTween:update(dt)
+		if complete then
+			-- Reverse direction and start again for continuous pulse
+			self:_startPulseTween(-self._pulseDirection)
+		end
+	end
+	if Component.update then
+		Component.update(self, dt)
+	end
 end
 
 function Button:getText()
@@ -345,20 +388,53 @@ function Button:drawAccented()
 	local textWidth = font:getWidth(self.text)
 	local buttonWidth = textWidth + 360
 	local buttonX = (self.screenWidth - buttonWidth) / 2
+	local scale = (self.focused and self._pulseScale) or 1.0
+	local cx = buttonX + buttonWidth / 2
+	local cy = self.y + self.height / 2
 
 	if self.focused then
-		love.graphics.setColor(colors.ui.accent)
-		love.graphics.rectangle("fill", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
+		-- Draw vertical gradient mesh
+		local topColor = colors.ui.accent_start
+		local bottomColor = colors.ui.accent_stop
+		local cornerRadius = BUTTON_CONFIG.CORNER_RADIUS
+		local mesh = love.graphics.newMesh({
+			{ 0, 0, 0, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{ buttonWidth, 0, 1, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{ buttonWidth, self.height, 1, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
+			{ 0, self.height, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
+		}, "fan", "static")
 
+		love.graphics.push()
+		love.graphics.translate(cx, cy)
+		love.graphics.scale(scale, scale)
+		love.graphics.translate(-buttonWidth / 2, -self.height / 2)
+
+		-- Use stencil to clip mesh to rounded rectangle
+		love.graphics.stencil(function()
+			love.graphics.rectangle("fill", 0, 0, buttonWidth, self.height, cornerRadius, cornerRadius)
+		end, "replace", 1)
+		love.graphics.setStencilTest("equal", 1)
+
+		love.graphics.draw(mesh)
+
+		love.graphics.setStencilTest()
+
+		-- Draw outline
+		love.graphics.setColor(colors.ui.accent_outline)
+		love.graphics.setLineWidth(2)
+		love.graphics.rectangle("line", 0, 0, buttonWidth, self.height, cornerRadius, cornerRadius)
+
+		-- Draw text
 		love.graphics.setColor(colors.ui.foreground)
-		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
-		local textY = math.floor(self.y + (self.height - font:getHeight()) / 2)
+		local textX = math.floor((buttonWidth - textWidth) / 2)
+		local textY = math.floor((self.height - font:getHeight()) / 2)
 		love.graphics.print(self.text, textX, textY)
+		love.graphics.pop()
 	else
+		-- Not focused: fallback to old style
 		love.graphics.setColor(colors.ui.surface_bright)
 		love.graphics.setLineWidth(1)
 		love.graphics.rectangle("line", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
-
 		love.graphics.setColor(colors.ui.foreground)
 		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
 		local textY = math.floor(self.y + (self.height - font:getHeight()) / 2)

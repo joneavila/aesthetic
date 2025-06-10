@@ -82,6 +82,7 @@ colors.ui = {
 	background = colorUtils.hexToLove("#101011"),
 	background_dim = colorUtils.hexToLove("#090909"),
 	accent = colorUtils.hexToLove("#5E6AD2"),
+	accent_outline = colorUtils.hexToLove("#6D79E6"),
 	overlay = colorUtils.hexToLove("#5A5B5D"),
 	surface_bright = colorUtils.hexToLove("#2E3037"), -- Outline
 	background_outline = colorUtils.hexToLove("#27282D"),
@@ -94,7 +95,7 @@ colors.ui = {
 }
 colors.ui.surface_focus_start = adjustColor(colors.ui.surface_focus, 0.05)
 colors.ui.surface_focus_stop = adjustColor(colors.ui.surface_focus, -0.02)
-colors.ui.accent_start = adjustColor(colors.ui.accent, 0.02)
+colors.ui.accent_start = adjustColor(colors.ui.accent, 0.05)
 colors.ui.accent_stop = adjustColor(colors.ui.accent, -0.02)
 
 -- Palette colors (ordered array)
