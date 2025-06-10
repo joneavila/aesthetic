@@ -17,8 +17,14 @@ local BUTTON_VERTICAL_PADDING = 2 -- Vertical padding inside button background
 local ACTION_TEXT_SPACING = 2 -- Space between button and action text
 local CONTROL_BAR_TOP_PADDING = 0 -- Top padding for the control bar
 local CONTROL_BAR_BOTTOM_PADDING = 4 -- Bottom padding for the control bar
-local ALIGNMENT = "left" -- Controls alignment: "left" or "right"
+local ALIGNMENT = "right" -- Controls alignment: "left" or "right"
 local ICON_SIZE = 20 -- Size for control hint icons
+
+function controlHints.title_case(str)
+	return str:gsub("(%a)([%w_']*)", function(first, rest)
+		return first:upper() .. rest:lower()
+	end)
+end
 
 -- Function to calculate the HEIGHT based on font size and padding
 function controlHints.calculateHeight()
@@ -55,7 +61,7 @@ local BUTTON_ICONS = {
 function controlHints.draw(controls_list)
 	controlHints.calculateHeight()
 
-	local globalColor = colors.ui.surface_bright
+	local globalColor = colors.ui.subtext
 
 	-- Helper to get icon for a button key
 	local function getButtonIcon(buttonKey)
@@ -69,7 +75,9 @@ function controlHints.draw(controls_list)
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
 	for i, control in ipairs(controls_list) do
-		local textWidth = fonts.loaded.caption:getWidth("")
+		-- Calculate the action text in title case
+		local titleCaseText = controlHints.title_case(control.text)
+		local textWidth = fonts.loaded.caption:getWidth(titleCaseText)
 		local buttonsWidth = 0
 
 		if type(control.button) == "table" then
@@ -89,7 +97,7 @@ function controlHints.draw(controls_list)
 			end
 		end
 
-		totalWidth = totalWidth + buttonsWidth + textWidth + ACTION_TEXT_SPACING
+		totalWidth = totalWidth + buttonsWidth + ACTION_TEXT_SPACING + textWidth
 		if i < #controls_list then
 			totalWidth = totalWidth + CONTROL_SPACING
 		end
@@ -128,10 +136,11 @@ function controlHints.draw(controls_list)
 		love.graphics.setColor(globalColor)
 		love.graphics.setFont(fonts.loaded.caption)
 		x = x + ACTION_TEXT_SPACING
-		local uppercaseText = string.upper(control.text)
-		love.graphics.print(uppercaseText, x, y - 2)
+		-- local uppercaseText = string.upper(control.text)
+		local titleCaseText = controlHints.title_case(control.text)
+		love.graphics.print(titleCaseText, x, y - 2)
 
-		local textWidth = fonts.loaded.caption:getWidth(uppercaseText)
+		local textWidth = fonts.loaded.caption:getWidth(titleCaseText)
 		x = x + textWidth
 
 		if i < #controls_list then

@@ -165,8 +165,10 @@ end
 function Button:drawBackground()
 	-- This function does not draw a background color for unfocused buttons, making them transparent
 	if self.focused then
-		love.graphics.setColor(colors.ui.surface)
+		love.graphics.setColor(colors.ui.surface_focus)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
+		love.graphics.setColor(colors.ui.surface_focus_outline)
+		love.graphics.rectangle("line", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
 	else
 		love.graphics.setColor(colors.ui.background)
 	end
@@ -339,20 +341,15 @@ function Button:drawAccented()
 	local buttonX = (self.screenWidth - buttonWidth) / 2
 
 	if self.focused then
-		-- Selected: accent background, background text
 		love.graphics.setColor(colors.ui.accent)
 		love.graphics.rectangle("fill", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
 
-		love.graphics.setColor(colors.ui.background)
+		love.graphics.setColor(colors.ui.foreground)
 		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
 		local textY = math.floor(self.y + (self.height - font:getHeight()) / 2)
 		love.graphics.print(self.text, textX, textY)
 	else
-		-- Unselected: background with surface outline
-		love.graphics.setColor(colors.ui.background)
-		love.graphics.rectangle("fill", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
-
-		love.graphics.setColor(colors.ui.surface)
+		love.graphics.setColor(colors.ui.surface_bright)
 		love.graphics.setLineWidth(1)
 		love.graphics.rectangle("line", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
 

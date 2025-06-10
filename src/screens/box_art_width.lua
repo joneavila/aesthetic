@@ -139,7 +139,7 @@ function box_art_width.draw()
 	local currentValue = state.boxArtWidth
 	local previewHeight = 100
 	local boxArtWidth = currentValue
-	love.graphics.setColor(colors.ui.teal)
+	love.graphics.setColor(colors.ui.blue)
 	love.graphics.rectangle(
 		"fill",
 		EDGE_PADDING,
@@ -150,7 +150,7 @@ function box_art_width.draw()
 		CORNER_RADIUS
 	)
 	if animatedRightWidth > 0 then
-		love.graphics.setColor(colors.ui.lavender)
+		love.graphics.setColor(colors.ui.violet)
 		love.graphics.rectangle(
 			"fill",
 			EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,

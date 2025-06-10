@@ -5,20 +5,26 @@ local colorUtils = require("utils.color")
 local colors = {}
 
 -- UI colors (named)
--- Catppuccin Mocha: https://catppuccin.com/palette/
 colors.ui = {
-	foreground = colorUtils.hexToLove("#cdd6f4"), -- Text
-	subtext = colorUtils.hexToLove("#a6adc8"), -- Subtext 0
-	overlay = colorUtils.hexToLove("#6c7086"), -- Overlay 0
-	surface_bright = colorUtils.hexToLove("#585b70"), -- Surface 2
-	surface = colorUtils.hexToLove("#313244"), -- Surface 0
-	background = colorUtils.hexToLove("#1e1e2e"), -- Base
-	background_dim = colorUtils.hexToLove("#181825"), -- Mantle
-	accent = colorUtils.hexToLove("#89b4fa"), -- Blue
-	green = colorUtils.hexToLove("#a6e3a1"), -- Green
-	red = colorUtils.hexToLove("#f38ba8"), -- Red
-	teal = colorUtils.hexToLove("#94e2d5"), -- Teal
-	lavender = colorUtils.hexToLove("#b4befe"), -- Lavender
+	foreground = colorUtils.hexToLove("#FFFFFF"), -- On surface
+	foreground_dim = colorUtils.hexToLove("#E3E4E5"), -- On background
+	subtext = colorUtils.hexToLove("#97979A"),
+	scrollbar = colorUtils.hexToLove("#5A5B5D"),
+	surface_focus_outline = colorUtils.hexToLove("#28292E"),
+	surface_focus = colorUtils.hexToLove("#1F2025"),
+	surface = colorUtils.hexToLove("#17181A"),
+	background = colorUtils.hexToLove("#101011"),
+	background_dim = colorUtils.hexToLove("#090909"),
+	accent = colorUtils.hexToLove("#5E6AD2"),
+	overlay = colorUtils.hexToLove("#5A5B5D"),
+	surface_bright = colorUtils.hexToLove("#2E3037"), -- Outline
+	background_outline = colorUtils.hexToLove("#27282D"),
+	red = colorUtils.hexToLove("#EB5757"),
+	orange = colorUtils.hexToLove("#F2994A"),
+	yellow = colorUtils.hexToLove("#F1BF00"),
+	green = colorUtils.hexToLove("#4CB782"),
+	blue = colorUtils.hexToLove("#26B5CE"),
+	violet = colorUtils.hexToLove("#5F6AD3"),
 }
 
 -- Palette colors (ordered array)

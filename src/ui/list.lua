@@ -10,7 +10,7 @@ local inputHandler = require("ui.input_handler")
 -- List constants
 local LIST_CONFIG = {
 	ITEM_SPACING = 14,
-	SCROLL_BAR_WIDTH = 9,
+	SCROLL_BAR_WIDTH = 6,
 }
 
 -- List class
@@ -370,25 +370,13 @@ function List:draw()
 		local rx = 4
 		local ry = rx
 
-		-- Draw scrollbar background
-		love.graphics.setColor(colors.ui.background_dim)
-		love.graphics.rectangle(
-			"fill",
-			barX,
-			self.y + self.paddingY,
-			scrollbarWidth,
-			self.height - self.paddingY * 2,
-			rx,
-			ry
-		)
-
 		-- Draw scrollbar handle
 		local barHeight = (self.height - self.paddingY * 2) * (self.visibleCount / #self.items)
 		local barY = self.y
 			+ self.paddingY
 			+ ((self.height - self.paddingY * 2) - barHeight)
 				* (self.scrollPosition / (#self.items - self.visibleCount))
-		love.graphics.setColor(colors.ui.surface)
+		love.graphics.setColor(colors.ui.scrollbar)
 		love.graphics.rectangle("fill", barX, barY, scrollbarWidth, barHeight, rx, ry)
 	end
 end
