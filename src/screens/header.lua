@@ -15,14 +15,13 @@ local fonts = require("ui.fonts")
 local header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
+local List = require("ui.list").List
 
 local headerScreen = {}
 
 -- UI Components
-local alignmentButton = nil
-local opacitySlider = nil
+local menuList = nil
 local input = nil
-local focusedComponent = 1 -- 1 = button, 2 = slider
 
 -- Constants
 local EDGE_PADDING = 18
@@ -57,7 +56,7 @@ local function createAlignmentButton()
 end
 
 -- Create the opacity slider
-local function createOpacitySlider(y)
+local function createOpacitySlider()
 	-- Find the closest alpha value index
 	local closestIndex = 11 -- Default to 100%
 	local minDiff = 100
@@ -73,7 +72,7 @@ local function createOpacitySlider(y)
 
 	return Slider:new({
 		x = EDGE_PADDING,
-		y = y,
+		y = 0, -- Will be set by List
 		width = state.screenWidth - (EDGE_PADDING * 2),
 		values = alphaValues,
 		valueIndex = closestIndex,
@@ -86,31 +85,17 @@ local function createOpacitySlider(y)
 end
 
 -- Handle option cycling for alignment button
-local function handleAlignmentOptionCycle(direction)
-	if not alignmentButton then
-		return false
+local function handleAlignmentOptionCycle(button, direction)
+	if button.context == "headerAlignment" then
+		local changed = button:cycleOption(direction)
+		if changed then
+			local newValue = button:getCurrentOption()
+			local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
+			state.headerAlignment = alignmentMap[newValue] or 2
+		end
+		return changed
 	end
-
-	local changed = alignmentButton:cycleOption(direction)
-	if not changed then
-		return false
-	end
-
-	local newValue = alignmentButton:getCurrentOption()
-	local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
-	state.headerAlignment = alignmentMap[newValue] or 2
-
-	return true
-end
-
--- Update focus states
-local function updateFocusStates()
-	if alignmentButton then
-		alignmentButton:setFocused(focusedComponent == 1)
-	end
-	if opacitySlider then
-		opacitySlider:setFocused(focusedComponent == 2)
-	end
+	return false
 end
 
 -- Calculate warning text height properly accounting for wrapping
@@ -131,24 +116,28 @@ function headerScreen.draw()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
+	love.graphics.setColor(colors.ui.foreground)
 
-	-- Draw alignment button
-	if alignmentButton then
-		alignmentButton:draw()
-	end
-
-	-- Draw slider
-	if opacitySlider then
-		opacitySlider:draw()
+	if menuList then
+		menuList:draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = opacitySlider.y + Slider.getTotalHeight() + 20
+	local previewY = 0
+	if menuList then
+		previewY = menuList.y + menuList:getContentHeight() + 20
+	else
+		previewY = header.getContentStartY() + 120
+	end
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 
 	-- Calculate alpha from current slider value (0-100 to 0-1)
-	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1
+	local alpha = 1
+	if menuList and menuList.items[2] then
+		local slider = menuList.items[2]
+		alpha = slider.values[slider.valueIndex] / 100
+	end
 
 	-- Get background color from state and draw rectangle at full opacity
 	local bgColor = state.getColorValue("background")
@@ -204,74 +193,39 @@ function headerScreen.draw()
 end
 
 function headerScreen.update(dt)
-	-- Handle navigation between components
-	if input.isPressed("dpup") then
-		if focusedComponent > 1 then
-			focusedComponent = focusedComponent - 1
-			updateFocusStates()
-		end
-	elseif input.isPressed("dpdown") then
-		if focusedComponent < 2 then
-			focusedComponent = focusedComponent + 1
-			updateFocusStates()
-		end
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
 	end
-
-	-- Handle component-specific input
-	if focusedComponent == 1 and alignmentButton then
-		-- Handle alignment button input
-		if input.isPressed("dpleft") then
-			handleAlignmentOptionCycle(-1)
-		elseif input.isPressed("dpright") then
-			handleAlignmentOptionCycle(1)
-		end
-	end
-
-	if opacitySlider then
-		opacitySlider:handleInputIfFocused(input)
-	end
-
-	-- Update components
-	if alignmentButton then
-		alignmentButton:update(dt)
-	end
-	if opacitySlider then
-		opacitySlider:update(dt)
-	end
-
-	-- Handle B button press to go back
 	if input.isPressed("b") then
 		screens.switchTo("main_menu")
 	end
 end
 
 function headerScreen.onEnter(_data)
-	-- Initialize input handler
 	input = inputHandler.create()
 
-	-- Calculate positions
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
+	local listY = startY + warningHeight + COMPONENT_SPACING - 2
 
-	-- Create alignment button first to get its height
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
+	local items = {
+		createAlignmentButton(),
+		createOpacitySlider(),
+	}
 
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Reset focus to first component
-	focusedComponent = 1
-	updateFocusStates()
+	menuList = List:new({
+		x = 0,
+		y = listY,
+		width = state.screenWidth,
+		height = state.screenHeight - listY - 60,
+		items = items,
+		onItemOptionCycle = handleAlignmentOptionCycle,
+	})
 end
 
 function headerScreen.onExit()
-	-- Clean up
-	alignmentButton = nil
-	opacitySlider = nil
+	menuList = nil
 end
 
 return headerScreen

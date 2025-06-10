@@ -67,6 +67,7 @@ function ListSelect:setItems(items)
 end
 
 function ListSelect:draw()
+	love.graphics.push("all")
 	local font = love.graphics.getFont()
 	local controlsHeight = controls.HEIGHT or 42
 	local indicatorHeight = font:getHeight() + 24
@@ -85,11 +86,9 @@ function ListSelect:draw()
 	-- Draw the list of items
 	self.list.y = listStartY
 	self.list:draw()
-
 	-- Restrict drawing of checkboxes and selection indicator to visible area
 	love.graphics.push()
 	love.graphics.intersectScissor(self.x, listStartY, self.width, self.height - (listStartY - self.y))
-
 	self.selectedCount = 0
 	for idx, item in ipairs(self.items) do
 		if item.checked then
@@ -99,9 +98,7 @@ function ListSelect:draw()
 		local itemY = listStartY + (idx - 1) * (self.itemHeight + self.paddingY)
 		self:drawCheckboxItem(item, itemY, buttonWidth)
 	end
-
 	love.graphics.pop()
-
 	if self.selectedCount > 0 then
 		local text = tostring(self.selectedCount) .. " item" .. (self.selectedCount == 1 and "" or "s") .. " selected"
 		love.graphics.setColor(colors.ui.foreground)
@@ -111,6 +108,7 @@ function ListSelect:draw()
 		local ty = self.y + self.height - controlsHeight - indicatorHeight + 12
 		love.graphics.print(text, tx, ty)
 	end
+	love.graphics.pop()
 end
 
 function ListSelect:drawCheckboxItem(item, y, buttonWidth)

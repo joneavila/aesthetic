@@ -86,21 +86,11 @@ function Slider:draw()
 	if not self.values or #self.values == 0 then
 		return
 	end
-
-	-- Draw focused background if focused
+	love.graphics.push("all")
 	if self.focused then
-		local backgroundPadding = 0
-		local backgroundY = self.y - Slider.FOCUS_BACKGROUND_TOP_MARGIN
-		local backgroundHeight = Slider.getTotalHeight() + Slider.FOCUS_BACKGROUND_TOP_MARGIN
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle(
-			"fill",
-			self.x - backgroundPadding,
-			backgroundY,
-			self.width + (backgroundPadding * 2),
-			backgroundHeight,
-			Slider.CORNER_RADIUS
-		)
+		self:drawBackground({
+			cornerRadius = Slider.CORNER_RADIUS,
+		})
 	end
 	local clampedCurrentIndex = math.max(1, math.min(self.valueIndex, #self.values))
 	local trackX = self.x + Slider.PADDING
@@ -148,6 +138,7 @@ function Slider:draw()
 	local textWidth = font:getWidth(valueText)
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.print(valueText, self.x + self.width - Slider.PADDING - textWidth, self.y)
+	love.graphics.pop()
 end
 
 function Slider:handleInput(input)

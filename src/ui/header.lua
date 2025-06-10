@@ -51,20 +51,19 @@ function Header:draw()
 	if not self.visible then
 		return
 	end
-
+	love.graphics.push("all")
 	-- local displayTitle = self.title:upper()
 	local displayTitle = Header.title_case(self.title)
-
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-
 	-- Draw header title
 	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.setFont(fonts.loaded.body)
 	local titleWidth = fonts.loaded.body:getWidth(displayTitle)
 	local titleX = (self.width - titleWidth) / 2
 	love.graphics.print(displayTitle, titleX, HEADER_CONFIG.VERTICAL_PADDING)
+	love.graphics.pop()
 end
 
 -- Static helper functions for backwards compatibility

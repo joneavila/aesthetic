@@ -118,6 +118,7 @@ function box_art_width.draw()
 	local infoWidth = state.screenWidth - EDGE_PADDING * 2
 	love.graphics.printf(infoText, EDGE_PADDING, infoY, infoWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
+	love.graphics.setColor(colors.ui.foreground)
 
 	-- Calculate dynamic height for info text
 	local font = love.graphics.getFont()
@@ -204,15 +205,14 @@ function box_art_width.update(dt)
 		animatedRightWidth = tweenObj.rightWidth
 	end
 
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
+	end
 	-- Handle B button to return to main menu
 	if input and input.isPressed and input.isPressed("b") then
 		screens.switchTo(MENU_SCREEN)
 		return
-	end
-
-	if menuList then
-		menuList:handleInput(input)
-		menuList:update(dt)
 	end
 end
 

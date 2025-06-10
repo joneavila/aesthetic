@@ -73,6 +73,33 @@ function Component.handleInput(_self, _input)
 	return false
 end
 
+-- Draws a focus background with gradient and outline
+function Component:drawBackground(params)
+	-- params: {cornerRadius}
+	local colors = require("colors")
+	local love = require("love")
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
+	local cornerRadius = 8
+
+	if self.focused then
+		local topColor = colors.ui.surface_focus_start
+		local bottomColor = colors.ui.surface_focus_stop
+		-- Create mesh for vertical gradient
+		local mesh = love.graphics.newMesh({
+			{ x, y, 0, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{ x + width, y, 1, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+			{ x + width, y + height, 1, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
+			{ x, y + height, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
+		}, "fan", "static")
+		love.graphics.draw(mesh)
+		love.graphics.setColor(colors.ui.surface_focus_outline)
+		love.graphics.rectangle("line", x, y, width, height, cornerRadius)
+	end
+end
+
 -- Export the base component
 component.Component = Component
 

@@ -307,14 +307,12 @@ function List:draw()
 	if not self.visible or #self.items == 0 then
 		return
 	end
-
+	love.graphics.push("all")
 	-- Always recalculate dimensions before drawing to ensure height/width changes are respected
 	self:calculateDimensions()
-
 	-- Calculate visible range based on scroll position
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
-
 	-- Determine if scrollbar is needed
 	local needsScrollbar = #self.items > self.visibleCount
 	local scrollbarWidth = LIST_CONFIG.SCROLL_BAR_WIDTH
@@ -322,11 +320,9 @@ function List:draw()
 	if needsScrollbar then
 		effectiveRightPadding = self.paddingX + scrollbarWidth
 	end
-
 	-- Create scissor to clip content
 	love.graphics.push()
 	love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
-
 	-- Draw visible items
 	for i = firstVisible, lastVisible do
 		local item = self.items[i]
@@ -337,7 +333,6 @@ function List:draw()
 			local itemX = self.x + self.paddingX
 			local itemW = self.width - self.paddingX - effectiveRightPadding
 			local itemH = self.adjustedItemHeight
-
 			-- Set item position
 			if item.setPosition then
 				item:setPosition(itemX, itemY)
@@ -345,7 +340,6 @@ function List:draw()
 				item.x = itemX
 				item.y = itemY
 			end
-
 			-- Set item size if needed
 			if item.setSize then
 				item:setSize(itemW, itemH)
@@ -353,23 +347,19 @@ function List:draw()
 				item.width = itemW
 				item.height = itemH
 			end
-
 			-- Draw the item
 			if item.draw then
 				item:draw()
 			end
 		end
 	end
-
 	love.graphics.pop()
 	love.graphics.setScissor() -- Reset scissor to avoid affecting other UI
-
 	-- Draw scrollbar if needed
 	if needsScrollbar then
 		local barX = self.x + self.width - scrollbarWidth
 		local rx = 4
 		local ry = rx
-
 		-- Draw scrollbar handle
 		local barHeight = (self.height - self.paddingY * 2) * (self.visibleCount / #self.items)
 		local barY = self.y
@@ -379,6 +369,7 @@ function List:draw()
 		love.graphics.setColor(colors.ui.scrollbar)
 		love.graphics.rectangle("fill", barX, barY, scrollbarWidth, barHeight, rx, ry)
 	end
+	love.graphics.pop()
 end
 
 function List:update(dt)

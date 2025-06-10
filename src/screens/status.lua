@@ -26,6 +26,9 @@ local EDGE_PADDING = 18
 local COMPONENT_SPACING = 18
 local WARNING_TEXT = "Note: Status alignment setting may conflict with time alignment and header alignment settings."
 
+-- Add menuList variable
+local menuList = nil
+
 -- Create the alignment selection button
 local function createAlignmentButton()
 	local alignmentOptions = { "Left", "Center", "Right" }
@@ -76,14 +79,19 @@ function statusScreen.draw()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
+	love.graphics.setColor(colors.ui.foreground)
 
-	-- Draw alignment button
-	if alignmentButton then
-		alignmentButton:draw()
+	if menuList then
+		menuList:draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = alignmentButton.y + alignmentButton.height + 20
+	local previewY = 0
+	if menuList then
+		previewY = menuList.y + menuList:getContentHeight() + 20
+	else
+		previewY = header.getContentStartY() + 120
+	end
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 
@@ -140,46 +148,48 @@ function statusScreen.draw()
 end
 
 function statusScreen.update(dt)
-	-- Handle alignment button input
-	if alignmentButton then
-		if input.isPressed("dpleft") then
-			handleAlignmentOptionCycle(-1)
-		elseif input.isPressed("dpright") then
-			handleAlignmentOptionCycle(1)
-		end
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
 	end
-
-	-- Update components
-	if alignmentButton then
-		alignmentButton:update(dt)
-	end
-
-	-- Handle B button press to go back
 	if input.isPressed("b") then
 		screens.switchTo("main_menu")
 	end
 end
 
 function statusScreen.onEnter(_data)
-	-- Initialize input handler
 	input = inputHandler.create()
 
-	-- Calculate positions
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
+	local listY = startY + warningHeight + COMPONENT_SPACING - 2
 
-	-- Create alignment button
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
+	local items = {
+		createAlignmentButton(),
+	}
 
-	-- Set focus on the button
-	alignmentButton:setFocused(true)
+	menuList = require("ui.list").List:new({
+		x = 0,
+		y = listY,
+		width = state.screenWidth,
+		height = state.screenHeight - listY - 60,
+		items = items,
+		onItemOptionCycle = function(button, direction)
+			if button.context == "statusAlignment" then
+				local changed = button:cycleOption(direction)
+				if changed then
+					local newValue = button:getCurrentOption()
+					state.statusAlignment = newValue
+				end
+				return changed
+			end
+			return false
+		end,
+	})
 end
 
 function statusScreen.onExit()
-	-- Clean up
-	alignmentButton = nil
+	menuList = nil
 end
 
 return statusScreen

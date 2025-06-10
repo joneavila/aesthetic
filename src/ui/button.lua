@@ -163,15 +163,7 @@ function Button:handleInput(input)
 end
 
 function Button:drawBackground()
-	-- This function does not draw a background color for unfocused buttons, making them transparent
-	if self.focused then
-		love.graphics.setColor(colors.ui.surface_focus)
-		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
-		love.graphics.setColor(colors.ui.surface_focus_outline)
-		love.graphics.rectangle("line", self.x, self.y, self.width, self.height, BUTTON_CONFIG.CORNER_RADIUS)
-	else
-		love.graphics.setColor(colors.ui.background)
-	end
+	Component.drawBackground(self)
 end
 
 function Button:drawText()
@@ -427,7 +419,7 @@ function Button:draw()
 	if not self.visible then
 		return
 	end
-
+	love.graphics.push("all")
 	if self.type == BUTTON_TYPES.BASIC then
 		self:drawBasic()
 	elseif self.type == BUTTON_TYPES.TEXT_PREVIEW then
@@ -445,6 +437,7 @@ function Button:draw()
 	else
 		self:drawBasic()
 	end
+	love.graphics.pop()
 end
 
 -- Initialize icons

@@ -119,6 +119,9 @@ local function calculateWarningHeight()
 	return #wrappedLines * fonts.loaded.caption:getHeight() + 10 -- Add some bottom padding
 end
 
+-- Add menuList variable
+local menuList = nil
+
 function datetimeScreen.draw()
 	background.draw()
 	header.draw("Time")
@@ -130,24 +133,28 @@ function datetimeScreen.draw()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
+	love.graphics.setColor(colors.ui.foreground)
 
-	-- Draw alignment button
-	if alignmentButton then
-		alignmentButton:draw()
-	end
-
-	-- Draw slider
-	if opacitySlider then
-		opacitySlider:draw()
+	if menuList then
+		menuList:draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = opacitySlider.y + Slider.getTotalHeight() + 20
+	local previewY = 0
+	if menuList then
+		previewY = menuList.y + menuList:getContentHeight() + 20
+	else
+		previewY = header.getContentStartY() + 120
+	end
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
 
 	-- Calculate alpha from current slider value (0-100 to 0-1)
-	local alpha = opacitySlider and opacitySlider.values[opacitySlider.valueIndex] / 100 or 1
+	local alpha = 1
+	if menuList and menuList.items[2] then
+		local slider = menuList.items[2]
+		alpha = slider.values[slider.valueIndex] / 100
+	end
 
 	-- Get background color from state and draw rectangle at full opacity
 	local bgColor = state.getColorValue("background")
@@ -159,7 +166,7 @@ function datetimeScreen.draw()
 	love.graphics.setColor(bgR, bgG, bgB, 1.0)
 	love.graphics.rectangle("fill", 40, previewY, previewWidth, previewHeight, 8, 8)
 
-	-- Draw "12:34" text with alignment matching the current setting
+	-- Draw "Preview" text with alignment matching the current setting
 	local fgColor = state.getColorValue("foreground")
 	local fgR, fgG, fgB = love.math.colorFromBytes(
 		tonumber(fgColor:sub(2, 3), 16),
@@ -204,74 +211,49 @@ function datetimeScreen.draw()
 end
 
 function datetimeScreen.update(dt)
-	-- Handle navigation between components
-	if input.isPressed("dpup") then
-		if focusedComponent > 1 then
-			focusedComponent = focusedComponent - 1
-			updateFocusStates()
-		end
-	elseif input.isPressed("dpdown") then
-		if focusedComponent < 2 then
-			focusedComponent = focusedComponent + 1
-			updateFocusStates()
-		end
+	if menuList then
+		menuList:handleInput(input)
+		menuList:update(dt)
 	end
-
-	-- Handle component-specific input
-	if focusedComponent == 1 and alignmentButton then
-		-- Handle alignment button input
-		if input.isPressed("dpleft") then
-			handleAlignmentOptionCycle(-1)
-		elseif input.isPressed("dpright") then
-			handleAlignmentOptionCycle(1)
-		end
-	end
-
-	if opacitySlider then
-		opacitySlider:handleInputIfFocused(input)
-	end
-
-	-- Update components
-	if alignmentButton then
-		alignmentButton:update(dt)
-	end
-	if opacitySlider then
-		opacitySlider:update(dt)
-	end
-
-	-- Handle B button press to go back
 	if input.isPressed("b") then
 		screens.switchTo("main_menu")
 	end
 end
 
 function datetimeScreen.onEnter(_data)
-	-- Initialize input handler
 	input = inputHandler.create()
 
-	-- Calculate positions
 	local startY = header.getContentStartY()
 	local warningHeight = calculateWarningHeight()
-	local buttonY = startY + warningHeight + COMPONENT_SPACING - 2
+	local listY = startY + warningHeight + COMPONENT_SPACING - 2
 
-	-- Create alignment button first to get its height
-	alignmentButton = createAlignmentButton()
-	alignmentButton.y = buttonY
+	local items = {
+		createAlignmentButton(),
+		createOpacitySlider(0),
+	}
 
-	-- Calculate slider position based on button's actual position and height
-	local sliderY = alignmentButton.y + alignmentButton.height + COMPONENT_SPACING
-
-	opacitySlider = createOpacitySlider(sliderY)
-
-	-- Reset focus to first component
-	focusedComponent = 1
-	updateFocusStates()
+	menuList = require("ui.list").List:new({
+		x = 0,
+		y = listY,
+		width = state.screenWidth,
+		height = state.screenHeight - listY - 60,
+		items = items,
+		onItemOptionCycle = function(button, direction)
+			if button.context == "timeAlignment" then
+				local changed = button:cycleOption(direction)
+				if changed then
+					local newValue = button:getCurrentOption()
+					state.timeAlignment = newValue
+				end
+				return changed
+			end
+			return false
+		end,
+	})
 end
 
 function datetimeScreen.onExit()
-	-- Clean up
-	alignmentButton = nil
-	opacitySlider = nil
+	menuList = nil
 end
 
 return datetimeScreen

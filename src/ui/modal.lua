@@ -230,6 +230,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	if not self.visible then
 		return
 	end
+	love.graphics.push("all")
 	local controls = require("control_hints")
 	local fonts = require("ui.fonts")
 	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
@@ -428,6 +429,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 			"center"
 		)
 	end
+	love.graphics.pop()
 end
 
 return {
