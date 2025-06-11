@@ -161,11 +161,10 @@ function TabBar:update(dt)
 end
 
 function TabBar:draw()
-	-- Draw tab bar background and outline
 	love.graphics.push("all")
+	-- Draw tab bar background and outline
 	love.graphics.setColor(colors.ui.background_dim[1], colors.ui.background_dim[2], colors.ui.background_dim[3], 0.25)
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, self.cornerRadius)
-	love.graphics.pop()
 	-- Draw indicator (gradient background with outline, animated)
 	local indicatorY = self.y
 	local indicatorX = self.tabIndicator.x
@@ -228,6 +227,7 @@ function TabBar:draw()
 		love.graphics.setFont(fonts.loaded.body)
 		love.graphics.printf(tab.name, tabX, tabY, tabWidth, "center")
 	end
+	love.graphics.pop()
 end
 
 function TabBar.getHeight()

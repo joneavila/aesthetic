@@ -46,6 +46,7 @@ function ColorSquare:draw()
 	if not self.visible then
 		return
 	end
+	love.graphics.push("all")
 	local scale = self._scale or 1.0
 	local cx = self.x + self.width / 2
 	local cy = self.y + self.height / 2
@@ -66,6 +67,7 @@ function ColorSquare:draw()
 		love.graphics.setLineWidth(1)
 	end
 	love.graphics.rectangle("line", drawX, drawY, drawWidth, drawHeight, self.borderRadius)
+	love.graphics.pop()
 end
 
 return ColorSquare

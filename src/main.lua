@@ -1,6 +1,14 @@
 --- Main application entry point
 
 --[[
+  LÖVE Graphics State Best Practices
+  - Always use `love.graphics.push("all")` and `love.graphics.pop()` in top-level screen draw functions to avoid state
+    leakage.
+  - Each component should also manage its own graphics state if it changes color, scissor, stencil, etc.
+  - Unbalanced `push`/`pop` or early returns can cause subtle rendering bugs after screen transitions.
+]]
+
+--[[
                          _                _
     /\              _   | |          _   (_)
    /  \   ____  ___| |_ | | _   ____| |_  _  ____
@@ -58,6 +66,7 @@ function love.load()
 
 	-- Start with the splash screen
 	screens.switchTo("splash")
+	-- screens.switchTo("main_menu") --  Debug: Skip splash screen
 
 	-- Fade effect will be handled after splash screen completes
 	state.fading = false

@@ -87,7 +87,7 @@ function ListSelect:draw()
 	self.list.y = listStartY
 	self.list:draw()
 	-- Restrict drawing of checkboxes and selection indicator to visible area
-	love.graphics.push()
+	love.graphics.push("all")
 	love.graphics.intersectScissor(self.x, listStartY, self.width, self.height - (listStartY - self.y))
 	self.selectedCount = 0
 	for idx, item in ipairs(self.items) do

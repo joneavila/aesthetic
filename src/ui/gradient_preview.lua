@@ -24,39 +24,39 @@ function gradientPreview.draw(x, y, width, height, startColor, stopColor, direct
 		gradientPreview.updateMesh(startColor, stopColor, direction or "Vertical")
 	end
 
-	if gradientMesh then
-		-- Save current state
-		love.graphics.push()
-
-		-- Create stencil function for rounded corners if needed
-		if cornerRadius and cornerRadius > 0 then
-			love.graphics.stencil(function()
-				love.graphics.rectangle("fill", x, y, width, height, cornerRadius, cornerRadius)
-			end, "replace", 1)
-
-			-- Use stencil
-			love.graphics.setStencilTest("greater", 0)
-		end
-
-		-- Draw gradient preview
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.draw(gradientMesh, x, y, 0, width, height)
-
-		-- Reset stencil test and restore state
-		if cornerRadius and cornerRadius > 0 then
-			love.graphics.setStencilTest()
-		end
-
-		love.graphics.pop()
-
-		-- Draw border with corner radius if specified (draw after fill, at same position/size)
-		love.graphics.setColor(colors.ui.foreground) -- Matches default image component border color
-		if cornerRadius and cornerRadius > 0 then
-			love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
-		else
-			love.graphics.rectangle("line", x, y, width, height)
-		end
+	if not gradientMesh then
+		return
 	end
+
+	love.graphics.push("all")
+
+	-- Create stencil function for rounded corners if needed
+	if cornerRadius and cornerRadius > 0 then
+		love.graphics.stencil(function()
+			love.graphics.rectangle("fill", x, y, width, height, cornerRadius, cornerRadius)
+		end, "replace", 1)
+
+		-- Use stencil
+		love.graphics.setStencilTest("greater", 0)
+	end
+
+	-- Draw gradient preview
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.draw(gradientMesh, x, y, 0, width, height)
+
+	-- Reset stencil test and restore state
+	if cornerRadius and cornerRadius > 0 then
+		love.graphics.setStencilTest()
+	end
+
+	-- Draw border with corner radius if specified (draw after fill, at same position/size)
+	love.graphics.setColor(colors.ui.foreground) -- Matches default image component border color
+	if cornerRadius and cornerRadius > 0 then
+		love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
+	else
+		love.graphics.rectangle("line", x, y, width, height)
+	end
+	love.graphics.pop()
 end
 
 -- Create a small square preview

@@ -80,7 +80,7 @@ function imageGenerator.createIconImage(options)
 
 	local canvas, previousCanvas = imageGenerator.createCanvas(width, height, { 0, 0, 0, 0 })
 	local prevBlendMode, prevAlphaMode = love.graphics.getBlendMode()
-	love.graphics.push()
+	love.graphics.push("all")
 
 	-- Apply background based on background type
 	if state.backgroundType == "Gradient" then
@@ -227,7 +227,7 @@ function imageGenerator.createPreviewImage(outputPath)
 	-- Clear canvas with transparent color (we'll draw background after)
 	love.graphics.clear(0, 0, 0, 0)
 
-	love.graphics.push()
+	love.graphics.push("all")
 
 	-- Apply background based on background type
 	if state.backgroundType == "Gradient" then

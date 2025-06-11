@@ -63,36 +63,37 @@ function splash.onEnter()
 end
 
 function splash.draw()
-	-- Draw the background
-	love.graphics.clear(splash.background.color)
+	love.graphics.push("all")
+	local ok, err = pcall(function()
+		love.graphics.clear(splash.background.color)
 
-	-- Set the title font
-	if not splash.font then
-		return
-	end
-	love.graphics.setFont(splash.font)
-
-	love.graphics.push()
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], splash.alpha)
-
-	-- Get visible text and draw it
-	if splash.currentIndex > 0 then
-		local text = string.sub(splash.title, 1, splash.currentIndex)
-		love.graphics.print(text, splash.centerX, splash.centerY)
-	end
-
-	-- Draw cursor at current position if it should be visible
-	if (splash.state == "typing" or splash.state == "holding") and splash.showCursor then
-		local cursorX = splash.centerX
-		if splash.currentIndex > 0 then
-			cursorX = cursorX + splash.font:getWidth(string.sub(splash.title, 1, splash.currentIndex))
+		if not splash.font then
+			return
 		end
-		-- Ensure pixel-perfect alignment for cursor position
-		cursorX = math.floor(cursorX)
-		love.graphics.print(splash.cursorChar, cursorX, splash.centerY)
-	end
+		love.graphics.setFont(splash.font)
 
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], splash.alpha)
+
+		-- Get visible text and draw it
+		if splash.currentIndex > 0 then
+			local text = string.sub(splash.title, 1, splash.currentIndex)
+			love.graphics.print(text, splash.centerX, splash.centerY)
+		end
+
+		-- Draw cursor at current position if it should be visible
+		if (splash.state == "typing" or splash.state == "holding") and splash.showCursor then
+			local cursorX = splash.centerX
+			if splash.currentIndex > 0 then
+				cursorX = cursorX + splash.font:getWidth(string.sub(splash.title, 1, splash.currentIndex))
+			end
+			cursorX = math.floor(cursorX)
+			love.graphics.print(splash.cursorChar, cursorX, splash.centerY)
+		end
+	end)
 	love.graphics.pop()
+	if not ok then
+		logger.error("Error in splash.draw: " .. tostring(err))
+	end
 end
 
 function splash.update(dt)

@@ -84,7 +84,7 @@ function screens.getReturnValue()
 end
 
 function screens.draw()
-	love.graphics.push()
+	love.graphics.push("all")
 	local currentModule = registeredScreens[currentScreen]
 	if currentModule and currentModule.draw then
 		currentModule.draw()

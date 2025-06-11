@@ -7,7 +7,6 @@
 -- This sets up Header so that any missing methods or properties are looked up in Component.
 -- The second line ensures that instances of Header use Header's methods first, then fall back to Component.
 
-
 local component = {}
 
 -- Component base class
@@ -94,8 +93,11 @@ function Component:drawBackground()
 	local height = self:getHeight()
 	local cornerRadius = 8
 
+	love.graphics.push("all")
 	if self.focused then
-		-- love.graphics.setColor(colors.ui.foreground_dim)
+		-- `love.graphics.setColor()` sets a global color multiplier that affects everything drawn afterward including
+		-- meshes. Setting a non-white color before the mesh is drawn will dim the mesh.
+		love.graphics.setColor(1, 1, 1, 1)
 		local topColor = colors.ui.surface_focus_start
 		local bottomColor = colors.ui.surface_focus_stop
 		-- Create mesh for vertical gradient
@@ -119,6 +121,7 @@ function Component:drawBackground()
 		love.graphics.setColor(colors.ui.surface_focus_outline)
 		love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
 	end
+	love.graphics.pop()
 end
 
 -- Export the base component

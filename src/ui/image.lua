@@ -21,7 +21,7 @@ function imageComponent.draw(image, x, y, width, height, cornerRadius)
 		return
 	end
 
-	love.graphics.push()
+	love.graphics.push("all")
 
 	-- Create stencil for rounded corners
 	if cornerRadius and cornerRadius > 0 then
@@ -39,8 +39,6 @@ function imageComponent.draw(image, x, y, width, height, cornerRadius)
 		love.graphics.setStencilTest()
 	end
 
-	love.graphics.pop()
-
 	-- Draw outline
 	love.graphics.setColor(OUTLINE_COLOR)
 	if cornerRadius and cornerRadius > 0 then
@@ -49,7 +47,7 @@ function imageComponent.draw(image, x, y, width, height, cornerRadius)
 		love.graphics.rectangle("line", x, y, width, height)
 	end
 
-	love.graphics.setColor(1, 1, 1, 1) -- Reset color
+	love.graphics.pop()
 end
 
 return imageComponent

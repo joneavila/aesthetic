@@ -395,6 +395,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	end
 
 	if #self.buttons == 0 then
+		love.graphics.pop()
 		return
 	end
 

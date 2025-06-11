@@ -104,7 +104,7 @@ function scrollable.drawContent(params)
 	local opacity = params.opacity or 1
 
 	-- Set scissor to clip content to viewport
-	love.graphics.push()
+	love.graphics.push("all")
 	love.graphics.setScissor(x, y, width, height)
 
 	-- Adjust drawing position based on scroll

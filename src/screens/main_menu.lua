@@ -11,6 +11,7 @@ local themeCreator = require("theme_creator")
 
 local background = require("ui.background")
 local Button = require("ui.button").Button
+local colors = require("colors")
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
