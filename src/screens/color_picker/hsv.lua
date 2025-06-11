@@ -333,6 +333,8 @@ function hsv.draw()
 	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
+		{ button = "y", text = "H/SV" },
+		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
 	controlHintsInstance:draw()

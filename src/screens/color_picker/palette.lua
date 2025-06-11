@@ -193,6 +193,7 @@ function palette.draw()
 	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
+		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
 	controlHintsInstance:draw()

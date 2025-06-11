@@ -85,8 +85,7 @@ function ControlHints:draw()
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
 	for i, control in ipairs(controls_list) do
-		local displayText = titleCase(control.text)
-		local textWidth = self.font:getWidth(displayText)
+		local textWidth = self.font:getWidth(control.text)
 		local buttonsWidth = 0
 
 		if type(control.button) == "table" then
@@ -142,9 +141,8 @@ function ControlHints:draw()
 		love.graphics.setColor(color)
 		love.graphics.setFont(self.font)
 		x = x + ACTION_TEXT_SPACING
-		local displayText = titleCase(control.text)
-		love.graphics.print(displayText, x, y - 2)
-		x = x + self.font:getWidth(displayText)
+		love.graphics.print(control.text, x, y - 2)
+		x = x + self.font:getWidth(control.text)
 
 		if i < #controls_list then
 			x = x + CONTROL_SPACING
