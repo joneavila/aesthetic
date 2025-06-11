@@ -6,15 +6,17 @@ local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 local tween = require("tween")
+local header = require("ui.header")
+local TabBar = require("ui.tab_bar")
 
 local colorUtils = require("utils.color")
-
-local constants = require("screens.color_picker.constants")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
 
 local hsv = {}
+
+local shared = require("screens.color_picker.shared")
 
 -- Constants
 local EDGE_PADDING = 10
@@ -148,14 +150,13 @@ function hsv.draw()
 	-- Draw current color border using Relative Luminance Border Algorithm
 	local borderR, borderG, borderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor({ borderR, borderG, borderB })
-	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
-	local halfLine = constants.OUTLINE.NORMAL_WIDTH / 2
+	love.graphics.setLineWidth(1)
 	love.graphics.rectangle(
 		"line",
-		pickerState.previewX - halfLine,
-		pickerState.startY - halfLine,
-		pickerState.previewWidth + constants.OUTLINE.NORMAL_WIDTH,
-		PREVIEW_HEIGHT + constants.OUTLINE.NORMAL_WIDTH,
+		pickerState.previewX,
+		pickerState.startY,
+		pickerState.previewWidth,
+		PREVIEW_HEIGHT,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -186,14 +187,14 @@ function hsv.draw()
 	-- Draw new color border using Relative Luminance Border Algorithm
 	local newBorderR, newBorderG, newBorderB = colorUtils.calculateContrastingColor(r, g, b)
 	love.graphics.setColor(newBorderR, newBorderG, newBorderB, 1)
-	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
-	halfLine = constants.OUTLINE.NORMAL_WIDTH / 2
+	love.graphics.setLineWidth(1)
+
 	love.graphics.rectangle(
 		"line",
-		pickerState.previewX - halfLine,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding - halfLine,
-		pickerState.previewWidth + constants.OUTLINE.NORMAL_WIDTH,
-		PREVIEW_HEIGHT + constants.OUTLINE.NORMAL_WIDTH,
+		pickerState.previewX,
+		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding,
+		pickerState.previewWidth,
+		PREVIEW_HEIGHT,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -232,18 +233,15 @@ function hsv.draw()
 		colors.ui.foreground[3],
 		currentState.focusSquare and OPACITY_UNFOCUSED or 1
 	)
-	love.graphics.setLineWidth(
-		currentState.focusSquare and constants.OUTLINE.NORMAL_WIDTH or constants.OUTLINE.SELECTED_WIDTH
-	)
-	local hueOutlineWidth = currentState.focusSquare and constants.OUTLINE.NORMAL_WIDTH
-		or constants.OUTLINE.SELECTED_WIDTH
-	halfLine = hueOutlineWidth / 2
+	love.graphics.setLineWidth(1)
+	local hueOutlineWidth = 1
+
 	love.graphics.rectangle(
 		"line",
-		hueX - halfLine,
-		pickerState.startY - halfLine,
-		HUE_SLIDER_WIDTH + hueOutlineWidth,
-		pickerState.squareSize + hueOutlineWidth,
+		hueX,
+		pickerState.startY,
+		HUE_SLIDER_WIDTH,
+		pickerState.squareSize,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -262,22 +260,22 @@ function hsv.draw()
 	-- Left triangle
 	love.graphics.polygon(
 		"fill",
-		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - halfLine,
+		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING - halfLine,
+		hueX - CURSOR.TRIANGLE_HORIZONTAL_OFFSET - CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX - CURSOR.TRIANGLE_SPACING - halfLine,
+		hueX - CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY
 	)
 
 	-- Right triangle
 	love.graphics.polygon(
 		"fill",
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + halfLine,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY - CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING + halfLine,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_HORIZONTAL_OFFSET + CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY + CURSOR.TRIANGLE_HEIGHT / 2,
-		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_SPACING + halfLine,
+		hueX + HUE_SLIDER_WIDTH + CURSOR.TRIANGLE_SPACING,
 		currentState.cursor.hueY
 	)
 
@@ -299,18 +297,15 @@ function hsv.draw()
 
 	-- Draw SV square outline
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
-	love.graphics.setLineWidth(
-		currentState.focusSquare and constants.OUTLINE.SELECTED_WIDTH or constants.OUTLINE.NORMAL_WIDTH
-	)
-	local svOutlineWidth = currentState.focusSquare and constants.OUTLINE.SELECTED_WIDTH
-		or constants.OUTLINE.NORMAL_WIDTH
-	halfLine = svOutlineWidth / 2
+	love.graphics.setLineWidth(1)
+	local svOutlineWidth = 1
+
 	love.graphics.rectangle(
 		"line",
-		svX - halfLine,
-		pickerState.startY - halfLine,
-		pickerState.squareSize + svOutlineWidth,
-		pickerState.squareSize + svOutlineWidth,
+		svX,
+		pickerState.startY,
+		pickerState.squareSize,
+		pickerState.squareSize,
 		CURSOR.CORNER_RADIUS
 	)
 
@@ -564,7 +559,7 @@ end
 function hsv.onEnter()
 	-- Initialize layout if not already done
 	if not pickerState.squareSize then
-		local contentArea = constants.calculateContentArea()
+		local contentArea = shared.calculateContentArea()
 
 		-- Calculate available space
 		local availableHeight = contentArea.height - (EDGE_PADDING * 2)

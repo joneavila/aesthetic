@@ -4,11 +4,13 @@ local colors = require("colors")
 local state = require("state")
 local tween = require("tween")
 local controls = require("control_hints")
-local constants = require("screens.color_picker.constants")
 local colorUtils = require("utils.color")
 local screens = require("screens")
 local Component = require("ui.component").Component
 local ColorSquare = require("ui.colorsquare")
+local header = require("ui.header")
+local TabBar = require("ui.tab_bar")
+local shared = require("screens.color_picker.shared")
 
 local palette = {}
 
@@ -75,7 +77,7 @@ local function calculateGridDimensions()
 	local paletteColors = getPaletteColors()
 	local gridSize = calculateGridSize()
 
-	local contentArea = constants.calculateContentArea()
+	local contentArea = shared.calculateContentArea()
 
 	-- Calculate available space accounting for padding
 	local availableHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
@@ -128,7 +130,7 @@ local paletteState = {
 
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
-	local contentArea = constants.calculateContentArea()
+	local contentArea = shared.calculateContentArea()
 	local scrollbarHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 	local scrollbarY = contentArea.y + SCREEN_EDGE_PADDING

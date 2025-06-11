@@ -4,7 +4,11 @@ local love = require("love")
 local colors = require("colors")
 local controls = require("control_hints")
 local screens = require("screens")
+local shared = require("screens.color_picker.shared")
+
 local state = require("state")
+local header = require("ui.header")
+local TabBar = require("ui.tab_bar")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
@@ -13,11 +17,8 @@ local colorUtils = require("utils.color")
 local svg = require("utils.svg")
 local tween = require("tween")
 
-local constants = require("screens.color_picker.constants")
-
 local hex = {}
 
--- Constants
 local EDGE_PADDING = 20
 local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
@@ -30,7 +31,6 @@ local INPUT_RECT_SPACING = 5
 local ICON_SIZE = 24
 local ANIMATION_SCALE = 0.1
 local ANIMATION_DURATION = 0.4 -- Duration for each phase (expand/contract) in seconds
-
 -- State
 local hexState = {
 	maxInputLength = 6,
@@ -71,12 +71,11 @@ local function isValidHex(input)
 	return true
 end
 
--- Helper function to get button dimensions (square keys)
 local function getButtonDimensions()
-	local contentArea = constants.calculateContentArea()
+	local contentArea = shared.calculateContentArea()
 
 	local gridWidth = contentArea.width - (2 * EDGE_PADDING)
-	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT - (2 * GRID_PADDING)
+	local availableHeight = contentArea.height
 
 	local buttonWidth = (gridWidth - (5 * GRID_PADDING)) / 6
 	local buttonHeight = (availableHeight - (2 * GRID_PADDING)) / 3
@@ -89,7 +88,7 @@ end
 
 -- Helper function to get grid start position (for centering)
 local function getGridStartPosition()
-	local contentArea = constants.calculateContentArea()
+	local contentArea = shared.calculateContentArea()
 	local buttonSize = getButtonDimensions()
 
 	-- Calculate total grid dimensions
@@ -139,7 +138,7 @@ end
 function hex.draw()
 	background.draw()
 
-	local contentArea = constants.calculateContentArea()
+	local contentArea = shared.calculateContentArea()
 
 	-- Get current color type state
 	local currentState = getCurrentHexState()
@@ -172,7 +171,7 @@ function hex.draw()
 	end
 
 	-- Draw preview rectangle outline
-	love.graphics.setLineWidth(constants.OUTLINE.NORMAL_WIDTH)
+	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Get fonts
@@ -257,7 +256,7 @@ function hex.draw()
 				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
 
 				-- Draw button outline
-				love.graphics.setLineWidth(isSelected and BUTTON_HOVER_OUTLINE_WIDTH or constants.OUTLINE.NORMAL_WIDTH)
+				love.graphics.setLineWidth(1)
 				if isConfirmButton and isSelected and isValidHex(currentState.input) then
 					-- Valid confirm button that is selected - use accent color for outline too
 					love.graphics.setColor(colors.ui.accent)

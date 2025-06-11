@@ -8,16 +8,25 @@ local fonts = require("ui.fonts")
 local TabBar = setmetatable({}, { __index = component })
 TabBar.__index = TabBar
 
+TabBar.DEFAULT_TAB_PADDING = 8
+TabBar.DEFAULT_TAB_TEXT_PADDING = 1
+TabBar.DEFAULT_FONT_KEY = "body"
+
 function TabBar:new(config)
 	local instance = setmetatable(component.new(self, config), self)
 	instance.tabs = config.tabs or {}
 	instance.onTabSwitched = config.onTabSwitched
-	instance.height = config.height or 40
+	instance.tabPadding = config.tabPadding or TabBar.DEFAULT_TAB_PADDING
+	instance.tabTextPadding = config.tabTextPadding or TabBar.DEFAULT_TAB_TEXT_PADDING
+	instance.height = config.height
+		or (
+			fonts.loaded[TabBar.DEFAULT_FONT_KEY]:getHeight()
+			+ (instance.tabPadding * 2)
+			+ (instance.tabTextPadding * 2)
+		)
 	instance.width = config.width or 100
 	instance.x = config.x or 0
 	instance.y = config.y or 0
-	instance.tabPadding = 8 -- px left/right
-	instance.tabTextPadding = 8
 	instance.cornerRadius = instance.height / 4
 	instance.animationDuration = 0.2
 
@@ -27,7 +36,7 @@ function TabBar:new(config)
 	-- Set up tab layout
 	instance:layoutTabs()
 	instance:initializeTextColors()
-	instance:switchToTab(config.initialTab or instance.tabs[1].name)
+	instance:switchToTab(config.initialTab or instance.tabs[1].name, false)
 
 	return instance
 end
@@ -78,14 +87,34 @@ function TabBar:updateTabAnimations()
 	end
 end
 
-function TabBar:switchToTab(tabName)
+function TabBar:switchToTab(tabName, animate)
+	if animate == nil then
+		animate = true
+	end
 	for _, tab in ipairs(self.tabs) do
 		if tab.name:lower() == tabName:lower() then
 			for _, t in ipairs(self.tabs) do
 				t.active = false
 			end
 			tab.active = true
-			self:updateTabAnimations()
+			if animate then
+				self:updateTabAnimations()
+			else
+				-- Instantly set indicator and text color, no animation
+				self.tabIndicator.x = tab.x
+				self.tabIndicator.width = tab.width
+				self.tabIndicator.animation = nil
+				for i, t2 in ipairs(self.tabs) do
+					if t2.active then
+						self.tabTextColors[i].color =
+							{ colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1 }
+					else
+						self.tabTextColors[i].color =
+							{ colors.ui.subtext[1], colors.ui.subtext[2], colors.ui.subtext[3], 1 }
+					end
+					self.tabTextColors[i].animation = nil
+				end
+			end
 			if self.onTabSwitched then
 				self.onTabSwitched(tab)
 			end
@@ -132,6 +161,11 @@ function TabBar:update(dt)
 end
 
 function TabBar:draw()
+	-- Draw tab bar background and outline
+	love.graphics.push("all")
+	love.graphics.setColor(colors.ui.background_dim[1], colors.ui.background_dim[2], colors.ui.background_dim[3], 0.25)
+	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, self.cornerRadius)
+	love.graphics.pop()
 	-- Draw indicator (gradient background with outline, animated)
 	local indicatorY = self.y
 	local indicatorX = self.tabIndicator.x
@@ -194,6 +228,14 @@ function TabBar:draw()
 		love.graphics.setFont(fonts.loaded.body)
 		love.graphics.printf(tab.name, tabX, tabY, tabWidth, "center")
 	end
+end
+
+function TabBar.getHeight()
+	local fonts = require("ui.fonts")
+	local padding = TabBar.DEFAULT_TAB_PADDING
+	local textPadding = TabBar.DEFAULT_TAB_TEXT_PADDING
+	local font = fonts.loaded[TabBar.DEFAULT_FONT_KEY]
+	return font:getHeight() + (padding * 2) + (textPadding * 2)
 end
 
 return TabBar
