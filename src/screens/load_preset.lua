@@ -8,7 +8,7 @@ local state = require("state")
 local background = require("ui.background")
 local Button = require("ui.button").Button
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 
@@ -25,6 +25,8 @@ local input
 
 -- Preset items list
 local presetItems = {}
+
+local headerInstance = Header:new({ title = "Load Theme Preset", screenWidth = state.screenWidth })
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
@@ -94,16 +96,13 @@ function loadPreset.draw()
 	-- Set background
 	background.draw()
 
-	-- Draw header with title
-	header.draw("Load Theme Preset")
-
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(fonts.loaded.body)
-		love.graphics.print("No presets found", 16, header.getContentStartY())
+		love.graphics.print("No presets found", 16, headerInstance:getContentStartY())
 
 		-- Draw controls
 		controls.draw({
@@ -142,12 +141,12 @@ function loadPreset.onEnter()
 	loadPresetsList()
 
 	-- Calculate available height for the list (full space between header and controls)
-	local availableHeight = state.screenHeight - header.getContentStartY() - controls.calculateHeight()
+	local availableHeight = state.screenHeight - headerInstance:getContentStartY() - controls.calculateHeight()
 
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
 		height = availableHeight,
 		items = presetItems,

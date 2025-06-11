@@ -1,7 +1,5 @@
 --- Path constants
 local system = require("utils.system")
-local state = require("state")
-local errorHandler = require("error_handler")
 local logger = require("utils.logger")
 
 local paths = {}

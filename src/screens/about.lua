@@ -10,7 +10,7 @@ local virtualJoystick = require("input").virtualJoystick
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 
 local about = {}
 
@@ -42,8 +42,12 @@ function about.draw()
 	local font = fonts.loaded.body
 
 	-- Draw header using header module
-	header.draw(state.applicationName .. " " .. version.getVersionString())
-	local headerHeight = header.getContentStartY()
+	local headerInstance = Header:new({
+		title = state.applicationName .. " " .. version.getVersionString(),
+		screenWidth = state.screenWidth,
+	})
+	headerInstance:draw()
+	local headerHeight = headerInstance:getContentStartY()
 
 	-- Calculate Y positions for text
 	local bodyY = headerHeight + PADDING

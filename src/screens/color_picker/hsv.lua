@@ -6,8 +6,6 @@ local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 local tween = require("tween")
-local header = require("ui.header")
-local TabBar = require("ui.tab_bar")
 
 local colorUtils = require("utils.color")
 
@@ -234,7 +232,6 @@ function hsv.draw()
 		currentState.focusSquare and OPACITY_UNFOCUSED or 1
 	)
 	love.graphics.setLineWidth(1)
-	local hueOutlineWidth = 1
 
 	love.graphics.rectangle(
 		"line",
@@ -298,7 +295,6 @@ function hsv.draw()
 	-- Draw SV square outline
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
 	love.graphics.setLineWidth(1)
-	local svOutlineWidth = 1
 
 	love.graphics.rectangle(
 		"line",

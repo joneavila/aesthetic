@@ -8,7 +8,6 @@
 ---
 --- ERROR HANDLING: Missing or invalid fields trigger logger warnings and fallback to state.lua defaults.
 
-local errorHandler = require("error_handler")
 local logger = require("utils.logger")
 local paths = require("paths")
 local state = require("state")

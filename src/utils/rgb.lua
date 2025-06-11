@@ -3,7 +3,6 @@ local colorUtils = require("utils.color")
 local commands = require("utils.commands")
 local system = require("utils.system")
 local paths = require("paths")
-local errorHandler = require("error_handler")
 local logger = require("utils.logger")
 local fail = require("utils.fail")
 

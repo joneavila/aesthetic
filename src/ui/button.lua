@@ -127,7 +127,6 @@ end
 
 function Button:_startPulseTween(direction)
 	self._pulseDirection = direction or 1
-	local fromScale = self._pulseScale
 	local toScale = (self._pulseDirection == 1) and PULSE_SCALE_MAX or PULSE_SCALE_MIN
 	self._pulseTween = tween.new(PULSE_DURATION / 2, self, { _pulseScale = toScale }, "inOutSine")
 end

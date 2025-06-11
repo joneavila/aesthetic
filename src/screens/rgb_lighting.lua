@@ -9,7 +9,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 
@@ -40,6 +40,8 @@ local BREATHING_SPEEDS = {
 
 local menuList = nil
 local input = nil
+
+local headerInstance = Header:new({ title = "RGB Lighting", screenWidth = state.screenWidth })
 
 -- Helper function to get the current breathing speed based on rgbMode
 local function getCurrentBreathingSpeed()
@@ -242,7 +244,7 @@ function rgb_lighting.draw()
 	background.draw()
 
 	-- Draw header with title
-	header.draw("RGB Lighting")
+	headerInstance:draw()
 
 	love.graphics.setFont(fonts.loaded.body)
 
@@ -277,9 +279,9 @@ function rgb_lighting.onEnter()
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
+		height = state.screenHeight - headerInstance:getContentStartY() - 60,
 		items = createMenuButtons(),
 		onItemSelect = function(item)
 			if item.onClick then

@@ -7,8 +7,6 @@ local screens = require("screens")
 local shared = require("screens.color_picker.shared")
 
 local state = require("state")
-local header = require("ui.header")
-local TabBar = require("ui.tab_bar")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
@@ -24,7 +22,6 @@ local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
 local GRID_PADDING = 10
 local BUTTON_CORNER_RADIUS = 8
-local BUTTON_HOVER_OUTLINE_WIDTH = 4
 local INPUT_RECT_WIDTH = 30
 local INPUT_RECT_HEIGHT = 40
 local INPUT_RECT_SPACING = 5

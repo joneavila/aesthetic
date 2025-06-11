@@ -10,7 +10,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local imageComponent = require("ui.image")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
@@ -20,6 +20,8 @@ local iconsToggle = {}
 local menuList = nil
 local input = nil
 local previewImages = {}
+
+local headerInstance = Header:new({ title = "Icons", screenWidth = state.screenWidth })
 
 -- Function to load preview images
 local function loadPreviewImages()
@@ -62,7 +64,7 @@ function iconsToggle.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw("Icons")
+	headerInstance:draw()
 
 	love.graphics.setFont(fonts.loaded.body)
 
@@ -150,9 +152,9 @@ function iconsToggle.onEnter(_data)
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
+		height = state.screenHeight - headerInstance:getContentStartY() - 60,
 		items = createMenuButtons(),
 		onItemSelect = function(item)
 			if item.onClick then

@@ -14,7 +14,7 @@ local love = require("love")
 local colors = require("colors")
 local input = require("input")
 local state = require("state")
-local font_calibration = require("font_calibration")
+-- local font_calibration = require("font_calibration")
 
 local fonts = require("ui.fonts")
 

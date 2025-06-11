@@ -12,7 +12,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
 local List = require("ui.list").List
@@ -20,13 +20,11 @@ local List = require("ui.list").List
 local navigationScreen = {}
 
 -- UI Components
-local alignmentButton = nil
-local opacitySlider = nil
 local input = nil
+local headerInstance = Header:new({ title = "Navigation", screenWidth = state.screenWidth })
 
 -- Constants
 local EDGE_PADDING = 18
-local COMPONENT_SPACING = 18
 
 -- Opacity values for the slider (0-100 in increments of 10)
 local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
@@ -86,7 +84,6 @@ end
 
 function navigationScreen.draw()
 	background.draw()
-	header.draw("Navigation")
 	love.graphics.setFont(fonts.loaded.body)
 	if navigationScreen.list then
 		navigationScreen.list:draw()
@@ -151,9 +148,7 @@ end
 
 function navigationScreen.onEnter(_data)
 	input = inputHandler.create()
-	local EDGE_PADDING = 18
-	local COMPONENT_SPACING = 18
-	local startY = header.getContentStartY()
+	local startY = headerInstance:getContentStartY()
 	local alignmentButton = createAlignmentButton()
 	alignmentButton.y = 0 -- List will set position
 	local opacitySlider = createOpacitySlider(0) -- List will set position

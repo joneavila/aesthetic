@@ -11,7 +11,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 
@@ -42,6 +42,9 @@ local tweenObj = { leftWidth = 0, rightWidth = 0 }
 -- List handling variables
 local menuList = nil
 local input = nil
+
+-- Create Header instance
+local headerInstance = Header:new({ title = "Box Art Width", screenWidth = state.screenWidth })
 
 -- Function to get display text for a box art width value
 local function getDisplayText(width)
@@ -109,14 +112,14 @@ end
 
 function box_art_width.draw()
 	background.draw()
-	header.draw("Box Art Width")
+	headerInstance:draw()
 
 	-- Draw information text below header
 	local infoText =
 		'This setting applies to the Content, Collection, and History screens and assumes you have set muOS "Content Box Art Alignment" setting to "Bottom Right", "Middle Right", or "Top Right".'
 	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
-	local infoY = header.getContentStartY() + 2
+	local infoY = headerInstance:getContentStartY() + 2
 	local infoWidth = state.screenWidth - EDGE_PADDING * 2
 	love.graphics.printf(infoText, EDGE_PADDING, infoY, infoWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
@@ -127,12 +130,12 @@ function box_art_width.draw()
 	local _, wrappedLines = font:getWrap(infoText, infoWidth)
 	local infoHeight = #wrappedLines * font:getHeight()
 	if menuList then
-		menuList.y = header.getContentStartY() + infoHeight
+		menuList.y = headerInstance:getContentStartY() + infoHeight
 		menuList:draw()
 	end
 
 	-- Calculate the bottom Y of the last button in the menuList
-	local previewY = header.getContentStartY() + infoHeight + 40
+	local previewY = headerInstance:getContentStartY() + infoHeight + 40
 	if menuList then
 		local listBottom = menuList.y + menuList:getContentHeight()
 		previewY = listBottom + 40
@@ -227,9 +230,9 @@ function box_art_width.onEnter()
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
+		height = state.screenHeight - headerInstance:getContentStartY() - 60,
 		items = createMenuButtons(),
 		onItemSelect = function(_item)
 			-- No-op for this screen

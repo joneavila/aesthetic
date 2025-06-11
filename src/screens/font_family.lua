@@ -9,7 +9,7 @@ local state = require("state")
 local background = require("ui.background")
 local Button = require("ui.button").Button
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 
@@ -19,6 +19,8 @@ local font = {}
 -- Local variables for this module
 local menuList
 local input
+
+local headerInstance = Header:new({ title = "Font Family", screenWidth = state.screenWidth })
 
 -- Constants specific to the font preview
 local FONT_PREVIEW = {
@@ -113,11 +115,9 @@ local function createMenuButtons()
 end
 
 function font.draw()
-	-- Set background
 	background.draw()
 
-	-- Draw header with title using the UI component
-	header.draw("Font Family")
+	headerInstance:draw()
 
 	-- Make sure we restore the default UI font for the button list
 	love.graphics.setFont(fonts.loaded.body)
@@ -141,7 +141,7 @@ function font.draw()
 	-- Draw the list using our list component
 	if menuList then
 		-- Use fixed list height based on maximum preview height
-		menuList.height = previewY - header.getContentStartY() - 8
+		menuList.height = previewY - headerInstance:getContentStartY() - 8
 		menuList:calculateDimensions()
 		menuList:draw()
 	end
@@ -198,9 +198,9 @@ function font.onEnter()
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 120,
+		height = state.screenHeight - headerInstance:getContentStartY() - 120,
 		items = createMenuButtons(),
 		onItemSelect = function(item)
 			if item.onClick then

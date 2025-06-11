@@ -1,6 +1,12 @@
 --- Base UI Component
 --- Provides common functionality for all UI components
-local love = require("love")
+--
+-- To create a class that inherits from Component, for example, Header, use:
+--   local Header = setmetatable({}, { __index = Component })
+--   Header.__index = Header
+-- This sets up Header so that any missing methods or properties are looked up in Component.
+-- The second line ensures that instances of Header use Header's methods first, then fall back to Component.
+
 
 local component = {}
 
@@ -79,8 +85,7 @@ function Component.handleInput(_self, _input)
 end
 
 -- Draws a focus background with gradient and outline
-function Component:drawBackground(params)
-	-- params: {cornerRadius}
+function Component:drawBackground()
 	local colors = require("colors")
 	local love = require("love")
 	local x = self.x

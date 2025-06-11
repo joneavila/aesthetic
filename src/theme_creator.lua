@@ -2,7 +2,6 @@
 local love = require("love")
 
 local colorUtils = require("utils.color")
-local errorHandler = require("error_handler")
 local paths = require("paths")
 local state = require("state")
 
@@ -78,24 +77,6 @@ local function executeBootImageForAllResolutions()
 		end
 		return true
 	end)
-end
-
--- Helper to copy either a file or directory
-local function copyItem(sourcePath, destPath)
-	if system.isDir(sourcePath) then
-		local success, err = system.copyDir(sourcePath, destPath)
-		if not success then
-			return false, err or ("Failed to copy directory: " .. tostring(sourcePath))
-		end
-	elseif system.isFile(sourcePath) then
-		local success, err = system.copyFile(sourcePath, destPath)
-		if not success then
-			return false, err or ("Failed to copy file: " .. tostring(sourcePath))
-		end
-	else
-		return false, "Source path does not exist: " .. sourcePath
-	end
-	return true
 end
 
 -- Helper to create status images (reboot, shutdown, charge)

@@ -10,7 +10,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local image = require("ui.image")
@@ -21,6 +21,7 @@ local homeScreenLayout = {}
 local menuList = nil
 local input = nil
 local previewImage = nil
+local headerInstance = Header:new({ title = "Home Screen Layout", screenWidth = state.screenWidth })
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
@@ -74,7 +75,6 @@ end
 
 function homeScreenLayout.draw()
 	background.draw()
-	header.draw("Home Screen Layout")
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)
@@ -90,7 +90,7 @@ function homeScreenLayout.draw()
 		local img = previewImage[currentLayout]
 
 		-- Calculate available space for the image
-		local buttonAreaBottom = header.getContentStartY() + 80 -- The button list height
+		local buttonAreaBottom = headerInstance:getContentStartY() + 80 -- The button list height
 		local controlsTop = state.screenHeight - CONTROLS_HEIGHT
 		local availableHeight = controlsTop - buttonAreaBottom - (IMAGE_MARGIN * 2) -- Top and bottom padding
 		local availableWidth = state.screenWidth - (IMAGE_MARGIN * 2) -- Left and right padding
@@ -169,7 +169,7 @@ function homeScreenLayout.onEnter(_data)
 	-- Create the main list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
 		height = 80, -- Just enough for the button
 		items = buttons,

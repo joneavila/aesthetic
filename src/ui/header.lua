@@ -39,14 +39,6 @@ function Header.calculateHeight(_self)
 	return fonts.loaded.body:getHeight() + (HEADER_CONFIG.VERTICAL_PADDING * 2)
 end
 
-function Header:getContentStartY()
-	return self.height + HEADER_CONFIG.BOTTOM_MARGIN
-end
-
-function Header:setTitle(title)
-	self.title = title or ""
-end
-
 function Header:draw()
 	if not self.visible then
 		return
@@ -56,8 +48,13 @@ function Header:draw()
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+
+	-- Draw line under header
+	love.graphics.setColor(colors.ui.background_outline)
+	love.graphics.rectangle("line", self.x, self.y + self.height, self.width, 1)
+
 	-- Draw header title
-	love.graphics.setColor(colors.ui.subtext)
+	love.graphics.setColor(colors.ui.foreground_dim)
 	love.graphics.setFont(fonts.loaded.body)
 	local titleWidth = fonts.loaded.body:getWidth(displayTitle)
 	local titleX = (self.width - titleWidth) / 2
@@ -65,40 +62,20 @@ function Header:draw()
 	love.graphics.pop()
 end
 
--- Static helper functions for backwards compatibility
-local header = {}
-header.Header = Header
-header.VERTICAL_PADDING = HEADER_CONFIG.VERTICAL_PADDING
-header.BOTTOM_MARGIN = HEADER_CONFIG.BOTTOM_MARGIN
-
--- Backwards compatibility functions
-function header.getHeight()
+function Header:getHeight()
 	return fonts.loaded.body:getHeight() + (HEADER_CONFIG.VERTICAL_PADDING * 2)
 end
 
-function header.getWidth()
-	return love.graphics.getWidth() -- Constant width, full width of screen
+function Header:getWidth()
+	return self.width
 end
 
-function header.getContentStartY()
-	return header.getHeight() + HEADER_CONFIG.BOTTOM_MARGIN
+function Header:getContentStartY()
+	return self:getHeight() + HEADER_CONFIG.BOTTOM_MARGIN
 end
 
-function header.draw(title)
-	-- Draw background
-	love.graphics.setColor(colors.ui.background_dim)
-	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), header.getHeight())
-
-	-- Draw line under header
-	love.graphics.setColor(colors.ui.background_outline)
-	love.graphics.rectangle("line", 0, header.getHeight(), love.graphics.getWidth(), 1)
-
-	-- Draw header title
-	love.graphics.setColor(colors.ui.foreground_dim)
-	love.graphics.setFont(fonts.loaded.body)
-	local titleWidth = fonts.loaded.body:getWidth(title)
-	local titleX = (header.getWidth() - titleWidth) / 2
-	love.graphics.print(title, titleX, HEADER_CONFIG.VERTICAL_PADDING)
+function Header:setTitle(title)
+	self.title = title or ""
 end
 
-return header
+return Header

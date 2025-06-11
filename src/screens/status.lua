@@ -12,14 +12,14 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 
 local statusScreen = {}
 
 -- UI Components
-local alignmentButton = nil
 local input = nil
+local headerInstance = Header:new({ title = "Status", screenWidth = state.screenWidth })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -45,23 +45,6 @@ local function createAlignmentButton()
 	})
 end
 
--- Handle option cycling for alignment button
-local function handleAlignmentOptionCycle(direction)
-	if not alignmentButton then
-		return false
-	end
-
-	local changed = alignmentButton:cycleOption(direction)
-	if not changed then
-		return false
-	end
-
-	local newValue = alignmentButton:getCurrentOption()
-	state.statusAlignment = newValue
-
-	return true
-end
-
 -- Calculate warning text height properly accounting for wrapping
 local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
@@ -71,12 +54,11 @@ end
 
 function statusScreen.draw()
 	background.draw()
-	header.draw("Status")
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
-	local warningY = header.getContentStartY() + 2
+	local warningY = headerInstance:getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
@@ -87,11 +69,9 @@ function statusScreen.draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = 0
+	local previewY = headerInstance:getContentStartY() + 120
 	if menuList then
 		previewY = menuList.y + menuList:getContentHeight() + 20
-	else
-		previewY = header.getContentStartY() + 120
 	end
 	local previewHeight = 100
 	local previewWidth = state.screenWidth - 80
@@ -161,7 +141,7 @@ end
 function statusScreen.onEnter(_data)
 	input = inputHandler.create()
 
-	local startY = header.getContentStartY()
+	local startY = headerInstance:getContentStartY()
 	local warningHeight = calculateWarningHeight()
 	local listY = startY + warningHeight + COMPONENT_SPACING
 

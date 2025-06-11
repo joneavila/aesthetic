@@ -9,7 +9,7 @@ local state = require("state")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
@@ -113,24 +113,26 @@ local function scanThemes()
 	end
 end
 
+local headerInstance = Header:new({ title = "Manage Themes", screenWidth = state.screenWidth })
+
 function delete_themes.draw()
 	-- Set background
 	background.draw()
 
 	-- Draw header with title
-	header.draw("Manage Themes")
+	headerInstance:draw()
 
 	-- Draw theme directory path in mono font between header and list
 	love.graphics.setFont(fonts.loaded.monoBody)
 	local dirText = "Theme directory: " .. paths.MUOS_THEMES_DIR
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(dirText, 32, header.getContentStartY() + 8)
+	love.graphics.print(dirText, 32, headerInstance:getContentStartY() + 8)
 
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Adjust list Y to account for directory text
-	local listY = header.getContentStartY() + 8 + fonts.loaded.monoBody:getHeight() + 12
+	local listY = headerInstance:getContentStartY() + 8 + fonts.loaded.monoBody:getHeight() + 12
 	if themeList then
 		themeList.y = listY
 		themeList.height = state.screenHeight - listY - controls.calculateHeight()
@@ -264,9 +266,9 @@ function delete_themes.onEnter(_data)
 	-- Create theme list
 	themeList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - controls.calculateHeight(),
+		height = state.screenHeight - headerInstance:getContentStartY() - controls.calculateHeight(),
 		items = themeItems,
 		itemHeight = fonts.loaded.body:getHeight() + 24,
 		onItemSelect = function(item, _idx)

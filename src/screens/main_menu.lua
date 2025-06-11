@@ -13,7 +13,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
@@ -25,6 +25,7 @@ local menuList = nil
 local actionButton = nil
 local input = nil
 local modal = nil
+local headerInstance = Header:new({ title = "Main Menu", screenWidth = state.screenWidth })
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
@@ -456,7 +457,8 @@ end
 
 function menu.draw()
 	background.draw()
-	header.draw("Main Menu")
+
+	headerInstance:draw()
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)
@@ -631,9 +633,9 @@ function menu.onEnter(data)
 	-- Create the main list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT - 8,
+		height = state.screenHeight - headerInstance:getContentStartY() - TOTAL_BOTTOM_AREA_HEIGHT - 8,
 		items = buttons,
 		onItemSelect = function(item, _index)
 			if item.onClick then

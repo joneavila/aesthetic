@@ -10,7 +10,7 @@ local presets = require("utils.presets")
 local background = require("ui.background")
 local Button = require("ui.button").Button
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local modalModule = require("ui.modal")
@@ -33,6 +33,8 @@ local updateCheckScheduled = false
 local updateCheckTimer = 0
 local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
 local downloadThread = nil -- LÖVE thread for downloading
+
+local headerInstance = Header:new({ title = "Settings", screenWidth = state.screenWidth })
 
 -- Function to handle OTA update check
 local function checkForUpdates()
@@ -153,8 +155,7 @@ function settings.draw()
 	-- Set background
 	background.draw()
 
-	-- Draw header with title
-	header.draw("Settings")
+	headerInstance:draw()
 
 	-- Set font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)
@@ -340,9 +341,9 @@ function settings.onEnter(params)
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
+		height = state.screenHeight - headerInstance:getContentStartY() - 60,
 		items = createMenuButtons(),
 		onItemSelect = function(item)
 			if item.onClick then

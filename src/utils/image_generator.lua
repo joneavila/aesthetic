@@ -15,7 +15,6 @@
 -- This approach fixes issues where SVG icons appear darker than text when rendered.
 local love = require("love")
 
-local errorHandler = require("error_handler")
 local state = require("state")
 
 local fonts = require("ui.fonts")

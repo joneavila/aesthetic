@@ -7,12 +7,14 @@ local screens = require("screens")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 
 local logger = require("utils.logger")
 
 -- Module table to export public functions
 local debug = {}
+
+local headerInstance = Header:new({ title = "Debug", screenWidth = love.graphics.getWidth() })
 
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)
@@ -29,7 +31,7 @@ end
 function debug.draw()
 	-- Draw background and header
 	background.draw()
-	header.draw("Debug")
+	headerInstance:draw()
 
 	-- Set default body font
 	love.graphics.setFont(fonts.loaded.body)
@@ -39,7 +41,7 @@ function debug.draw()
 	local joysticks = love.joystick.getJoysticks()
 
 	-- Draw joystick diagnostic info
-	local textY = header.getContentStartY()
+	local textY = headerInstance:getContentStartY()
 	love.graphics.setColor(colors.ui.foreground)
 
 	-- Get the physical joystick

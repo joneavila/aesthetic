@@ -6,10 +6,7 @@ local tween = require("tween")
 local controls = require("control_hints")
 local colorUtils = require("utils.color")
 local screens = require("screens")
-local Component = require("ui.component").Component
 local ColorSquare = require("ui.colorsquare")
-local header = require("ui.header")
-local TabBar = require("ui.tab_bar")
 local shared = require("screens.color_picker.shared")
 
 local palette = {}

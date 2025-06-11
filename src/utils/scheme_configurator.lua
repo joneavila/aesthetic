@@ -3,7 +3,6 @@
 -- This module provides functions for applying theme configuration settings to scheme files.
 -- Each function replaces placeholders in scheme template files with calculated values based on the current application
 -- state.
-local errorHandler = require("error_handler")
 local state = require("state")
 local fail = require("utils.fail")
 

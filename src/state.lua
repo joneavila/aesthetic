@@ -5,7 +5,6 @@
 --- Note: When adding new state properties that should persist between sessions, consider updating the `settings.lua`
 --- module to include these properties in the configuration file. The settings module handles saving and loading
 --- persistent application settings.
-local errorHandler = require("error_handler")
 local fail = require("utils.fail")
 
 local colorUtils = require("utils.color")

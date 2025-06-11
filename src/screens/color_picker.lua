@@ -1,13 +1,8 @@
 --- Color picker screen with tabbed interface
-local love = require("love")
-
-local colors = require("colors")
 local screens = require("screens")
 local state = require("state")
-local tween = require("tween")
 
-local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 
 local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")
@@ -20,12 +15,9 @@ local colorPicker = {}
 local tabBar
 
 local TAB_BAR_HORIZONTAL_PADDING = 16
-local TAB_BAR_VERTICAL_PADDING = TAB_BAR_HORIZONTAL_PADDING
 local COMPONENT_SPACING = 8
-local TAB_BAR_START_Y = header.getContentStartY() + COMPONENT_SPACING
-local TAB_BAR_TEXT_PADDING = 8
-local TAB_BAR_CORNER_RADIUS = 8
-local TAB_BAR_ANIMATION_DURATION = 0.2
+local TAB_BAR_START_Y = Header:new({ title = "Color Picker", screenWidth = state.screenWidth }):getContentStartY()
+	+ COMPONENT_SPACING
 
 -- Helper function to format color context for display
 local function formatColorContext(context)
@@ -52,7 +44,9 @@ function colorPicker.draw()
 
 	-- Draw header with current color context
 	local contextTitle = formatColorContext(state.activeColorContext)
-	header.draw(contextTitle)
+	local headerInstance = Header:new({ title = "Color Picker", screenWidth = state.screenWidth })
+	headerInstance.title = contextTitle
+	headerInstance:draw()
 
 	-- Draw the tab bar with left/right padding
 	if tabBar then

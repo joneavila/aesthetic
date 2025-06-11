@@ -2,7 +2,7 @@ local love = require("love")
 local screens = require("screens")
 local state = require("state")
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
@@ -15,6 +15,7 @@ local battery = {}
 
 local menuList = nil
 local input = nil
+local headerInstance = Header:new({ title = "Battery", screenWidth = state.screenWidth })
 
 local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 local function formatSliderValue(value)
@@ -83,7 +84,7 @@ end
 
 function battery.draw()
 	background.draw()
-	header.draw("Battery")
+	headerInstance:draw()
 	love.graphics.setFont(fonts.loaded.body)
 	if menuList then
 		menuList:draw()
@@ -163,9 +164,9 @@ function battery.onEnter()
 	input = inputHandler.create()
 	menuList = List:new({
 		x = 0,
-		y = header.getContentStartY(),
+		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
-		height = state.screenHeight - header.getContentStartY() - 60,
+		height = state.screenHeight - headerInstance:getContentStartY() - 60,
 		items = createBatteryListItems(),
 		onItemSelect = function(item)
 			if item.onClick then

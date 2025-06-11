@@ -12,7 +12,7 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
 local List = require("ui.list").List
@@ -22,6 +22,7 @@ local headerScreen = {}
 -- UI Components
 local menuList = nil
 local input = nil
+local headerInstance = Header:new({ title = "Header", screenWidth = state.screenWidth })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -108,18 +109,18 @@ end
 
 function headerScreen.draw()
 	background.draw()
-	header.draw("Header")
+	headerInstance:draw()
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
-	local warningY = header.getContentStartY() + 2
+	local warningY = headerInstance:getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
 	love.graphics.setColor(colors.ui.foreground)
 
-	local previewY = header.getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
+	local previewY = headerInstance:getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
 	if menuList then
 		menuList:calculateDimensions()
 		menuList:draw()
@@ -203,7 +204,7 @@ end
 function headerScreen.onEnter(_data)
 	input = inputHandler.create()
 
-	local startY = header.getContentStartY()
+	local startY = headerInstance:getContentStartY()
 	local warningHeight = calculateWarningHeight()
 	local listY = startY + warningHeight + COMPONENT_SPACING
 

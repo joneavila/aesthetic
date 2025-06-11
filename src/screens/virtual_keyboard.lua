@@ -2,18 +2,19 @@ local love = require("love")
 local state = require("state")
 local colors = require("colors")
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local controls = require("control_hints")
 local background = require("ui.background")
 local input = require("input")
 local screens = require("screens")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
-local logger = require("utils.logger")
 
 -- Virtual keyboard screen module
 -- Its layout closely follows muOS's virtual keyboard layout
 local virtual_keyboard = {}
+
+local headerInstance = Header:new({ title = "Input", screenWidth = state.screenWidth })
 
 --[[
 Navigation behavior:
@@ -36,11 +37,7 @@ local lastRow4X = nil -- Track the last X position in Row 4
 local currentLayer = 1 -- Track current keyboard layer (1, 2, or 3)
 
 -- Key dimensions and layout
-local keyWidth = 40
-local keyHeight = 40
 local keySpacing = 10
-local keyboardX = 0
-local keyboardY = 0
 local inputFieldHeight = 50
 local inputFieldPadding = 10
 local screenPadding = 10 -- Padding from screen edges
@@ -226,7 +223,8 @@ end
 
 -- Handle screen entry
 function virtual_keyboard.onEnter(params)
-	logger.debug("onEnter")
+	headerInstance.title = params.title or "Input"
+
 	-- Reset state
 	inputValue = ""
 	selectedX = 1
@@ -252,11 +250,6 @@ end
 function virtual_keyboard.onExit()
 	-- Clean up if needed
 end
-
--- Constants for outline styling to match hex.lua
-local OUTLINE_WIDTH = 2
-local SELECTED_OUTLINE_WIDTH = 4
-local BUTTON_CORNER_RADIUS = 5
 
 -- Handle key selection
 local function handleKeySelection()
@@ -327,7 +320,6 @@ function virtual_keyboard.update(dt)
 			lastRow4X = selectedX
 
 			-- Moving down from the letter/number rows to special keys
-			local keyLabel = keyboard[4][selectedX].label
 			if selectedX <= 2 then -- "z" or "x"
 				selectedY = 5
 				selectedX = 1 -- ABC/layer switch key
@@ -415,12 +407,16 @@ function virtual_keyboard.draw()
 	background.draw()
 
 	-- Draw header
-	header.draw(headerTitle)
+	if not headerInstance then
+		headerInstance = Header:new({ title = headerTitle, screenWidth = state.screenWidth })
+	end
+	headerInstance.title = headerTitle
+	headerInstance:draw()
 
 	-- Calculate input field position and size to match keyboard edge padding
 	local inputFieldX = screenPadding
 	local inputFieldWidth = state.screenWidth - (screenPadding * 2)
-	local inputFieldY = header.getContentStartY() + 10
+	local inputFieldY = headerInstance:getContentStartY() + 10
 
 	-- Draw input field background and outline
 	love.graphics.setColor(colors.ui.surface_focus)
@@ -464,7 +460,7 @@ function virtual_keyboard.draw()
 
 	-- Draw keyboard
 	for y, row in ipairs(keyboard) do
-		for x, key in ipairs(row) do
+		for x, _ in ipairs(row) do
 			local button = keyButtons[y][x]
 			button:setFocused(x == selectedX and y == selectedY)
 			button:draw()

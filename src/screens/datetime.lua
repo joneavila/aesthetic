@@ -12,17 +12,15 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
-local header = require("ui.header")
+local Header = require("ui.header")
 local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
 
 local datetimeScreen = {}
 
 -- UI Components
-local alignmentButton = nil
-local opacitySlider = nil
 local input = nil
-local focusedComponent = 1 -- 1 = button, 2 = slider
+local headerInstance = Header:new({ title = "Time", screenWidth = state.screenWidth })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -86,33 +84,6 @@ local function createOpacitySlider(y)
 	})
 end
 
--- Handle option cycling for alignment button
-local function handleAlignmentOptionCycle(direction)
-	if not alignmentButton then
-		return false
-	end
-
-	local changed = alignmentButton:cycleOption(direction)
-	if not changed then
-		return false
-	end
-
-	local newValue = alignmentButton:getCurrentOption()
-	state.timeAlignment = newValue
-
-	return true
-end
-
--- Update focus states
-local function updateFocusStates()
-	if alignmentButton then
-		alignmentButton:setFocused(focusedComponent == 1)
-	end
-	if opacitySlider then
-		opacitySlider:setFocused(focusedComponent == 2)
-	end
-end
-
 -- Calculate warning text height properly accounting for wrapping
 local function calculateWarningHeight()
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
@@ -125,12 +96,11 @@ local menuList = nil
 
 function datetimeScreen.draw()
 	background.draw()
-	header.draw("Time")
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)
 	love.graphics.setColor(colors.ui.subtext)
-	local warningY = header.getContentStartY() + 2
+	local warningY = headerInstance:getContentStartY() + 2
 	local warningWidth = state.screenWidth - (EDGE_PADDING * 2)
 	love.graphics.printf(WARNING_TEXT, EDGE_PADDING, warningY, warningWidth, "left")
 	love.graphics.setFont(fonts.loaded.body)
@@ -143,7 +113,7 @@ function datetimeScreen.draw()
 
 	-- Calculate preview rectangle position and size
 	local controlsHeight = controls.calculateHeight()
-	local previewY = header.getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
+	local previewY = headerInstance:getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
 	if menuList then
 		previewY = previewY + menuList.y + menuList:getContentHeight()
 	end
@@ -228,7 +198,7 @@ end
 function datetimeScreen.onEnter(_data)
 	input = inputHandler.create()
 
-	local startY = header.getContentStartY()
+	local startY = headerInstance:getContentStartY()
 	local warningHeight = calculateWarningHeight()
 	local listY = startY + warningHeight + COMPONENT_SPACING
 
