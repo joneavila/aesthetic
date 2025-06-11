@@ -24,7 +24,6 @@ local previewImages = {}
 local headerInstance = Header:new({ title = "Icons" })
 local controlHintsInstance
 
--- Function to load preview images
 local function loadPreviewImages()
 	previewImages.enabled = love.graphics.newImage(paths.UI_ICONS_TOGGLE_ENABLED_IMAGE)
 	previewImages.disabled = love.graphics.newImage(paths.UI_ICONS_TOGGLE_DISABLED_IMAGE)
@@ -73,7 +72,6 @@ function iconsToggle.draw()
 		menuList:draw()
 	end
 
-	-- Draw preview image below the button
 	local controlsHeight = controls.calculateHeight()
 	local margin = 20
 	local listBottom = menuList.y + menuList:getContentHeight()
@@ -81,7 +79,6 @@ function iconsToggle.draw()
 	local previewAreaHeight = state.screenHeight - previewY - controlsHeight - margin
 	local previewAreaWidth = state.screenWidth - margin * 2
 
-	-- Get the appropriate preview image
 	local currentImage = state.glyphsEnabled and previewImages.enabled or previewImages.disabled
 
 	if currentImage and previewAreaHeight > 40 then
@@ -127,6 +124,11 @@ function iconsToggle.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
+		for _, item in ipairs(menuList.items) do
+			if item.context == "glyphs" and item.getCurrentOption then
+				state.glyphsEnabled = (item:getCurrentOption() == "Enabled")
+			end
+		end
 	end
 	-- Handle B button press to go back
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
@@ -135,7 +137,6 @@ function iconsToggle.update(dt)
 end
 
 function iconsToggle.onExit()
-	-- Clean up preview images
 	if previewImages.enabled then
 		previewImages.enabled:release()
 	end
@@ -146,9 +147,6 @@ function iconsToggle.onExit()
 end
 
 function iconsToggle.onEnter(_data)
-	-- Initialize input handler
-
-	-- Load preview images
 	loadPreviewImages()
 
 	-- Create menu list

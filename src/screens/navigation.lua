@@ -147,6 +147,10 @@ function navigationScreen.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		navigationScreen.list:handleInput(navDir, input)
 		navigationScreen.list:update(dt)
+		local alignmentButton = navigationScreen.list.items[1]
+		if alignmentButton and alignmentButton.getCurrentOption then
+			state.navigationAlignment = alignmentButton:getCurrentOption()
+		end
 	end
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")

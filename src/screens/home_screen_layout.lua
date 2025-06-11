@@ -146,6 +146,10 @@ function homeScreenLayout.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
+		local layoutButton = menuList.items[1]
+		if layoutButton and layoutButton.getCurrentOption then
+			state.homeScreenLayout = layoutButton:getCurrentOption()
+		end
 	end
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")

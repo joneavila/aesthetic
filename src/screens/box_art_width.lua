@@ -221,6 +221,19 @@ function box_art_width.update(dt)
 	if menuList then
 		menuList:handleInput(input)
 		menuList:update(dt)
+		local boxArtButton = menuList.items[1]
+		if boxArtButton and boxArtButton.getCurrentOption then
+			local newValue = boxArtButton:getCurrentOption()
+			if state.boxArtWidth ~= newValue then
+				local boxArtWidth = newValue
+				local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
+				local targetLeftWidth = previewWidth - boxArtWidth - (boxArtWidth > 0 and RECTANGLE_SPACING or 0)
+				local targetRightWidth = boxArtWidth > 0 and boxArtWidth or 0
+				local target = { leftWidth = targetLeftWidth, rightWidth = targetRightWidth }
+				currentTween = tween.new(ANIMATION_DURATION, tweenObj, target, "inOutQuad")
+				state.boxArtWidth = newValue
+			end
+		end
 	end
 	-- Handle B button to return to main menu
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then

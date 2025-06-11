@@ -196,6 +196,12 @@ function headerScreen.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
+		local alignmentButton = menuList.items[1]
+		if alignmentButton and alignmentButton.getCurrentOption then
+			local alignmentMap = { ["Auto"] = 0, ["Left"] = 1, ["Center"] = 2, ["Right"] = 3 }
+			local newValue = alignmentButton:getCurrentOption()
+			state.headerAlignment = alignmentMap[newValue] or 2
+		end
 	end
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")

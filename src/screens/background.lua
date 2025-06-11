@@ -21,6 +21,9 @@ local input = nil
 local headerInstance = Header:new({ title = "Background" })
 local controlHintsInstance
 
+-- Global button instances
+local typeButton, colorButton, colorStartButton, colorStopButton, directionButton
+
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
 	if state.backgroundType == "Gradient" then
@@ -32,98 +35,70 @@ local function updateGradientPreview()
 end
 
 -- Function to build buttons list
-local function createMenuButtons()
-	local buttons = {}
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Type",
-			type = ButtonTypes.INDICATORS,
-			options = { "Solid", "Gradient" },
-			currentOptionIndex = (state.backgroundType == "Gradient" and 2) or 1,
-			screenWidth = state.screenWidth,
-			context = "typeToggle",
-		})
-	)
-	if state.backgroundType == "Gradient" then
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Color Start",
-				type = ButtonTypes.COLOR,
-				hexColor = state.getColorValue("background"),
-				monoFont = fonts.loaded.monoBody,
-				screenWidth = state.screenWidth,
-				onClick = function()
-					state.activeColorContext = "background"
-					state.previousScreen = "background"
-					screens.switchTo("color_picker")
-				end,
-			})
-		)
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Color Stop",
-				type = ButtonTypes.COLOR,
-				hexColor = state.getColorValue("backgroundGradient"),
-				monoFont = fonts.loaded.monoBody,
-				screenWidth = state.screenWidth,
-				onClick = function()
-					state.activeColorContext = "backgroundGradient"
-					state.previousScreen = "background"
-					screens.switchTo("color_picker")
-				end,
-			})
-		)
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Direction",
-				type = ButtonTypes.INDICATORS,
-				options = { "Vertical", "Horizontal" },
-				currentOptionIndex = (state.backgroundGradientDirection == "Horizontal" and 2) or 1,
-				screenWidth = state.screenWidth,
-				context = "directionToggle",
-			})
-		)
-	else
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Color",
-				type = ButtonTypes.COLOR,
-				hexColor = state.getColorValue("background"),
-				monoFont = fonts.loaded.monoBody,
-				screenWidth = state.screenWidth,
-				onClick = function()
-					state.activeColorContext = "background"
-					screens.switchTo("color_picker")
-				end,
-			})
-		)
-	end
-	return buttons
+local function createButtons()
+	typeButton = Button:new({
+		text = "Type",
+		type = ButtonTypes.INDICATORS,
+		options = { "Solid", "Gradient" },
+		currentOptionIndex = (state.backgroundType == "Gradient" and 2) or 1,
+		screenWidth = state.screenWidth,
+		context = "typeToggle",
+	})
+	colorButton = Button:new({
+		text = "Color",
+		type = ButtonTypes.COLOR,
+		hexColor = state.getColorValue("background"),
+		monoFont = fonts.loaded.monoBody,
+		screenWidth = state.screenWidth,
+		onClick = function()
+			state.activeColorContext = "background"
+			screens.switchTo("color_picker")
+		end,
+	})
+	colorStartButton = Button:new({
+		text = "Color Start",
+		type = ButtonTypes.COLOR,
+		hexColor = state.getColorValue("background"),
+		monoFont = fonts.loaded.monoBody,
+		screenWidth = state.screenWidth,
+		onClick = function()
+			state.activeColorContext = "background"
+			state.previousScreen = "background"
+			screens.switchTo("color_picker")
+		end,
+	})
+	colorStopButton = Button:new({
+		text = "Color Stop",
+		type = ButtonTypes.COLOR,
+		hexColor = state.getColorValue("backgroundGradient"),
+		monoFont = fonts.loaded.monoBody,
+		screenWidth = state.screenWidth,
+		onClick = function()
+			state.activeColorContext = "backgroundGradient"
+			state.previousScreen = "background"
+			screens.switchTo("color_picker")
+		end,
+	})
+	directionButton = Button:new({
+		text = "Direction",
+		type = ButtonTypes.INDICATORS,
+		options = { "Vertical", "Horizontal" },
+		currentOptionIndex = (state.backgroundGradientDirection == "Horizontal" and 2) or 1,
+		screenWidth = state.screenWidth,
+		context = "directionToggle",
+	})
 end
 
-local function handleOptionCycle(button, direction)
-	if button.context == "typeToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			state.backgroundType = button:getCurrentOption()
-			updateGradientPreview()
-			menuList:setItems(createMenuButtons())
-		end
-		return changed
-	elseif button.context == "directionToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			state.backgroundGradientDirection = button:getCurrentOption()
-			updateGradientPreview()
-		end
-		return changed
+local function getMenuItems()
+	local items = { typeButton }
+	if state.backgroundType == "Gradient" then
+		table.insert(items, colorStartButton)
+		table.insert(items, colorStopButton)
+		table.insert(items, directionButton)
+	else
+		table.insert(items, colorButton)
 	end
-	return false
+	return items
 end
 
 function backgroundColor.draw()
@@ -184,6 +159,15 @@ function backgroundColor.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
+		-- Sync state from button values
+		if typeButton and typeButton.getCurrentOption then
+			state.backgroundType = typeButton:getCurrentOption()
+		end
+		if directionButton and directionButton.getCurrentOption then
+			state.backgroundGradientDirection = directionButton:getCurrentOption()
+		end
+		-- Rebuild menu items if needed
+		menuList:setItems(getMenuItems())
 	end
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
@@ -192,21 +176,19 @@ function backgroundColor.update(dt)
 end
 
 function backgroundColor.onEnter()
-	-- Create menu list
+	createButtons()
 	menuList = List:new({
 		x = 0,
 		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
 		height = state.screenHeight - headerInstance:getContentStartY() - 60,
-		items = createMenuButtons(),
+		items = getMenuItems(),
 		onItemSelect = function(item)
 			if item.onClick then
 				item.onClick()
 			end
 		end,
-		onItemOptionCycle = handleOptionCycle,
 	})
-
 	if not controlHintsInstance then
 		controlHintsInstance = controls:new({})
 	end
