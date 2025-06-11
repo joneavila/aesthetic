@@ -8,6 +8,7 @@ local colorUtils = require("utils.color")
 local screens = require("screens")
 local ColorSquare = require("ui.colorsquare")
 local shared = require("screens.color_picker.shared")
+local InputManager = require("ui.InputManager")
 
 local palette = {}
 
@@ -250,24 +251,23 @@ function palette.update(dt)
 		end
 	end
 
-	local virtualJoystick = require("input").virtualJoystick
 	local currentState = getCurrentPaletteState()
 	local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
 	-- Handle directional input
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		if currentState.selectedRow > 0 then
 			newRow = currentState.selectedRow - 1
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 		if currentState.selectedRow < paletteState.gridSize.rows - 1 then
 			newRow = currentState.selectedRow + 1
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		if currentState.selectedCol > 0 then
 			newCol = currentState.selectedCol - 1
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 		if currentState.selectedCol < paletteState.gridSize.cols - 1 then
 			newCol = currentState.selectedCol + 1
 		end
@@ -312,7 +312,7 @@ function palette.update(dt)
 	end
 
 	-- Handle select
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		local selectedIndex = gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
 		local colorTable = paletteState.paletteColors[selectedIndex]
 		if colorTable then

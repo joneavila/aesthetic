@@ -11,10 +11,10 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local modalModule = require("ui.modal")
 local Modal = modalModule.Modal
+local InputManager = require("ui.InputManager")
 
 -- Screen module
 local settings = {}
@@ -323,10 +323,11 @@ function settings.update(dt)
 	end
 
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end
@@ -334,7 +335,6 @@ end
 -- Handle entry to this screen
 function settings.onEnter(params)
 	-- Initialize input handler
-	input = inputHandler.create()
 
 	-- Create modal
 	modalInstance = Modal:new({

@@ -14,6 +14,7 @@ local fonts = require("ui.fonts")
 local colorUtils = require("utils.color")
 local svg = require("utils.svg")
 local tween = require("tween")
+local InputManager = require("ui.InputManager")
 
 local hex = {}
 
@@ -351,8 +352,6 @@ function hex.draw()
 end
 
 function hex.update(dt)
-	local virtualJoystick = require("input").virtualJoystick
-
 	-- Get current color type state
 	local currentState = getCurrentHexState()
 
@@ -396,16 +395,16 @@ function hex.update(dt)
 	end
 
 	-- Handle D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 		currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		currentState.selectedButton.col = currentState.selectedButton.col - 1
 		if currentState.selectedButton.col < 1 then
 			currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 		currentState.selectedButton.col = currentState.selectedButton.col + 1
 		if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
 			currentState.selectedButton.col = 1
@@ -413,13 +412,13 @@ function hex.update(dt)
 	end
 
 	-- Handle Y button for clear
-	if virtualJoystick.isGamepadPressedWithDelay("y") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CLEAR) then
 		-- Clear all input
 		currentState.input = ""
 	end
 
 	-- Handle button press (A button)
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
 
 		if selectedButton == "BACKSPACE" then

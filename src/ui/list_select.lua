@@ -69,7 +69,7 @@ end
 function ListSelect:draw()
 	love.graphics.push("all")
 	local font = love.graphics.getFont()
-	local controlsHeight = controls.HEIGHT or 42
+	local controlsHeight = controls.calculateHeight()
 	local indicatorHeight = font:getHeight() + 24
 	local y = self.y
 	local screenWidth = self.width

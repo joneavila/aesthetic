@@ -5,7 +5,7 @@ local love = require("love")
 local colors = require("colors")
 
 local Component = require("ui.component").Component
-local inputHandler = require("ui.input_handler")
+local InputManager = require("ui.InputManager")
 
 -- List constants
 local LIST_CONFIG = {
@@ -214,27 +214,22 @@ function List:adjustScrollPosition(direction)
 	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
 end
 
-function List:handleInput(input)
+function List:handleInput(direction, input)
 	if not self.enabled or #self.items == 0 then
 		return false
 	end
 
-	-- Ensure input has isPressed method (wrap if needed)
-	if not input or type(input.isPressed) ~= "function" then
-		input = inputHandler.create(input)
-	end
-
 	local handled = false
 
-	-- Handle navigation first
-	if input.isPressed("dpup") then
+	-- Handle navigation only if direction is provided by parent
+	if direction == "up" then
 		if not self.wrap and self.selectedIndex == 1 then
 			return "start"
 		elseif not self.wrap and self.selectedIndex == 0 then
 			return false
 		end
 		handled = self:navigate(-1)
-	elseif input.isPressed("dpdown") then
+	elseif direction == "down" then
 		if not self.wrap and self.selectedIndex == #self.items then
 			return "end"
 		elseif not self.wrap and self.selectedIndex == 0 then
@@ -262,7 +257,7 @@ function List:handleInput(input)
 	end
 
 	-- Handle item selection
-	if input.isPressed("a") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		if selectedItem and self.onItemSelect then
 			self.onItemSelect(selectedItem, self.selectedIndex)
 			handled = true
@@ -270,7 +265,7 @@ function List:handleInput(input)
 	end
 
 	-- Handle option cycling - left and right separately (for non-slider items)
-	if input.isPressed("dpleft") then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		if
 			selectedItem
 			and selectedItem.handleInput
@@ -284,7 +279,7 @@ function List:handleInput(input)
 				handled = true
 			end
 		end
-	elseif input.isPressed("dpright") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 		if
 			selectedItem
 			and selectedItem.handleInput

@@ -8,6 +8,7 @@ local gradientPreview = require("ui.gradient_preview")
 local Component = require("ui.component").Component
 local logger = require("utils.logger")
 local tween = require("tween")
+local InputManager = require("ui.InputManager")
 
 -- Button constants
 local BUTTON_CONFIG = {
@@ -200,15 +201,15 @@ function Button:handleInput(input)
 
 	-- Handle option cycling for indicator buttons
 	if self.type == BUTTON_TYPES.INDICATORS and self.focused then
-		if input.isPressed("dpleft") then
+		if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 			handled = self:cycleOption(-1)
-		elseif input.isPressed("dpright") then
+		elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 			handled = self:cycleOption(1)
 		end
 	end
 
 	-- Handle selection
-	if input.isPressed("a") and self.focused then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) and self.focused then
 		if self.onClick then
 			self.onClick(self)
 		end

@@ -10,18 +10,18 @@ local state = require("state")
 local background = require("ui.background")
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
 
 local svg = require("utils.svg")
 local system = require("utils.system")
+local InputManager = require("ui.InputManager")
 
 local delete_themes = {}
 
 local themeItems = {}
 local themeList = nil
-local inputObj = nil
+local input = nil
 local modalInstance = nil
 local controlHintsInstance
 
@@ -167,7 +167,7 @@ end
 
 function delete_themes.update(dt)
 	if modalInstance and modalInstance:isVisible() then
-		if modalInstance:handleInput(inputObj) then
+		if modalInstance:handleInput(input) then
 			return
 		end
 	end
@@ -181,16 +181,16 @@ function delete_themes.update(dt)
 		return
 	end
 
-	local handled = themeList:handleInput(inputObj)
+	local handled = themeList:handleInput(input)
 	themeList:update(dt)
 
 	if handled then
 		return
 	end
 
-	if inputObj.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("settings")
-	elseif inputObj.isPressed("x") then
+	elseif InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		local checkedCount = 0
 		local checkedItems = {}
 		for _, item in ipairs(themeItems) do
@@ -256,9 +256,6 @@ function delete_themes.update(dt)
 end
 
 function delete_themes.onEnter(_data)
-	-- Initialize input handler
-	inputObj = inputHandler.create()
-
 	-- Create modal
 	modalInstance = Modal:new({ font = fonts.loaded.body })
 

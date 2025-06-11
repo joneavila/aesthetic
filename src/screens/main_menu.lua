@@ -14,9 +14,9 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
+local InputManager = require("ui.InputManager")
 
 local menu = {}
 
@@ -516,14 +516,14 @@ function menu.update(dt)
 	-- Check if action button has focus first - if it does, handle its input directly
 	if actionButton and actionButton.focused then
 		-- Check for up navigation before letting button handle input
-		if input.isPressed("dpup") then
+		if InputManager.getNavigationDirection() == "up" then
 			-- Move focus to last item in list
 			if menuList then
 				actionButton:setFocused(false)
 				menuList:setSelectedIndex(#menuList.items)
 			end
 			return
-		elseif input.isPressed("dpdown") then
+		elseif InputManager.getNavigationDirection() == "down" then
 			-- Move focus to first item in list
 			if menuList then
 				actionButton:setFocused(false)
@@ -541,7 +541,8 @@ function menu.update(dt)
 	-- Handle list input
 	local listHandled = false
 	if menuList then
-		listHandled = menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		listHandled = menuList:handleInput(navDir, input)
 	end
 
 	-- If list signals end, move focus to action button
@@ -570,12 +571,12 @@ function menu.update(dt)
 	end
 
 	-- Handle B button press for exit
-	if input.isPressed("b") and (not modal or not modal:isVisible()) then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) and (not modal or not modal:isVisible()) then
 		love.event.quit()
 	end
 
 	-- Handle Start button press for settings
-	if input.isPressed("start") and (not modal or not modal:isVisible()) then
+	if InputManager.isActionPressed(InputManager.ACTIONS.OPEN_MENU) and (not modal or not modal:isVisible()) then
 		screens.switchTo("settings")
 	end
 
@@ -604,7 +605,6 @@ end
 function menu.onEnter(data)
 	-- Initialize components
 	require("ui.button").init()
-	input = inputHandler.create()
 
 	-- Create modal component
 	modal = Modal:new({

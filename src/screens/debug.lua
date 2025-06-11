@@ -13,6 +13,8 @@ local logger = require("utils.logger")
 local controls = require("control_hints").ControlHints
 local controlHintsInstance
 
+local InputManager = require("ui.InputManager")
+
 -- Module table to export public functions
 local debug = {}
 
@@ -172,11 +174,9 @@ function debug.draw()
 	controlHintsInstance:draw()
 end
 
-function debug.update(_dt)
-	local virtualJoystick = input.virtualJoystick
-
+function debug.update(dt)
 	-- Return to main menu with the button combination
-	if isDebugComboPressed(virtualJoystick) then
+	if isDebugComboPressed(input.virtualJoystick) then
 		screens.switchTo("main_menu")
 	end
 end

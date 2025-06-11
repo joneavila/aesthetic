@@ -12,8 +12,8 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
+local InputManager = require("ui.InputManager")
 
 -- Module table to export public functions
 local box_art_width = {}
@@ -223,16 +223,13 @@ function box_art_width.update(dt)
 		menuList:update(dt)
 	end
 	-- Handle B button to return to main menu
-	if input and input.isPressed and input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
 end
 
 function box_art_width.onEnter()
-	-- Initialize input handler
-	input = inputHandler.create()
-
 	generateWidthOptions()
 
 	-- Create menu list

@@ -11,9 +11,9 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
 local image = require("ui.image")
+local InputManager = require("ui.InputManager")
 
 local homeScreenLayout = {}
 
@@ -142,20 +142,19 @@ function homeScreenLayout.draw()
 end
 
 function homeScreenLayout.update(dt)
-	-- Handle list input
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
+		menuList:update(dt)
 	end
-
-	-- Handle B button press for back
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 
 	-- Update components
-	if menuList then
-		menuList:update(dt)
-	end
+	-- if menuList then
+	-- 	menuList:update(dt)
+	-- end
 end
 
 function homeScreenLayout.onExit() end
@@ -163,7 +162,6 @@ function homeScreenLayout.onExit() end
 function homeScreenLayout.onEnter(_data)
 	-- Initialize components
 	require("ui.button").init()
-	input = inputHandler.create()
 
 	-- Load preview images
 	previewImage = loadPreviewImages()

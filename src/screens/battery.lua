@@ -3,13 +3,13 @@ local screens = require("screens")
 local state = require("state")
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local List = require("ui.list").List
 local background = require("ui.background")
 local controlHints = require("control_hints").ControlHints
 local Slider = require("ui.slider").Slider
+local InputManager = require("ui.InputManager")
 
 local battery = {}
 
@@ -153,18 +153,17 @@ end
 
 function battery.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	local virtualJoystick = require("input").virtualJoystick
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 		return
 	end
 end
 
 function battery.onEnter()
-	input = inputHandler.create()
 	menuList = List:new({
 		x = 0,
 		y = headerInstance:getContentStartY(),

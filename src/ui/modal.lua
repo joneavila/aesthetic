@@ -4,6 +4,7 @@ local love = require("love")
 local colors = require("colors")
 local Component = require("ui.component").Component
 local scrollable = require("ui.scrollable")
+local InputManager = require("ui.InputManager")
 
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal
@@ -150,10 +151,10 @@ function Modal:handleInput(input)
 	-- Handle scrolling for modals with long content (regardless of button count)
 	local isScrollable = self:isContentScrollable()
 	if isScrollable then
-		if input.isPressed("dpup") then
+		if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 			self:scroll(-20) -- Scroll up
 			return true
-		elseif input.isPressed("dpdown") then
+		elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 			self:scroll(20) -- Scroll down
 			return true
 		end
@@ -162,7 +163,7 @@ function Modal:handleInput(input)
 	-- Handle button navigation only if there are buttons
 	if #self.buttons == 0 then
 		-- For modals without buttons, still consume input but allow 'b' to close
-		if input.isPressed("b") then
+		if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 			self:hide()
 			return true
 		end
@@ -170,13 +171,13 @@ function Modal:handleInput(input)
 	end
 
 	-- Button navigation for modals with buttons
-	if input.isPressed("dpup") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		self:moveFocus(-1)
 		return true
-	elseif input.isPressed("dpdown") then
+	elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 		self:moveFocus(1)
 		return true
-	elseif input.isPressed("a") then
+	elseif InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		local selectedOption = self.buttons[self.selectedIndex]
 		if selectedOption and selectedOption.onSelect then
 			selectedOption.onSelect()
@@ -187,7 +188,7 @@ function Modal:handleInput(input)
 		return true
 	end
 
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		self:hide()
 		return true
 	end
@@ -231,9 +232,9 @@ function Modal:draw(screenWidth, screenHeight, font)
 		return
 	end
 	love.graphics.push("all")
-	local controls = require("control_hints")
+	local controls = require("control_hints").ControlHints
 	local fonts = require("ui.fonts")
-	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+	local controlsHeight = controls.calculateHeight()
 	local padding = 40
 	local maxWidth = screenWidth * 0.9
 	local currentFont = font or self.font or love.graphics.getFont()

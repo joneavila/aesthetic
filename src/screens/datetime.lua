@@ -13,8 +13,8 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
+local InputManager = require("ui.InputManager")
 
 local datetimeScreen = {}
 
@@ -193,17 +193,16 @@ end
 
 function datetimeScreen.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end
 
 function datetimeScreen.onEnter(_data)
-	input = inputHandler.create()
-
 	local startY = headerInstance:getContentStartY()
 	local warningHeight = calculateWarningHeight()
 	local listY = startY + warningHeight + COMPONENT_SPACING

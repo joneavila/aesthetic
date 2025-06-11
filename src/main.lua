@@ -17,6 +17,7 @@ local state = require("state")
 -- local font_calibration = require("font_calibration")
 
 local fonts = require("ui.fonts")
+local InputManager = require("ui.InputManager")
 
 local logger = require("utils.logger")
 local rgbUtils = require("utils.rgb")
@@ -80,7 +81,9 @@ function love.resize(width, height)
 end
 
 function love.update(dt)
-	input.update(dt)
+	-- Called only once per frame.
+	-- All other modules must not call it again to avoid errors from invalid `dt` values.
+	InputManager.update(dt)
 
 	screens.update(dt)
 

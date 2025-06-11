@@ -13,9 +13,9 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local Slider = require("ui.slider").Slider
 local List = require("ui.list").List
+local InputManager = require("ui.InputManager")
 
 local navigationScreen = {}
 
@@ -144,16 +144,16 @@ end
 
 function navigationScreen.update(dt)
 	if navigationScreen.list then
-		navigationScreen.list:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		navigationScreen.list:handleInput(navDir, input)
 		navigationScreen.list:update(dt)
 	end
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end
 
 function navigationScreen.onEnter(_data)
-	input = inputHandler.create()
 	local startY = headerInstance:getContentStartY()
 	local alignmentButton = createAlignmentButton()
 	alignmentButton.y = 0 -- List will set position

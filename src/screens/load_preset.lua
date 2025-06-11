@@ -9,8 +9,8 @@ local background = require("ui.background")
 local Button = require("ui.button").Button
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
+local InputManager = require("ui.InputManager")
 
 local logger = require("utils.logger")
 local presets = require("utils.presets")
@@ -130,19 +130,16 @@ end
 
 function loadPreset.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	local virtualJoystick = require("input").virtualJoystick
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("settings")
 	end
 end
 
 function loadPreset.onEnter()
-	-- Initialize input handler
-	input = inputHandler.create()
-
 	loadPresetsList()
 
 	-- Calculate available height for the list (full space between header and controls)

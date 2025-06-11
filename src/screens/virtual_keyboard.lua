@@ -9,6 +9,7 @@ local input = require("input")
 local screens = require("screens")
 local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
+local InputManager = require("ui.InputManager")
 
 -- Virtual keyboard screen module
 -- Its layout closely follows muOS's virtual keyboard layout
@@ -285,8 +286,6 @@ end
 
 -- Handle user input
 function virtual_keyboard.update(dt)
-	local virtualJoystick = input.virtualJoystick
-
 	-- Cursor blinking logic
 	cursorBlinkTimer = cursorBlinkTimer + (dt or 0)
 	if cursorBlinkTimer >= CURSOR_BLINK_INTERVAL then
@@ -295,7 +294,7 @@ function virtual_keyboard.update(dt)
 	end
 
 	-- D-pad navigation
-	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		if selectedY == 5 then
 			-- Moving up from the bottom row (special keys)
 			if lastRow4X and lastRow4X >= 1 and lastRow4X <= #keyboard[4] then
@@ -319,7 +318,7 @@ function virtual_keyboard.update(dt)
 			-- Regular up movement for other rows
 			selectedY = math.max(1, selectedY - 1)
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 		if selectedY == 4 then
 			-- Save current position in Row 4 before moving to Row 5
 			lastRow4X = selectedX
@@ -339,14 +338,14 @@ function virtual_keyboard.update(dt)
 			-- Regular down movement for other rows
 			selectedY = math.min(#keyboard, selectedY + 1)
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		selectedX = math.max(1, selectedX - 1)
 
 		-- Reset lastRow4X when moving horizontally in Row 5
 		if selectedY == 5 then
 			lastRow4X = nil
 		end
-	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 		local maxX = #keyboard[selectedY]
 		selectedX = math.min(maxX, selectedX + 1)
 
@@ -362,19 +361,19 @@ function virtual_keyboard.update(dt)
 	end
 
 	-- Button actions
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		handleKeySelection()
 	end
 
 	-- B button - go back
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		if returnScreen then
 			screens.switchTo(returnScreen)
 		end
 	end
 
 	-- X button - backspace
-	if virtualJoystick.isGamepadPressedWithDelay("x") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.UNDO) then
 		if #inputValue > 0 then
 			inputValue = string.sub(inputValue, 1, -2)
 		end

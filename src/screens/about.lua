@@ -7,6 +7,7 @@ local screens = require("screens")
 local state = require("state")
 local version = require("version")
 local virtualJoystick = require("input").virtualJoystick
+local InputManager = require("ui.InputManager")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
@@ -102,8 +103,8 @@ function about.draw()
 	controlHintsInstance:draw()
 end
 
-function about.update(_dt)
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+function about.update(dt)
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo(MENU_SCREEN)
 	end
 end

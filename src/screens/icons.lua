@@ -12,7 +12,7 @@ local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
 local imageComponent = require("ui.image")
-local inputHandler = require("ui.input_handler")
+local InputManager = require("ui.InputManager")
 local List = require("ui.list").List
 
 local iconsToggle = {}
@@ -74,7 +74,7 @@ function iconsToggle.draw()
 	end
 
 	-- Draw preview image below the button
-	local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+	local controlsHeight = controls.calculateHeight()
 	local margin = 20
 	local listBottom = menuList.y + menuList:getContentHeight()
 	local previewY = listBottom + margin
@@ -124,12 +124,12 @@ end
 
 function iconsToggle.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-
 	-- Handle B button press to go back
-	if input.isPressed("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end
@@ -147,7 +147,6 @@ end
 
 function iconsToggle.onEnter(_data)
 	-- Initialize input handler
-	input = inputHandler.create()
 
 	-- Load preview images
 	loadPreviewImages()

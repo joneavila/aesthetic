@@ -10,8 +10,8 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
+local InputManager = require("ui.InputManager")
 
 local rgbUtils = require("utils.rgb")
 
@@ -264,20 +264,17 @@ end
 
 function rgb_lighting.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	local virtualJoystick = require("input").virtualJoystick
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo(MENU_SCREEN)
 		return
 	end
 end
 
 function rgb_lighting.onEnter()
-	-- Initialize input handler
-	input = inputHandler.create()
-
 	-- Create menu list
 	menuList = List:new({
 		x = 0,

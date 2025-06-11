@@ -18,6 +18,8 @@ local shared = require("screens.color_picker.shared")
 local controls = require("control_hints").ControlHints
 local controlHintsInstance
 
+local InputManager = require("ui.InputManager")
+
 -- Constants
 local EDGE_PADDING = 10
 local HUE_SLIDER_WIDTH = 32
@@ -395,11 +397,10 @@ function hsv.update(dt)
 	-- Update wiggle animation
 	updateWiggleAnimation(dt)
 
-	local virtualJoystick = require("input").virtualJoystick
 	local moved = false
 
 	-- Handle Y button for cursor swapping
-	if virtualJoystick.isGamepadPressedWithDelay("y") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.SWAP_CURSOR) then
 		currentState.focusSquare = not currentState.focusSquare
 		startWiggleAnimation() -- Start animation immediately after focus change
 		moved = true
@@ -427,17 +428,17 @@ function hsv.update(dt)
 		local newSat, newVal = currentState.sat, currentState.val
 
 		-- D-pad controls
-		if virtualJoystick.isGamepadPressedWithDelay("dpleft") then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 			newSat = math.max(0, newSat - step)
 			moved = true
-		elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
+		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 			newSat = math.min(1, newSat + step)
 			moved = true
 		end
-		if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 			newVal = math.min(1, newVal + step)
 			moved = true
-		elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 			newVal = math.max(0, newVal - step)
 			moved = true
 		end
@@ -471,13 +472,13 @@ function hsv.update(dt)
 		local hueChanged = false
 
 		-- D-pad UP: move cursor up on slider (increase hue value)
-		if virtualJoystick.isGamepadPressedWithDelay("dpup") then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 			newHue = (newHue + step) % 360
 			hueChanged = true
 		end
 
 		-- D-pad DOWN: move cursor down on slider (decrease hue value)
-		if virtualJoystick.isGamepadPressedWithDelay("dpdown") then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 			newHue = (newHue - step) % 360
 			hueChanged = true
 		end
@@ -535,7 +536,7 @@ function hsv.update(dt)
 	end
 
 	-- Handle selection
-	if virtualJoystick.isGamepadPressedWithDelay("a") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
 		local r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
 
 		-- Create hex code using the utility function

@@ -13,13 +13,14 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
+local InputManager = require("ui.InputManager")
 
 local statusScreen = {}
 
 -- UI Components
 local input = nil
 local headerInstance = Header:new({ title = "Status" })
+local alignmentButton
 
 -- Constants
 local EDGE_PADDING = 18
@@ -136,23 +137,24 @@ end
 
 function statusScreen.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	if input.isPressed("b") then
+	state.statusAlignment = alignmentButton:getCurrentOption()
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end
 
 function statusScreen.onEnter(_data)
-	input = inputHandler.create()
-
 	local startY = headerInstance:getContentStartY()
 	local warningHeight = calculateWarningHeight()
 	local listY = startY + warningHeight + COMPONENT_SPACING
 
+	alignmentButton = createAlignmentButton()
 	local items = {
-		createAlignmentButton(),
+		alignmentButton,
 	}
 
 	menuList = require("ui.list").List:new({

@@ -11,8 +11,8 @@ local ButtonTypes = require("ui.button").TYPES
 local fonts = require("ui.fonts")
 local gradientPreview = require("ui.gradient_preview")
 local Header = require("ui.header")
-local inputHandler = require("ui.input_handler")
 local List = require("ui.list").List
+local InputManager = require("ui.InputManager")
 
 local backgroundColor = {}
 
@@ -141,7 +141,7 @@ function backgroundColor.draw()
 
 	-- Draw gradient preview box if gradient mode is selected
 	if state.backgroundType == "Gradient" then
-		local controlsHeight = controls.HEIGHT or controls.calculateHeight()
+		local controlsHeight = controls.calculateHeight()
 		local margin = 10
 		local listBottom = menuList.y + menuList:getContentHeight()
 		local previewY = listBottom + margin
@@ -181,20 +181,17 @@ end
 
 function backgroundColor.update(dt)
 	if menuList then
-		menuList:handleInput(input)
+		local navDir = InputManager.getNavigationDirection()
+		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	local virtualJoystick = require("input").virtualJoystick
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 		return
 	end
 end
 
 function backgroundColor.onEnter()
-	-- Initialize input handler
-	input = inputHandler.create()
-
 	-- Create menu list
 	menuList = List:new({
 		x = 0,

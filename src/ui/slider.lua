@@ -3,6 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local tween = require("tween")
 local component = require("ui.component")
+local InputManager = require("ui.InputManager")
 
 local Slider = setmetatable({}, { __index = component.Component })
 Slider.__index = Slider
@@ -163,14 +164,12 @@ function Slider:draw()
 end
 
 function Slider:handleInput(input)
-	if input.isPressed then
-		if input.isPressed("dpleft") then
-			self:setValueIndex(self.valueIndex - 1, true)
-			return true
-		elseif input.isPressed("dpright") then
-			self:setValueIndex(self.valueIndex + 1, true)
-			return true
-		end
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
+		self:setValueIndex(self.valueIndex - 1, true)
+		return true
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
+		self:setValueIndex(self.valueIndex + 1, true)
+		return true
 	end
 	return false
 end

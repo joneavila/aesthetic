@@ -1,15 +1,17 @@
 --- Color picker screen with tabbed interface
 local screens = require("screens")
 local state = require("state")
+local controls = require("control_hints").ControlHints
 
 local Header = require("ui.header")
+local InputManager = require("ui.InputManager")
 local TabBar = require("ui.tab_bar")
 
 local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")
 local paletteScreen = require("screens.color_picker.palette")
 
-local controls = require("control_hints").ControlHints
+
 local controlHintsInstance
 
 local colorPicker = {}
@@ -70,10 +72,7 @@ function colorPicker.update(dt)
 			activeTab.screen.update(dt)
 		end
 	end
-
-	local virtualJoystick = require("input").virtualJoystick
-
-	if virtualJoystick.isGamepadPressedWithDelay("b") then
+	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo(state.previousScreen)
 	end
 end

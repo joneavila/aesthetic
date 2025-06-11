@@ -4,6 +4,7 @@ local tween = require("tween")
 local component = require("ui.component").Component
 local colors = require("colors")
 local fonts = require("ui.fonts")
+local InputManager = require("ui.InputManager")
 
 local TabBar = setmetatable({}, { __index = component })
 TabBar.__index = TabBar
@@ -152,10 +153,9 @@ function TabBar:update(dt)
 		end
 	end
 	-- Handle input (shoulder buttons)
-	local virtualJoystick = require("input").virtualJoystick
-	if virtualJoystick.isGamepadPressedWithDelay("leftshoulder") then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.TAB_LEFT) then
 		self:prevTab()
-	elseif virtualJoystick.isGamepadPressedWithDelay("rightshoulder") then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.TAB_RIGHT) then
 		self:nextTab()
 	end
 end
