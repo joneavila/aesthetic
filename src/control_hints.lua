@@ -1,12 +1,13 @@
 local love = require("love")
 
 local colors = require("colors")
-local state = require("state")
-local fonts = require("ui.fonts")
-local svg = require("utils.svg")
 local paths = require("paths")
+local state = require("state")
 
-local controlHints = {}
+local svg = require("utils.svg")
+
+local Component = require("ui.component").Component
+local fonts = require("ui.fonts")
 
 -- Constants
 local CONTROL_SPACING = 12 -- Horizontal spacing between different control groups
@@ -17,31 +18,10 @@ local BUTTON_VERTICAL_PADDING = 2 -- Vertical padding inside button background
 local ACTION_TEXT_SPACING = 2 -- Space between button and action text
 local CONTROL_BAR_TOP_PADDING = 0 -- Top padding for the control bar
 local CONTROL_BAR_BOTTOM_PADDING = 4 -- Bottom padding for the control bar
-local ALIGNMENT = "right" -- Controls alignment: "left" or "right"
+local DEFAULT_ALIGNMENT = "right" -- Controls alignment: "left" or "right"
 local ICON_SIZE = 20 -- Size for control hint icons'
-local font = fonts.loaded.caption
+local FONT = fonts.loaded.caption
 
-local function titleCase(str)
-	return str:gsub("(%a)([%w_']*)", function(first, rest)
-		return first:upper() .. rest:lower()
-	end)
-end
-
--- Function to calculate the HEIGHT based on font size and padding
-function controlHints.calculateHeight()
-	local fontHeight = font:getHeight()
-	controlHints.HEIGHT = fontHeight
-		+ (BUTTON_VERTICAL_PADDING * 2)
-		+ CONTROL_BAR_TOP_PADDING
-		+ CONTROL_BAR_BOTTOM_PADDING
-
-	return controlHints.HEIGHT
-end
-
--- Initialize HEIGHT
-controlHints.HEIGHT = 42 -- Default value that will be recalculated when fonts are available
-
--- Button to SVG icon mapping
 local BUTTON_ICONS = {
 	a = "steam_button_a",
 	b = "steam_button_b",
@@ -54,7 +34,12 @@ local BUTTON_ICONS = {
 	menu = "steamdeck_button_menu_custom",
 }
 
--- Helper to get icon for a button key
+local function titleCase(str)
+	return str:gsub("(%a)([%w_']*)", function(first, rest)
+		return first:upper() .. rest:lower()
+	end)
+end
+
 local function getButtonIcon(buttonKey)
 	local iconName = BUTTON_ICONS[buttonKey]
 	if iconName then
@@ -63,21 +48,45 @@ local function getButtonIcon(buttonKey)
 	return nil
 end
 
--- Draw the controls area at the bottom of the screen
--- Supports both single buttons (control.button = "a") and lists of buttons
--- (control.button = {"leftshoulder", "rightshoulder"})
--- When a list of buttons is provided, they are drawn in sequence with a "/" separator between them
-function controlHints.draw(controls_list)
-	controlHints.calculateHeight()
+local ControlHints = setmetatable({}, { __index = Component })
+ControlHints.__index = ControlHints
 
+function ControlHints:new(config)
+	config = config or {}
+	local instance = Component.new(self, config)
+	instance.controls_list = config.controls_list or {}
+	instance.alignment = config.alignment or DEFAULT_ALIGNMENT
+	instance.font = FONT
+	instance.height = ControlHints.calculateHeight(instance.font)
+	return instance
+end
+
+function ControlHints:setControlsList(controls_list)
+	self.controls_list = controls_list or {}
+end
+
+function ControlHints:setAlignment(alignment)
+	self.alignment = alignment or DEFAULT_ALIGNMENT
+end
+
+function ControlHints:getHeight()
+	return self.height
+end
+
+function ControlHints:draw()
+	if not self.visible then
+		return
+	end
+	love.graphics.push("all")
+	local controls_list = self.controls_list
+	local alignment = self.alignment
 	local color = colors.ui.subtext
 
 	-- Calculate total width needed for all controls
 	local totalWidth = 0
 	for i, control in ipairs(controls_list) do
-		-- Calculate the action text in title case
 		local displayText = titleCase(control.text)
-		local textWidth = font:getWidth(displayText)
+		local textWidth = self.font:getWidth(displayText)
 		local buttonsWidth = 0
 
 		if type(control.button) == "table" then
@@ -87,7 +96,7 @@ function controlHints.draw(controls_list)
 					buttonsWidth = buttonsWidth + ICON_SIZE + (BUTTON_HORIZONTAL_PADDING * 2)
 				end
 				if btn < #control.button then
-					buttonsWidth = buttonsWidth + font:getWidth("/") + BUTTON_TEXT_SPACING * 2
+					buttonsWidth = buttonsWidth + self.font:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
@@ -105,11 +114,11 @@ function controlHints.draw(controls_list)
 
 	-- Set starting X position based on alignment
 	local x = SCREEN_EDGE_PADDING
-	if ALIGNMENT == "right" then
+	if alignment == "right" then
 		x = state.screenWidth - totalWidth - SCREEN_EDGE_PADDING
 	end
 
-	local y = state.screenHeight - controlHints.HEIGHT + (controlHints.HEIGHT - font:getHeight()) / 2
+	local y = state.screenHeight - self.height + (self.height - self.font:getHeight()) / 2
 
 	for i, control in ipairs(controls_list) do
 		if type(control.button) == "table" then
@@ -119,9 +128,9 @@ function controlHints.draw(controls_list)
 				x = x + ICON_SIZE + (BUTTON_HORIZONTAL_PADDING * 2)
 				if btn < #control.button then
 					love.graphics.setColor(color)
-					love.graphics.setFont(font)
+					love.graphics.setFont(self.font)
 					love.graphics.print("/", x + BUTTON_TEXT_SPACING, y)
-					x = x + font:getWidth("/") + BUTTON_TEXT_SPACING * 2
+					x = x + self.font:getWidth("/") + BUTTON_TEXT_SPACING * 2
 				end
 			end
 		else
@@ -130,18 +139,23 @@ function controlHints.draw(controls_list)
 			x = x + ICON_SIZE + (BUTTON_HORIZONTAL_PADDING * 2)
 		end
 
-		-- Draw action text (with spacing)
 		love.graphics.setColor(color)
-		love.graphics.setFont(font)
+		love.graphics.setFont(self.font)
 		x = x + ACTION_TEXT_SPACING
 		local displayText = titleCase(control.text)
 		love.graphics.print(displayText, x, y - 2)
-		x = x + font:getWidth(displayText)
+		x = x + self.font:getWidth(displayText)
 
 		if i < #controls_list then
 			x = x + CONTROL_SPACING
 		end
 	end
+	love.graphics.pop()
 end
 
-return controlHints
+function ControlHints.calculateHeight(fontArg)
+	local fontHeight = (fontArg or FONT):getHeight()
+	return fontHeight + (BUTTON_VERTICAL_PADDING * 2) + CONTROL_BAR_TOP_PADDING + CONTROL_BAR_BOTTOM_PADDING
+end
+
+return { ControlHints = ControlHints }

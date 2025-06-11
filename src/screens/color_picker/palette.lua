@@ -3,7 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local state = require("state")
 local tween = require("tween")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local colorUtils = require("utils.color")
 local screens = require("screens")
 local ColorSquare = require("ui.colorsquare")
@@ -34,6 +34,8 @@ local ANIMATION = {
 	SCALE = 1.25,
 	DURATION = 0.15,
 }
+
+local controlHintsInstance
 
 -- Helper function to get current palette state from central state manager
 local function getCurrentPaletteState()
@@ -188,20 +190,12 @@ function palette.draw()
 		end
 	end
 	drawScrollbar()
-	controls.draw({
-		{
-			button = { "leftshoulder", "rightshoulder" },
-			text = "Switch Tabs",
-		},
-		{
-			button = "a",
-			text = "Confirm",
-		},
-		{
-			button = "b",
-			text = "Back",
-		},
-	})
+	local controlsList = {
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 -- Helper to update visible color square positions and focus
@@ -446,6 +440,10 @@ function palette.onEnter()
 	}, "outQuad")
 
 	updateVisibleColorSquares()
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 return palette

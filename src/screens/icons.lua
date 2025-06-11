@@ -1,7 +1,7 @@
 --- Icons toggle screen
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
@@ -22,6 +22,7 @@ local input = nil
 local previewImages = {}
 
 local headerInstance = Header:new({ title = "Icons" })
+local controlHintsInstance
 
 -- Function to load preview images
 local function loadPreviewImages()
@@ -113,10 +114,12 @@ function iconsToggle.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function iconsToggle.update(dt)
@@ -163,6 +166,10 @@ function iconsToggle.onEnter(_data)
 		end,
 		onItemOptionCycle = handleOptionCycle,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 return iconsToggle

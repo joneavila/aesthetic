@@ -1,7 +1,7 @@
 --- Background color/gradient screen with Solid/Gradient options
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -19,6 +19,7 @@ local backgroundColor = {}
 local menuList = nil
 local input = nil
 local headerInstance = Header:new({ title = "Background" })
+local controlHintsInstance
 
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
@@ -170,10 +171,12 @@ function backgroundColor.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Save" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function backgroundColor.update(dt)
@@ -206,6 +209,10 @@ function backgroundColor.onEnter()
 		end,
 		onItemOptionCycle = handleOptionCycle,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 return backgroundColor

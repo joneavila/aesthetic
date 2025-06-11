@@ -4,7 +4,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -94,6 +94,8 @@ end
 -- Add menuList variable
 local menuList = nil
 
+local controlHintsInstance
+
 function datetimeScreen.draw()
 	background.draw()
 	headerInstance:draw()
@@ -181,9 +183,12 @@ function datetimeScreen.draw()
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
+		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function datetimeScreen.update(dt)
@@ -226,6 +231,10 @@ function datetimeScreen.onEnter(_data)
 			return false
 		end,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function datetimeScreen.onExit()

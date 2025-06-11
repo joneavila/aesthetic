@@ -3,7 +3,7 @@ local state = require("state")
 local colors = require("colors")
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local background = require("ui.background")
 local input = require("input")
 local screens = require("screens")
@@ -15,6 +15,7 @@ local ButtonTypes = require("ui.button").TYPES
 local virtual_keyboard = {}
 
 local headerInstance = Header:new({ title = "Input" })
+local controlHintsInstance
 
 --[[
 Navigation behavior:
@@ -244,6 +245,10 @@ function virtual_keyboard.onEnter(params)
 	end
 
 	buildKeyButtons()
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 -- Handle screen exit
@@ -470,11 +475,10 @@ function virtual_keyboard.draw()
 	-- Draw controls
 	local controlsList = {
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Cancel" },
-		{ button = "x", text = "Backspace" },
-		{ button = "d_pad", text = "Navigate" },
+		{ button = "b", text = "Back" },
 	}
-	controls.draw(controlsList)
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 -- The keypressed function is no longer needed since we're using the input module

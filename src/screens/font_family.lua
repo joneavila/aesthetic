@@ -2,7 +2,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -36,6 +36,8 @@ local previewFontCache = {}
 
 -- Store the maximum preview height once calculated
 local maxPreviewHeight = nil
+
+local controlHintsInstance
 
 -- Helper function to get a consistent preview font
 local function getPreviewFont(fontName)
@@ -175,10 +177,12 @@ function font.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Save" },
-	})
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function font.update(dt)
@@ -209,6 +213,10 @@ function font.onEnter()
 		end,
 		itemHeight = 40,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function font.onExit()

@@ -1,7 +1,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
@@ -28,10 +28,14 @@ local KOFI_TEXT = "Support the project, donate via Ko-Fi"
 
 -- Store screen switching function
 local qrCodeImage = nil
+local controlHintsInstance
 
 function about.onEnter()
 	-- Load QR code image
 	qrCodeImage = love.graphics.newImage(paths.UI_KOFI_QR_CODE_IMAGE)
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function about.draw()
@@ -91,10 +95,11 @@ function about.draw()
 	end
 
 	-- Draw controls
-	controls.draw({ {
-		button = "b",
-		text = "Back",
-	} })
+	local controlsList = {
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function about.update(_dt)

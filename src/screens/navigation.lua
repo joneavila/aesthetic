@@ -4,7 +4,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -22,6 +22,7 @@ local navigationScreen = {}
 -- UI Components
 local input = nil
 local headerInstance = Header:new({ title = "Navigation" })
+local controlHintsInstance
 
 -- Constants
 local EDGE_PADDING = 18
@@ -133,9 +134,12 @@ function navigationScreen.draw()
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
-	controls.draw({
+	local controlsList = {
+		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function navigationScreen.update(dt)
@@ -161,6 +165,9 @@ function navigationScreen.onEnter(_data)
 		height = state.screenHeight - startY - 60,
 		items = { alignmentButton, opacitySlider },
 	})
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function navigationScreen.onExit()

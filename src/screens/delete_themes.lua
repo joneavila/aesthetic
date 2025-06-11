@@ -2,7 +2,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
@@ -23,6 +23,7 @@ local themeItems = {}
 local themeList = nil
 local inputObj = nil
 local modalInstance = nil
+local controlHintsInstance
 
 -- Preload icons for checkboxes
 local SQUARE = svg.loadIcon("square", 24)
@@ -145,23 +146,23 @@ function delete_themes.draw()
 		return -- Don't draw controls when modal is visible
 	end
 
-	-- Count checked items for controls
-	local checkedCount = 0
-	for _, item in ipairs(themeItems) do
-		if item.checked then
-			checkedCount = checkedCount + 1
+	if not (modalInstance and modalInstance:isVisible()) then
+		local controlsList = {
+			{ button = "a", text = "Select" },
+			{ button = "b", text = "Back" },
+		}
+		local checkedCount = 0
+		for _, item in ipairs(themeItems) do
+			if item.checked then
+				checkedCount = checkedCount + 1
+			end
 		end
+		if checkedCount > 0 then
+			table.insert(controlsList, { button = "x", text = "Delete" })
+		end
+		controlHintsInstance:setControlsList(controlsList)
+		controlHintsInstance:draw()
 	end
-
-	-- Draw controls
-	local controlsList = {
-		{ button = "a", text = "Select" },
-		{ button = "b", text = "Back" },
-	}
-	if checkedCount > 0 then
-		table.insert(controlsList, { button = "x", text = "Delete" })
-	end
-	controls.draw(controlsList)
 end
 
 function delete_themes.update(dt)
@@ -277,6 +278,10 @@ function delete_themes.onEnter(_data)
 		end,
 		wrap = false,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function delete_themes.onExit()

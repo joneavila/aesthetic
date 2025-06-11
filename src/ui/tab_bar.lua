@@ -231,7 +231,6 @@ function TabBar:draw()
 end
 
 function TabBar.getHeight()
-	local fonts = require("ui.fonts")
 	local padding = TabBar.DEFAULT_TAB_PADDING
 	local textPadding = TabBar.DEFAULT_TAB_TEXT_PADDING
 	local font = fonts.loaded[TabBar.DEFAULT_FONT_KEY]

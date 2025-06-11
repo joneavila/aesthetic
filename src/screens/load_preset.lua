@@ -1,7 +1,7 @@
 --- Load preset screen
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -27,6 +27,7 @@ local input
 local presetItems = {}
 
 local headerInstance = Header:new({ title = "Load Theme Preset" })
+local controlHintsInstance
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
@@ -105,9 +106,11 @@ function loadPreset.draw()
 		love.graphics.print("No presets found", 16, headerInstance:getContentStartY())
 
 		-- Draw controls
-		controls.draw({
+		local controlsList = {
 			{ button = "b", text = "Back" },
-		})
+		}
+		controlHintsInstance:setControlsList(controlsList)
+		controlHintsInstance:draw()
 		return
 	end
 
@@ -117,10 +120,12 @@ function loadPreset.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function loadPreset.update(dt)
@@ -157,6 +162,10 @@ function loadPreset.onEnter()
 		end,
 		wrap = false,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 -- Clean up resources when leaving the screen

@@ -1,7 +1,7 @@
 --- RGB lighting settings screen
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -42,6 +42,7 @@ local menuList = nil
 local input = nil
 
 local headerInstance = Header:new({ title = "RGB Lighting" })
+local controlHintsInstance
 
 -- Helper function to get the current breathing speed based on rgbMode
 local function getCurrentBreathingSpeed()
@@ -253,11 +254,12 @@ function rgb_lighting.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
-		{ button = "d_pad", text = "Change value" },
+	local controlsList = {
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Save" },
-	})
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function rgb_lighting.update(dt)
@@ -294,6 +296,10 @@ function rgb_lighting.onEnter()
 
 	if state.hasRGBSupport then
 		rgbUtils.updateConfig()
+	end
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
 	end
 end
 

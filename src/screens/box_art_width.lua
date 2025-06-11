@@ -2,7 +2,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 local tween = require("tween")
@@ -45,6 +45,9 @@ local input = nil
 
 -- Create Header instance
 local headerInstance = Header:new({ title = "Box Art Width" })
+
+-- Control hints instance
+local controlHintsInstance
 
 -- Function to get display text for a box art width value
 local function getDisplayText(width)
@@ -195,9 +198,14 @@ function box_art_width.draw()
 			"center"
 		)
 	end
-	controls.draw({
-		{ button = "b", text = "Save" },
-	})
+
+	-- Draw controls
+	local controlsList = {
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function box_art_width.update(dt)
@@ -248,6 +256,11 @@ function box_art_width.onEnter()
 	tweenObj.rightWidth = boxArtWidth > 0 and boxArtWidth or 0
 	animatedLeftWidth = tweenObj.leftWidth
 	animatedRightWidth = tweenObj.rightWidth
+
+	-- Initialize control hints instance if needed
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function box_art_width.onExit() end

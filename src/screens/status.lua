@@ -4,7 +4,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 
@@ -51,6 +51,8 @@ local function calculateWarningHeight()
 	local _, wrappedLines = WARNING_TEXT_FONT:getWrap(WARNING_TEXT, warningWidth)
 	return #wrappedLines * WARNING_TEXT_FONT:getHeight()
 end
+
+local controlHintsInstance
 
 function statusScreen.draw()
 	background.draw()
@@ -124,9 +126,12 @@ function statusScreen.draw()
 	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw controls
-	controls.draw({
+	local controlsList = {
+		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function statusScreen.update(dt)
@@ -168,6 +173,10 @@ function statusScreen.onEnter(_data)
 			return false
 		end,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function statusScreen.onExit()

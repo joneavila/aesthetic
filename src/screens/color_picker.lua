@@ -9,6 +9,9 @@ local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")
 local paletteScreen = require("screens.color_picker.palette")
 
+local controls = require("control_hints").ControlHints
+local controlHintsInstance
+
 local colorPicker = {}
 
 local tabBar
@@ -52,6 +55,11 @@ function colorPicker.draw()
 		tabBar.width = state.screenWidth - (TAB_BAR_HORIZONTAL_PADDING * 2)
 		tabBar:draw()
 	end
+
+	-- If you want to show color picker global controls, add here:
+	-- local controlsList = { { button = "b", text = "Back" } }
+	-- controlHintsInstance:setControlsList(controlsList)
+	-- controlHintsInstance:draw()
 end
 
 function colorPicker.update(dt)
@@ -105,6 +113,10 @@ function colorPicker.onEnter(tabName)
 		if tab.screen.updateLayout then
 			tab.screen.updateLayout()
 		end
+	end
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
 	end
 end
 

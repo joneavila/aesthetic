@@ -1,16 +1,18 @@
 -- Shared utilities for color_picker subscreens
 local Header = require("ui.header")
+local controls = require("control_hints").ControlHints
+
 local headerInstance = Header:new({ title = "" })
+local controlHintsInstance = controls:new({})
 local TabBar = require("ui.tab_bar")
 
 local M = {}
 
 function M.calculateContentArea()
-	local controls = require("control_hints")
 	local state = require("state")
 	local headerContentStartY = headerInstance:getContentStartY()
 	local tabBarHeight = TabBar.getHeight()
-	local controlsHeight = controls.calculateHeight()
+	local controlsHeight = controlHintsInstance:getHeight()
 	local contentTopPadding = 8
 	return {
 		x = 0,

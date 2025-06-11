@@ -1,7 +1,7 @@
 --- Settings screen
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
 local otaUpdate = require("utils.ota_update")
@@ -35,6 +35,7 @@ local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
 local downloadThread = nil -- LÖVE thread for downloading
 
 local headerInstance = Header:new({ title = "Settings" })
+local controlHintsInstance
 
 -- Function to handle OTA update check
 local function checkForUpdates()
@@ -171,10 +172,12 @@ function settings.draw()
 	end
 
 	-- Draw controls at bottom of screen
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function settings.update(dt)
@@ -391,6 +394,10 @@ function settings.onEnter(params)
 	-- Reset list state and restore selection
 	if menuList then
 		menuList:setItems(createMenuButtons())
+	end
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
 	end
 end
 

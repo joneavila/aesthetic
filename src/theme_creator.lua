@@ -246,9 +246,9 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Copying resolution templates...")
-			local success, err = copyAllResolutionTemplates()
-			if not success then
-				return false, err
+			local copyAllResolutionTemplatesSuccess, copyAllResolutionTemplatesError = copyAllResolutionTemplates()
+			if not copyAllResolutionTemplatesSuccess then
+				return false, copyAllResolutionTemplatesError
 			end
 
 			coroutine.yield("Setting up theme structure...")
@@ -262,9 +262,9 @@ function themeCreator.createThemeCoroutine()
 				if system.isDir(sourcePath) then
 					sourcePath = sourcePath .. "/"
 				end
-				local success, err = system.copy(sourcePath, destPath)
-				if not success then
-					return false, err
+				local copySchemeSuccess, copySchemeError = system.copy(sourcePath, destPath)
+				if not copySchemeSuccess then
+					return false, copySchemeError
 				end
 			end
 
@@ -283,20 +283,21 @@ function themeCreator.createThemeCoroutine()
 			if system.isDir(sourceDir) then
 				sourceDir = sourceDir .. "/"
 			end
-			local success, err = system.copy(sourceDir, destDir)
-			if not success then
-				return false, err or ("Failed to copy icons from: " .. sourceDir)
+			local copyIconsSuccess, copyIconsError = system.copy(sourceDir, destDir)
+			if not copyIconsSuccess then
+				return false, copyIconsError or ("Failed to copy icons from: " .. sourceDir)
 			end
 
 			coroutine.yield("Copying icons (1024x768)...")
-			local sourceDir = paths.GLYPHS_SOURCE_DIR_1024x768
-			local destDir = paths.THEME_GLYPH_DIR_1024x768
-			if system.isDir(sourceDir) then
-				sourceDir = sourceDir .. "/"
+			local sourceDirGlyphs1024x768 = paths.GLYPHS_SOURCE_DIR_1024x768
+			local destDirGlyphs1024x768 = paths.THEME_GLYPH_DIR_1024x768
+			if system.isDir(sourceDirGlyphs1024x768) then
+				sourceDirGlyphs1024x768 = sourceDirGlyphs1024x768 .. "/"
 			end
-			local success, err = system.copy(sourceDir, destDir)
-			if not success then
-				return false, err or ("Failed to copy icons from: " .. sourceDir)
+			local copyIcons1024x768Success, copyIcons1024x768Error =
+				system.copy(sourceDirGlyphs1024x768, destDirGlyphs1024x768)
+			if not copyIcons1024x768Success then
+				return false, copyIcons1024x768Error or ("Failed to copy icons from: " .. sourceDirGlyphs1024x768)
 			end
 
 			coroutine.yield("Copying home screen grid layout icons...")
@@ -305,9 +306,9 @@ function themeCreator.createThemeCoroutine()
 			if system.isDir(muxlaunchGridSource) then
 				muxlaunchGridSource = muxlaunchGridSource .. "/"
 			end
-			local success, err = system.copy(muxlaunchGridSource, muxlaunchGridDest)
-			if not success then
-				return false, err or "Failed to copy muxlaunch grid icons."
+			local copyMuxlaunchGridSuccess, copyMuxlaunchGridError = system.copy(muxlaunchGridSource, muxlaunchGridDest)
+			if not copyMuxlaunchGridSuccess then
+				return false, copyMuxlaunchGridError or "Failed to copy muxlaunch grid icons."
 			end
 
 			coroutine.yield("Copying 1024x768 home screen grid layout icons...")
@@ -357,118 +358,128 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Applying color settings...")
-			local success, error = schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyColorSettingsSuccess, applyColorSettingsError =
+				schemeConfigurator.applyColorSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyColorSettingsSuccess then
+				return false, applyColorSettingsError
 			end
 
 			coroutine.yield("Applying battery settings...")
-			local success, error = schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyBatterySettingsSuccess, applyBatterySettingsError =
+				schemeConfigurator.applyBatterySettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyBatterySettingsSuccess then
+				return false, applyBatterySettingsError
 			end
 
 			coroutine.yield("Applying glyph settings...")
-			local success, error = schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyGlyphSettingsSuccess, applyGlyphSettingsError =
+				schemeConfigurator.applyGlyphSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyGlyphSettingsSuccess then
+				return false, applyGlyphSettingsError
 			end
 
 			coroutine.yield("Applying font padding settings...")
-			local success, error = schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyFontListPaddingSettingsSuccess, applyFontListPaddingSettingsError =
+				schemeConfigurator.applyFontListPaddingSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyFontListPaddingSettingsSuccess then
+				return false, applyFontListPaddingSettingsError
 			end
 
 			coroutine.yield("Applying content padding left settings...")
-			local success, error =
+			local applyContentPaddingLeftSettingsSuccess, applyContentPaddingLeftSettingsError =
 				schemeConfigurator.applyContentPaddingLeftSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
-			if not success then
-				return false, error
+			if not applyContentPaddingLeftSettingsSuccess then
+				return false, applyContentPaddingLeftSettingsError
 			end
 
 			coroutine.yield("Applying content width settings...")
-			local success, error =
+			local applyContentWidthSettingsSuccess, applyContentWidthSettingsError =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_GLOBAL, state.screenWidth)
-			if not success then
-				return false, error
+			if not applyContentWidthSettingsSuccess then
+				return false, applyContentWidthSettingsError
 			end
-			local success, error =
+			local applyContentWidthSettingsMuxploreSuccess, applyContentWidthSettingsMuxploreError =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXPLORE, state.screenWidth)
-			if not success then
-				return false, error
+			if not applyContentWidthSettingsMuxploreSuccess then
+				return false, applyContentWidthSettingsMuxploreError
 			end
-			local success, error =
+			local applyContentWidthSettingsMuxhistorySuccess, applyContentWidthSettingsMuxhistoryError =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXHISTORY, state.screenWidth)
-			if not success then
-				return false, error
+			if not applyContentWidthSettingsMuxhistorySuccess then
+				return false, applyContentWidthSettingsMuxhistoryError
 			end
-			local success, error =
+			local applyContentWidthSettingsMuxcollectSuccess, applyContentWidthSettingsMuxcollectError =
 				schemeConfigurator.applyContentWidthSettings(paths.THEME_SCHEME_MUXCOLLECT, state.screenWidth)
-			if not success then
-				return false, error
+			if not applyContentWidthSettingsMuxcollectSuccess then
+				return false, applyContentWidthSettingsMuxcollectError
 			end
 
 			coroutine.yield("Applying alignment settings...")
-			local success, error = schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyNavigationAlignmentSettingsSuccess, applyNavigationAlignmentSettingsError =
+				schemeConfigurator.applyNavigationAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyNavigationAlignmentSettingsSuccess then
+				return false, applyNavigationAlignmentSettingsError
 			end
-			local success, error = schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyStatusAlignmentSettingsSuccess, applyStatusAlignmentSettingsError =
+				schemeConfigurator.applyStatusAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyStatusAlignmentSettingsSuccess then
+				return false, applyStatusAlignmentSettingsError
 			end
-			local success, error = schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyHeaderAlignmentSettingsSuccess, applyHeaderAlignmentSettingsError =
+				schemeConfigurator.applyHeaderAlignmentSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyHeaderAlignmentSettingsSuccess then
+				return false, applyHeaderAlignmentSettingsError
 			end
-			local success, error = schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyDatetimeSettingsSuccess, applyDatetimeSettingsError =
+				schemeConfigurator.applyDatetimeSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyDatetimeSettingsSuccess then
+				return false, applyDatetimeSettingsError
 			end
 
 			coroutine.yield("Applying header opacity settings...")
-			local success, error = schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyHeaderOpacitySuccess, applyHeaderOpacityError =
+				schemeConfigurator.applyHeaderOpacity(paths.THEME_SCHEME_GLOBAL)
+			if not applyHeaderOpacitySuccess then
+				return false, applyHeaderOpacityError
 			end
 
 			coroutine.yield("Applying navigation opacity settings...")
-			local success, error = schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL)
-			if not success then
-				return false, error
+			local applyNavigationAlphaSettingsSuccess, applyNavigationAlphaSettingsError =
+				schemeConfigurator.applyNavigationAlphaSettings(paths.THEME_SCHEME_GLOBAL)
+			if not applyNavigationAlphaSettingsSuccess then
+				return false, applyNavigationAlphaSettingsError
 			end
 
 			coroutine.yield("Copying font file...")
-			local success, error = copySelectedFont()
-			if not success then
-				return false, error
+			local copySelectedFontSuccess, copySelectedFontError = copySelectedFont()
+			if not copySelectedFontSuccess then
+				return false, copySelectedFontError
 			end
 
 			coroutine.yield("Creating credits file...")
-			local success, error = createCreditsFile()
-			if not success then
-				return false, error
+			local createCreditsFileSuccess, createCreditsFileError = createCreditsFile()
+			if not createCreditsFileSuccess then
+				return false, createCreditsFileError
 			end
 
 			coroutine.yield("Creating version file...")
-			local success, error = createVersionFile()
-			if not success then
-				return false, error
+			local createVersionFileSuccess, createVersionFileError = createVersionFile()
+			if not createVersionFileSuccess then
+				return false, createVersionFileError
 			end
 
 			if state.hasRGBSupport then
 				coroutine.yield("Setting up RGB configuration...")
-				local success, error = rgb.createConfigFile(paths.THEME_RGB_CONF)
-				if not success then
-					return false, error
+				local createConfigFileSuccess, createConfigFileError = rgb.createConfigFile(paths.THEME_RGB_CONF)
+				if not createConfigFileSuccess then
+					return false, createConfigFileError
 				end
 			end
 
 			coroutine.yield("Copying sound files...")
-			local success, error = copySoundFiles()
-			if not success then
-				return false, error
+			local copySoundFilesSuccess, copySoundFilesError = copySoundFiles()
+			if not copySoundFilesSuccess then
+				return false, copySoundFilesError
 			end
 
 			coroutine.yield("Creating theme archive...")

@@ -10,6 +10,8 @@ local fonts = require("ui.fonts")
 local Header = require("ui.header")
 
 local logger = require("utils.logger")
+local controls = require("control_hints").ControlHints
+local controlHintsInstance
 
 -- Module table to export public functions
 local debug = {}
@@ -162,6 +164,12 @@ function debug.draw()
 	local instructionsY = love.graphics.getHeight() - lineHeight * 2
 	love.graphics.setColor(colors.ui.subtext)
 	love.graphics.print("Press Menu + Y to return to main menu", 20, instructionsY)
+
+	local controlsList = {
+		{ button = "menu", text = "+ Y: Exit" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function debug.update(_dt)
@@ -175,6 +183,9 @@ end
 
 function debug.onEnter()
 	-- Reset when entering
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 function debug.onExit()

@@ -2,7 +2,6 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
 local screens = require("screens")
 local state = require("state")
 local tween = require("tween")
@@ -15,6 +14,9 @@ local fonts = require("ui.fonts")
 local hsv = {}
 
 local shared = require("screens.color_picker.shared")
+
+local controls = require("control_hints").ControlHints
+local controlHintsInstance
 
 -- Constants
 local EDGE_PADDING = 10
@@ -328,24 +330,12 @@ function hsv.draw()
 	love.graphics.pop()
 
 	-- Draw controls
-	controls.draw({
-		{
-			button = { "leftshoulder", "rightshoulder" },
-			text = "Switch Tabs",
-		},
-		{
-			button = "y",
-			text = "HS/V",
-		},
-		{
-			button = "a",
-			text = "Confirm",
-		},
-		{
-			button = "b",
-			text = "Back",
-		},
-	})
+	local controlsList = {
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Back" },
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 -- Only regenerates the texture when necessary and at reduced resolution
@@ -561,6 +551,10 @@ function hsv.update(dt)
 end
 
 function hsv.onEnter()
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
+
 	-- Initialize layout if not already done
 	if not pickerState.squareSize then
 		local contentArea = shared.calculateContentArea()

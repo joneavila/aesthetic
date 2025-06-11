@@ -86,7 +86,7 @@ function Slider:update(dt)
 	end
 end
 
-function Slider:getHeight()
+function Slider:getHeight() -- TODO: Refactor to use self
 	local labelHeight = love.graphics.getFont():getHeight()
 	return labelHeight
 		+ Slider.FOCUS_BACKGROUND_TOP_MARGIN

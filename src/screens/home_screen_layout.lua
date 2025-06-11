@@ -1,7 +1,7 @@
 --- Home Screen Layout Selection Screen
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
@@ -26,6 +26,8 @@ local headerInstance = Header:new({ title = "Home Screen Layout" })
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
 local IMAGE_MARGIN = 16
+
+local controlHintsInstance
 
 -- Load preview images
 local function loadPreviewImages()
@@ -131,10 +133,12 @@ function homeScreenLayout.draw()
 		end
 	end
 
-	controls.draw({
+	local controlsList = {
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function homeScreenLayout.update(dt)
@@ -177,6 +181,10 @@ function homeScreenLayout.onEnter(_data)
 		onItemOptionCycle = handleOptionCycle,
 		wrap = false,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
+	end
 end
 
 return homeScreenLayout

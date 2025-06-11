@@ -2,7 +2,7 @@
 local love = require("love")
 
 local colors = require("colors")
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local shared = require("screens.color_picker.shared")
 
@@ -37,6 +37,8 @@ local hexState = {
 	lastValidInput = "",
 	animationPhase = "idle", -- "expanding", "contracting", "idle"
 }
+
+local controlHintsInstance
 
 -- Helper function to get current hex state from central state manager
 local function getCurrentHexState()
@@ -338,12 +340,12 @@ function hex.draw()
 	end
 
 	-- Draw controls
-	controls.draw({
-		{ button = { "leftshoulder", "rightshoulder" }, text = "Switch Tabs" },
+	local controlsList = {
 		{ button = "a", text = "Select" },
-		{ button = "y", text = "Clear" },
 		{ button = "b", text = "Back" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function hex.update(dt)
@@ -451,6 +453,10 @@ function hex.onEnter()
 	-- Preload icons if not already done
 	if not svg.isIconLoaded("delete") or not svg.isIconLoaded("check") then
 		svg.preloadIcons({ "delete", "check" }, ICON_SIZE)
+	end
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({})
 	end
 end
 

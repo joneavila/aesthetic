@@ -8,7 +8,7 @@ local Button = require("ui.button").Button
 local ButtonTypes = require("ui.button").TYPES
 local List = require("ui.list").List
 local background = require("ui.background")
-local controlHints = require("control_hints")
+local controlHints = require("control_hints").ControlHints
 local Slider = require("ui.slider").Slider
 
 local battery = {}
@@ -16,6 +16,7 @@ local battery = {}
 local menuList = nil
 local input = nil
 local headerInstance = Header:new({ title = "Battery" })
+local controlHintsInstance
 
 local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 local function formatSliderValue(value)
@@ -142,10 +143,12 @@ function battery.draw()
 		svg.drawIcon(batteryLowIcon, centerX + iconSpacing, centerY, batteryLowColor, opacity)
 	end
 
-	controlHints.draw({
+	local controlsList = {
 		{ button = "b", text = "Back" },
 		{ button = "a", text = "Select" },
-	})
+	}
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function battery.update(dt)
@@ -174,6 +177,9 @@ function battery.onEnter()
 			end
 		end,
 	})
+	if not controlHintsInstance then
+		controlHintsInstance = controlHints:new({})
+	end
 end
 
 return battery

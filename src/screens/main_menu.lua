@@ -2,7 +2,7 @@
 --- Uses the new component system for better maintainability
 local love = require("love")
 
-local controls = require("control_hints")
+local controls = require("control_hints").ControlHints
 local errorHandler = require("error_handler")
 local rgbUtils = require("utils.rgb")
 local screens = require("screens")
@@ -455,6 +455,8 @@ local function handleThemeInstallation()
 	end
 end
 
+local controlHintsInstance = controls:new({})
+
 function menu.draw()
 	background.draw()
 
@@ -479,11 +481,12 @@ function menu.draw()
 		modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
 	end
 
-	controls.draw({
+	controlHintsInstance:setControlsList({
 		{ button = "start", text = "Settings" },
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Exit" },
 	})
+	controlHintsInstance:draw()
 end
 
 function menu.update(dt)
