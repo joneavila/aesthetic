@@ -7,21 +7,18 @@ set -e # Exit on error
 # Default window dimensions
 WIDTH=640
 HEIGHT=480
+INIT_SCREEN="splash"
 
 # Parse command line arguments
 if [ $# -eq 2 ]; then
   # Two arguments: width and height
   WIDTH=$1
   HEIGHT=$2
-elif [ $# -eq 1 ]; then
-  # One argument in format WIDTHxHEIGHT
-  if [[ $1 =~ ^([0-9]+)x([0-9]+)$ ]]; then
-    WIDTH=${BASH_REMATCH[1]}
-    HEIGHT=${BASH_REMATCH[2]}
-  else
-    echo "Invalid format. Expected WIDTHxHEIGHT (e.g. 800x600)"
-    exit 1
-  fi
+elif [ $# -eq 3 ]; then
+  # Three arguments: width, height, and initial screen
+  WIDTH=$1
+  HEIGHT=$2
+  INIT_SCREEN=$3
 fi
 
 # Detect OS
@@ -92,6 +89,7 @@ export WIDTH
 export HEIGHT
 export MUOS_VERSION
 export DEV=true
+export INIT_SCREEN
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then

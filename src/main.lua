@@ -38,6 +38,14 @@ local screens = nil
 -- Fade duration for screen transitions
 local fadeDuration = 0.5
 
+local function getInitialScreen()
+	local envScreen = system.getEnvironmentVariable("INIT_SCREEN")
+	if envScreen and #envScreen > 0 then
+		return envScreen
+	end
+	return nil
+end
+
 function love.load()
 	state.screenWidth = tonumber(system.getEnvironmentVariable("WIDTH"))
 	state.screenHeight = tonumber(system.getEnvironmentVariable("HEIGHT"))
@@ -64,9 +72,14 @@ function love.load()
 	splashScreen.load()
 	splashScreen._loadedLazily = true -- Mark as already loaded to prevent double loading
 
-	-- Start with the splash screen
-	screens.switchTo("splash")
-	-- screens.switchTo("main_menu") --  Debug: Skip splash screen
+	-- Determine which screen to start with
+	local initialScreen = getInitialScreen() or "splash"
+	if not screens.isRegistered(initialScreen) then
+		print("Error: Initial screen '" .. tostring(initialScreen) .. "' is not registered. Exiting.")
+		love.event.quit()
+		return
+	end
+	screens.switchTo(initialScreen)
 
 	-- Fade effect will be handled after splash screen completes
 	state.fading = false

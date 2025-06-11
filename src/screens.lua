@@ -30,6 +30,10 @@ function screens.register(screenName, screenModule)
 	registeredScreens[screenName] = screenModule
 end
 
+function screens.isRegistered(screenName)
+	return registeredScreens[screenName] ~= nil
+end
+
 function screens.getCurrentScreen()
 	return currentScreen
 end
