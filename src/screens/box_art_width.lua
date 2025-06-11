@@ -44,7 +44,7 @@ local menuList = nil
 local input = nil
 
 -- Create Header instance
-local headerInstance = Header:new({ title = "Box Art Width", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Box Art Width" })
 
 -- Function to get display text for a box art width value
 local function getDisplayText(width)

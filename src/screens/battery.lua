@@ -15,7 +15,7 @@ local battery = {}
 
 local menuList = nil
 local input = nil
-local headerInstance = Header:new({ title = "Battery", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Battery" })
 
 local opacityValues = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 }
 local function formatSliderValue(value)

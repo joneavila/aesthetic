@@ -25,7 +25,7 @@ local menuList = nil
 local actionButton = nil
 local input = nil
 local modal = nil
-local headerInstance = Header:new({ title = "Main Menu", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Main Menu" })
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()

@@ -14,7 +14,7 @@ local ButtonTypes = require("ui.button").TYPES
 -- Its layout closely follows muOS's virtual keyboard layout
 local virtual_keyboard = {}
 
-local headerInstance = Header:new({ title = "Input", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Input" })
 
 --[[
 Navigation behavior:
@@ -408,7 +408,7 @@ function virtual_keyboard.draw()
 
 	-- Draw header
 	if not headerInstance then
-		headerInstance = Header:new({ title = headerTitle, screenWidth = state.screenWidth })
+		headerInstance = Header:new({ title = headerTitle })
 	end
 	headerInstance.title = headerTitle
 	headerInstance:draw()

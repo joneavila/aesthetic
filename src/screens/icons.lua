@@ -21,7 +21,7 @@ local menuList = nil
 local input = nil
 local previewImages = {}
 
-local headerInstance = Header:new({ title = "Icons", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Icons" })
 
 -- Function to load preview images
 local function loadPreviewImages()

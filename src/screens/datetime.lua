@@ -20,7 +20,7 @@ local datetimeScreen = {}
 
 -- UI Components
 local input = nil
-local headerInstance = Header:new({ title = "Time", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Time" })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -96,6 +96,7 @@ local menuList = nil
 
 function datetimeScreen.draw()
 	background.draw()
+	headerInstance:draw()
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)

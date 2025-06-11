@@ -16,8 +16,7 @@ local tabBar
 
 local TAB_BAR_HORIZONTAL_PADDING = 16
 local COMPONENT_SPACING = 8
-local TAB_BAR_START_Y = Header:new({ title = "Color Picker", screenWidth = state.screenWidth }):getContentStartY()
-	+ COMPONENT_SPACING
+local TAB_BAR_START_Y = Header:new({ title = "Color Picker" }):getContentStartY() + COMPONENT_SPACING
 
 -- Helper function to format color context for display
 local function formatColorContext(context)
@@ -44,7 +43,7 @@ function colorPicker.draw()
 
 	-- Draw header with current color context
 	local contextTitle = formatColorContext(state.activeColorContext)
-	local headerInstance = Header:new({ title = "Color Picker", screenWidth = state.screenWidth })
+	local headerInstance = Header:new({ title = "Color Picker" })
 	headerInstance.title = contextTitle
 	headerInstance:draw()
 

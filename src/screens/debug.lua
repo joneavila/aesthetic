@@ -14,7 +14,7 @@ local logger = require("utils.logger")
 -- Module table to export public functions
 local debug = {}
 
-local headerInstance = Header:new({ title = "Debug", screenWidth = love.graphics.getWidth() })
+local headerInstance = Header:new({ title = "Debug" })
 
 -- Function to check if the debug button combo is pressed
 local function isDebugComboPressed(virtualJoystick)

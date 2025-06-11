@@ -22,7 +22,7 @@ local headerScreen = {}
 -- UI Components
 local menuList = nil
 local input = nil
-local headerInstance = Header:new({ title = "Header", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Header" })
 
 -- Constants
 local EDGE_PADDING = 18

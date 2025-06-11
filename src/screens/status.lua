@@ -19,7 +19,7 @@ local statusScreen = {}
 
 -- UI Components
 local input = nil
-local headerInstance = Header:new({ title = "Status", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Status" })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -54,6 +54,7 @@ end
 
 function statusScreen.draw()
 	background.draw()
+	headerInstance:draw()
 
 	-- Draw warning text below header
 	love.graphics.setFont(WARNING_TEXT_FONT)

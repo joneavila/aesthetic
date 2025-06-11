@@ -21,7 +21,7 @@ local homeScreenLayout = {}
 local menuList = nil
 local input = nil
 local previewImage = nil
-local headerInstance = Header:new({ title = "Home Screen Layout", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Home Screen Layout" })
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
@@ -75,6 +75,7 @@ end
 
 function homeScreenLayout.draw()
 	background.draw()
+	headerInstance:draw()
 
 	-- Set the default body font for consistent sizing
 	love.graphics.setFont(fonts.loaded.body)

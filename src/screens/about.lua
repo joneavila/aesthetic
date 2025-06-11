@@ -44,7 +44,6 @@ function about.draw()
 	-- Draw header using header module
 	local headerInstance = Header:new({
 		title = state.applicationName .. " " .. version.getVersionString(),
-		screenWidth = state.screenWidth,
 	})
 	headerInstance:draw()
 	local headerHeight = headerInstance:getContentStartY()

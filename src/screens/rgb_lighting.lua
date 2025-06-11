@@ -41,7 +41,7 @@ local BREATHING_SPEEDS = {
 local menuList = nil
 local input = nil
 
-local headerInstance = Header:new({ title = "RGB Lighting", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "RGB Lighting" })
 
 -- Helper function to get the current breathing speed based on rgbMode
 local function getCurrentBreathingSpeed()

@@ -26,7 +26,7 @@ local input
 -- Preset items list
 local presetItems = {}
 
-local headerInstance = Header:new({ title = "Load Theme Preset", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Load Theme Preset" })
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()

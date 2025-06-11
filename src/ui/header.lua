@@ -22,14 +22,12 @@ function Header.title_case(str)
 end
 
 function Header:new(config)
-	-- Initialize base component
 	local instance = Component.new(self, config)
 
-	-- Header-specific properties
 	instance.title = config.title or ""
 	instance.x = 0
 	instance.y = 0
-	instance.width = config.screenWidth or love.graphics.getWidth()
+	instance.width = love.graphics.getWidth()
 	instance.height = instance:calculateHeight()
 
 	return instance

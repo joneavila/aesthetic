@@ -113,7 +113,7 @@ local function scanThemes()
 	end
 end
 
-local headerInstance = Header:new({ title = "Manage Themes", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Manage Themes" })
 
 function delete_themes.draw()
 	-- Set background

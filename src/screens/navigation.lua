@@ -21,7 +21,7 @@ local navigationScreen = {}
 
 -- UI Components
 local input = nil
-local headerInstance = Header:new({ title = "Navigation", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Navigation" })
 
 -- Constants
 local EDGE_PADDING = 18
@@ -84,6 +84,8 @@ end
 
 function navigationScreen.draw()
 	background.draw()
+	headerInstance:draw()
+
 	love.graphics.setFont(fonts.loaded.body)
 	if navigationScreen.list then
 		navigationScreen.list:draw()

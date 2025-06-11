@@ -18,7 +18,7 @@ local backgroundColor = {}
 
 local menuList = nil
 local input = nil
-local headerInstance = Header:new({ title = "Background", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Background" })
 
 -- Function to update gradient preview mesh
 local function updateGradientPreview()

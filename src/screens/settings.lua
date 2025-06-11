@@ -34,7 +34,7 @@ local updateCheckTimer = 0
 local updateCheckMinTime = 0.5 -- Minimum time to show "checking" modal
 local downloadThread = nil -- LÖVE thread for downloading
 
-local headerInstance = Header:new({ title = "Settings", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Settings" })
 
 -- Function to handle OTA update check
 local function checkForUpdates()

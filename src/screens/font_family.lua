@@ -20,7 +20,7 @@ local font = {}
 local menuList
 local input
 
-local headerInstance = Header:new({ title = "Font Family", screenWidth = state.screenWidth })
+local headerInstance = Header:new({ title = "Font Family" })
 
 -- Constants specific to the font preview
 local FONT_PREVIEW = {
