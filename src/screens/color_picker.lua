@@ -3,12 +3,11 @@ local screens = require("screens")
 local state = require("state")
 
 local Header = require("ui.header")
+local TabBar = require("ui.tab_bar")
 
 local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")
 local paletteScreen = require("screens.color_picker.palette")
-
-local TabBar = require("ui.tab_bar")
 
 local colorPicker = {}
 
@@ -42,9 +41,8 @@ function colorPicker.draw()
 	end
 
 	-- Draw header with current color context
-	local contextTitle = formatColorContext(state.activeColorContext)
-	local headerInstance = Header:new({ title = "Color Picker" })
-	headerInstance.title = contextTitle
+	local title = formatColorContext(state.activeColorContext)
+	local headerInstance = Header:new({ title = title })
 	headerInstance:draw()
 
 	-- Draw the tab bar with left/right padding

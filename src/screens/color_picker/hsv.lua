@@ -142,6 +142,8 @@ function hsv.draw()
 	local hexColor = state.getColorValue(state.activeColorContext)
 	local r, g, b = colorUtils.hexToRgb(hexColor)
 
+	love.graphics.push("all")
+
 	love.graphics.setColor(r, g, b, 1)
 	love.graphics.rectangle("fill", pickerState.previewX, pickerState.startY, pickerState.previewWidth, PREVIEW_HEIGHT)
 
@@ -318,6 +320,12 @@ function hsv.draw()
 	end
 	love.graphics.setLineWidth(CURSOR.CIRCLE_LINE_WIDTH)
 	love.graphics.circle("line", currentState.cursor.svX, currentState.cursor.svY, CURSOR.CIRCLE_RADIUS)
+
+	-- -- Reset line width to 1 to avoid affecting other UI
+	-- -- TODO: Use `love.graphics.push("all")` and `love.graphics.pop()` instead
+	-- love.graphics.setLineWidth(1)
+
+	love.graphics.pop()
 
 	-- Draw controls
 	controls.draw({
