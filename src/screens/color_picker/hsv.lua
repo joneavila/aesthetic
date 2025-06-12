@@ -18,7 +18,7 @@ local shared = require("screens.color_picker.shared")
 local controls = require("control_hints").ControlHints
 local controlHintsInstance
 
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 -- Constants
 local EDGE_PADDING = 10
@@ -138,7 +138,6 @@ end
 
 function hsv.draw()
 	background.draw()
-
 
 	-- Get current color type state
 	local currentState = getCurrentHsvState()

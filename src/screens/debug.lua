@@ -7,13 +7,13 @@ local screens = require("screens")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
+local Header = require("ui.components.header")
 
 local logger = require("utils.logger")
 local controls = require("control_hints").ControlHints
 local controlHintsInstance
 
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 -- Module table to export public functions
 local debug = {}

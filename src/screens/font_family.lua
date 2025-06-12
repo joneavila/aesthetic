@@ -7,11 +7,11 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local Button = require("ui.button").Button
+local Button = require("ui.components.button").Button
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local List = require("ui.list").List
-local InputManager = require("ui.InputManager")
+local Header = require("ui.components.header")
+local List = require("ui.components.list").List
+local InputManager = require("ui.controllers.input_manager")
 
 -- Module table to export public functions
 local font = {}

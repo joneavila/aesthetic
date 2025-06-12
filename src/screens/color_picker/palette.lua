@@ -5,9 +5,9 @@ local tween = require("tween")
 local controls = require("control_hints").ControlHints
 local colorUtils = require("utils.color")
 local screens = require("screens")
-local ColorSquare = require("ui.colorsquare")
+local ColorSquare = require("ui.components.color_preview")
 local shared = require("screens.color_picker.shared")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local background = require("ui.background")
 

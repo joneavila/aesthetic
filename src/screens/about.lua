@@ -7,11 +7,11 @@ local screens = require("screens")
 local state = require("state")
 local version = require("version")
 local virtualJoystick = require("input").virtualJoystick
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
+local Header = require("ui.components.header")
 
 local about = {}
 

@@ -4,7 +4,7 @@ local love = require("love")
 local colors = require("colors")
 local Component = require("ui.component").Component
 local scrollable = require("ui.scrollable")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal

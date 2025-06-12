@@ -1,10 +1,10 @@
 -- Shared utilities for color_picker subscreens
-local Header = require("ui.header")
+local Header = require("ui.components.header")
 local controls = require("control_hints").ControlHints
 
 local headerInstance = Header:new({ title = "" })
 local controlHintsInstance = controls:new({})
-local TabBar = require("ui.tab_bar")
+local TabBar = require("ui.components.tab_bar")
 
 local M = {}
 

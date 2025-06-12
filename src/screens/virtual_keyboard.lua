@@ -2,14 +2,14 @@ local love = require("love")
 local state = require("state")
 local colors = require("colors")
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
+local Header = require("ui.components.header")
 local controls = require("control_hints").ControlHints
 local background = require("ui.background")
 local input = require("input")
 local screens = require("screens")
-local Button = require("ui.button").Button
-local ButtonTypes = require("ui.button").TYPES
-local InputManager = require("ui.InputManager")
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
+local InputManager = require("ui.controllers.input_manager")
 
 -- Virtual keyboard screen module
 -- Its layout closely follows muOS's virtual keyboard layout

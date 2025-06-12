@@ -5,7 +5,7 @@ local love = require("love")
 local colors = require("colors")
 
 local Component = require("ui.component").Component
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 -- List constants
 local LIST_CONFIG = {
@@ -249,7 +249,7 @@ function List:handleInput(direction, input)
 		selectedItem
 		and selectedItem.handleInput
 		and selectedItem.__index
-		and selectedItem.__index == require("ui.slider").Slider
+		and selectedItem.__index == require("ui.components.slider").Slider
 	then
 		if selectedItem:handleInput(input) then
 			return true
@@ -269,7 +269,7 @@ function List:handleInput(direction, input)
 		if
 			selectedItem
 			and selectedItem.handleInput
-			and not (selectedItem.__index and selectedItem.__index == require("ui.slider").Slider)
+			and not (selectedItem.__index and selectedItem.__index == require("ui.components.slider").Slider)
 			and selectedItem:handleInput(input)
 		then
 			handled = true
@@ -283,7 +283,7 @@ function List:handleInput(direction, input)
 		if
 			selectedItem
 			and selectedItem.handleInput
-			and not (selectedItem.__index and selectedItem.__index == require("ui.slider").Slider)
+			and not (selectedItem.__index and selectedItem.__index == require("ui.components.slider").Slider)
 			and selectedItem:handleInput(input)
 		then
 			handled = true

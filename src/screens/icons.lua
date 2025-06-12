@@ -7,14 +7,13 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local Button = require("ui.button").Button
-local ButtonTypes = require("ui.button").TYPES
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local imageComponent = require("ui.image")
-local InputManager = require("ui.InputManager")
-local List = require("ui.list").List
-local Image = require("ui.image").Image
+local Header = require("ui.components.header")
+local InputManager = require("ui.controllers.input_manager")
+local List = require("ui.components.list").List
+local Image = require("ui.components.image").Image
 
 local iconsToggle = {}
 

@@ -4,7 +4,6 @@ local FocusManager = {}
 FocusManager.__index = FocusManager
 
 local NavigationUtils = require("ui.NavigationUtils")
-local Component = require("ui.component").Component
 
 function FocusManager:new()
 	local instance = setmetatable({}, self)

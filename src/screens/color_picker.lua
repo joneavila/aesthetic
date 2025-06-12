@@ -6,9 +6,9 @@ local screens = require("screens")
 local state = require("state")
 local controls = require("control_hints").ControlHints
 
-local Header = require("ui.header")
-local InputManager = require("ui.InputManager")
-local TabBar = require("ui.tab_bar")
+local Header = require("ui.components.header")
+local InputManager = require("ui.controllers.input_manager")
+local TabBar = require("ui.components.tab_bar")
 
 local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")

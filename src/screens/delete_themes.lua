@@ -9,13 +9,13 @@ local state = require("state")
 
 local background = require("ui.background")
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local List = require("ui.list").List
-local Modal = require("ui.modal").Modal
+local Header = require("ui.components.header")
+local List = require("ui.components.list").List
+local Modal = require("ui.components.modal").Modal
 
 local svg = require("utils.svg")
 local system = require("utils.system")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local delete_themes = {}
 

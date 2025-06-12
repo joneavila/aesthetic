@@ -29,7 +29,7 @@ Centralized input event manager for UI navigation and actions.
   ]]
 --
 
-local InputConfig = require("ui.InputConfig")
+local InputConfig = require("ui.controllers.input_config")
 
 local InputManager = {}
 

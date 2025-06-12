@@ -8,7 +8,7 @@ local gradientPreview = require("ui.gradient_preview")
 local Component = require("ui.component").Component
 local logger = require("utils.logger")
 local tween = require("tween")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 -- Button constants
 local BUTTON_CONFIG = {

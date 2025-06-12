@@ -7,15 +7,15 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local Button = require("ui.button").Button
-local ButtonTypes = require("ui.button").TYPES
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local List = require("ui.list").List
-local image = require("ui.image")
-local InputManager = require("ui.InputManager")
+local Header = require("ui.components.header")
+local List = require("ui.components.list").List
+local image = require("ui.components.image")
+local InputManager = require("ui.controllers.input_manager")
 local logger = require("utils.logger")
-local Image = require("ui.image").Image
+local Image = require("ui.components.image").Image
 
 local homeScreenLayout = {}
 
@@ -182,7 +182,7 @@ function homeScreenLayout.onExit() end
 
 function homeScreenLayout.onEnter(_data)
 	-- Initialize components
-	require("ui.button").init()
+	require("ui.components.button").init()
 
 	-- Load preview images
 	previewImage = loadPreviewImages()

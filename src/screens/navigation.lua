@@ -9,13 +9,13 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local Button = require("ui.button").Button
-local ButtonTypes = require("ui.button").TYPES
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local Slider = require("ui.slider").Slider
-local List = require("ui.list").List
-local InputManager = require("ui.InputManager")
+local Header = require("ui.components.header")
+local Slider = require("ui.components.slider").Slider
+local List = require("ui.components.list").List
+local InputManager = require("ui.controllers.input_manager")
 
 local navigationScreen = {}
 

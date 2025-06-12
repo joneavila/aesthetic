@@ -25,7 +25,7 @@ local state = require("state")
 -- local font_calibration = require("font_calibration")
 
 local fonts = require("ui.fonts")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local logger = require("utils.logger")
 local rgbUtils = require("utils.rgb")

@@ -9,11 +9,11 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local Button = require("ui.button").Button
-local ButtonTypes = require("ui.button").TYPES
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 local fonts = require("ui.fonts")
-local Header = require("ui.header")
-local InputManager = require("ui.InputManager")
+local Header = require("ui.components.header")
+local InputManager = require("ui.controllers.input_manager")
 
 local statusScreen = {}
 
@@ -157,7 +157,7 @@ function statusScreen.onEnter(_data)
 		alignmentButton,
 	}
 
-	menuList = require("ui.list").List:new({
+	menuList = require("ui.components.list").List:new({
 		x = 0,
 		y = listY,
 		width = state.screenWidth,

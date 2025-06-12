@@ -3,7 +3,7 @@ local love = require("love")
 local colors = require("colors")
 local tween = require("tween")
 local component = require("ui.component")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local Slider = setmetatable({}, { __index = component.Component })
 Slider.__index = Slider

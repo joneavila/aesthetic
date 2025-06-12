@@ -14,7 +14,7 @@ local fonts = require("ui.fonts")
 local colorUtils = require("utils.color")
 local svg = require("utils.svg")
 local tween = require("tween")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local hex = {}
 

@@ -4,7 +4,7 @@ local tween = require("tween")
 local component = require("ui.component").Component
 local colors = require("colors")
 local fonts = require("ui.fonts")
-local InputManager = require("ui.InputManager")
+local InputManager = require("ui.controllers.input_manager")
 
 local TabBar = setmetatable({}, { __index = component })
 TabBar.__index = TabBar
