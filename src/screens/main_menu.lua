@@ -4,20 +4,22 @@ local love = require("love")
 
 local controls = require("control_hints").ControlHints
 local errorHandler = require("error_handler")
-local rgbUtils = require("utils.rgb")
 local screens = require("screens")
 local state = require("state")
 local themeCreator = require("theme_creator")
 
 local background = require("ui.background")
 local Button = require("ui.button").Button
-local colors = require("colors")
 local ButtonTypes = require("ui.button").TYPES
+local Container = require("ui.Container").Container
 local fonts = require("ui.fonts")
 local Header = require("ui.header")
+local InputManager = require("ui.InputManager")
 local List = require("ui.list").List
 local Modal = require("ui.modal").Modal
-local InputManager = require("ui.InputManager")
+
+local logger = require("utils.logger")
+local rgbUtils = require("utils.rgb")
 
 local menu = {}
 
@@ -27,6 +29,8 @@ local actionButton = nil
 local input = nil
 local modal = nil
 local headerInstance = Header:new({ title = "Main Menu" })
+local controlHintsInstance = controls:new({})
+local rootContainer = nil
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
@@ -456,38 +460,18 @@ local function handleThemeInstallation()
 	end
 end
 
-local controlHintsInstance = controls:new({})
-
 function menu.draw()
 	background.draw()
 
-	headerInstance:draw()
-
-	-- Set the default body font for consistent sizing
-	love.graphics.setFont(fonts.loaded.body)
-
-	-- Draw the main list
-	if menuList then
-		menuList:draw()
+	-- Draw all UI via root container
+	if rootContainer then
+		rootContainer:draw()
 	end
 
-	-- Draw the action button right above the controls
-	if actionButton then
-		actionButton.y = state.screenHeight - CONTROLS_HEIGHT - ACTION_BUTTON_HEIGHT - ACTION_BUTTON_SPACING
-		actionButton:draw()
-	end
-
-	-- Draw modal if active
+	-- Draw modal if active (overlays UI)
 	if modal and modal:isVisible() then
 		modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
 	end
-
-	controlHintsInstance:setControlsList({
-		{ button = "start", text = "Settings" },
-		{ button = "a", text = "Select" },
-		{ button = "b", text = "Exit" },
-	})
-	controlHintsInstance:draw()
 end
 
 function menu.update(dt)
@@ -503,91 +487,13 @@ function menu.update(dt)
 		return
 	end
 
-	-- Handle modal input if visible
-	if modal and modal:isVisible() then
-		modal:handleInput(input)
-		return
-	end
-
 	-- Update modal animation
-	if modal then
-		modal:update(dt)
-	end
+	modal:update(dt)
 
-	-- Check if action button has focus first - if it does, handle its input directly
-	if actionButton and actionButton.focused then
-		-- Check for up navigation before letting button handle input
-		if InputManager.getNavigationDirection() == "up" then
-			-- Move focus to last item in list
-			if menuList then
-				actionButton:setFocused(false)
-				menuList:setSelectedIndex(#menuList.items)
-			end
-			return
-		elseif InputManager.getNavigationDirection() == "down" then
-			-- Move focus to first item in list
-			if menuList then
-				actionButton:setFocused(false)
-				menuList:setSelectedIndex(1)
-			end
-			return
-		end
-
-		local handled = actionButton:handleInput(input)
-		if handled then
-			return
-		end
-	end
-
-	-- Handle list input
-	local listHandled = false
-	if menuList then
-		local navDir = InputManager.getNavigationDirection()
-		listHandled = menuList:handleInput(navDir, input)
-	end
-
-	-- If list signals end, move focus to action button
-	if listHandled == "end" then
-		if actionButton then
-			actionButton:setFocused(true)
-		end
-		if menuList then
-			menuList:setSelectedIndex(0)
-		end
-		return
-	-- If list signals start, move focus to action button
-	elseif listHandled == "start" then
-		if actionButton then
-			actionButton:setFocused(true)
-		end
-		if menuList then
-			menuList:setSelectedIndex(0)
-		end
-		return
-	else
-		-- Only unfocus actionButton if menuList is focused (selectedIndex > 0)
-		if actionButton and menuList and menuList.selectedIndex > 0 then
-			actionButton:setFocused(false)
-		end
-	end
-
-	-- Handle B button press for exit
-	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) and (not modal or not modal:isVisible()) then
-		love.event.quit()
-	end
-
-	-- Handle Start button press for settings
-	if InputManager.isActionPressed(InputManager.ACTIONS.OPEN_MENU) and (not modal or not modal:isVisible()) then
-		screens.switchTo("settings")
-	end
-
-	-- Update components
-	if menuList then
-		menuList:update(dt)
-	end
-	if actionButton then
-		actionButton:update(dt)
-	end
+	-- Update all UI via root container
+	rootContainer:update(dt)
+	local navDir = InputManager.getNavigationDirection()
+	rootContainer:handleInput(navDir, input)
 end
 
 -- Store the current focus state when exiting
@@ -604,7 +510,6 @@ function menu.onExit()
 end
 
 function menu.onEnter(data)
-	-- Initialize components
 	require("ui.button").init()
 
 	-- Create modal component
@@ -634,7 +539,6 @@ function menu.onEnter(data)
 	local buttons = createMenuButtons()
 	actionButton = createActionButton()
 
-	-- Create the main list
 	menuList = List:new({
 		x = 0,
 		y = headerInstance:getContentStartY(),
@@ -652,19 +556,49 @@ function menu.onEnter(data)
 
 	-- Restore focus state properly
 	if lastFocusState.actionButtonFocused then
-		-- If action button was focused, we need to ensure proper navigation works
-		-- Reset to a valid list state first, then focus the action button
-		menuList:setSelectedIndex(0) -- 0 means no list item selected
+		menuList:setSelectedIndex(0)
 	else
-		-- Restore the last selected index, ensuring it's valid
 		local validIndex = math.min(math.max(lastFocusState.selectedIndex, 1), #buttons)
 		menuList:setSelectedIndex(validIndex)
 	end
-
-	-- Restore action button focus state
 	if actionButton then
 		actionButton:setFocused(lastFocusState.actionButtonFocused)
 	end
+
+	-- Control hints setup
+	controlHintsInstance:setControlsList({
+		{ button = "start", text = "Settings" },
+		{ button = "a", text = "Select" },
+		{ button = "b", text = "Exit" },
+	})
+	controlHintsInstance.y = state.screenHeight - CONTROLS_HEIGHT
+	controlHintsInstance.x = 0
+	controlHintsInstance.width = state.screenWidth
+	controlHintsInstance.height = CONTROLS_HEIGHT
+
+	-- Action button position
+	actionButton.y = state.screenHeight - CONTROLS_HEIGHT - ACTION_BUTTON_HEIGHT - ACTION_BUTTON_SPACING
+	actionButton.x = 0
+	actionButton.width = state.screenWidth
+
+	-- Header position
+	headerInstance.x = 0
+	headerInstance.y = 0
+	headerInstance.width = state.screenWidth
+
+	-- Create root container and add children
+	rootContainer = Container:new({
+		x = 0,
+		y = 0,
+		width = state.screenWidth,
+		height = state.screenHeight,
+		backgroundColor = nil, -- background is drawn separately
+	})
+	rootContainer:clearChildren() -- For when returning to main menu
+	rootContainer:addChild(headerInstance)
+	rootContainer:addChild(menuList)
+	rootContainer:addChild(actionButton)
+	rootContainer:addChild(controlHintsInstance)
 
 	-- Check for returned data from virtual_keyboard
 	if data and type(data) == "table" and data.inputValue then
