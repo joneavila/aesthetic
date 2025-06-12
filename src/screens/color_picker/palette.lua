@@ -1,4 +1,3 @@
---- Color picker palette screen
 local love = require("love")
 local colors = require("colors")
 local state = require("state")
@@ -10,6 +9,9 @@ local ColorSquare = require("ui.colorsquare")
 local shared = require("screens.color_picker.shared")
 local InputManager = require("ui.InputManager")
 
+local background = require("ui.background")
+
+-- Color picker palette screen
 local palette = {}
 
 local SCREEN_EDGE_PADDING = 15 -- To match color picker tab padding
@@ -171,9 +173,9 @@ local function buildAllColorSquares()
 end
 
 function palette.draw()
-	-- Set background
-	love.graphics.setColor(colors.ui.background)
-	love.graphics.clear(colors.ui.background)
+	background.draw()
+
+	love.graphics.push("all")
 
 	-- Draw color squares as components
 	local currentState = getCurrentPaletteState()
@@ -196,6 +198,7 @@ function palette.draw()
 		{ button = "b", text = "Back" },
 		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 	}
+	love.graphics.pop()
 	controlHintsInstance:setControlsList(controlsList)
 	controlHintsInstance:draw()
 end

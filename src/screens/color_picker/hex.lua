@@ -138,6 +138,8 @@ end
 function hex.draw()
 	background.draw()
 
+	love.graphics.push("all")
+
 	local contentArea = shared.calculateContentArea()
 
 	-- Get current color type state
@@ -340,6 +342,8 @@ function hex.draw()
 		end
 	end
 
+	love.graphics.pop()
+
 	-- Draw controls
 	local controlsList = {
 		{ button = "a", text = "Select" },
@@ -348,6 +352,7 @@ function hex.draw()
 		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
+
 	controlHintsInstance:draw()
 end
 

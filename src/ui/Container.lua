@@ -293,14 +293,20 @@ end
 function Container:draw()
 	local love = require("love")
 
+	love.graphics.push("all")
+
 	-- Draw background if specified
 	if self.backgroundColor then
 		love.graphics.setColor(self.backgroundColor)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 	end
 
+	love.graphics.pop()
+
 	-- Draw focus background
 	self:drawBackground()
+
+	love.graphics.push("all")
 
 	-- Draw border if specified
 	if self.borderColor and self.borderWidth > 0 then
@@ -308,6 +314,8 @@ function Container:draw()
 		love.graphics.setLineWidth(self.borderWidth)
 		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
+
+	love.graphics.pop()
 
 	-- Set up clipping if enabled
 	if self.clipChildren then

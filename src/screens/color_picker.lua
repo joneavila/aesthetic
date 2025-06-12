@@ -1,4 +1,7 @@
 --- Color picker screen with tabbed interface
+
+local love = require("love")
+
 local screens = require("screens")
 local state = require("state")
 local controls = require("control_hints").ControlHints
@@ -10,7 +13,6 @@ local TabBar = require("ui.tab_bar")
 local hexScreen = require("screens.color_picker.hex")
 local hsvScreen = require("screens.color_picker.hsv")
 local paletteScreen = require("screens.color_picker.palette")
-
 
 local controlHintsInstance
 
@@ -45,11 +47,6 @@ function colorPicker.draw()
 		end
 	end
 
-	-- Draw header with current color context
-	local title = formatColorContext(state.activeColorContext)
-	local headerInstance = Header:new({ title = title })
-	headerInstance:draw()
-
 	-- Draw the tab bar with left/right padding
 	if tabBar then
 		tabBar.x = TAB_BAR_HORIZONTAL_PADDING
@@ -58,10 +55,15 @@ function colorPicker.draw()
 		tabBar:draw()
 	end
 
+	-- Draw header with current color context
+	local title = formatColorContext(state.activeColorContext)
+	local headerInstance = Header:new({ title = title })
+	headerInstance:draw()
+
 	-- If you want to show color picker global controls, add here:
-	-- local controlsList = { { button = "b", text = "Back" } }
-	-- controlHintsInstance:setControlsList(controlsList)
-	-- controlHintsInstance:draw()
+	local controlsList = { { button = "b", text = "Back" } }
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function colorPicker.update(dt)

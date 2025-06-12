@@ -139,6 +139,7 @@ end
 function hsv.draw()
 	background.draw()
 
+
 	-- Get current color type state
 	local currentState = getCurrentHsvState()
 
