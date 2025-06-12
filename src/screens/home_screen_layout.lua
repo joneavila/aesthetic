@@ -15,6 +15,7 @@ local List = require("ui.list").List
 local image = require("ui.image")
 local InputManager = require("ui.InputManager")
 local logger = require("utils.logger")
+local Image = require("ui.image").Image
 
 local homeScreenLayout = {}
 
@@ -130,16 +131,22 @@ function homeScreenLayout.draw()
 
 		-- Only draw if there's enough space
 		if availableHeight > 50 then -- Minimum reasonable height
-			logger.debug("draw: using draw")
-			-- image.draw(img, imageX, imageY, imageWidth, imageHeight, 8)
-			-- Instead, draw with halo parameter `enabled = true` to set halo parameters
 			local cornerRadius = 20
-			image.draw(img, imageX, imageY, imageWidth, imageHeight, cornerRadius, {
-				enabled = true,
-				scaleFactor = 1.05,
-				blurRadius = 18, -- Spread
-				intensity = 0.6,
+			local imgComponent = Image:new({
+				image = img,
+				x = imageX,
+				y = imageY,
+				width = imageWidth,
+				height = imageHeight,
+				cornerRadius = cornerRadius,
+				haloParams = {
+					enabled = true,
+					scaleFactor = 1.05,
+					blurRadius = 18,
+					intensity = 0.6,
+				},
 			})
+			imgComponent:draw()
 		end
 	end
 

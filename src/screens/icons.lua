@@ -14,6 +14,7 @@ local Header = require("ui.header")
 local imageComponent = require("ui.image")
 local InputManager = require("ui.InputManager")
 local List = require("ui.list").List
+local Image = require("ui.image").Image
 
 local iconsToggle = {}
 
@@ -60,10 +61,8 @@ local function handleOptionCycle(button, direction)
 end
 
 function iconsToggle.draw()
-	-- Draw the background first
 	background.draw()
 
-	-- Draw header
 	headerInstance:draw()
 
 	love.graphics.setFont(fonts.loaded.body)
@@ -90,7 +89,6 @@ function iconsToggle.draw()
 		-- Fit image within available area
 		local previewWidth = previewAreaWidth
 		local previewHeight = previewWidth / aspectRatio
-
 		if previewHeight > previewAreaHeight then
 			previewHeight = previewAreaHeight
 			previewWidth = previewHeight * aspectRatio
@@ -105,9 +103,14 @@ function iconsToggle.draw()
 		-- Center the image both horizontally and vertically
 		local previewX = (state.screenWidth - previewWidth) / 2
 		local centeredPreviewY = previewY + (previewAreaHeight - previewHeight) / 2
-
-		-- Draw using the image component
-		imageComponent.draw(currentImage, previewX, centeredPreviewY, previewWidth, previewHeight)
+		local imgComponent = Image:new({
+			image = currentImage,
+			x = previewX,
+			y = centeredPreviewY,
+			width = previewWidth,
+			height = previewHeight,
+		})
+		imgComponent:draw()
 	end
 
 	-- Draw controls
