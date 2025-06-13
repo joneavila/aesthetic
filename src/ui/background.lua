@@ -2,6 +2,7 @@
 -- This module provides consistent background rendering for screens
 
 local love = require("love")
+
 local colors = require("colors")
 
 local background = {}

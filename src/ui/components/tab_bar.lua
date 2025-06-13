@@ -1,8 +1,10 @@
 --- TabBar UI Component
 local love = require("love")
-local tween = require("tween")
-local component = require("ui.component").Component
+
 local colors = require("colors")
+local tween = require("tween")
+
+local component = require("ui.component").Component
 local fonts = require("ui.fonts")
 local InputManager = require("ui.controllers.input_manager")
 
