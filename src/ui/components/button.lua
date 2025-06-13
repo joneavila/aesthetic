@@ -1,15 +1,19 @@
 --- Button component
---- A reusable button component with multiple types and styles
+
 local love = require("love")
+
 local colors = require("colors")
-local colorUtils = require("utils.color")
-local svg = require("utils.svg")
-local GradientPreview = require("ui.gradient_preview")
-local gradientPreviewInstance = GradientPreview:new({})
-local Component = require("ui.component").Component
-local logger = require("utils.logger")
 local tween = require("tween")
+
+local Component = require("ui.component").Component
+local GradientPreview = require("ui.components.gradient_preview")
 local InputManager = require("ui.controllers.input_manager")
+
+local colorUtils = require("utils.color")
+local logger = require("utils.logger")
+local svg = require("utils.svg")
+
+local gradientPreviewInstance = GradientPreview:new({})
 
 -- Button constants
 local BUTTON_CONFIG = {
@@ -98,18 +102,13 @@ function Button:calculateDimensions()
 		end
 		self.width = self.screenWidth - (BUTTON_CONFIG.EDGE_MARGIN * 2)
 		self.x = BUTTON_CONFIG.EDGE_MARGIN
-		-- y is set by caller or layout
 	else
 		-- For fullWidth == false, do not override x, y, width, height
 		-- If width/height are not set, fallback to minimum size
 		if not self.width then
-			logger.debug(
-				"width not set, setting to " .. font:getWidth(self.text) + (BUTTON_CONFIG.HORIZONTAL_PADDING * 2)
-			)
 			self.width = font:getWidth(self.text) + (BUTTON_CONFIG.HORIZONTAL_PADDING * 2)
 		end
 		if not self.height then
-			logger.debug("height not set, setting to " .. font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2))
 			self.height = font:getHeight() + (BUTTON_CONFIG.VERTICAL_PADDING * 2)
 		end
 	end
