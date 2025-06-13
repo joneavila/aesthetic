@@ -1,30 +1,58 @@
 --- Gradient preview component for displaying color gradients
 local love = require("love")
-local colorUtils = require("utils.color")
-local imageGenerator = require("utils.image_generator")
+
 local colors = require("colors")
 
-local gradientPreview = {}
+local Component = require("ui.component").Component
 
--- Store the gradient mesh
-local gradientMesh = nil
+local colorUtils = require("utils.color")
+local imageGenerator = require("utils.image_generator")
 
--- Function to update gradient mesh
-function gradientPreview.updateMesh(startColor, stopColor, direction)
-	local startRgb = colorUtils.hexToLove(startColor)
-	local stopRgb = colorUtils.hexToLove(stopColor)
-	gradientMesh = imageGenerator.createGradientMesh(direction, startRgb, stopRgb)
-	return gradientMesh
+-- GradientPreview class
+local GradientPreview = setmetatable({}, { __index = Component })
+GradientPreview.__index = GradientPreview
+
+function GradientPreview:new(config)
+	local instance = Component.new(self, config or {})
+	instance.startColor = config and config.startColor or "#000000"
+	instance.stopColor = config and config.stopColor or "#FFFFFF"
+	instance.direction = config and config.direction or "Vertical"
+	instance.cornerRadius = config and config.cornerRadius or 0
+	instance.gradientMesh = nil
+	return instance
 end
 
--- Function to draw gradient preview in a specified area
-function gradientPreview.draw(x, y, width, height, startColor, stopColor, direction, cornerRadius)
-	-- Create or update mesh if needed
-	if not gradientMesh or startColor or stopColor or direction then
-		gradientPreview.updateMesh(startColor, stopColor, direction or "Vertical")
+function GradientPreview:updateMesh(startColor, stopColor, direction)
+	local startRgb = colorUtils.hexToLove(startColor or self.startColor)
+	local stopRgb = colorUtils.hexToLove(stopColor or self.stopColor)
+	self.gradientMesh = imageGenerator.createGradientMesh(direction or self.direction, startRgb, stopRgb)
+	return self.gradientMesh
+end
+
+function GradientPreview:draw(x, y, width, height, startColor, stopColor, direction, cornerRadius)
+	-- Use instance state if args not provided
+	x = x or self.x
+	y = y or self.y
+	width = width or self.width
+	height = height or self.height
+	startColor = startColor or self.startColor
+	stopColor = stopColor or self.stopColor
+	direction = direction or self.direction
+	cornerRadius = cornerRadius or self.cornerRadius
+
+	if
+		not self.gradientMesh
+		or startColor ~= self.startColor
+		or stopColor ~= self.stopColor
+		or direction ~= self.direction
+	then
+		self:updateMesh(startColor, stopColor, direction)
+		self.startColor = startColor
+		self.stopColor = stopColor
+		self.direction = direction
 	end
 
-	if not gradientMesh then
+	if not self.gradientMesh then
 		return
 	end
 
@@ -42,7 +70,7 @@ function gradientPreview.draw(x, y, width, height, startColor, stopColor, direct
 
 	-- Draw gradient preview
 	love.graphics.setColor(1, 1, 1)
-	love.graphics.draw(gradientMesh, x, y, 0, width, height)
+	love.graphics.draw(self.gradientMesh, x, y, 0, width, height)
 
 	-- Reset stencil test and restore state
 	if cornerRadius and cornerRadius > 0 then
@@ -60,13 +88,13 @@ function gradientPreview.draw(x, y, width, height, startColor, stopColor, direct
 end
 
 -- Create a small square preview
-function gradientPreview.drawSquare(x, y, size, startColor, stopColor, direction, cornerRadius)
-	gradientPreview.draw(x, y, size, size, startColor, stopColor, direction, cornerRadius)
+function GradientPreview:drawSquare(x, y, size, startColor, stopColor, direction, cornerRadius)
+	self:draw(x, y, size, size, startColor, stopColor, direction, cornerRadius)
 end
 
 -- Function to get the current mesh
-function gradientPreview.getMesh()
-	return gradientMesh
+function GradientPreview:getMesh()
+	return self.gradientMesh
 end
 
-return gradientPreview
+return GradientPreview

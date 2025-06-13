@@ -4,7 +4,8 @@ local love = require("love")
 local colors = require("colors")
 local colorUtils = require("utils.color")
 local svg = require("utils.svg")
-local gradientPreview = require("ui.gradient_preview")
+local GradientPreview = require("ui.gradient_preview")
+local gradientPreviewInstance = GradientPreview:new({})
 local Component = require("ui.component").Component
 local logger = require("utils.logger")
 local tween = require("tween")
@@ -354,7 +355,7 @@ function Button:drawGradient()
 
 	-- Draw gradient square
 	local cornerRadius = BUTTON_CONFIG.CORNER_RADIUS / 2
-	gradientPreview.drawSquare(
+	gradientPreviewInstance:drawSquare(
 		colorX,
 		colorY,
 		COLOR_DISPLAY_SIZE,

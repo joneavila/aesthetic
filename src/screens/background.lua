@@ -9,10 +9,10 @@ local background = require("ui.background")
 local Button = require("ui.components.button").Button
 local ButtonTypes = require("ui.components.button").TYPES
 local fonts = require("ui.fonts")
-local gradientPreview = require("ui.gradient_preview")
+local GradientPreview = require("ui.gradient_preview")
 local Header = require("ui.components.header")
-local List = require("ui.components.list").List
 local InputManager = require("ui.controllers.input_manager")
+local List = require("ui.components.list").List
 
 local backgroundColor = {}
 
@@ -24,13 +24,16 @@ local controlHintsInstance
 -- Global button instances
 local typeButton, colorButton, colorStartButton, colorStopButton, directionButton
 
+-- Gradient preview instance
+local gradientPreviewInstance = GradientPreview:new({})
+
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
 	if state.backgroundType == "Gradient" then
 		local bgColor = state.getColorValue("background")
 		local gradientColor = state.getColorValue("backgroundGradient")
 		local direction = state.backgroundGradientDirection or "Vertical"
-		gradientPreview.updateMesh(bgColor, gradientColor, direction)
+		gradientPreviewInstance:updateMesh(bgColor, gradientColor, direction)
 	end
 end
 
@@ -132,7 +135,7 @@ function backgroundColor.draw()
 		end
 		if previewHeight >= 40 then
 			local previewX = (state.screenWidth - previewWidth) / 2
-			gradientPreview.draw(
+			gradientPreviewInstance:draw(
 				previewX,
 				previewY,
 				previewWidth,
