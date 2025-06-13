@@ -5,6 +5,7 @@ local love = require("love")
 local colors = require("colors")
 
 local Component = require("ui.component").Component
+local slider = require("ui.components.slider")
 local InputManager = require("ui.controllers.input_manager")
 
 -- List constants
@@ -245,12 +246,7 @@ function List:handleInput(direction, input)
 
 	local selectedItem = self:getSelectedItem()
 	-- If the selected item is a Slider, let it handle all input (left/right, etc.)
-	if
-		selectedItem
-		and selectedItem.handleInput
-		and selectedItem.__index
-		and selectedItem.__index == require("ui.components.slider").Slider
-	then
+	if selectedItem and selectedItem.handleInput and selectedItem.__index and selectedItem.__index == slider.Slider then
 		if selectedItem:handleInput(input) then
 			return true
 		end
@@ -269,7 +265,7 @@ function List:handleInput(direction, input)
 		if
 			selectedItem
 			and selectedItem.handleInput
-			and not (selectedItem.__index and selectedItem.__index == require("ui.components.slider").Slider)
+			and not (selectedItem.__index and selectedItem.__index == slider.Slider)
 			and selectedItem:handleInput(input)
 		then
 			handled = true
@@ -283,7 +279,7 @@ function List:handleInput(direction, input)
 		if
 			selectedItem
 			and selectedItem.handleInput
-			and not (selectedItem.__index and selectedItem.__index == require("ui.components.slider").Slider)
+			and not (selectedItem.__index and selectedItem.__index == slider.Slider)
 			and selectedItem:handleInput(input)
 		then
 			handled = true
