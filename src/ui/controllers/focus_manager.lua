@@ -1,9 +1,22 @@
 --- Focus Manager
---- Handles focus navigation between UI components
+
+--[[
+Responsible for managing which UI component is currently focused and for handling navigation between focusable
+components.
+Provides methods to register/unregister components, set/get focus, and navigate spatially (up, down, left, right)
+between components.
+
+Typical usage:
+- Register all focusable UI components (e.g., lists, buttons) with FocusManager.
+- On each frame, pass navigation input (e.g., 'up', 'down') to FocusManager:handleInput().
+- FocusManager will delegate input to the currently focused component and, if navigation reaches the edge
+  (e.g., end of a list), will automatically move focus to the next logical component.
+]]
+
 local FocusManager = {}
 FocusManager.__index = FocusManager
 
-local NavigationUtils = require("ui.NavigationUtils")
+local NavigationUtils = require("ui.controllers.navigation_utils")
 
 function FocusManager:new()
 	local instance = setmetatable({}, self)
@@ -158,6 +171,35 @@ function FocusManager:update(dt)
 	if self.focusedComponent and (not self.focusedComponent.visible or not self.focusedComponent.enabled) then
 		self:findNextFocusableComponent()
 	end
+end
+
+-- Handle input and manage focus navigation
+---
+-- Handles navigation input for the currently focused component.
+--
+-- @param direction (string): Navigation direction, e.g., 'up', 'down', 'left', 'right'.
+-- @param input (table): Optional input state or context to pass to the focused component's handleInput.
+-- @return (boolean): True if input was handled (including focus change), false otherwise.
+--
+-- If the focused component's handleInput returns 'end' (for down/right edge) or 'start' (for up/left edge),
+-- FocusManager will automatically move focus to the next component in that direction.
+function FocusManager:handleInput(direction, input)
+	if not self.focusedComponent or not direction then
+		return false
+	end
+	if self.focusedComponent.handleInput then
+		local result = self.focusedComponent:handleInput(direction, input)
+		if result == "end" then
+			self:navigateDirection("down")
+			return true
+		elseif result == "start" then
+			self:navigateDirection("up")
+			return true
+		elseif result == true then
+			return true
+		end
+	end
+	return false
 end
 
 return FocusManager

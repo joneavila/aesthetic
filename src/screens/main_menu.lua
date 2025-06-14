@@ -17,6 +17,7 @@ local Header = require("ui.components.header")
 local InputManager = require("ui.controllers.input_manager")
 local List = require("ui.components.list").List
 local Modal = require("ui.components.modal").Modal
+local FocusManager = require("ui.controllers.focus_manager")
 
 local logger = require("utils.logger")
 local rgbUtils = require("utils.rgb")
@@ -31,6 +32,7 @@ local modal = nil
 local headerInstance = Header:new({ title = "Main Menu" })
 local controlHintsInstance = controls:new({})
 local rootContainer = nil
+local focusManager = nil
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
@@ -168,23 +170,6 @@ local function createMenuButtons()
 			end,
 		})
 	)
-
-	-- Temporarily disabled
-	-- Font Size button
-	-- Commenting out while making font size feature more robust
-	--[[
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Font Size",
-			type = ButtonTypes.INDICATORS,
-			options = { "Default", "Large", "Extra Large" },
-			currentOptionIndex = ({ ["Default"] = 1, ["Large"] = 2, ["Extra Large"] = 3 })[state.fontSize] or 1,
-			screenWidth = state.screenWidth,
-			context = "fontSize",
-		})
-	)
-	--]]
 
 	-- Icons button
 	table.insert(
@@ -346,14 +331,6 @@ local function handleOptionCycle(button, direction)
 		return false
 	end
 
-	-- local newValue = button:getCurrentOption()
-	-- Update state based on button context
-	-- Temporarily disabled
-	--[[
-	if button.context == "fontSize" then
-		state.fontSize = newValue
-	--]]
-
 	return true
 end
 
@@ -362,6 +339,7 @@ local function handleThemeCreation()
 	if not activeCoroutine then
 		-- Start the coroutine
 		activeCoroutine = themeCreator.createThemeCoroutine()
+		
 		-- Show initial modal with main message and set fixed size
 		modal:show("Creating Theme")
 		if getFixedModalWidth() > 0 then
@@ -492,8 +470,12 @@ function menu.update(dt)
 
 	-- Update all UI via root container
 	rootContainer:update(dt)
+
+	-- Focus navigation
 	local navDir = InputManager.getNavigationDirection()
-	rootContainer:handleInput(navDir, input)
+	if focusManager and navDir then
+		focusManager:handleInput(navDir, input)
+	end
 end
 
 -- Store the current focus state when exiting
@@ -501,8 +483,9 @@ local lastFocusState = { actionButtonFocused = false, selectedIndex = 1 }
 
 function menu.onExit()
 	-- Remember the current focus state
-	if actionButton then
-		lastFocusState.actionButtonFocused = actionButton.focused or false
+	if focusManager then
+		local focused = focusManager:getFocused()
+		lastFocusState.actionButtonFocused = (focused == actionButton)
 	end
 	if menuList then
 		lastFocusState.selectedIndex = menuList.selectedIndex or 1
@@ -554,15 +537,19 @@ function menu.onEnter(data)
 		wrap = false,
 	})
 
+	-- Focus manager setup
+	focusManager = FocusManager:new()
+	focusManager:registerComponent(menuList)
+	focusManager:registerComponent(actionButton)
+
 	-- Restore focus state properly
 	if lastFocusState.actionButtonFocused then
+		focusManager:setFocused(actionButton)
 		menuList:setSelectedIndex(0)
 	else
+		focusManager:setFocused(menuList)
 		local validIndex = math.min(math.max(lastFocusState.selectedIndex, 1), #buttons)
 		menuList:setSelectedIndex(validIndex)
-	end
-	if actionButton then
-		actionButton:setFocused(lastFocusState.actionButtonFocused)
 	end
 
 	-- Control hints setup
