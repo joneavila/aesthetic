@@ -312,7 +312,6 @@ function List:draw()
 		effectiveRightPadding = self.paddingX + scrollbarWidth
 	end
 	-- Create scissor to clip content
-	love.graphics.push("all")
 	love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
 	-- Draw visible items
 	for i = firstVisible, lastVisible do
@@ -344,7 +343,6 @@ function List:draw()
 			end
 		end
 	end
-	love.graphics.pop()
 	love.graphics.setScissor() -- Reset scissor to avoid affecting other UI
 	-- Draw scrollbar if needed
 	if needsScrollbar then
