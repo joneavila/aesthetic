@@ -8,6 +8,8 @@ local Component = require("ui.component").Component
 local slider = require("ui.components.slider")
 local InputManager = require("ui.controllers.input_manager")
 
+local logger = require("utils.logger")
+
 -- List constants
 local LIST_CONFIG = {
 	ITEM_SPACING = 14,
@@ -41,6 +43,9 @@ function List:new(config)
 	-- Callbacks
 	instance.onItemSelect = config.onItemSelect
 	instance.onItemOptionCycle = config.onItemOptionCycle
+
+	-- Remember last selected index for focus restoration
+	instance._lastSelectedIndex = instance.selectedIndex or 1
 
 	-- Calculate dimensions
 	instance:calculateDimensions()
@@ -379,6 +384,30 @@ function List:getContentHeight()
 	end
 	-- Total height: paddingY (top) + all items + all spacings + paddingY (bottom)
 	return self.paddingY + itemCount * self.adjustedItemHeight + (itemCount - 1) * self.adjustedSpacing + self.paddingY
+end
+
+-- Override setFocused to remember/restore selection
+function List:setFocused(focused, direction)
+	logger.debug(string.format("focused: %s, direction: %s", focused, direction))
+	if focused then
+		if direction == "up" then
+			if #self.items > 0 then
+				self:setSelectedIndex(#self.items)
+			end
+		elseif direction == "down" then
+			if #self.items > 0 then
+				self:setSelectedIndex(1)
+			end
+		elseif self._lastSelectedIndex and #self.items > 0 then
+			self:setSelectedIndex(math.min(self._lastSelectedIndex, #self.items))
+		end
+	else
+		-- Direction is likely `nil`, so restore the last selected index
+		self._lastSelectedIndex = self.selectedIndex
+		self:setSelectedIndex(0) -- Remove highlight when not focused
+	end
+	logger.debug(string.format("setting focused to %s", focused))
+	Component.setFocused(self, focused)
 end
 
 -- Module exports

@@ -18,6 +18,8 @@ FocusManager.__index = FocusManager
 
 local NavigationUtils = require("ui.controllers.navigation_utils")
 
+local logger = require("utils.logger")
+
 function FocusManager:new()
 	local instance = setmetatable({}, self)
 	instance.focusedComponent = nil
@@ -61,7 +63,7 @@ function FocusManager:unregisterComponent(component)
 end
 
 -- Set focus to a specific component
-function FocusManager:setFocused(component)
+function FocusManager:setFocused(component, direction)
 	if self.focusedComponent == component then
 		return
 	end
@@ -73,14 +75,13 @@ function FocusManager:setFocused(component)
 
 	-- Set new focused component
 	self.focusedComponent = component
-	if component then
-		component:setFocused(true)
-
-		-- Add to navigation history
-		table.insert(self.navigationHistory, component)
-		if #self.navigationHistory > 10 then -- Limit history size
-			table.remove(self.navigationHistory, 1)
-		end
+	if component.setFocused then
+		component:setFocused(true, direction)
+	end
+	-- Add to navigation history
+	table.insert(self.navigationHistory, component)
+	if #self.navigationHistory > 10 then -- Limit history size
+		table.remove(self.navigationHistory, 1)
 	end
 end
 
@@ -98,10 +99,11 @@ end
 -- Find next focusable component (fallback when current focus is lost)
 function FocusManager:findNextFocusableComponent()
 	for _, component in ipairs(self.focusableComponents) do
-		if component.visible and component.enabled then
-			self:setFocused(component)
+		if not component.visible or not component.enabled then
 			return
 		end
+		self:setFocused(component)
+		return
 	end
 	self.focusedComponent = nil
 end
@@ -135,12 +137,12 @@ function FocusManager:navigateDirection(direction)
 	local candidates = self:getFocusableCandidates()
 	local nextComponent = NavigationUtils.findBestCandidate(self.focusedComponent, candidates, direction)
 	if nextComponent then
-		self:setFocused(nextComponent)
+		self:setFocused(nextComponent, direction)
 		return true
 	elseif self.wrapNavigation then
 		nextComponent = self:findWrappingCandidate(direction)
 		if nextComponent then
-			self:setFocused(nextComponent)
+			self:setFocused(nextComponent, direction)
 			return true
 		end
 	end
@@ -168,7 +170,9 @@ function FocusManager:update(dt)
 			table.remove(self.focusableComponents, i)
 		end
 	end
+
 	if self.focusedComponent and (not self.focusedComponent.visible or not self.focusedComponent.enabled) then
+		-- Skip components that are not visible or enabled
 		self:findNextFocusableComponent()
 	end
 end
@@ -199,7 +203,9 @@ function FocusManager:handleInput(direction, input)
 			return true
 		end
 	end
-	return false
+	-- If not handled, always try to navigate in the given direction
+	self:navigateDirection(direction)
+	return true
 end
 
 return FocusManager

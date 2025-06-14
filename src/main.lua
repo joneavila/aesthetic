@@ -26,11 +26,14 @@ local state = require("state")
 
 local fonts = require("ui.fonts")
 local InputManager = require("ui.controllers.input_manager")
+local FocusManager = require("ui.controllers.focus_manager")
 
 local logger = require("utils.logger")
 local rgbUtils = require("utils.rgb")
 local settings = require("utils.settings")
 local system = require("utils.system")
+
+local focusManager = nil
 
 -- Screens module will be initialized after loading
 local screens = nil
@@ -86,6 +89,8 @@ function love.load()
 
 	-- Run font calibration (debugging)
 	-- font_calibration.run()
+
+	local focusManager = FocusManager:new()
 end
 
 -- Function to handle window resize
@@ -106,6 +111,9 @@ function love.update(dt)
 	-- Called only once per frame.
 	-- All other modules must not call it again to avoid errors from invalid `dt` values.
 	InputManager.update(dt)
+	if focusManager then
+		focusManager:update(dt)
+	end
 
 	screens.update(dt)
 

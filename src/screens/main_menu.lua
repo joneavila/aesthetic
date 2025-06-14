@@ -339,7 +339,7 @@ local function handleThemeCreation()
 	if not activeCoroutine then
 		-- Start the coroutine
 		activeCoroutine = themeCreator.createThemeCoroutine()
-		
+
 		-- Show initial modal with main message and set fixed size
 		modal:show("Creating Theme")
 		if getFixedModalWidth() > 0 then
@@ -453,6 +453,10 @@ function menu.draw()
 end
 
 function menu.update(dt)
+	if focusManager then
+		focusManager:update(dt)
+	end
+
 	-- Handle IO operations
 	if waitingState == "show_create_modal" then
 		waitingState = "create_theme"
@@ -473,7 +477,7 @@ function menu.update(dt)
 
 	-- Focus navigation
 	local navDir = InputManager.getNavigationDirection()
-	if focusManager and navDir then
+	if focusManager then
 		focusManager:handleInput(navDir, input)
 	end
 end
