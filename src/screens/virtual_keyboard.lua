@@ -361,19 +361,19 @@ function virtual_keyboard.update(dt)
 	end
 
 	-- Button actions
-	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
 		handleKeySelection()
 	end
 
 	-- B button - go back
-	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
 		if returnScreen then
 			screens.switchTo(returnScreen)
 		end
 	end
 
-	-- X button - backspace
-	if InputManager.isActionPressed(InputManager.ACTIONS.UNDO) then
+	-- Y button - backspace
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.UNDO) then
 		if #inputValue > 0 then
 			inputValue = string.sub(inputValue, 1, -2)
 		end
@@ -431,11 +431,24 @@ function virtual_keyboard.draw()
 
 	-- Draw input text with blinking cursor
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(fonts.loaded.body)
+	local monoFont = fonts.loaded.monoBody
+	love.graphics.setFont(monoFont)
 	local textX = inputFieldX + inputFieldPadding
-	local textY = inputFieldY + (inputFieldHeight - fonts.loaded.body:getHeight()) / 2
+	local textY = inputFieldY + (inputFieldHeight - monoFont:getHeight()) / 2
 	local textWidth = state.screenWidth - (screenPadding * 2) - (inputFieldPadding * 2)
+
+	-- Calculate max number of characters that fit (minus one for cursor)
+	local sampleChar = "W" -- Use a wide char for safety
+	local charWidth = monoFont:getWidth(sampleChar)
+	local maxChars = math.floor(textWidth / charWidth)
+	if maxChars > 0 then
+		maxChars = maxChars - 1
+	end -- always leave space for cursor
+
 	local displayValue = inputValue
+	if #displayValue > maxChars then
+		displayValue = string.sub(displayValue, -maxChars)
+	end
 	if cursorVisible then
 		displayValue = displayValue .. "|"
 	end
@@ -474,6 +487,7 @@ function virtual_keyboard.draw()
 	-- Draw controls
 	local controlsList = {
 		{ button = "a", text = "Select" },
+		{ button = "y", text = "Backspace" },
 		{ button = "b", text = "Back" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
