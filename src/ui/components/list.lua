@@ -304,9 +304,9 @@ function List:draw()
 	if not self.visible or #self.items == 0 then
 		return
 	end
-	love.graphics.push("all")
 	-- Always recalculate dimensions before drawing to ensure height/width changes are respected
 	self:calculateDimensions()
+	love.graphics.push("all")
 	-- Calculate visible range based on scroll position
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
@@ -345,7 +345,9 @@ function List:draw()
 			end
 			-- Draw the item
 			if item.draw then
+				love.graphics.push("all")
 				item:draw()
+				love.graphics.pop()
 			end
 		end
 	end

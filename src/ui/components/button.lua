@@ -6,6 +6,7 @@ local colors = require("colors")
 local tween = require("tween")
 
 local Component = require("ui.component").Component
+local fonts = require("ui.fonts")
 local GradientPreview = require("ui.components.gradient_preview")
 local InputManager = require("ui.controllers.input_manager")
 
@@ -384,7 +385,7 @@ function Button:drawGradient()
 end
 
 function Button:drawAccented()
-	local font = love.graphics.getFont()
+	local font = fonts.loaded.body
 	local textWidth = font:getWidth(self.text)
 	local buttonWidth = self.screenWidth * 0.8
 	local buttonX = (self.screenWidth - buttonWidth) / 2

@@ -301,12 +301,12 @@ function Container:draw()
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 	end
 
-	love.graphics.pop()
+	-- love.graphics.pop()
 
 	-- Draw focus background
-	self:drawBackground()
+	-- self:drawBackground()
 
-	love.graphics.push("all")
+	-- love.graphics.push("all")
 
 	-- Draw border if specified
 	if self.borderColor and self.borderWidth > 0 then
@@ -315,11 +315,11 @@ function Container:draw()
 		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
 
-	love.graphics.pop()
+	-- love.graphics.pop()
 
 	-- Set up clipping if enabled
 	if self.clipChildren then
-		love.graphics.push()
+		-- love.graphics.push()
 		love.graphics.intersectScissor(
 			self:getContentX(),
 			self:getContentY(),
@@ -331,14 +331,18 @@ function Container:draw()
 	-- Draw all visible children
 	for _, child in ipairs(self.children) do
 		if child.visible then
+			love.graphics.push("all")
 			child:draw()
+			love.graphics.pop()
 		end
 	end
 
 	-- Restore clipping
 	if self.clipChildren then
-		love.graphics.pop()
+		-- love.graphics.pop()
 	end
+
+	love.graphics.pop()
 end
 
 -- Utility methods

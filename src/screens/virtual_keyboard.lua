@@ -407,10 +407,8 @@ end
 
 -- Draw the virtual keyboard
 function virtual_keyboard.draw()
-	-- Draw background
 	background.draw()
 
-	-- Draw header
 	if not headerInstance then
 		headerInstance = Header:new({ title = headerTitle })
 	end
@@ -421,6 +419,8 @@ function virtual_keyboard.draw()
 	local inputFieldX = screenPadding
 	local inputFieldWidth = state.screenWidth - (screenPadding * 2)
 	local inputFieldY = headerInstance:getContentStartY() + 10
+
+	love.graphics.push("all")
 
 	-- Draw input field background and outline
 	love.graphics.setColor(colors.ui.surface_focus)
@@ -483,6 +483,7 @@ function virtual_keyboard.draw()
 			button:draw()
 		end
 	end
+	love.graphics.pop()
 
 	-- Draw controls
 	local controlsList = {
