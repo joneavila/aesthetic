@@ -59,11 +59,6 @@ function colorPicker.draw()
 	local title = formatColorContext(state.activeColorContext)
 	local headerInstance = Header:new({ title = title })
 	headerInstance:draw()
-
-	-- If you want to show color picker global controls, add here:
-	local controlsList = { { button = "b", text = "Back" } }
-	controlHintsInstance:setControlsList(controlsList)
-	controlHintsInstance:draw()
 end
 
 function colorPicker.update(dt)

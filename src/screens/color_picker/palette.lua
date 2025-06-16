@@ -213,8 +213,8 @@ function palette.draw()
 	drawScrollbar()
 	local controlsList = {
 		{ button = "a", text = "Select" },
-		{ button = "b", text = "Back" },
 		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
+		{ button = "b", text = "Back" },
 	}
 	love.graphics.pop()
 	controlHintsInstance:setControlsList(controlsList)
