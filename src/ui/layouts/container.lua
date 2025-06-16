@@ -10,10 +10,10 @@ function Container:new(config)
 	local instance = Component.new(self, config)
 
 	local defaultPadding = {
-		top = 4,
-		right = 4,
-		bottom = 4,
-		left = 4,
+		top = 0,
+		right = 0,
+		bottom = 0,
+		left = 0,
 	}
 
 	-- Container-specific properties
