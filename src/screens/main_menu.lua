@@ -519,8 +519,6 @@ function menu.onExit()
 end
 
 function menu.onEnter(data)
-	require("ui.components.button").init()
-
 	-- Create modal component
 	modal = Modal:new({
 		font = fonts.loaded.body,

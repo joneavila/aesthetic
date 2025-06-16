@@ -181,9 +181,6 @@ end
 function homeScreenLayout.onExit() end
 
 function homeScreenLayout.onEnter(_data)
-	-- Initialize components
-	require("ui.components.button").init()
-
 	-- Load preview images
 	previewImage = loadPreviewImages()
 

@@ -547,17 +547,8 @@ function Button:draw()
 	love.graphics.pop()
 end
 
--- Initialize icons
-local function init()
-	svg.preloadIcons({ "chevron-left", "chevron-right" }, ICON_SIZE)
-	-- Preload settings screen icons at larger size
-	svg.preloadIcons({ "save", "file-up", "refresh-cw", "palette", "info" }, 21)
-end
-
 -- Module exports
 local button = {}
 button.Button = Button
 button.TYPES = BUTTON_TYPES
-button.init = init
-
 return button
