@@ -10,10 +10,11 @@ local InputManager = require("ui.controllers.input_manager")
 
 local logger = require("utils.logger")
 
+local constants = require("ui.components.constants")
+
 -- List constants
 local LIST_CONFIG = {
 	ITEM_SPACING = 14,
-	SCROLL_BAR_WIDTH = 6,
 }
 
 -- List class
@@ -311,7 +312,7 @@ function List:draw()
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
 	-- Determine if scrollbar is needed
 	local needsScrollbar = #self.items > self.visibleCount
-	local scrollbarWidth = LIST_CONFIG.SCROLL_BAR_WIDTH
+	local scrollbarWidth = constants.SCROLLBAR.WIDTH
 	local effectiveRightPadding = self.paddingX
 	if needsScrollbar then
 		effectiveRightPadding = self.paddingX + scrollbarWidth
@@ -352,7 +353,7 @@ function List:draw()
 	-- Draw scrollbar if needed
 	if needsScrollbar then
 		local barX = self.x + self.width - scrollbarWidth
-		local rx = 4
+		local rx = constants.SCROLLBAR.CORNER_RADIUS
 		local ry = rx
 		-- Draw scrollbar handle
 		local barHeight = (self.height - self.paddingY * 2) * (self.visibleCount / #self.items)
@@ -360,7 +361,7 @@ function List:draw()
 			+ self.paddingY
 			+ ((self.height - self.paddingY * 2) - barHeight)
 				* (self.scrollPosition / (#self.items - self.visibleCount))
-		love.graphics.setColor(colors.ui.scrollbar)
+		love.graphics.setColor(constants.SCROLLBAR.HANDLE_COLOR)
 		love.graphics.rectangle("fill", barX, barY, scrollbarWidth, barHeight, rx, ry)
 	end
 	love.graphics.pop()

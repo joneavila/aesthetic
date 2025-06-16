@@ -3,13 +3,12 @@
 
 local love = require("love")
 local colors = require("colors")
+local constants = require("ui.components.constants")
 
 -- Module table to export public functions
 local scrollable = {}
 
 -- Constants
-local SCROLL_BAR_WIDTH = 10
-local SCROLL_BAR_PADDING = 6 -- Padding between content and scrollbar
 local DEFAULT_SCROLL_STEP = 20
 
 --------------------------------------------------
@@ -53,19 +52,20 @@ end
 function scrollable.drawScrollbar(params)
 	local x = params.x or 0
 	local y = params.y or 0
-	local width = params.width or SCROLL_BAR_WIDTH
+	local width = params.width or constants.SCROLLBAR.WIDTH
 	local height = params.height or 100
 	local position = params.position or 0
 	local size = params.size or 50
 	local opacity = params.opacity or 1
 
-	-- Draw scrollbar background
-	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.3 * opacity)
-	love.graphics.rectangle("fill", x, y, width, height, 4)
-
 	-- Draw scrollbar handle
-	love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], opacity)
-	love.graphics.rectangle("fill", x, y + position, width, size, 4)
+	love.graphics.setColor(
+		constants.SCROLLBAR.HANDLE_COLOR[1],
+		constants.SCROLLBAR.HANDLE_COLOR[2],
+		constants.SCROLLBAR.HANDLE_COLOR[3],
+		(constants.SCROLLBAR.HANDLE_COLOR[4] or 1) * opacity
+	)
+	love.graphics.rectangle("fill", x, y + position, width, size, constants.SCROLLBAR.CORNER_RADIUS)
 end
 
 -- Handle scrolling input
@@ -127,9 +127,9 @@ function scrollable.drawContent(params)
 	-- Draw scrollbar if needed and requested
 	if metrics.needsScrollBar and drawScrollbar then
 		scrollable.drawScrollbar({
-			x = width - SCROLL_BAR_WIDTH,
+			x = width - constants.SCROLLBAR.WIDTH,
 			y = y,
-			width = SCROLL_BAR_WIDTH,
+			width = constants.SCROLLBAR.WIDTH,
 			height = height,
 			position = metrics.scrollBarPosition,
 			size = metrics.scrollBarSize,
@@ -142,7 +142,8 @@ function scrollable.drawContent(params)
 		scrollBarSize = metrics.scrollBarSize,
 		scrollBarPosition = metrics.scrollBarPosition,
 		maxScrollPosition = metrics.maxScrollPosition,
-		contentWidth = width - (metrics.needsScrollBar and (SCROLL_BAR_WIDTH + SCROLL_BAR_PADDING) or 0),
+		contentWidth = width
+			- (metrics.needsScrollBar and (constants.SCROLLBAR.WIDTH + constants.SCROLLBAR.PADDING) or 0),
 	}
 end
 

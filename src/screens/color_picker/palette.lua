@@ -8,6 +8,7 @@ local screens = require("screens")
 local ColorSquare = require("ui.components.color_preview")
 local shared = require("screens.color_picker.shared")
 local InputManager = require("ui.controllers.input_manager")
+local constants = require("ui.components.constants")
 
 local background = require("ui.background")
 
@@ -18,14 +19,6 @@ local SCREEN_EDGE_PADDING = 15 -- To match color picker tab padding
 
 -- Constants
 local SQUARE_SPACING = 20
-
--- Scrollbar constants
-local SCROLLBAR = {
-	WIDTH = 6,
-	PADDING = 10,
-	CORNER_RADIUS = 4,
-	HANDLE_MIN_HEIGHT = 30,
-}
 
 -- Border constants
 local BORDER = {
@@ -83,7 +76,10 @@ local function calculateGridDimensions()
 
 	-- Calculate available space accounting for padding
 	local availableHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
-	local availableWidth = contentArea.width - (SCREEN_EDGE_PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	local availableWidth = contentArea.width
+		- (SCREEN_EDGE_PADDING * 2)
+		- constants.SCROLLBAR.WIDTH
+		- constants.SCROLLBAR.PADDING
 
 	-- Calculate square size based on available width and number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
@@ -97,7 +93,8 @@ local function calculateGridDimensions()
 	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
 
 	-- Center the grid horizontally in the content area
-	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
+	local offsetX =
+		math.floor((contentArea.width - totalWidth - constants.SCROLLBAR.WIDTH - constants.SCROLLBAR.PADDING) / 2)
 
 	-- Position grid vertically starting from the content area's top edge
 	local offsetY = math.floor(contentArea.y + SCREEN_EDGE_PADDING)
@@ -134,12 +131,12 @@ local paletteState = {
 local function drawScrollbar()
 	local contentArea = shared.calculateContentArea()
 	local scrollbarHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
-	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	local scrollbarX = state.screenWidth - constants.SCROLLBAR.WIDTH - constants.SCROLLBAR.PADDING
 	local scrollbarY = contentArea.y + SCREEN_EDGE_PADDING
 
 	-- Calculate handle position and size
 	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
-	local handleHeight = math.max(SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
+	local handleHeight = math.max(constants.SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
 	local scrollRatio = 0
 	local currentState = getCurrentPaletteState()
 	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
@@ -148,9 +145,16 @@ local function drawScrollbar()
 
 	local handleY = scrollbarY + (scrollbarHeight - handleHeight) * scrollRatio
 
-	-- Draw handle (no background, match list.lua)
-	love.graphics.setColor(colors.ui.scrollbar)
-	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
+	-- Draw handle
+	love.graphics.setColor(constants.SCROLLBAR.HANDLE_COLOR)
+	love.graphics.rectangle(
+		"fill",
+		scrollbarX,
+		handleY,
+		constants.SCROLLBAR.WIDTH,
+		handleHeight,
+		constants.SCROLLBAR.CORNER_RADIUS
+	)
 end
 
 -- Helper to build all color square components (one per palette color)
