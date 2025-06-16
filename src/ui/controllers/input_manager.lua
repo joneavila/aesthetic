@@ -47,6 +47,7 @@ local ACTIONS = {
 	TAB_LEFT = "tab_left",
 	TAB_RIGHT = "tab_right",
 	OPEN_MENU = "open_menu",
+	HIDDEN = "hidden",
 }
 InputManager.ACTIONS = ACTIONS
 

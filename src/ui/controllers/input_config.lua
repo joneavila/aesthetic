@@ -17,6 +17,7 @@ InputConfig.default = {
 	tab_left = { keyboard = { "q" }, gamepad = { "leftshoulder" } },
 	tab_right = { keyboard = { "w" }, gamepad = { "rightshoulder" } },
 	open_menu = { keyboard = { "return" }, gamepad = { "start" } },
+	hidden = { keyboard = { "8" }, gamepad = { "y" } },
 }
 
 -- Allow for user override in the future

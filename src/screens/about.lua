@@ -6,7 +6,6 @@ local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
 local version = require("version")
-local virtualJoystick = require("input").virtualJoystick
 local InputManager = require("ui.controllers.input_manager")
 
 local background = require("ui.background")

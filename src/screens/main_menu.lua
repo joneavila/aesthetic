@@ -480,6 +480,23 @@ function menu.update(dt)
 	if focusManager then
 		focusManager:handleInput(navDir, input)
 	end
+
+	-- Handle confirm/select (A button) input
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
+		if focusManager then
+			local focused = focusManager:getFocused()
+			if focused == menuList then
+				local selectedItem = menuList:getSelectedItem()
+				if selectedItem and menuList.onItemSelect then
+					menuList.onItemSelect(selectedItem, menuList.selectedIndex)
+				end
+			elseif focused == actionButton then
+				if actionButton.onClick then
+					actionButton.onClick(actionButton)
+				end
+			end
+		end
+	end
 end
 
 -- Store the current focus state when exiting
