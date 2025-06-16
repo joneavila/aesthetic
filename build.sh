@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build and deploy Aesthetic for muOS handhelds
 #
-# Usage: 
+# Usage:
 #   ./build.sh [--clean] [--launch] [<PRIVATE_KEY_PATH>] [<HANDHELD_IP>]
 #
 # Options:
@@ -42,11 +42,11 @@ echoWarning() {
 
 verifyConnection() {
     echoHeader "Verifying connection to $HANDHELD_IP"
-    
+
     # Set up verbose output capture for SSH connection attempt
     SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
     SSH_STATUS=$?
-    
+
     if [ $SSH_STATUS -ne 0 ]; then
         echo "${SSH_OUTPUT}"
         echoError "Could not connect to ${HANDHELD_IP}."
@@ -67,7 +67,7 @@ verifyConnection() {
         fi
         exit 1
     fi
-    
+
     echo "Connection successful"
 }
 
@@ -77,18 +77,18 @@ LAUNCH=false
 
 while [[ "$1" == --* ]]; do
     case "$1" in
-        --clean)
-            CLEAN=true
-            shift
-            ;;
-        --launch)
-            LAUNCH=true
-            shift
-            ;;
-        *)
-            echoError "Unknown option: $1"
-            exit 1
-            ;;
+    --clean)
+        CLEAN=true
+        shift
+        ;;
+    --launch)
+        LAUNCH=true
+        shift
+        ;;
+    *)
+        echoError "Unknown option: $1"
+        exit 1
+        ;;
     esac
 done
 
@@ -120,10 +120,22 @@ ARCHIVE_TYPE="muxupd"
 
 echoHeader "Setting up clean build environment"
 rm -rf "${DIST_DIR}" "${BUILD_DIR}"
-mkdir -p "${DIST_DIR}" || { echoError "Failed to create distribution directory"; exit 1; }
-mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic" || { echoError "Failed to create app directory structure"; exit 1; }
-mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}" || { echoError "Failed to create glyph directory"; exit 1; }
-mkdir -p "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}" || { echoError "Failed to create update script directory"; exit 1; }
+mkdir -p "${DIST_DIR}" || {
+    echoError "Failed to create distribution directory"
+    exit 1
+}
+mkdir -p "${BUILD_DIR}/${APP_DIR}/.aesthetic" || {
+    echoError "Failed to create app directory structure"
+    exit 1
+}
+mkdir -p "${BUILD_DIR}/${APP_GLYPH_DIR}" || {
+    echoError "Failed to create glyph directory"
+    exit 1
+}
+mkdir -p "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}" || {
+    echoError "Failed to create update script directory"
+    exit 1
+}
 
 # Extract version information from Lua source
 MAJOR=$(awk '/version.major =/ {print $3}' src/version.lua)
@@ -154,9 +166,9 @@ if [ "$CLEAN" = true ]; then
         echoError "--clean requires both PRIVATE_KEY_PATH and HANDHELD_IP"
         exit 1
     fi
-    
+
     echoHeader "Removing existing files on $HANDHELD_IP"
-    
+
     # Process deletion commands individually to handle wildcards
     for file in "${ITEMS_TO_DELETE[@]}"; do
         # Remove leading ./ if present
@@ -167,51 +179,90 @@ if [ "$CLEAN" = true ]; then
             ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "if [ -e '${remote_file}' ]; then rm -rf '${remote_file}' && echo '${remote_file}'; fi"
         fi
     done
-    
+
     # Force sync to ensure all changes are written to disk
     echoHeader "Syncing filesystem on $HANDHELD_IP"
     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "sync && echo 'Filesystem sync completed'"
-    
+
 fi
 
 # Generate PNG glyphs from SVGs before building
 echoHeader "Generating glyph PNGs"
-bash utils/generate_glyph_pngs.sh || { echo "Failed to generate glyph PNGs"; exit 1; }
+bash utils/generate_glyph_pngs_if_needed.sh || {
+    echo "Failed to generate glyph PNGs"
+    exit 1
+}
 
 # Copy application files to build directory
 echoHeader "Copying files to build directory"
-rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || { echoError "Failed to copy mux_launch.sh"; exit 1; }
-rsync -aq src/ "${BUILD_DIR}/${APP_SOURCE_DIR}" || { echoError "Failed to copy src/"; exit 1; }
-rsync -aq bin/ "${BUILD_DIR}/${APP_SOURCE_DIR}/bin" || { echoError "Failed to copy bin/"; exit 1; }
-rsync -aq lib/ "${BUILD_DIR}/${APP_SOURCE_DIR}/lib" || { echoError "Failed to copy lib/"; exit 1; }
+rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || {
+    echoError "Failed to copy mux_launch.sh"
+    exit 1
+}
+rsync -aq src/ "${BUILD_DIR}/${APP_SOURCE_DIR}" || {
+    echoError "Failed to copy src/"
+    exit 1
+}
+rsync -aq bin/ "${BUILD_DIR}/${APP_SOURCE_DIR}/bin" || {
+    echoError "Failed to copy bin/"
+    exit 1
+}
+rsync -aq lib/ "${BUILD_DIR}/${APP_SOURCE_DIR}/lib" || {
+    echoError "Failed to copy lib/"
+    exit 1
+}
 
 # Copy glyph mapping files
-mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/utils" || { echoError "Failed to create utils directory"; exit 1; }
-rsync -aq utils/glyph_mapping.txt "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_mapping.txt" || { echoError "Failed to copy glyph mapping file"; exit 1; }
+mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/utils" || {
+    echoError "Failed to create utils directory"
+    exit 1
+}
+rsync -aq utils/glyph_mapping.txt "${BUILD_DIR}/${APP_SOURCE_DIR}/utils/glyph_mapping.txt" || {
+    echoError "Failed to copy glyph mapping file"
+    exit 1
+}
 
 # assets/fonts (.bin and .ttf files)
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts"
-rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts/" || { echoError "Failed to copy font files"; exit 1; }
+rsync -aq --include="*.ttf" --include="*.bin" --include="*/" --exclude="*" assets/fonts/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/fonts/" || {
+    echoError "Failed to copy font files"
+    exit 1
+}
 
 # assets/icons/material_symbols
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/material_symbols"
-rsync -aq assets/icons/material_symbols/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/material_symbols/" || { echoError "Failed to copy material symbols"; exit 1; }
+rsync -aq assets/icons/material_symbols/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/material_symbols/" || {
+    echoError "Failed to copy material symbols"
+    exit 1
+}
 
 # assets/icons/lucide/ui
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui"
-rsync -aq assets/icons/lucide/ui/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui/" || { echoError "Failed to copy lucide UI icons"; exit 1; }
+rsync -aq assets/icons/lucide/ui/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/lucide/ui/" || {
+    echoError "Failed to copy lucide UI icons"
+    exit 1
+}
 
 # assets/icons/muos
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/muos"
-rsync -aq assets/icons/muos/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/muos/" || { echoError "Failed to copy muos icons"; exit 1; }
+rsync -aq assets/icons/muos/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/icons/muos/" || {
+    echoError "Failed to copy muos icons"
+    exit 1
+}
 
 # assets/images (includes presets subdirectory)
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images"
-rsync -aq assets/images/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images/" || { echoError "Failed to copy images"; exit 1; }
+rsync -aq assets/images/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/images/" || {
+    echoError "Failed to copy images"
+    exit 1
+}
 
 # assets/sounds
 mkdir -p "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds"
-rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds/" || { echoError "Failed to copy sounds"; exit 1; }
+rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds/" || {
+    echoError "Failed to copy sounds"
+    exit 1
+}
 
 # Remove macOS extended attributes that can interfere with find command
 xattr -rc "${BUILD_DIR}/${APP_SOURCE_DIR}/assets" 2>/dev/null || true
@@ -230,18 +281,30 @@ MANIFEST_FILE="${BUILD_DIR}/${APP_SOURCE_DIR}/.manifest"
             fi
         done
     fi
-} | sort > ".manifest") || { echoError "Failed to generate manifest"; exit 1; }
-echo "Generated manifest with $(wc -l < "$MANIFEST_FILE" | xargs) files"
+} | sort >".manifest") || {
+    echoError "Failed to generate manifest"
+    exit 1
+}
+echo "Generated manifest with $(wc -l <"$MANIFEST_FILE" | xargs) files"
 
 # Application glyph
-rsync -aq "${APP_GLYPH_SOURCE}" "${BUILD_DIR}/${APP_GLYPH_TARGET}" || { echoError "Failed to copy application glyph"; exit 1; }
+rsync -aq "${APP_GLYPH_SOURCE}" "${BUILD_DIR}/${APP_GLYPH_TARGET}" || {
+    echoError "Failed to copy application glyph"
+    exit 1
+}
 
 # Update script
-rsync -aq update.sh "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}/update.sh" || { echoError "Failed to copy update script"; exit 1; }
+rsync -aq update.sh "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}/update.sh" || {
+    echoError "Failed to copy update script"
+    exit 1
+}
 
 echoHeader "Creating archive"
 # Exclude macOS system files when archiving
-(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") || { echoError "Failed to create archive"; exit 1; }
+(cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") || {
+    echoError "Failed to create archive"
+    exit 1
+}
 echo "Created ${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
 
 echoHeader "Removing build directory"
@@ -254,10 +317,16 @@ if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
 fi
 
 echoHeader "Uploading to $HANDHELD_IP"
-scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE || { echoError "Failed to upload archive"; exit 1; }
+scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE || {
+    echoError "Failed to upload archive"
+    exit 1
+}
 
 echoHeader "Extracting on $HANDHELD_IP"
-ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || { echoError "Failed to extract archive"; exit 1; }
+ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || {
+    echoError "Failed to extract archive"
+    exit 1
+}
 
 if [ "$LAUNCH" = true ]; then
     echoHeader "Launching application on $HANDHELD_IP"
