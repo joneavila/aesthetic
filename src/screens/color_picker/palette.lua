@@ -86,11 +86,22 @@ local function calculateGridDimensions()
 
 	-- Calculate number of visible rows that can fit in the available height
 	local visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
+	visibleRows = math.min(visibleRows, gridSize.rows)
+
+	-- Calculate the dynamic row spacing
+	local minTotalHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
+	local rowSpacing = SQUARE_SPACING
+	if visibleRows > 1 then
+		local extraSpace = availableHeight - minTotalHeight
+		if extraSpace > 0 then
+			rowSpacing = SQUARE_SPACING + (extraSpace / (visibleRows - 1))
+		end
+	end
 
 	-- Calculate total grid dimensions
 	local totalWidth = (gridSize.cols * squareSize) + (gridSize.cols - 1) * SQUARE_SPACING
-	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * SQUARE_SPACING
-	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
+	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * rowSpacing
+	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * rowSpacing
 
 	-- Center the grid horizontally in the content area
 	local offsetX =
@@ -110,6 +121,7 @@ local function calculateGridDimensions()
 		offsetY = offsetY,
 		contentArea = contentArea,
 		availableHeight = availableHeight,
+		rowSpacing = rowSpacing,
 	}
 end
 
@@ -125,6 +137,7 @@ local paletteState = {
 	totalGridHeight = 0,
 	visibleGridHeight = 0,
 	colorSquares = {},
+	rowSpacing = SQUARE_SPACING,
 }
 
 -- Helper function to draw the scrollbar
@@ -183,7 +196,8 @@ function palette.draw()
 
 	-- Draw color squares as components
 	local currentState = getCurrentPaletteState()
-	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
+	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
+	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + rowSpacing))
 	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows) - 1
 	for row = firstVisibleRow, lastVisibleRow do
 		for col = 0, paletteState.gridSize.cols - 1 do
@@ -210,18 +224,16 @@ end
 -- Helper to update visible color square positions and focus
 local function updateVisibleColorSquares()
 	local currentState = getCurrentPaletteState()
-	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + SQUARE_SPACING))
+	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
+	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + rowSpacing))
 	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows) - 1
 
 	-- Calculate how many rows are actually visible (may be less at the end)
 	local numRowsVisible = lastVisibleRow - firstVisibleRow + 1
-	local totalSquaresHeight = (numRowsVisible * paletteState.squareSize) + ((numRowsVisible - 1) * SQUARE_SPACING)
+	local totalSquaresHeight = (numRowsVisible * paletteState.squareSize) + ((numRowsVisible - 1) * rowSpacing)
 	local extraSpace = paletteState.visibleGridHeight - totalSquaresHeight
-	local rowSpacing = SQUARE_SPACING
 	local topOffset = 0
-	if extraSpace > 0 and numRowsVisible > 1 then
-		rowSpacing = SQUARE_SPACING + (extraSpace / (numRowsVisible - 1))
-	elseif extraSpace > 0 and numRowsVisible == 1 then
+	if extraSpace > 0 then
 		topOffset = extraSpace / 2
 	end
 
@@ -259,6 +271,7 @@ function palette.update(dt)
 	end
 
 	local currentState = getCurrentPaletteState()
+	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
 	local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
 	-- Handle directional input
@@ -291,7 +304,7 @@ function palette.update(dt)
 			}, "outQuad")
 
 			-- Handle scrolling when selection moves out of view
-			local rowPosition = currentState.selectedRow * (paletteState.squareSize + SQUARE_SPACING)
+			local rowPosition = currentState.selectedRow * (paletteState.squareSize + rowSpacing)
 
 			-- Calculate the visible area boundaries
 			local visibleTop = currentState.scrollY
@@ -307,7 +320,7 @@ function palette.update(dt)
 				currentState.scrollY = rowPosition
 					- paletteState.visibleGridHeight
 					+ paletteState.squareSize
-					+ SQUARE_SPACING
+					+ rowSpacing
 			end
 
 			-- Ensure scroll position doesn't go out of bounds
@@ -406,6 +419,7 @@ function palette.onEnter()
 	paletteState.visibleGridHeight = dimensions.visibleGridHeight
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
+	paletteState.rowSpacing = dimensions.rowSpacing
 	palette.initializePaletteState()
 	local currentState = getCurrentPaletteState()
 	paletteState.colorSquares = buildAllColorSquares()
