@@ -497,6 +497,11 @@ function menu.update(dt)
 			end
 		end
 	end
+
+	-- Handle B button to exit application
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
+		love.event.quit()
+	end
 end
 
 -- Store the current focus state when exiting
