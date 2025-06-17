@@ -63,22 +63,18 @@ function List:calculateDimensions()
 		self.visibleCount = math.floor(availableHeight / itemWithSpacing)
 		self.visibleCount = math.max(1, math.min(self.visibleCount, #self.items))
 
-		-- Check if we should redistribute height
-		-- This happens when there are more items than can be shown, or when adding one more item wouldn't fit
+		-- Check if we should redistribute spacing
 		local totalItems = #self.items
 		local wouldFitOneMore = (self.visibleCount + 1) * itemWithSpacing <= availableHeight
 		self.shouldRedistribute = (totalItems > self.visibleCount)
 			or (totalItems == self.visibleCount and not wouldFitOneMore)
 
-		if self.shouldRedistribute and self.visibleCount > 0 then
-			-- Calculate redistributed heights
-			-- Total height used by spacing between items (n-1 spacings for n items)
-			local totalSpacingHeight = (self.visibleCount - 1) * self.spacing
-			-- Remaining height to distribute among items
-			local heightForItems = availableHeight - totalSpacingHeight
-			-- New item height
-			self.adjustedItemHeight = heightForItems / self.visibleCount
-			self.adjustedSpacing = self.spacing -- Keep original spacing
+		if self.shouldRedistribute and self.visibleCount > 1 then
+			-- Redistribute only spacing, keep item height constant
+			local totalItemHeight = self.visibleCount * self.itemHeight
+			local remainingHeight = availableHeight - totalItemHeight
+			self.adjustedItemHeight = self.itemHeight
+			self.adjustedSpacing = remainingHeight / (self.visibleCount - 1)
 		else
 			-- No redistribution needed, use original values
 			self.adjustedItemHeight = self.itemHeight
