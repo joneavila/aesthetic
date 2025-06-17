@@ -447,9 +447,9 @@ function menu.draw()
 	end
 
 	-- Draw modal if active (overlays UI)
-	-- if modal and modal:isVisible() then
-	-- 	modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
-	-- end
+	if modal and modal:isVisible() then
+		modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
+	end
 end
 
 function menu.update(dt)
