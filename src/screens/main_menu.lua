@@ -342,6 +342,7 @@ local function handleThemeCreation()
 
 		-- Show initial modal with main message and set fixed size
 		modal:show("Creating Theme")
+		focusManager:clearFocus()
 		if getFixedModalWidth() > 0 then
 			modal:setFixedWidth(getFixedModalWidth())
 		end
@@ -357,6 +358,7 @@ local function handleThemeCreation()
 		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 		local modalText = "Error creating theme: " .. errorMessage
 		modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
+		focusManager:clearFocus()
 		return
 	end
 
@@ -371,11 +373,13 @@ local function handleThemeCreation()
 				{ text = "Apply theme later", selected = false },
 				{ text = "Apply theme now", selected = true },
 			})
+			focusManager:clearFocus()
 		else
 			-- Failure
 			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
+			focusManager:clearFocus()
 		end
 	else
 		-- Coroutine yielded with progress message
@@ -391,6 +395,7 @@ local function handleThemeInstallation()
 		local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
 		if not filename_only then
 			modal:show("Failed to apply theme (no valid filename).", { { text = "Close", selected = true } })
+			focusManager:clearFocus()
 			waitingState = "none"
 			return
 		end
@@ -399,6 +404,7 @@ local function handleThemeInstallation()
 		activeCoroutine = themeCreator.installThemeCoroutine(filename_only)
 		-- Show initial modal with main message and set fixed size
 		modal:show("Applying Theme")
+		focusManager:clearFocus()
 		if getFixedModalWidth() > 0 then
 			modal:setFixedWidth(getFixedModalWidth())
 		end
@@ -414,6 +420,7 @@ local function handleThemeInstallation()
 		waitingThemePath = nil
 		local errorMessage = errorHandler.getError() or result or "Unknown error"
 		modal:show("Failed to apply theme: " .. errorMessage, { { text = "Close", selected = true } })
+		focusManager:clearFocus()
 		return
 	end
 
@@ -430,6 +437,7 @@ local function handleThemeInstallation()
 				or ("Failed to apply theme: " .. (errorHandler.getError() or "Unknown error")),
 			{ { text = "Close", selected = true } }
 		)
+		focusManager:clearFocus()
 	else
 		-- Coroutine yielded with progress message
 		if type(result) == "string" then
@@ -536,19 +544,24 @@ function menu.onEnter(data)
 		onButtonPress = function(_index, button)
 			if button and button.text == "Apply theme later" then
 				modal:hide()
+				focusManager:setFocused(actionButton)
 			elseif button and button.text == "Apply theme now" then
 				if type(createdThemePath) == "string" and createdThemePath ~= "" then
 					waitingThemePath = createdThemePath
 					modal:show("Applying theme...")
+					focusManager:clearFocus()
 					waitingState = "install_theme"
 				else
 					modal:show("No theme path to apply.", { { text = "Close", selected = true } })
+					focusManager:clearFocus()
 				end
 			elseif button and button.text == "Exit" then
 				love.event.quit()
 				modal:hide()
+				focusManager:setFocused(actionButton)
 			else
 				modal:hide()
+				focusManager:setFocused(actionButton)
 			end
 		end,
 	})

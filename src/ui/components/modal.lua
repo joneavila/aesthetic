@@ -10,6 +10,9 @@ local Button = require("ui.components.button").Button
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal
 
+-- Configurable button horizontal padding (space between modal edge and button)
+local BUTTON_HORIZONTAL_PADDING = 32
+
 function Modal:new(config)
 	local instance = Component.new(self, config or {})
 	instance.visible = false
@@ -444,8 +447,8 @@ function Modal:draw(screenWidth, screenHeight, font)
 		return
 	end
 
-	local buttonWidth = 300
-	local buttonX = (screenWidth - buttonWidth) / 2
+	local buttonWidth = modalWidth - (BUTTON_HORIZONTAL_PADDING * 2)
+	local buttonX = x + BUTTON_HORIZONTAL_PADDING
 	local startButtonY
 	if isScrollable then
 		startButtonY = y + padding + visibleHeight + padding
@@ -463,10 +466,11 @@ function Modal:draw(screenWidth, screenHeight, font)
 			local tempButton = Button:new({
 				text = button.text,
 				type = "accented",
-				screenWidth = screenWidth,
+				screenWidth = buttonWidth,
 				height = buttonHeight,
 			})
 			tempButton.y = buttonY
+			tempButton.x = buttonX
 			tempButton.focused = isSelected
 			tempButton:drawAccented()
 		else
