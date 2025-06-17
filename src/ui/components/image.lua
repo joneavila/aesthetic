@@ -5,7 +5,7 @@ local logger = require("utils.logger")
 local Component = require("ui.component").Component
 
 local DEFAULT_CORNER_RADIUS = 8 -- Matches default button corner radius
-local OUTLINE_COLOR = colors.ui.foreground
+local OUTLINE_COLOR = colors.ui.surface_focus_outline
 
 -- Gaussian blur shader code (separable, horizontal/vertical pass)
 local BLUR_SHADER_CODE = [[
@@ -181,12 +181,6 @@ end
 
 -- Make this the default draw
 function Image:draw()
-	logger.debug("draw called, haloParams.enabled=" .. tostring(self.haloParams and self.haloParams.enabled))
-	if (self.haloParams and self.haloParams.enabled ~= false) or (self.haloParams == nil) then
-		logger.debug("draw: using drawWithHalo")
-		return self:drawWithHalo()
-	end
-	logger.debug("draw: using drawWithOutline fallback")
 	return self:drawWithOutline()
 end
 

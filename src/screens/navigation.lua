@@ -131,7 +131,7 @@ function navigationScreen.draw()
 		previewWidth - (textPadding * 2),
 		textAlign
 	)
-	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setColor(colors.ui.surface_focus_outline)
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
 	local controlsList = {

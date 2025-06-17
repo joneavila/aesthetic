@@ -1,15 +1,18 @@
 local love = require("love")
+
+local colors = require("colors")
+local controlHints = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
-local fonts = require("ui.fonts")
-local Header = require("ui.components.header")
+
+local background = require("ui.background")
 local Button = require("ui.components.button").Button
 local ButtonTypes = require("ui.components.button").TYPES
-local List = require("ui.components.list").List
-local background = require("ui.background")
-local controlHints = require("control_hints").ControlHints
-local Slider = require("ui.components.slider").Slider
+local fonts = require("ui.fonts")
+local Header = require("ui.components.header")
 local InputManager = require("ui.controllers.input_manager")
+local List = require("ui.components.list").List
+local Slider = require("ui.components.slider").Slider
 
 local battery = {}
 
@@ -106,7 +109,7 @@ function battery.draw()
 	love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw border
-	love.graphics.setColor(0.7, 0.7, 0.7, 1)
+	love.graphics.setColor(colors.ui.surface_focus_outline)
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
 

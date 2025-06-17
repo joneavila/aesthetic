@@ -405,6 +405,7 @@ function Button:drawAccented()
 			{ 0, self.height, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
 		}, "fan", "static")
 
+		love.graphics.push("all")
 		love.graphics.translate(cx, cy)
 		love.graphics.scale(scale, scale)
 		love.graphics.translate(-buttonWidth / 2, -self.height / 2)
@@ -429,8 +430,10 @@ function Button:drawAccented()
 		local textX = math.floor((buttonWidth - textWidth) / 2)
 		local textY = math.floor((self.height - font:getHeight()) / 2)
 		love.graphics.print(self.text, textX, textY)
+		love.graphics.pop()
 	else
 		-- Not focused: fallback to old style
+		love.graphics.push("all")
 		love.graphics.setColor(colors.ui.surface_bright)
 		love.graphics.setLineWidth(1)
 		love.graphics.rectangle("line", buttonX, self.y, buttonWidth, self.height, BUTTON_CONFIG.CORNER_RADIUS)
@@ -438,6 +441,7 @@ function Button:drawAccented()
 		local textX = math.floor(buttonX + (buttonWidth - textWidth) / 2)
 		local textY = math.floor(self.y + (self.height - font:getHeight()) / 2)
 		love.graphics.print(self.text, textX, textY)
+		love.graphics.pop()
 	end
 end
 
