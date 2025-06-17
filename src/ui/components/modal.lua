@@ -3,8 +3,8 @@
 local love = require("love")
 local colors = require("colors")
 local Component = require("ui.component").Component
-local scrollable = require("ui.scrollable")
 local InputManager = require("ui.controllers.input_manager")
+local constants = require("ui.components.constants")
 
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal
@@ -149,13 +149,13 @@ function Modal:handleInput(input)
 	end
 
 	-- Handle scrolling for modals with long content (regardless of button count)
-	local isScrollable = self:isContentScrollable()
+	local isScrollable, maxScrollPosition = self:isContentScrollable()
 	if isScrollable then
 		if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_UP) then
-			self:scroll(-20) -- Scroll up
+			self:scroll(-20, maxScrollPosition) -- Scroll up
 			return true
 		elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
-			self:scroll(20) -- Scroll down
+			self:scroll(20, maxScrollPosition) -- Scroll down
 			return true
 		end
 	end
@@ -196,35 +196,59 @@ function Modal:handleInput(input)
 	return false
 end
 
--- Helper method to determine if content is scrollable
-function Modal:isContentScrollable()
-	local screenHeight = love.graphics.getHeight()
-	local maxTextHeight = screenHeight * 0.6
-
-	-- Calculate content height
+-- Helper method to determine if content is scrollable and max scroll position
+function Modal:isContentScrollable(visibleHeight)
 	local currentFont = self.font or love.graphics.getFont()
-	local estimatedTextWidth = math.min(screenHeight * 0.8, screenHeight * 0.9) - 80 -- padding
+	local estimatedTextWidth = self._lastTextWidth or 0
 	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
 	local contentHeight = #mainMessageLines * currentFont:getHeight()
-
-	return contentHeight > maxTextHeight
+	visibleHeight = visibleHeight or 0
+	local maxScrollPosition = math.max(0, contentHeight - visibleHeight)
+	return contentHeight > visibleHeight, maxScrollPosition, contentHeight
 end
 
 -- Helper method to handle scrolling
-function Modal:scroll(amount)
-	local screenHeight = love.graphics.getHeight()
-	local maxTextHeight = screenHeight * 0.6
-
-	-- Calculate content height
-	local currentFont = self.font or love.graphics.getFont()
-	local estimatedTextWidth = math.min(screenHeight * 0.8, screenHeight * 0.9) - 80 -- padding
-	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
-	local contentHeight = #mainMessageLines * currentFont:getHeight()
-
-	local maxScrollPosition = math.max(0, contentHeight - maxTextHeight)
-
+function Modal:scroll(amount, maxScrollPosition)
 	self.scrollPosition = self.scrollPosition + amount
-	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
+	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition or 0))
+end
+
+-- Draw custom scrollbar for scrollable content
+function Modal:drawScrollbar(x, y, height, contentHeight, scrollPosition, maxScrollPosition, opacity)
+	local barWidth = constants.SCROLLBAR.WIDTH
+	local handleMinHeight = constants.SCROLLBAR.HANDLE_MIN_HEIGHT
+	local cornerRadius = constants.SCROLLBAR.CORNER_RADIUS
+	local handleColor = constants.SCROLLBAR.HANDLE_COLOR
+	local backgroundColor = constants.SCROLLBAR.BACKGROUND_COLOR
+
+	-- Draw scrollbar track
+	love.graphics.setColor(
+		backgroundColor[1],
+		backgroundColor[2],
+		backgroundColor[3],
+		backgroundColor[4] * (opacity or 1)
+	)
+	love.graphics.rectangle("fill", x, y, barWidth, height, cornerRadius)
+
+	-- Calculate handle size and position
+	local handleHeight = math.max((height / contentHeight) * height, handleMinHeight)
+	local maxHandleTravel = height - handleHeight
+	local handleY = y
+	if maxScrollPosition > 0 then
+		handleY = y + math.min((scrollPosition / maxScrollPosition) * maxHandleTravel, maxHandleTravel)
+	end
+
+	-- Clamp handleY to not exceed the track
+	if handleY < y then
+		handleY = y
+	end
+	if handleY + handleHeight > y + height then
+		handleY = y + height - handleHeight
+	end
+
+	-- Draw handle
+	love.graphics.setColor(handleColor[1], handleColor[2], handleColor[3], (handleColor[4] or 1) * (opacity or 1))
+	love.graphics.rectangle("fill", x, handleY, barWidth, handleHeight, cornerRadius)
 end
 
 function Modal:draw(screenWidth, screenHeight, font)
@@ -237,12 +261,27 @@ function Modal:draw(screenWidth, screenHeight, font)
 	local controlsHeight = controls.calculateHeight()
 	local padding = 40
 	local maxWidth = screenWidth * 0.9
+	local scrollbarWidth = constants.SCROLLBAR.WIDTH
+	local scrollbarGap = 4
+
+	-- Use error font for error/failure messages
+	local useErrorFont = false
+	if self.message and type(self.message) == "string" then
+		local msg = self.message:lower()
+		if msg:find("error") or msg:find("failed") then
+			useErrorFont = true
+		end
+	end
 	local currentFont = font or self.font or love.graphics.getFont()
+	if useErrorFont and fonts.loaded.error then
+		currentFont = fonts.loaded.error
+	end
 	love.graphics.setFont(currentFont)
 
 	-- Calculate dimensions for main message
 	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
-	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
+	self._lastTextWidth = estimatedTextWidth - scrollbarWidth - scrollbarGap
+	local _, mainMessageLines = currentFont:getWrap(self.message, self._lastTextWidth)
 	local mainMessageHeight = #mainMessageLines * currentFont:getHeight()
 
 	-- Calculate progress box dimensions if this is a progress modal
@@ -250,31 +289,23 @@ function Modal:draw(screenWidth, screenHeight, font)
 	local progressBoxPadding = 12
 
 	if self.isProgressModal then
-		-- Use console font for progress messages
 		local consoleFont = fonts.loaded.console or currentFont
-
-		-- Calculate height for 4 lines minimum
 		local lineHeight = consoleFont:getHeight()
 		local minConsoleLines = 4
 		local progressMessageHeight = lineHeight * minConsoleLines
 		progressBoxHeight = progressMessageHeight + (progressBoxPadding * 2)
 	end
 
-	-- Calculate total content height
 	local contentHeight = mainMessageHeight
 	if self.isProgressModal then
-		contentHeight = contentHeight + 20 -- spacing between main message and progress box
+		contentHeight = contentHeight + 20
 		contentHeight = contentHeight + progressBoxHeight
 	end
 
 	local maxTextHeight = screenHeight * 0.6
-	local isScrollable = contentHeight > maxTextHeight
-
-	-- Use fixed width if available, otherwise calculate dynamically
 	local modalWidth, modalHeight
 	if self.useFixedWidth and self.fixedWidth > 0 then
 		modalWidth = self.fixedWidth
-		-- Calculate height based on content and buttons
 		local buttonHeight = 40
 		local buttonSpacing = 20
 		local buttonsExtraHeight = 0
@@ -288,7 +319,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 		end
 	else
 		local minWidth = math.min(screenWidth * 0.8, maxWidth)
-		if #self.buttons == 0 and not isScrollable then
+		if #self.buttons == 0 then
 			minWidth = math.min(currentFont:getWidth(self.message) + (padding * 2), maxWidth)
 		end
 		local visibleHeight = math.min(maxTextHeight, contentHeight)
@@ -318,7 +349,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 	local x = (screenWidth - modalWidth) / 2
 	local y = (screenHeight - modalHeight - controlsHeight) / 2
 
-	-- Draw modal background
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 0.9)
 	love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
 	love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
@@ -327,44 +357,48 @@ function Modal:draw(screenWidth, screenHeight, font)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
 
-	-- Draw content
+	-- Calculate scrollable area and scrollbar position
+	local textAreaWidth = availableTextWidth - scrollbarWidth - scrollbarGap
+	local textAreaX = x + padding
+	local textAreaY = y + padding
+	local scrollbarX = textAreaX + textAreaWidth + scrollbarGap
+	local scrollbarY = textAreaY
+
+	-- Use new scrollable logic
+	local isScrollable, maxScrollPosition, actualContentHeight = self:isContentScrollable(visibleHeight)
+	if self.scrollPosition > maxScrollPosition then
+		self.scrollPosition = maxScrollPosition
+	end
+
 	if isScrollable then
-		local drawContent = function()
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-			love.graphics.printf(self.message, 0, 0, availableTextWidth, "left")
-		end
-		local metrics = scrollable.drawContent({
-			x = x + padding,
-			y = y + padding,
-			width = availableTextWidth,
-			height = visibleHeight,
-			scrollPosition = self.scrollPosition,
-			contentSize = contentHeight,
-			drawContent = drawContent,
-			opacity = 1,
-		})
-		local maxScroll = metrics.maxScrollPosition
-		if self.scrollPosition > maxScroll then
-			self.scrollPosition = maxScroll
-		end
+		-- Draw scrollable content with custom logic
+		love.graphics.push("all")
+		love.graphics.setScissor(textAreaX, textAreaY, textAreaWidth, visibleHeight)
+		love.graphics.translate(0, -self.scrollPosition)
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+		love.graphics.printf(self.message, textAreaX, textAreaY, textAreaWidth, "left")
+		love.graphics.setScissor()
+		love.graphics.pop()
+		-- Draw custom scrollbar flush to the right of the text
+		self:drawScrollbar(
+			scrollbarX,
+			scrollbarY,
+			visibleHeight,
+			actualContentHeight,
+			self.scrollPosition,
+			maxScrollPosition,
+			1
+		)
 	else
 		local textY = y + padding
-
-		-- Draw the main message
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, x + padding, textY, availableTextWidth, "center")
-
-		-- Draw progress section for progress modals
 		if self.isProgressModal then
 			local progressY = textY + mainMessageHeight + 20
 			local consoleFont = fonts.loaded.console or currentFont
-
-			-- Calculate progress box dimensions
 			local progressBoxX = x + padding
 			local progressBoxWidth = availableTextWidth
 			local actualProgressBoxHeight = progressBoxHeight
-
-			-- Darker background for progress box
 			love.graphics.setColor(
 				colors.ui.background[1] * 0.7,
 				colors.ui.background[2] * 0.7,
@@ -372,25 +406,16 @@ function Modal:draw(screenWidth, screenHeight, font)
 				1
 			)
 			love.graphics.rectangle("fill", progressBoxX, progressY, progressBoxWidth, actualProgressBoxHeight, 5)
-
-			-- Draw console-like progress messages using console font
 			love.graphics.setFont(consoleFont)
 			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-
 			local lineHeight = consoleFont:getHeight()
 			local startY = progressY + progressBoxPadding
-
-			-- Draw up to 4 lines from history
 			for i, historyMessage in ipairs(self.progressHistory) do
 				local messageY = startY + (i - 1) * lineHeight
 				love.graphics.print(historyMessage, progressBoxX + progressBoxPadding, messageY)
 			end
-
-			-- Reset font to original
 			love.graphics.setFont(currentFont)
 		end
-
-		-- Reset color for subsequent drawing
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 	end
 

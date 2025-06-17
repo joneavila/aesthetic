@@ -181,6 +181,15 @@ function settings.draw()
 end
 
 function settings.update(dt)
+	if modalInstance and modalInstance:isVisible() then
+		if modalInstance:handleInput(input) then
+			modalInstance:update(dt)
+			return
+		end
+		modalInstance:update(dt)
+		return
+	end
+
 	-- Handle scheduled update check with minimum display time
 	if updateCheckScheduled then
 		updateCheckTimer = updateCheckTimer + dt
@@ -309,17 +318,6 @@ function settings.update(dt)
 				})
 			end
 		end
-	end
-
-	if modalInstance and modalInstance:isVisible() then
-		if modalInstance:handleInput(input) then
-			return
-		end
-	end
-
-	-- Update modal animation
-	if modalInstance then
-		modalInstance:update(dt)
 	end
 
 	if menuList then

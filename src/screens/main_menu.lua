@@ -453,11 +453,13 @@ function menu.draw()
 end
 
 function menu.update(dt)
-	if focusManager then
-		focusManager:update(dt)
+	local modalHandled = false
+	if modal and modal:isVisible() then
+		modalHandled = modal:handleInput(input)
+		modal:update(dt)
 	end
 
-	-- Handle IO operations
+	-- Handle IO operations (coroutine progress, etc.)
 	if waitingState == "show_create_modal" then
 		waitingState = "create_theme"
 		return
@@ -469,11 +471,18 @@ function menu.update(dt)
 		return
 	end
 
-	-- Update modal animation
-	modal:update(dt)
+	if modalHandled then
+		return
+	end
+
+	if focusManager then
+		focusManager:update(dt)
+	end
 
 	-- Update all UI via root container
-	rootContainer:update(dt)
+	if rootContainer then
+		rootContainer:update(dt)
+	end
 
 	-- Focus navigation
 	local navDir = InputManager.getNavigationDirection()

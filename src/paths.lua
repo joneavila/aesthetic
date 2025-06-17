@@ -56,7 +56,9 @@ paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
-paths.SCHEME_TEMPLATE_DIR = paths.SOURCE_DIR .. "/scheme_templates"
+-- TODO: This path should be "/src/scheme_templates" in development mode, but might need omitting the "src" in production mode.
+paths.SCHEME_TEMPLATE_DIR = paths.SOURCE_DIR .. "/src/scheme_templates"
+
 paths.THEME_SCHEME_SOURCE_DIR = paths.SCHEME_TEMPLATE_DIR .. "/scheme"
 
 paths.THEME_RGB_CONF = paths.WORKING_THEME_DIR .. "/rgb/rgbconf.sh"

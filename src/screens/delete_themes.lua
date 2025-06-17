@@ -168,13 +168,11 @@ end
 function delete_themes.update(dt)
 	if modalInstance and modalInstance:isVisible() then
 		if modalInstance:handleInput(input) then
+			modalInstance:update(dt)
 			return
 		end
-	end
-
-	-- Update modal animation
-	if modalInstance then
 		modalInstance:update(dt)
+		return
 	end
 
 	if not themeList then
