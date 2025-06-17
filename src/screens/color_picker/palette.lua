@@ -151,6 +151,8 @@ local function drawScrollbar()
 end
 
 function palette.draw()
+	love.graphics.push("all")
+
 	-- Set background
 	love.graphics.setColor(colors.ui.background)
 	love.graphics.clear(colors.ui.background)
@@ -220,6 +222,8 @@ function palette.draw()
 	local controlHintsInstance = controls:new({})
 	controlHintsInstance:setControlsList(controlsList)
 	controlHintsInstance:draw()
+
+	love.graphics.pop()
 end
 
 function palette.update(dt)
