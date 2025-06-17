@@ -1,37 +1,36 @@
+--- Color picker palette screen
+
 local love = require("love")
+
 local colors = require("colors")
 local state = require("state")
 local tween = require("tween")
 local controls = require("control_hints").ControlHints
 local colorUtils = require("utils.color")
 local screens = require("screens")
-local ColorSquare = require("ui.components.color_preview")
 local shared = require("screens.color_picker.shared")
-local InputManager = require("ui.controllers.input_manager")
-local constants = require("ui.components.constants")
 
-local background = require("ui.background")
-
--- Color picker palette screen
 local palette = {}
 
-local SCREEN_EDGE_PADDING = 15 -- To match color picker tab padding
-
 -- Constants
+local PADDING = 20
 local SQUARE_SPACING = 20
 
--- Border constants
+local SCROLLBAR = {
+	WIDTH = 6,
+	PADDING = 10,
+	CORNER_RADIUS = 4,
+	HANDLE_MIN_HEIGHT = 30,
+}
+
 local BORDER = {
 	CORNER_RADIUS = 10,
 }
 
--- Animation constants
 local ANIMATION = {
 	SCALE = 1.25,
 	DURATION = 0.15,
 }
-
-local controlHintsInstance
 
 -- Helper function to get current palette state from central state manager
 local function getCurrentPaletteState()
@@ -75,11 +74,8 @@ local function calculateGridDimensions()
 	local contentArea = shared.calculateContentArea()
 
 	-- Calculate available space accounting for padding
-	local availableHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
-	local availableWidth = contentArea.width
-		- (SCREEN_EDGE_PADDING * 2)
-		- constants.SCROLLBAR.WIDTH
-		- constants.SCROLLBAR.PADDING
+	local availableHeight = contentArea.height - (PADDING * 2)
+	local availableWidth = contentArea.width - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
 	-- Calculate square size based on available width and number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
@@ -88,27 +84,21 @@ local function calculateGridDimensions()
 	local visibleRows = math.floor((availableHeight - squareSize) / (squareSize + SQUARE_SPACING)) + 1
 	visibleRows = math.min(visibleRows, gridSize.rows)
 
-	-- Calculate the dynamic row spacing
-	local minTotalHeight = (visibleRows * squareSize) + (visibleRows - 1) * SQUARE_SPACING
-	local rowSpacing = SQUARE_SPACING
-	if visibleRows > 1 then
-		local extraSpace = availableHeight - minTotalHeight
-		if extraSpace > 0 then
-			rowSpacing = SQUARE_SPACING + (extraSpace / (visibleRows - 1))
-		end
-	end
+	-- Recalculate vertical spacing so the last row is flush with the bottom
+	local totalSquaresHeight = visibleRows * squareSize
+	local remainingHeight = availableHeight - totalSquaresHeight
+	local verticalSpacing = visibleRows > 1 and (remainingHeight / (visibleRows - 1)) or 0
 
 	-- Calculate total grid dimensions
 	local totalWidth = (gridSize.cols * squareSize) + (gridSize.cols - 1) * SQUARE_SPACING
-	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * rowSpacing
-	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * rowSpacing
+	local totalGridHeight = (gridSize.rows * squareSize) + (gridSize.rows - 1) * verticalSpacing
+	local visibleGridHeight = (visibleRows * squareSize) + (visibleRows - 1) * verticalSpacing
 
 	-- Center the grid horizontally in the content area
-	local offsetX =
-		math.floor((contentArea.width - totalWidth - constants.SCROLLBAR.WIDTH - constants.SCROLLBAR.PADDING) / 2)
+	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
 
 	-- Position grid vertically starting from the content area's top edge
-	local offsetY = math.floor(contentArea.y + SCREEN_EDGE_PADDING)
+	local offsetY = math.floor(contentArea.y + PADDING)
 
 	return {
 		paletteColors = paletteColors,
@@ -119,9 +109,7 @@ local function calculateGridDimensions()
 		visibleGridHeight = visibleGridHeight,
 		offsetX = offsetX,
 		offsetY = offsetY,
-		contentArea = contentArea,
-		availableHeight = availableHeight,
-		rowSpacing = rowSpacing,
+		verticalSpacing = verticalSpacing,
 	}
 end
 
@@ -136,20 +124,19 @@ local paletteState = {
 	visibleRows = 0,
 	totalGridHeight = 0,
 	visibleGridHeight = 0,
-	colorSquares = {},
-	rowSpacing = SQUARE_SPACING,
+	verticalSpacing = 0,
 }
 
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
 	local contentArea = shared.calculateContentArea()
-	local scrollbarHeight = contentArea.height - (SCREEN_EDGE_PADDING * 2)
-	local scrollbarX = state.screenWidth - constants.SCROLLBAR.WIDTH - constants.SCROLLBAR.PADDING
-	local scrollbarY = contentArea.y + SCREEN_EDGE_PADDING
+	local scrollbarHeight = contentArea.height - (PADDING * 2)
+	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	local scrollbarY = contentArea.y + PADDING
 
 	-- Calculate handle position and size
 	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
-	local handleHeight = math.max(constants.SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
+	local handleHeight = math.max(SCROLLBAR.HANDLE_MIN_HEIGHT, scrollbarHeight * contentRatio)
 	local scrollRatio = 0
 	local currentState = getCurrentPaletteState()
 	if paletteState.totalGridHeight > paletteState.visibleGridHeight then
@@ -158,107 +145,81 @@ local function drawScrollbar()
 
 	local handleY = scrollbarY + (scrollbarHeight - handleHeight) * scrollRatio
 
-	-- Draw handle
-	love.graphics.setColor(constants.SCROLLBAR.HANDLE_COLOR)
-	love.graphics.rectangle(
-		"fill",
-		scrollbarX,
-		handleY,
-		constants.SCROLLBAR.WIDTH,
-		handleHeight,
-		constants.SCROLLBAR.CORNER_RADIUS
-	)
-end
-
--- Helper to build all color square components (one per palette color)
-local function buildAllColorSquares()
-	local squares = {}
-	for colorIndex, colorTable in ipairs(paletteState.paletteColors) do
-		squares[colorIndex] = ColorSquare:new({
-			id = "color_square_" .. colorIndex,
-			x = 0, -- will be set in update
-			y = 0, -- will be set in update
-			width = paletteState.squareSize,
-			height = paletteState.squareSize,
-			color = colorTable,
-			borderRadius = BORDER.CORNER_RADIUS,
-			focused = false,
-			selected = false,
-		})
-	end
-	return squares
+	-- Draw handle (no background, match list.lua)
+	love.graphics.setColor(colors.ui.scrollbar)
+	love.graphics.rectangle("fill", scrollbarX, handleY, SCROLLBAR.WIDTH, handleHeight, SCROLLBAR.CORNER_RADIUS)
 end
 
 function palette.draw()
-	background.draw()
+	-- Set background
+	love.graphics.setColor(colors.ui.background)
+	love.graphics.clear(colors.ui.background)
 
-	love.graphics.push("all")
-
-	-- Draw color squares as components
 	local currentState = getCurrentPaletteState()
-	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
-	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + rowSpacing))
-	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows) - 1
-	for row = firstVisibleRow, lastVisibleRow do
-		for col = 0, paletteState.gridSize.cols - 1 do
-			local colorIndex = gridPosToIndex(row, col, paletteState.gridSize)
-			if colorIndex <= #paletteState.paletteColors then
-				local square = paletteState.colorSquares[colorIndex]
-				if square then
-					square:draw()
-				end
-			end
-		end
-	end
-	drawScrollbar()
-	local controlsList = {
-		{ button = "a", text = "Select" },
-		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
-		{ button = "b", text = "Back" },
-	}
-	love.graphics.pop()
-	controlHintsInstance:setControlsList(controlsList)
-	controlHintsInstance:draw()
-end
+	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + paletteState.verticalSpacing))
 
--- Helper to update visible color square positions and focus
-local function updateVisibleColorSquares()
-	local currentState = getCurrentPaletteState()
-	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
-	local firstVisibleRow = math.floor(currentState.scrollY / (paletteState.squareSize + rowSpacing))
-	local lastVisibleRow = math.min(firstVisibleRow + paletteState.visibleRows, paletteState.gridSize.rows) - 1
+	-- Calculate the last visible row based on the visible grid height
+	local contentArea = shared.calculateContentArea()
+	local visibleBottom = contentArea.y + contentArea.height
+	local lastVisibleRow = firstVisibleRow + paletteState.visibleRows
+	lastVisibleRow = math.min(lastVisibleRow, paletteState.gridSize.rows - 1)
 
-	-- Calculate how many rows are actually visible (may be less at the end)
-	local numRowsVisible = lastVisibleRow - firstVisibleRow + 1
-	local totalSquaresHeight = (numRowsVisible * paletteState.squareSize) + ((numRowsVisible - 1) * rowSpacing)
-	local extraSpace = paletteState.visibleGridHeight - totalSquaresHeight
-	local topOffset = 0
-	if extraSpace > 0 then
-		topOffset = extraSpace / 2
-	end
-
+	-- Draw color grid (only visible rows)
 	for row = firstVisibleRow, lastVisibleRow do
 		for col = 0, paletteState.gridSize.cols - 1 do
 			local colorIndex = gridPosToIndex(row, col, paletteState.gridSize)
 			if colorIndex <= #paletteState.paletteColors then
 				local x = paletteState.offsetX + col * (paletteState.squareSize + SQUARE_SPACING)
 				local rowIndex = row - firstVisibleRow
-				local y = paletteState.offsetY + topOffset + rowIndex * (paletteState.squareSize + rowSpacing)
-				local square = paletteState.colorSquares[colorIndex]
-				if square then
-					-- Update position
-					square.x = x
-					square.y = y
-					-- Update focus/selected state
-					local shouldBeFocused = (row == currentState.selectedRow and col == currentState.selectedCol)
-					if square.focused ~= shouldBeFocused then
-						square:setFocused(shouldBeFocused)
+				local y = paletteState.offsetY + rowIndex * (paletteState.squareSize + paletteState.verticalSpacing)
+
+				-- Check if this square would be visible (not overlapping with controls)
+				if y + paletteState.squareSize <= visibleBottom then
+					local scale = 1
+					local offset = 0
+					if row == currentState.selectedRow and col == currentState.selectedCol then
+						scale = paletteState.currentScale
+						offset = (paletteState.squareSize * (scale - 1)) / 2
 					end
-					square.selected = shouldBeFocused
+					local colorTable = paletteState.paletteColors[colorIndex]
+					love.graphics.setColor(colorTable[1], colorTable[2], colorTable[3], colorTable[4] or 1)
+					love.graphics.rectangle(
+						"fill",
+						x - offset,
+						y - offset,
+						paletteState.squareSize * scale,
+						paletteState.squareSize * scale,
+						BORDER.CORNER_RADIUS
+					)
+
+					-- Draw border
+					love.graphics.setColor(colors.ui.foreground)
+					if row == currentState.selectedRow and col == currentState.selectedCol then
+						love.graphics.setLineWidth(1)
+					else
+						love.graphics.setLineWidth(1)
+					end
+					love.graphics.rectangle(
+						"line",
+						x - offset,
+						y - offset,
+						paletteState.squareSize * scale,
+						paletteState.squareSize * scale,
+						BORDER.CORNER_RADIUS
+					)
 				end
 			end
 		end
 	end
+	drawScrollbar()
+	local controlsList = {
+		{ button = "a", text = "Confirm" },
+		{ button = { "leftshoulder", "rightshoulder" }, text = "Switch Tabs" },
+		{ button = "b", text = "Back" },
+	}
+	local controlHintsInstance = controls:new({})
+	controlHintsInstance:setControlsList(controlsList)
+	controlHintsInstance:draw()
 end
 
 function palette.update(dt)
@@ -270,28 +231,35 @@ function palette.update(dt)
 		end
 	end
 
+	local virtualJoystick = require("input").virtualJoystick
 	local currentState = getCurrentPaletteState()
-	local rowSpacing = paletteState.rowSpacing or SQUARE_SPACING
 	local newRow, newCol = currentState.selectedRow, currentState.selectedCol
 
 	-- Handle directional input
-	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+	if virtualJoystick.isGamepadPressedWithDelay("dpup") then
 		if currentState.selectedRow > 0 then
 			newRow = currentState.selectedRow - 1
 		end
-	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpdown") then
 		if currentState.selectedRow < paletteState.gridSize.rows - 1 then
 			newRow = currentState.selectedRow + 1
 		end
-	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpleft") then
 		if currentState.selectedCol > 0 then
 			newCol = currentState.selectedCol - 1
 		end
-	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
+	elseif virtualJoystick.isGamepadPressedWithDelay("dpright") then
 		if currentState.selectedCol < paletteState.gridSize.cols - 1 then
 			newCol = currentState.selectedCol + 1
 		end
 	end
+
+	-- Clamp newRow to the last row that actually has a color
+	local maxRow = math.ceil(#paletteState.paletteColors / paletteState.gridSize.cols) - 1
+	if newRow > maxRow then
+		newRow = maxRow
+	end
+
 	if hasColorAt(newRow, newCol, paletteState.gridSize, #paletteState.paletteColors) then
 		if newRow ~= currentState.selectedRow or newCol ~= currentState.selectedCol then
 			currentState.selectedRow = newRow
@@ -304,7 +272,7 @@ function palette.update(dt)
 			}, "outQuad")
 
 			-- Handle scrolling when selection moves out of view
-			local rowPosition = currentState.selectedRow * (paletteState.squareSize + rowSpacing)
+			local rowPosition = currentState.selectedRow * (paletteState.squareSize + paletteState.verticalSpacing)
 
 			-- Calculate the visible area boundaries
 			local visibleTop = currentState.scrollY
@@ -320,7 +288,7 @@ function palette.update(dt)
 				currentState.scrollY = rowPosition
 					- paletteState.visibleGridHeight
 					+ paletteState.squareSize
-					+ rowSpacing
+					+ paletteState.verticalSpacing
 			end
 
 			-- Ensure scroll position doesn't go out of bounds
@@ -332,7 +300,7 @@ function palette.update(dt)
 	end
 
 	-- Handle select
-	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	if virtualJoystick.isGamepadPressedWithDelay("a") then
 		local selectedIndex = gridPosToIndex(currentState.selectedRow, currentState.selectedCol, paletteState.gridSize)
 		local colorTable = paletteState.paletteColors[selectedIndex]
 		if colorTable then
@@ -344,12 +312,6 @@ function palette.update(dt)
 				screens.switchTo(state.previousScreen)
 			end
 		end
-	end
-
-	-- After handling input and scroll, update colorSquares
-	updateVisibleColorSquares()
-	for _, square in ipairs(paletteState.colorSquares) do
-		square:update(dt)
 	end
 end
 
@@ -394,7 +356,7 @@ function palette.initializePaletteState()
 		currentPaletteState.selectedCol = closestInfo.col
 		local dimensions = calculateGridDimensions()
 		local squareSize = dimensions.squareSize
-		local spacing = SQUARE_SPACING
+		local spacing = dimensions.verticalSpacing
 
 		-- Calculate scroll position to center the selected color
 		currentPaletteState.scrollY = (closestInfo.row * (squareSize + spacing))
@@ -419,10 +381,9 @@ function palette.onEnter()
 	paletteState.visibleGridHeight = dimensions.visibleGridHeight
 	paletteState.offsetX = dimensions.offsetX
 	paletteState.offsetY = dimensions.offsetY
-	paletteState.rowSpacing = dimensions.rowSpacing
+	paletteState.verticalSpacing = dimensions.verticalSpacing
 	palette.initializePaletteState()
 	local currentState = getCurrentPaletteState()
-	paletteState.colorSquares = buildAllColorSquares()
 
 	-- Validate that the selected position is still valid after grid size changes
 	-- and adjust if necessary
@@ -460,8 +421,6 @@ function palette.onEnter()
 	paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
 		currentScale = ANIMATION.SCALE,
 	}, "outQuad")
-
-	updateVisibleColorSquares()
 
 	if not controlHintsInstance then
 		controlHintsInstance = controls:new({})
