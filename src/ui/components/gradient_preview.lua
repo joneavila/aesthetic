@@ -78,7 +78,7 @@ function GradientPreview:draw(x, y, width, height, startColor, stopColor, direct
 	end
 
 	-- Draw border with corner radius if specified (draw after fill, at same position/size)
-	love.graphics.setColor(colors.ui.surface_focus_outline) -- Matches default component focus outline color
+	love.graphics.setColor(colors.ui.foreground)
 	if cornerRadius and cornerRadius > 0 then
 		love.graphics.rectangle("line", x, y, width, height, cornerRadius, cornerRadius)
 	else
