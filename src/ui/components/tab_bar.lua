@@ -163,6 +163,7 @@ function TabBar:update(dt)
 end
 
 function TabBar:draw()
+	love.graphics.reset()
 	love.graphics.push("all")
 	-- Draw tab bar background and outline
 	love.graphics.setColor(colors.ui.background_dim[1], colors.ui.background_dim[2], colors.ui.background_dim[3], 0.25)
