@@ -5,6 +5,7 @@ local colors = require("colors")
 local Component = require("ui.component").Component
 local InputManager = require("ui.controllers.input_manager")
 local constants = require("ui.components.constants")
+local Button = require("ui.components.button").Button
 
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal
@@ -35,9 +36,25 @@ end
 
 function Modal:show(message, buttons, options)
 	self.visible = true
-	self.message = message or ""
+
+	self.message = message and message:match("^%s*(.-)%s*$") or ""
+
 	self.buttons = buttons or {}
+
+	-- Set focus to Exit button by default if present
 	self.selectedIndex = 1
+	if self.buttons and #self.buttons > 0 then
+		for i, btn in ipairs(self.buttons) do
+			if btn.text and tostring(btn.text):lower() == "exit" then
+				self.selectedIndex = i
+				break
+			end
+		end
+		for i, btn in ipairs(self.buttons) do
+			btn.selected = (i == self.selectedIndex)
+		end
+	end
+
 	self.scrollPosition = 0
 	options = options or {}
 
@@ -151,10 +168,10 @@ function Modal:handleInput(input)
 	-- Handle scrolling for modals with long content (regardless of button count)
 	local isScrollable, maxScrollPosition = self:isContentScrollable()
 	if isScrollable then
-		if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 			self:scroll(-20, maxScrollPosition) -- Scroll up
 			return true
-		elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 			self:scroll(20, maxScrollPosition) -- Scroll down
 			return true
 		end
@@ -203,6 +220,7 @@ function Modal:isContentScrollable(visibleHeight)
 	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
 	local contentHeight = #mainMessageLines * currentFont:getHeight()
 	visibleHeight = visibleHeight or 0
+	-- Correct maxScrollPosition so the last line is flush with the bottom
 	local maxScrollPosition = math.max(0, contentHeight - visibleHeight)
 	return contentHeight > visibleHeight, maxScrollPosition, contentHeight
 end
@@ -438,23 +456,36 @@ function Modal:draw(screenWidth, screenHeight, font)
 		local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
 		local isSelected = (i == self.selectedIndex)
 		button.selected = isSelected
-		if isSelected then
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+		if button.type == "accented" then
+			-- Use Button:drawAccented for accented buttons
+			local tempButton = Button:new({
+				text = button.text,
+				type = "accented",
+				screenWidth = screenWidth,
+				height = buttonHeight,
+			})
+			tempButton.y = buttonY
+			tempButton.focused = isSelected
+			tempButton:drawAccented()
 		else
-			love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
+			if isSelected then
+				love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+			else
+				love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
+			end
+			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+			love.graphics.setLineWidth(isSelected and 4 or 2)
+			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
+			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
+			love.graphics.printf(
+				button.text,
+				buttonX,
+				buttonY + (buttonHeight - currentFont:getHeight()) / 2,
+				buttonWidth,
+				"center"
+			)
 		end
-		love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-		love.graphics.setLineWidth(isSelected and 4 or 2)
-		love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-		love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
-		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-		love.graphics.printf(
-			button.text,
-			buttonX,
-			buttonY + (buttonHeight - currentFont:getHeight()) / 2,
-			buttonWidth,
-			"center"
-		)
 	end
 	love.graphics.pop()
 end

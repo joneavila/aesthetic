@@ -356,7 +356,7 @@ local function handleThemeCreation()
 		waitingState = "none"
 		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 		local modalText = "Error creating theme: " .. errorMessage
-		modal:show(modalText, { { text = "Exit", selected = true } })
+		modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 		return
 	end
 
@@ -375,7 +375,7 @@ local function handleThemeCreation()
 			-- Failure
 			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
-			modal:show(modalText, { { text = "Exit", selected = true } })
+			modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 		end
 	else
 		-- Coroutine yielded with progress message
