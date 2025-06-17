@@ -144,11 +144,16 @@ function box_art_width.draw()
 		previewY = listBottom + 40
 	end
 
+	local outlineWidth = 1
+	local leftColor = colors.ui.blue
+	local rightColor = colors.ui.violet
+	local outlineColorAdjustment = 0.1
+
 	local previewWidth = state.screenWidth - (EDGE_PADDING * 2)
 	local currentValue = state.boxArtWidth
 	local previewHeight = 100
 	local boxArtWidth = currentValue
-	love.graphics.setColor(colors.ui.blue)
+	love.graphics.setColor(leftColor)
 	love.graphics.rectangle(
 		"fill",
 		EDGE_PADDING,
@@ -158,8 +163,21 @@ function box_art_width.draw()
 		CORNER_RADIUS,
 		CORNER_RADIUS
 	)
+	-- Draw outline for left rectangle
+	local outlineColor = colors.adjustColor(leftColor, outlineColorAdjustment)
+	love.graphics.setColor(outlineColor)
+	love.graphics.setLineWidth(outlineWidth)
+	love.graphics.rectangle(
+		"line",
+		EDGE_PADDING,
+		previewY,
+		animatedLeftWidth,
+		previewHeight,
+		CORNER_RADIUS,
+		CORNER_RADIUS
+	)
 	if animatedRightWidth > 0 then
-		love.graphics.setColor(colors.ui.violet)
+		love.graphics.setColor(rightColor)
 		love.graphics.rectangle(
 			"fill",
 			EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
@@ -169,9 +187,22 @@ function box_art_width.draw()
 			CORNER_RADIUS,
 			CORNER_RADIUS
 		)
+		-- Draw outline for right rectangle
+		outlineColor = colors.adjustColor(rightColor, outlineColorAdjustment)
+		love.graphics.setColor(outlineColor)
+		love.graphics.setLineWidth(outlineWidth)
+		love.graphics.rectangle(
+			"line",
+			EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
+			previewY,
+			animatedRightWidth,
+			previewHeight,
+			CORNER_RADIUS,
+			CORNER_RADIUS
+		)
 	end
 	if boxArtWidth > 0 then
-		love.graphics.setColor(colors.ui.background)
+		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
@@ -180,6 +211,7 @@ function box_art_width.draw()
 			"center"
 		)
 		if boxArtWidth >= 70 then
+			love.graphics.setColor(colors.ui.foreground)
 			love.graphics.printf(
 				"Box art",
 				EDGE_PADDING + animatedLeftWidth + RECTANGLE_SPACING,
@@ -189,7 +221,7 @@ function box_art_width.draw()
 			)
 		end
 	else
-		love.graphics.setColor(colors.ui.background)
+		love.graphics.setColor(colors.ui.foreground)
 		love.graphics.printf(
 			"Text",
 			EDGE_PADDING,
