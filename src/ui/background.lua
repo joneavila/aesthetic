@@ -9,9 +9,9 @@ local background = {}
 
 -- Draw a standard background for screens
 function background.draw()
-	love.graphics.push("all")
+	-- love.graphics.push("all")
 	love.graphics.clear(colors.ui.background)
-	love.graphics.pop()
+	-- love.graphics.pop()
 end
 
 return background

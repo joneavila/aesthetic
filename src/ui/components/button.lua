@@ -385,7 +385,9 @@ function Button:drawGradient()
 end
 
 function Button:drawAccented()
+	love.graphics.reset()
 	local font = fonts.loaded.body
+	love.graphics.setFont(font)
 	local textWidth = font:getWidth(self.text)
 	local buttonWidth = self.screenWidth * 0.8
 	local buttonX = (self.screenWidth - buttonWidth) / 2
@@ -394,6 +396,7 @@ function Button:drawAccented()
 	local cy = self.y + self.height / 2
 
 	if self.focused then
+		love.graphics.push("all")
 		-- Draw vertical gradient mesh
 		local topColor = colors.ui.accent_start
 		local bottomColor = colors.ui.accent_stop
@@ -405,7 +408,6 @@ function Button:drawAccented()
 			{ 0, self.height, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
 		}, "fan", "static")
 
-		love.graphics.push("all")
 		love.graphics.translate(cx, cy)
 		love.graphics.scale(scale, scale)
 		love.graphics.translate(-buttonWidth / 2, -self.height / 2)

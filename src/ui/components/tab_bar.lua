@@ -174,6 +174,7 @@ function TabBar:draw()
 	local indicatorX = self.tabIndicator.x
 	local indicatorWidth = self.tabIndicator.width
 	if indicatorWidth > 0 then
+		love.graphics.push("all")
 		local topColor = colors.ui.surface_focus_start
 		local bottomColor = colors.ui.surface_focus_stop
 		local mesh = love.graphics.newMesh({
@@ -214,6 +215,7 @@ function TabBar:draw()
 		love.graphics.setStencilTest("equal", 1)
 		love.graphics.draw(mesh)
 		love.graphics.setStencilTest()
+		love.graphics.pop()
 		love.graphics.setColor(colors.ui.surface_focus_outline)
 		love.graphics.setLineWidth(2)
 		love.graphics.rectangle("line", indicatorX, indicatorY, indicatorWidth, self.height, self.cornerRadius)

@@ -63,8 +63,8 @@ function splash.onEnter()
 end
 
 function splash.draw()
-	love.graphics.push("all")
 	local ok, err = pcall(function()
+		love.graphics.push("all")
 		love.graphics.clear(splash.background.color)
 
 		if not splash.font then
@@ -89,8 +89,8 @@ function splash.draw()
 			cursorX = math.floor(cursorX)
 			love.graphics.print(splash.cursorChar, cursorX, splash.centerY)
 		end
+		love.graphics.pop()
 	end)
-	love.graphics.pop()
 	if not ok then
 		logger.error("Error in splash.draw: " .. tostring(err))
 	end

@@ -273,7 +273,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 	if not self.visible then
 		return
 	end
-	love.graphics.push("all")
+
 	local controls = require("control_hints").ControlHints
 	local fonts = require("ui.fonts")
 	local controlsHeight = controls.calculateHeight()
@@ -294,6 +294,8 @@ function Modal:draw(screenWidth, screenHeight, font)
 	if useErrorFont and fonts.loaded.error then
 		currentFont = fonts.loaded.error
 	end
+
+	love.graphics.push("all")
 	love.graphics.setFont(currentFont)
 
 	-- Calculate dimensions for main message
@@ -390,13 +392,13 @@ function Modal:draw(screenWidth, screenHeight, font)
 
 	if isScrollable then
 		-- Draw scrollable content with custom logic
-		love.graphics.push("all")
+
 		love.graphics.setScissor(textAreaX, textAreaY, textAreaWidth, visibleHeight)
 		love.graphics.translate(0, -self.scrollPosition)
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, textAreaX, textAreaY, textAreaWidth, "left")
 		love.graphics.setScissor()
-		love.graphics.pop()
+
 		-- Draw custom scrollbar flush to the right of the text
 		self:drawScrollbar(
 			scrollbarX,

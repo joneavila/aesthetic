@@ -439,6 +439,7 @@ local function handleThemeInstallation()
 end
 
 function menu.draw()
+	love.graphics.push("all")
 	background.draw()
 
 	-- Draw all UI via root container
@@ -450,6 +451,7 @@ function menu.draw()
 	if modal and modal:isVisible() then
 		modal:draw(state.screenWidth, state.screenHeight, fonts.loaded.body)
 	end
+	love.graphics.pop()
 end
 
 function menu.update(dt)
