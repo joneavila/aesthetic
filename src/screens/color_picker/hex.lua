@@ -15,6 +15,10 @@ local colorUtils = require("utils.color")
 local svg = require("utils.svg")
 local tween = require("tween")
 local InputManager = require("ui.controllers.input_manager")
+local Button = require("ui.components.button").Button
+local BUTTON_TYPES = require("ui.components.button").TYPES
+local Header = require("ui.components.header")
+local TabBar = require("ui.components.tab_bar")
 
 local hex = {}
 
@@ -49,11 +53,78 @@ local function getCurrentHexState()
 end
 
 -- Button grid layout (3x6)
-local buttons = {
+local buttonLabels = {
 	{ "0", "1", "2", "3", "4", "5" },
 	{ "6", "7", "8", "9", "A", "B" },
 	{ "C", "D", "E", "F", "BACKSPACE", "CONFIRM" },
 }
+
+-- Button objects grid
+local buttonGrid = {}
+
+-- Helper to get manual content area for the color picker screen
+local function getManualContentArea()
+	local screenWidth = state.screenWidth
+	local screenHeight = state.screenHeight
+
+	local header = Header:new({ title = "" })
+	local headerContentStartY = header:getContentStartY()
+	local tabBarHeight = TabBar.getHeight()
+	local controlsHeight = controls.calculateHeight(fonts.loaded.caption)
+	local contentTopPadding = 8
+
+	local y = headerContentStartY + tabBarHeight + contentTopPadding
+	local height = screenHeight - (headerContentStartY + tabBarHeight) - controlsHeight - TOP_PADDING
+
+	return {
+		x = 0,
+		y = y,
+		width = screenWidth,
+		height = height,
+	}
+end
+
+local function getButtonDimensions()
+	local contentArea = getManualContentArea()
+
+	-- Calculate available width and height for the grid
+	local gridAvailableWidth = contentArea.width - (2 * EDGE_PADDING)
+	local gridAvailableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
+
+	local numRows = #buttonLabels
+	local numCols = #buttonLabels[1]
+
+	-- Calculate max height and width for each button
+	local maxButtonHeight = (gridAvailableHeight - ((numRows - 1) * GRID_PADDING)) / numRows
+	local maxButtonWidth = (gridAvailableWidth - ((numCols - 1) * GRID_PADDING)) / numCols
+
+	local buttonSize = math.min(maxButtonHeight, maxButtonWidth)
+	return buttonSize, buttonSize
+end
+
+local function createButton(row, col, label)
+	local isConfirm = label == "CONFIRM"
+	local isBackspace = label == "BACKSPACE"
+	local iconName = isBackspace and "delete" or (isConfirm and "check" or nil)
+	local accent = isConfirm
+	return Button:new({
+		text = (not iconName) and label or nil,
+		type = BUTTON_TYPES.KEY,
+		iconName = iconName,
+		iconSize = ICON_SIZE,
+		accent = accent,
+		width = select(1, getButtonDimensions()),
+		height = select(2, getButtonDimensions()),
+	})
+end
+
+-- Initialize buttonGrid
+for row = 1, #buttonLabels do
+	buttonGrid[row] = {}
+	for col = 1, #buttonLabels[row] do
+		buttonGrid[row][col] = createButton(row, col, buttonLabels[row][col])
+	end
+end
 
 -- Helper function to check if hex input is valid
 local function isValidHex(input)
@@ -71,35 +142,19 @@ local function isValidHex(input)
 	return true
 end
 
-local function getButtonDimensions()
-	local contentArea = shared.calculateContentArea()
-
-	local gridWidth = contentArea.width - (2 * EDGE_PADDING)
-	local availableHeight = contentArea.height
-
-	local buttonWidth = (gridWidth - (5 * GRID_PADDING)) / 6
-	local buttonHeight = (availableHeight - (2 * GRID_PADDING)) / 3
-
-	-- Make buttons square by using the smaller dimension
-	local buttonSize = math.min(buttonWidth, buttonHeight)
-
-	return buttonSize, buttonSize
-end
-
--- Helper function to get grid start position (for centering)
 local function getGridStartPosition()
-	local contentArea = shared.calculateContentArea()
-	local buttonSize = getButtonDimensions()
+	local contentArea = getManualContentArea()
+	local buttonWidth, buttonHeight = getButtonDimensions()
 
-	-- Calculate total grid dimensions
-	local totalGridWidth = (buttonSize * 6) + (GRID_PADDING * 5)
-	local totalGridHeight = (buttonSize * 3) + (GRID_PADDING * 2)
+	local numRows = #buttonLabels
+	local numCols = #buttonLabels[1]
 
-	-- Calculate available space for the grid (between preview and controls)
+	local totalGridWidth = (buttonWidth * numCols) + (GRID_PADDING * (numCols - 1))
+	local totalGridHeight = (buttonHeight * numRows) + (GRID_PADDING * (numRows - 1))
+
 	local availableWidth = contentArea.width
 	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
 
-	-- Center the grid horizontally and vertically in the available area
 	local startX = (availableWidth - totalGridWidth) / 2
 	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + (availableHeight - totalGridHeight) / 2
 
@@ -140,7 +195,7 @@ function hex.draw()
 
 	love.graphics.push("all")
 
-	local contentArea = shared.calculateContentArea()
+	local contentArea = getManualContentArea()
 
 	-- Get current color type state
 	local currentState = getCurrentHexState()
@@ -206,139 +261,18 @@ function hex.draw()
 		end
 	end
 
-	-- Draw button grid
-	for row = 1, #buttons do
-		for col = 1, #buttons[row] do
-			local buttonText = buttons[row][col]
-			if buttonText ~= "" then
-				local x, y, width, height = getButtonPosition(row, col)
-				local isSelected = (currentState.selectedButton.row == row and currentState.selectedButton.col == col)
-				local isConfirmButton = (buttonText == "CONFIRM")
-				local isConfirmDisabled = isConfirmButton and not isValidHex(currentState.input)
-
-				-- Apply animation to confirm button
-				if isConfirmButton then
-					local scale = hexState.confirmButtonScale
-
-					-- Calculate scaled dimensions
-					local scaledWidth = width * scale
-					local scaledHeight = height * scale
-					local scaledX = x + (width - scaledWidth) / 2
-					local scaledY = y + (height - scaledHeight) / 2
-
-					-- Update position and size for animation
-					x, y, width, height = scaledX, scaledY, scaledWidth, scaledHeight
-				end
-
-				-- Draw button background
-				if isConfirmButton then
-					-- For confirm button, handle animation color fading
-					local normalBgColor = (isSelected and isValidHex(currentState.input)) and colors.ui.accent
-						or (isSelected and colors.ui.surface or colors.ui.background)
-
-					if hexState.confirmButtonTween and isValidHex(currentState.input) then
-						-- During animation, fade between normal color and accent color
-						local fadeAmount = hexState.confirmButtonFlash
-						local accentColor = colors.ui.accent
-
-						-- Interpolate between normal background and accent color
-						local r = normalBgColor[1] + (accentColor[1] - normalBgColor[1]) * fadeAmount
-						local g = normalBgColor[2] + (accentColor[2] - normalBgColor[2]) * fadeAmount
-						local b = normalBgColor[3] + (accentColor[3] - normalBgColor[3]) * fadeAmount
-
-						love.graphics.setColor(r, g, b)
-					else
-						-- No animation, use normal colors
-						love.graphics.setColor(normalBgColor)
-					end
-				else
-					-- Non-confirm buttons use normal colors
-					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.background)
-				end
-				love.graphics.rectangle("fill", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
-
-				-- Draw button outline
-				love.graphics.setLineWidth(1)
-				if isConfirmButton and isSelected and isValidHex(currentState.input) then
-					-- Valid confirm button that is selected - use accent color for outline too
-					love.graphics.setColor(colors.ui.accent)
-				elseif isConfirmDisabled then
-					-- Use semi-transparent outline for disabled confirm button
-					love.graphics.setColor(
-						isSelected and { colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 0.5 }
-							or {
-								colors.ui.surface[1],
-								colors.ui.surface[2],
-								colors.ui.surface[3],
-								0.5,
-							}
-					)
-				else
-					-- For selected buttons, use the same color as background (surface) to make them look solid
-					-- For non-selected buttons, use surface color for outline
-					love.graphics.setColor(isSelected and colors.ui.surface or colors.ui.surface)
-				end
-				love.graphics.rectangle("line", x, y, width, height, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS)
-
-				-- Special handling for icon buttons
-				if buttonText == "BACKSPACE" then
-					-- Backspace icon
-					local icon = svg.loadIcon("delete", ICON_SIZE)
-					if icon then
-						-- Draw the icon centered on the button with SVG utility
-						local centerX = x + width / 2
-						local centerY = y + height / 2
-						svg.drawIcon(icon, centerX, centerY, colors.ui.foreground)
-					end
-				elseif buttonText == "CONFIRM" then
-					-- Check icon (confirm)
-					local icon = svg.loadIcon("check", ICON_SIZE)
-					if icon then
-						local iconColor
-						-- Use foreground color for icon
-						if isConfirmDisabled and not isSelected then
-							-- If disabled and not selected, use dimmed foreground color
-							iconColor = {
-								colors.ui.foreground[1] * 0.5,
-								colors.ui.foreground[2] * 0.5,
-								colors.ui.foreground[3] * 0.5,
-							}
-						elseif hexState.confirmButtonTween and isValidHex(currentState.input) then
-							-- During animation, fade icon color from normal to background color for contrast
-							local fadeAmount = hexState.confirmButtonFlash
-							local normalIconColor = isSelected and colors.ui.background or colors.ui.foreground
-							local targetIconColor = colors.ui.background
-
-							-- Interpolate between normal icon color and background color
-							local r = normalIconColor[1] + (targetIconColor[1] - normalIconColor[1]) * fadeAmount
-							local g = normalIconColor[2] + (targetIconColor[2] - normalIconColor[2]) * fadeAmount
-							local b = normalIconColor[3] + (targetIconColor[3] - normalIconColor[3]) * fadeAmount
-
-							iconColor = { r, g, b }
-						elseif isSelected and isValidHex(currentState.input) then
-							-- If selected and valid, use background color for icon (for contrast with accent background)
-							iconColor = colors.ui.background
-						else
-							-- Otherwise use full foreground color
-							iconColor = colors.ui.foreground
-						end
-
-						-- Draw the icon centered on the button with SVG utility
-						local centerX = x + width / 2
-						local centerY = y + height / 2
-						svg.drawIcon(icon, centerX, centerY, iconColor)
-					end
-				else
-					-- Regular text button - set color for text
-					love.graphics.setColor(colors.ui.foreground)
-					if bodyFont then
-						love.graphics.setFont(bodyFont)
-						local textWidth = bodyFont:getWidth(buttonText)
-						local textHeight = bodyFont:getHeight()
-						love.graphics.print(buttonText, x + (width - textWidth) / 2, y + (height - textHeight) / 2)
-					end
-				end
-			end
+	-- Draw button grid using Button components
+	for row = 1, #buttonGrid do
+		for col = 1, #buttonGrid[row] do
+			local btn = buttonGrid[row][col]
+			local x, y, width, height = getButtonPosition(row, col)
+			btn.x = x
+			btn.y = y
+			btn.width = width
+			btn.height = height
+			btn.focused = (currentState.selectedButton.row == row and currentState.selectedButton.col == col)
+			btn.disabled = (btn.text == nil and btn.iconName == "check" and not isValidHex(currentState.input))
+			btn:draw()
 		end
 	end
 
@@ -403,15 +337,15 @@ function hex.update(dt)
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		currentState.selectedButton.row = math.max(1, currentState.selectedButton.row - 1)
 	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
-		currentState.selectedButton.row = math.min(#buttons, currentState.selectedButton.row + 1)
+		currentState.selectedButton.row = math.min(#buttonGrid, currentState.selectedButton.row + 1)
 	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		currentState.selectedButton.col = currentState.selectedButton.col - 1
 		if currentState.selectedButton.col < 1 then
-			currentState.selectedButton.col = #buttons[currentState.selectedButton.row]
+			currentState.selectedButton.col = #buttonGrid[currentState.selectedButton.row]
 		end
 	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
 		currentState.selectedButton.col = currentState.selectedButton.col + 1
-		if currentState.selectedButton.col > #buttons[currentState.selectedButton.row] then
+		if currentState.selectedButton.col > #buttonGrid[currentState.selectedButton.row] then
 			currentState.selectedButton.col = 1
 		end
 	end
@@ -424,14 +358,15 @@ function hex.update(dt)
 
 	-- Handle button press (A button)
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
-		local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
+		local btn = buttonGrid[currentState.selectedButton.row][currentState.selectedButton.col]
+		local label = buttonLabels[currentState.selectedButton.row][currentState.selectedButton.col]
 
-		if selectedButton == "BACKSPACE" then
+		if label == "BACKSPACE" then
 			-- Backspace - remove last character
 			if #currentState.input > 0 then
 				currentState.input = currentState.input:sub(1, -2)
 			end
-		elseif selectedButton == "CONFIRM" then
+		elseif label == "CONFIRM" then
 			-- Confirm - only if input is valid
 			if isValidHex(currentState.input) then
 				-- Create hex code
@@ -448,7 +383,7 @@ function hex.update(dt)
 		else
 			-- Add character if not at max length
 			if #currentState.input < hexState.maxInputLength then
-				currentState.input = currentState.input .. selectedButton
+				currentState.input = currentState.input .. label
 			end
 		end
 	end

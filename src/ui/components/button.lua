@@ -68,6 +68,7 @@ function Button:new(config)
 	instance.monoFont = config.monoFont
 	instance.iconName = config.iconName
 	instance.iconSize = config.iconSize or ICON_SIZE
+	instance.accent = config.accent or false -- Accent property for KEY type
 
 	-- Options for cycling
 	instance.options = config.options
@@ -511,20 +512,74 @@ function Button:drawDualColor()
 end
 
 function Button:drawKey()
+	love.graphics.reset()
+	love.graphics.push("all")
+	love.graphics.setFont(fonts.loaded.monoBody)
 	if self.focused then
-		self:drawBackground()
+		if self.accent then
+			-- Draw vertical accent gradient background (like ACCENTED)
+			local buttonWidth = self.width
+			local buttonHeight = self.height
+			local x = self.x
+			local y = self.y
+			local topColor = colors.ui.accent_start
+			local bottomColor = colors.ui.accent_stop
+			local cornerRadius = BUTTON_CONFIG.CORNER_RADIUS
+			local mesh = love.graphics.newMesh({
+				{ 0, 0, 0, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+				{ buttonWidth, 0, 1, 0, topColor[1], topColor[2], topColor[3], topColor[4] or 1 },
+				{
+					buttonWidth,
+					buttonHeight,
+					1,
+					1,
+					bottomColor[1],
+					bottomColor[2],
+					bottomColor[3],
+					bottomColor[4] or 1,
+				},
+				{ 0, buttonHeight, 0, 1, bottomColor[1], bottomColor[2], bottomColor[3], bottomColor[4] or 1 },
+			}, "fan", "static")
+			love.graphics.push("all")
+			love.graphics.translate(x, y)
+			-- Use stencil to clip mesh to rounded rectangle
+			love.graphics.stencil(function()
+				love.graphics.rectangle("fill", 0, 0, buttonWidth, buttonHeight, cornerRadius, cornerRadius)
+			end, "replace", 1)
+			love.graphics.setStencilTest("equal", 1)
+			love.graphics.draw(mesh)
+			love.graphics.setStencilTest()
+			-- Draw outline
+			love.graphics.setColor(colors.ui.accent_outline)
+			love.graphics.setLineWidth(2)
+			love.graphics.rectangle("line", 0, 0, buttonWidth, buttonHeight, cornerRadius, cornerRadius)
+			love.graphics.pop()
+		else
+			self:drawBackground()
+		end
 	else
 		love.graphics.setColor(colors.ui.background_dim)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, 8)
 	end
-	local font = love.graphics.getFont()
-	local textWidth = font:getWidth(self.text)
-	local textHeight = font:getHeight()
-	local textX = self.x + (self.width - textWidth) / 2
-	local textY = self.y + (self.height - textHeight) / 2
 	local opacity = self.disabled and 0.3 or 1
-	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
-	love.graphics.print(self.text, textX, textY)
+	if self.iconName then
+		local icon = svg.loadIcon(self.iconName, self.iconSize or ICON_SIZE)
+		if icon then
+			local centerX = self.x + self.width / 2
+			local centerY = self.y + self.height / 2
+			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+			svg.drawIcon(icon, centerX, centerY, colors.ui.foreground, opacity)
+		end
+	else
+		local font = love.graphics.getFont()
+		local textWidth = font:getWidth(self.text)
+		local textHeight = font:getHeight()
+		local textX = self.x + (self.width - textWidth) / 2
+		local textY = self.y + (self.height - textHeight) / 2
+		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+		love.graphics.print(self.text, textX, textY)
+	end
+	love.graphics.pop()
 end
 
 function Button:draw()
