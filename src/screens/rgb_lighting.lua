@@ -44,6 +44,12 @@ local input = nil
 local headerInstance = Header:new({ title = "RGB Lighting" })
 local controlHintsInstance
 
+-- Store button instances globally
+local modeButton, breathingSpeedButton, brightnessButton, colorButton, speedButton
+
+-- Track previous menu structure
+local prevMenuStructure = {}
+
 -- Helper function to get the current breathing speed based on rgbMode
 local function getCurrentBreathingSpeed()
 	if state.rgbMode == "Fast Breathing" then
@@ -102,142 +108,113 @@ local function isBrightnessVisible()
 	return currentMode ~= "Off"
 end
 
-local function createMenuButtons()
-	local buttons = {}
-	table.insert(
-		buttons,
-		Button:new({
-			text = "Mode",
-			type = ButtonTypes.INDICATORS,
-			options = RGB_MODES,
-			currentOptionIndex = (function()
-				local currentDisplay = getCurrentModeDisplay()
-				for i, option in ipairs(RGB_MODES) do
-					if option == currentDisplay then
-						return i
-					end
+local function createButtons()
+	modeButton = Button:new({
+		text = "Mode",
+		type = ButtonTypes.INDICATORS,
+		options = RGB_MODES,
+		currentOptionIndex = (function()
+			local currentDisplay = getCurrentModeDisplay()
+			for i, option in ipairs(RGB_MODES) do
+				if option == currentDisplay then
+					return i
 				end
-				return 1
-			end)(),
-			screenWidth = state.screenWidth,
-			context = "modeToggle",
-		})
-	)
+			end
+			return 1
+		end)(),
+		screenWidth = state.screenWidth,
+		context = "modeToggle",
+	})
 	if isBreathingSpeedVisible() then
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Speed",
-				type = ButtonTypes.INDICATORS,
-				options = BREATHING_SPEEDS,
-				currentOptionIndex = getCurrentBreathingSpeed(),
-				screenWidth = state.screenWidth,
-				context = "breathingSpeedToggle",
-			})
-		)
+		breathingSpeedButton = Button:new({
+			text = "Speed",
+			type = ButtonTypes.INDICATORS,
+			options = BREATHING_SPEEDS,
+			currentOptionIndex = getCurrentBreathingSpeed(),
+			screenWidth = state.screenWidth,
+			context = "breathingSpeedToggle",
+		})
+	else
+		breathingSpeedButton = nil
 	end
 	if isBrightnessVisible() then
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Brightness",
-				type = ButtonTypes.INDICATORS,
-				options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
-				currentOptionIndex = state.rgbBrightness or 5,
-				screenWidth = state.screenWidth,
-				context = "brightnessToggle",
-			})
-		)
+		brightnessButton = Button:new({
+			text = "Brightness",
+			type = ButtonTypes.INDICATORS,
+			options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			currentOptionIndex = state.rgbBrightness or 5,
+			screenWidth = state.screenWidth,
+			context = "brightnessToggle",
+		})
+	else
+		brightnessButton = nil
 	end
 	if isColorVisible() then
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Color",
-				type = ButtonTypes.COLOR,
-				hexColor = state.getColorValue("rgb"),
-				monoFont = fonts.loaded.monoBody,
-				screenWidth = state.screenWidth,
-				onClick = function()
-					state.activeColorContext = "rgb"
-					state.previousScreen = "rgb_lighting"
-					screens.switchTo(COLOR_PICKER_SCREEN)
-				end,
-			})
-		)
+		colorButton = Button:new({
+			text = "Color",
+			type = ButtonTypes.COLOR,
+			hexColor = state.getColorValue("rgb"),
+			monoFont = fonts.loaded.monoBody,
+			screenWidth = state.screenWidth,
+			onClick = function()
+				state.activeColorContext = "rgb"
+				state.previousScreen = "rgb_lighting"
+				screens.switchTo(COLOR_PICKER_SCREEN)
+			end,
+		})
+	else
+		colorButton = nil
 	end
-
 	if isSpeedVisible() and not isBreathingSpeedVisible() then
-		table.insert(
-			buttons,
-			Button:new({
-				text = "Speed",
-				type = ButtonTypes.INDICATORS,
-				options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
-				currentOptionIndex = state.rgbSpeed or 5,
-				screenWidth = state.screenWidth,
-				context = "speedToggle",
-			})
-		)
+		speedButton = Button:new({
+			text = "Speed",
+			type = ButtonTypes.INDICATORS,
+			options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			currentOptionIndex = state.rgbSpeed or 5,
+			screenWidth = state.screenWidth,
+			context = "speedToggle",
+		})
+	else
+		speedButton = nil
 	end
-	return buttons
 end
 
-local function handleOptionCycle(button, direction)
-	if button.context == "modeToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			local selectedMode = button:getCurrentOption()
-			if selectedMode == "Breathing" then
-				-- Default to Medium Breathing when switching to Breathing mode
-				state.rgbMode = "Medium Breathing"
-			else
-				state.rgbMode = selectedMode
-			end
-			if state.hasRGBSupport then
-				rgbUtils.updateConfig()
-			end
-			if menuList then
-				menuList:setItems(createMenuButtons())
-			end
-		end
-		return changed
-	elseif button.context == "brightnessToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			state.rgbBrightness = button:getCurrentOption()
-			if state.hasRGBSupport then
-				rgbUtils.updateConfig()
-			end
-		end
-		return changed
-	elseif button.context == "breathingSpeedToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			local selectedSpeed = button:getCurrentOption()
-			if selectedSpeed == "Fast" then
-				state.rgbMode = "Fast Breathing"
-			elseif selectedSpeed == "Medium" then
-				state.rgbMode = "Medium Breathing"
-			elseif selectedSpeed == "Slow" then
-				state.rgbMode = "Slow Breathing"
-			end
-			if state.hasRGBSupport then
-				rgbUtils.updateConfig()
-			end
-		end
-		return changed
-	elseif button.context == "speedToggle" then
-		local changed = button:cycleOption(direction)
-		if changed then
-			state.rgbSpeed = button:getCurrentOption()
-			if state.hasRGBSupport then
-				rgbUtils.updateConfig()
-			end
-		end
-		return changed
+local function getMenuItems()
+	local items = { modeButton }
+	if breathingSpeedButton then
+		table.insert(items, breathingSpeedButton)
 	end
-	return false
+	if brightnessButton then
+		table.insert(items, brightnessButton)
+	end
+	if colorButton then
+		table.insert(items, colorButton)
+	end
+	if speedButton then
+		table.insert(items, speedButton)
+	end
+	return items
+end
+
+local function getMenuStructure()
+	return {
+		isBreathing = isBreathingSpeedVisible(),
+		isSpeed = isSpeedVisible() and not isBreathingSpeedVisible(),
+		isBrightness = isBrightnessVisible(),
+		isColor = isColorVisible(),
+		mode = getCurrentModeDisplay(),
+	}
+end
+
+local function menuStructureChanged(a, b)
+	if not a or not b then
+		return true
+	end
+	return a.isBreathing ~= b.isBreathing
+		or a.isSpeed ~= b.isSpeed
+		or a.isBrightness ~= b.isBrightness
+		or a.isColor ~= b.isColor
+		or a.mode ~= b.mode
 end
 
 function rgb_lighting.draw()
@@ -267,6 +244,77 @@ function rgb_lighting.update(dt)
 		local navDir = InputManager.getNavigationDirection()
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
+
+		local prevMode = state.rgbMode
+		local prevBrightness = state.rgbBrightness
+		local prevSpeed = state.rgbSpeed
+
+		-- Handle Mode button
+		if modeButton and modeButton.getCurrentOption then
+			local selectedMode = modeButton:getCurrentOption()
+			if selectedMode == "Breathing" then
+				if
+					not (
+						state.rgbMode == "Fast Breathing"
+						or state.rgbMode == "Medium Breathing"
+						or state.rgbMode == "Slow Breathing"
+					)
+				then
+					state.rgbMode = "Medium Breathing"
+				end
+			else
+				if state.rgbMode ~= selectedMode then
+					state.rgbMode = selectedMode
+				end
+			end
+		end
+
+		-- Handle Breathing Speed button
+		if breathingSpeedButton and breathingSpeedButton.getCurrentOption then
+			local selectedSpeed = breathingSpeedButton:getCurrentOption()
+			local newMode = nil
+			if selectedSpeed == "Fast" then
+				newMode = "Fast Breathing"
+			elseif selectedSpeed == "Medium" then
+				newMode = "Medium Breathing"
+			elseif selectedSpeed == "Slow" then
+				newMode = "Slow Breathing"
+			end
+			if newMode and state.rgbMode ~= newMode then
+				state.rgbMode = newMode
+			end
+		end
+
+		-- Handle Brightness button
+		if brightnessButton and brightnessButton.getCurrentOption then
+			local newBrightness = brightnessButton:getCurrentOption()
+			if state.rgbBrightness ~= newBrightness then
+				state.rgbBrightness = newBrightness
+			end
+		end
+
+		-- Handle Speed button
+		if speedButton and speedButton.getCurrentOption then
+			local newSpeed = speedButton:getCurrentOption()
+			if state.rgbSpeed ~= newSpeed then
+				state.rgbSpeed = newSpeed
+			end
+		end
+
+		if
+			state.hasRGBSupport
+			and (prevMode ~= state.rgbMode or prevBrightness ~= state.rgbBrightness or prevSpeed ~= state.rgbSpeed)
+		then
+			rgbUtils.updateConfig()
+		end
+
+		-- Only rebuild menu if structure changes
+		local currentStructure = getMenuStructure()
+		if menuStructureChanged(currentStructure, prevMenuStructure) then
+			createButtons()
+			menuList:setItems(getMenuItems())
+			prevMenuStructure = currentStructure
+		end
 	end
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo(MENU_SCREEN)
@@ -275,26 +323,23 @@ function rgb_lighting.update(dt)
 end
 
 function rgb_lighting.onEnter()
-	-- Create menu list
+	createButtons()
 	menuList = List:new({
 		x = 0,
 		y = headerInstance:getContentStartY(),
 		width = state.screenWidth,
 		height = state.screenHeight - headerInstance:getContentStartY() - 60,
-		items = createMenuButtons(),
+		items = getMenuItems(),
 		onItemSelect = function(item)
 			if item.onClick then
 				item.onClick()
 			end
 		end,
-		onItemOptionCycle = handleOptionCycle,
-		wrap = false,
 	})
-
+	prevMenuStructure = getMenuStructure()
 	if state.hasRGBSupport then
 		rgbUtils.updateConfig()
 	end
-
 	if not controlHintsInstance then
 		controlHintsInstance = controls:new({})
 	end
