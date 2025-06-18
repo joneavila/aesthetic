@@ -25,6 +25,8 @@ local hex = {}
 local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
 local GRID_PADDING = 10
+local KEYBOARD_TOP_PADDING = 16 -- Padding between preview and keyboard
+local KEYBOARD_BOTTOM_PADDING = 16 -- Padding between keyboard and control hints
 local BUTTON_CORNER_RADIUS = 8
 local INPUT_RECT_WIDTH = 30
 local INPUT_RECT_HEIGHT = 40
@@ -88,7 +90,12 @@ local function getButtonDimensions()
 
 	-- Calculate available width and height for the grid
 	local gridAvailableWidth = contentArea.width - (2 * shared.PADDING)
-	local gridAvailableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
+	-- Subtract extra padding from available height
+	local gridAvailableHeight = contentArea.height
+		- TOP_PADDING
+		- PREVIEW_HEIGHT
+		- KEYBOARD_TOP_PADDING
+		- KEYBOARD_BOTTOM_PADDING
 
 	local numRows = #buttonLabels
 	local numCols = #buttonLabels[1]
@@ -152,10 +159,18 @@ local function getGridStartPosition()
 	local totalGridHeight = (buttonHeight * numRows) + (GRID_PADDING * (numRows - 1))
 
 	local availableWidth = contentArea.width
-	local availableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
+	local availableHeight = contentArea.height
+		- TOP_PADDING
+		- PREVIEW_HEIGHT
+		- KEYBOARD_TOP_PADDING
+		- KEYBOARD_BOTTOM_PADDING
 
 	local startX = (availableWidth - totalGridWidth) / 2
-	local startY = contentArea.y + TOP_PADDING + PREVIEW_HEIGHT + (availableHeight - totalGridHeight) / 2
+	local startY = contentArea.y
+		+ TOP_PADDING
+		+ PREVIEW_HEIGHT
+		+ KEYBOARD_TOP_PADDING
+		+ (availableHeight - totalGridHeight) / 2
 
 	return startX, startY
 end
