@@ -517,6 +517,11 @@ function menu.update(dt)
 		end
 	end
 
+	-- Handle Start button to open settings
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.OPEN_MENU) then
+		screens.switchTo("settings")
+	end
+
 	-- Handle B button to exit application
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
 		love.event.quit()
