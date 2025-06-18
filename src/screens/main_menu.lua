@@ -622,6 +622,7 @@ function menu.onEnter(data)
 
 	-- Focus manager setup
 	focusManager = FocusManager:new()
+	focusManager.wrapNavigation = true
 	focusManager:registerComponent(menuList)
 	focusManager:registerComponent(actionButton)
 
