@@ -180,17 +180,7 @@ function settings.draw()
 end
 
 function settings.update(dt)
-	if modalInstance and modalInstance:isVisible() then
-		-- Always pass input to modalInstance:handleInput so D-pad up/down works
-		if modalInstance:handleInput(input) then
-			modalInstance:update(dt)
-			return
-		end
-		modalInstance:update(dt)
-		return
-	end
-
-	-- Handle scheduled update check with minimum display time
+	-- Always handle scheduled update check with minimum display time, even if modal is visible
 	if updateCheckScheduled then
 		updateCheckTimer = updateCheckTimer + dt
 
@@ -251,6 +241,16 @@ function settings.update(dt)
 				})
 			end
 		end
+	end
+
+	if modalInstance and modalInstance:isVisible() then
+		-- Always pass input to modalInstance:handleInput so D-pad up/down works
+		if modalInstance:handleInput(input) then
+			modalInstance:update(dt)
+			return
+		end
+		modalInstance:update(dt)
+		return
 	end
 
 	-- Handle threaded download completion
