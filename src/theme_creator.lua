@@ -532,7 +532,7 @@ function themeCreator.installThemeCoroutine(themeName)
 				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName) -- Use custom script for Goose
 			end
 
-			coroutine.yield("Installing theme files...")
+			coroutine.yield("Installing theme (this may take a while)...")
 			if commands.executeCommand(cmd) ~= 0 then
 				return false, "Theme installation command failed."
 			end

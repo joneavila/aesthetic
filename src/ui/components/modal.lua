@@ -336,6 +336,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 			love.graphics.setFont(consoleFont)
 			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 			local lineHeight = consoleFont:getHeight()
+			local minConsoleLines = 4
 			local startY = progressY + progressBoxPadding
 
 			local wrapWidth = progressBoxWidth - progressBoxPadding * 2
@@ -346,10 +347,26 @@ function Modal:draw(screenWidth, screenHeight, font)
 					table.insert(allLines, line)
 				end
 			end
-			local currentY = startY
-			for _, line in ipairs(allLines) do
-				love.graphics.printf(line, progressBoxX + progressBoxPadding, currentY, wrapWidth, "left")
-				currentY = currentY + lineHeight
+			-- Only show the last N lines, pad with empty lines if needed
+			local N = minConsoleLines
+			local displayLines = {}
+			local totalLines = #allLines
+			if totalLines >= N then
+				for i = totalLines - N + 1, totalLines do
+					table.insert(displayLines, allLines[i])
+				end
+			else
+				for i = 1, N - totalLines do
+					table.insert(displayLines, "")
+				end
+				for i = 1, totalLines do
+					table.insert(displayLines, allLines[i])
+				end
+			end
+			for i = 1, N do
+				local line = displayLines[i]
+				local y = startY + (i - 1) * lineHeight
+				love.graphics.printf(line, progressBoxX + progressBoxPadding, y, wrapWidth, "left")
 			end
 			love.graphics.setFont(currentFont)
 		end
