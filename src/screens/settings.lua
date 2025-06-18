@@ -118,8 +118,7 @@ local function createMenuButtons()
 									text = "Close",
 									onSelect = function()
 										modalInstance:hide()
-										-- Navigate back to main menu to refresh UI with new state
-										screens.switchTo("main_menu")
+										-- Return to settings screen, not main menu
 									end,
 								},
 							})
@@ -182,15 +181,10 @@ end
 
 function settings.update(dt)
 	if modalInstance and modalInstance:isVisible() then
-		-- Only handle input if confirm/cancel was just pressed
-		if
-			InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM)
-			or InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL)
-		then
-			if modalInstance:handleInput(input) then
-				modalInstance:update(dt)
-				return
-			end
+		-- Always pass input to modalInstance:handleInput so D-pad up/down works
+		if modalInstance:handleInput(input) then
+			modalInstance:update(dt)
+			return
 		end
 		modalInstance:update(dt)
 		return
@@ -331,7 +325,7 @@ function settings.update(dt)
 		menuList:handleInput(navDir, input)
 		menuList:update(dt)
 	end
-	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("main_menu")
 	end
 end

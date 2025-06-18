@@ -6,6 +6,7 @@ local Component = require("ui.component").Component
 local InputManager = require("ui.controllers.input_manager")
 local constants = require("ui.components.constants")
 local Button = require("ui.components.button").Button
+local FocusManager = require("ui.controllers.focus_manager")
 
 local Modal = setmetatable({}, { __index = Component })
 Modal.__index = Modal
@@ -22,49 +23,44 @@ function Modal:new(config)
 	instance.progressMessage = ""
 	instance.progressHistory = {} -- Store multiple progress messages
 	instance.buttons = {}
-	instance.selectedIndex = 1
-	instance.scrollPosition = 0
+	instance.focusManager = FocusManager:new()
 	instance.font = config and config.font or love.graphics.getFont()
 	instance.onButtonPress = config and config.onButtonPress or nil
-
-	-- Animation properties
-	instance.animationTime = 0
 	instance.showAnimation = false
 	instance.isProgressModal = false
-
-	-- Fixed modal dimensions for consistency
 	instance.useFixedWidth = false
 	instance.fixedWidth = 0
-
 	return instance
 end
 
 function Modal:show(message, buttons, options)
 	self.visible = true
-
 	self.message = message and message:match("^%s*(.-)%s*$") or ""
-
-	self.buttons = buttons or {}
-
-	-- Set focus to Exit button by default if present
-	self.selectedIndex = 1
-	if self.buttons and #self.buttons > 0 then
+	self.buttons = {}
+	self.focusManager = FocusManager:new()
+	if buttons and #buttons > 0 then
+		for i, btnConfig in ipairs(buttons) do
+			local btn = Button:new({
+				text = btnConfig.text,
+				onClick = btnConfig.onSelect,
+				type = btnConfig.type or "basic",
+				fullWidth = true,
+			})
+			table.insert(self.buttons, btn)
+			self.focusManager:registerComponent(btn)
+		end
+		-- Focus the first button, or the 'Exit' button if present
+		local focusIndex = 1
 		for i, btn in ipairs(self.buttons) do
 			if btn.text and tostring(btn.text):lower() == "exit" then
-				self.selectedIndex = i
+				focusIndex = i
 				break
 			end
 		end
-		for i, btn in ipairs(self.buttons) do
-			btn.selected = (i == self.selectedIndex)
-		end
+		self.focusManager:setFocused(self.buttons[focusIndex])
 	end
-
 	self.scrollPosition = 0
 	options = options or {}
-
-	-- Check if this is a progress modal (no buttons and contains progress keywords)
-	-- Can be overridden with options.forceSimple = true
 	self.isProgressModal = (#self.buttons == 0)
 		and not options.forceSimple
 		and (
@@ -76,19 +72,13 @@ function Modal:show(message, buttons, options)
 			or string.find(self.message:lower(), "download")
 			or string.find(self.message:lower(), "connecting")
 		)
-
-	-- If this is not a progress modal, reset progress message and history
 	if not self.isProgressModal then
 		self.progressMessage = ""
 		self.progressHistory = {}
 	else
-		-- Clear history when starting a new progress modal
 		self.progressHistory = {}
 	end
-
-	-- Enable animation for progress modals
 	self.showAnimation = self.isProgressModal
-
 	if self.showAnimation then
 		self.animationTime = 0
 	end
@@ -148,73 +138,41 @@ function Modal:update(dt)
 	end
 end
 
-function Modal:moveFocus(direction)
-	if #self.buttons == 0 then
-		return
-	end
-	local oldIndex = self.selectedIndex
-	local newIndex = oldIndex + direction
-	if newIndex < 1 then
-		newIndex = #self.buttons
-	elseif newIndex > #self.buttons then
-		newIndex = 1
-	end
-	self.selectedIndex = newIndex
-	for i, button in ipairs(self.buttons) do
-		button.selected = (i == self.selectedIndex)
-	end
-end
-
 function Modal:handleInput(input)
 	if not self.visible then
 		return false
 	end
-
-	-- Handle scrolling for modals with long content (regardless of button count)
-	local isScrollable, maxScrollPosition = self:isContentScrollable()
-	if isScrollable then
-		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
-			self:scroll(-20, maxScrollPosition) -- Scroll up
-			return true
-		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
-			self:scroll(20, maxScrollPosition) -- Scroll down
-			return true
-		end
-	end
-
-	-- Handle button navigation only if there are buttons
 	if #self.buttons == 0 then
-		-- For modals without buttons, still consume input but allow 'b' to close
 		if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 			self:hide()
 			return true
 		end
 		return true
 	end
-
-	-- Button navigation for modals with buttons
+	local navDir = nil
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
-		self:moveFocus(-1)
-		return true
+		navDir = "up"
 	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
-		self:moveFocus(1)
+		navDir = "down"
+	end
+	if navDir then
+		self.focusManager:handleInput(navDir, input)
 		return true
-	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
-		local selectedOption = self.buttons[self.selectedIndex]
-		if selectedOption and selectedOption.onSelect then
-			selectedOption.onSelect()
+	end
+	local focused = self.focusManager:getFocused()
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
+		if focused and focused.onClick then
+			focused:onClick()
 		end
 		if self.onButtonPress then
-			self.onButtonPress(self.selectedIndex, selectedOption)
+			self.onButtonPress(focused)
 		end
 		return true
 	end
-
 	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
 		self:hide()
 		return true
 	end
-
 	return false
 end
 
@@ -405,54 +363,11 @@ function Modal:draw(screenWidth, screenHeight, font)
 	local buttonSpacing = 20
 	for i, button in ipairs(self.buttons) do
 		local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
-		local isSelected = (i == self.selectedIndex)
-		button.selected = isSelected
-		-- Center single button (like 'Exit') horizontally using the full screen width
-		local thisButtonX = buttonX
-		local thisButtonWidth = buttonWidth
-		local actualScreenWidth = screenWidth
-		if #self.buttons == 1 then
-			-- Use the actual screen width for centering, and add side space
-			actualScreenWidth = love.graphics.getWidth()
-			thisButtonWidth = actualScreenWidth - (SINGLE_BUTTON_SIDE_SPACE * 2)
-			if thisButtonWidth > buttonWidth then
-				thisButtonWidth = buttonWidth
-			end
-			thisButtonX = SINGLE_BUTTON_SIDE_SPACE
-				+ math.floor((actualScreenWidth - 2 * SINGLE_BUTTON_SIDE_SPACE - thisButtonWidth) / 2)
-		end
-		if button.type == "accented" then
-			-- Use Button:drawAccented for accented buttons
-			local tempButton = Button:new({
-				text = button.text,
-				type = "accented",
-				screenWidth = actualScreenWidth,
-				height = buttonHeight,
-			})
-			tempButton.y = buttonY
-			tempButton.x = thisButtonX
-			tempButton.width = thisButtonWidth
-			tempButton.focused = isSelected
-			tempButton:drawAccented()
-		else
-			if isSelected then
-				love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-			else
-				love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
-			end
-			love.graphics.rectangle("fill", thisButtonX, buttonY, thisButtonWidth, buttonHeight, 5)
-			love.graphics.setLineWidth(isSelected and 4 or 2)
-			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-			love.graphics.rectangle("line", thisButtonX, buttonY, thisButtonWidth, buttonHeight, 5)
-			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
-			love.graphics.printf(
-				button.text,
-				thisButtonX,
-				buttonY + (buttonHeight - currentFont:getHeight()) / 2,
-				thisButtonWidth,
-				"center"
-			)
-		end
+		button.x = buttonX
+		button.y = buttonY
+		button.width = buttonWidth
+		button.height = buttonHeight
+		button:draw()
 	end
 	love.graphics.pop()
 end
