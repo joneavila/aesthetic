@@ -28,8 +28,8 @@ local PREVIEW_HEIGHT = nil -- Will be calculated in load()
 local OPACITY_UNFOCUSED = 0.2
 
 local CURSOR = {
-	CIRCLE_RADIUS = 12,
-	CIRCLE_LINE_WIDTH = 2,
+	CIRCLE_RADIUS = 10,
+	CIRCLE_LINE_WIDTH = 1,
 	HUE_HEIGHT = 16,
 	TRIANGLE_HEIGHT = 20,
 	TRIANGLE_HORIZONTAL_OFFSET = 12,
@@ -288,6 +288,12 @@ function hsv.draw()
 		svX = svX + wiggleOffset
 	end
 
+	-- Use stencil to mask SV square with rounded corners
+	love.graphics.stencil(function()
+		love.graphics.rectangle("fill", svX, svY, pickerState.squareSize, pickerState.squareSize, CURSOR.CORNER_RADIUS)
+	end, "replace", 1)
+	love.graphics.setStencilTest("equal", 1)
+
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.draw(
 		pickerState.cache.svSquare,
@@ -297,6 +303,8 @@ function hsv.draw()
 		pickerState.squareSize / (pickerState.squareSize / CACHE_RESOLUTION_DIVIDER),
 		pickerState.squareSize / (pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
 	)
+
+	love.graphics.setStencilTest() -- Disable stencil after drawing
 
 	-- Draw SV square outline
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
