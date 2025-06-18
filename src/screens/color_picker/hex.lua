@@ -417,13 +417,13 @@ function hex.update(dt)
 	end
 
 	-- Handle Y button for clear
-	if InputManager.isActionPressed(InputManager.ACTIONS.CLEAR) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CLEAR) then
 		-- Clear all input
 		currentState.input = ""
 	end
 
 	-- Handle button press (A button)
-	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
 		local selectedButton = buttons[currentState.selectedButton.row][currentState.selectedButton.col]
 
 		if selectedButton == "BACKSPACE" then

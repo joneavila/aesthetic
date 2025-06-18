@@ -400,7 +400,7 @@ function hsv.update(dt)
 	local moved = false
 
 	-- Handle Y button for cursor swapping
-	if InputManager.isActionPressed(InputManager.ACTIONS.SWAP_CURSOR) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.SWAP_CURSOR) then
 		currentState.focusSquare = not currentState.focusSquare
 		startWiggleAnimation() -- Start animation immediately after focus change
 		moved = true
@@ -536,7 +536,7 @@ function hsv.update(dt)
 	end
 
 	-- Handle selection
-	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
 		local r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
 
 		-- Create hex code using the utility function
