@@ -358,6 +358,7 @@ local function handleThemeCreation()
 		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 		local modalText = "Error creating theme: " .. errorMessage
 		modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
+		modal.onButtonPress = menu._modalButtonHandler
 		focusManager:clearFocus()
 		return
 	end
@@ -373,12 +374,14 @@ local function handleThemeCreation()
 				{ text = "Apply theme later", selected = false },
 				{ text = "Apply theme now", selected = true },
 			})
+			modal.onButtonPress = menu._modalButtonHandler
 			focusManager:clearFocus()
 		else
 			-- Failure
 			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
 			local modalText = "Error creating theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
+			modal.onButtonPress = menu._modalButtonHandler
 			focusManager:clearFocus()
 		end
 	else
@@ -391,9 +394,17 @@ end
 
 -- Handle theme installation process using coroutines
 local function handleThemeInstallation()
+	logger.debug(
+		"handleThemeInstallation called. activeCoroutine="
+			.. tostring(activeCoroutine)
+			.. ", waitingThemePath="
+			.. tostring(waitingThemePath)
+	)
 	if not activeCoroutine then
 		local filename_only = waitingThemePath and waitingThemePath:match("([^/\\]+)%.[^%.]+$")
+		logger.debug("handleThemeInstallation: filename_only=" .. tostring(filename_only))
 		if not filename_only then
+			logger.debug("handleThemeInstallation: No valid filename, aborting.")
 			modal:show("Failed to apply theme (no valid filename).", { { text = "Close", selected = true } })
 			focusManager:clearFocus()
 			waitingState = "none"
@@ -402,6 +413,7 @@ local function handleThemeInstallation()
 
 		-- Start the coroutine
 		activeCoroutine = themeCreator.installThemeCoroutine(filename_only)
+		logger.debug("Started installThemeCoroutine for " .. tostring(filename_only))
 		-- Show initial modal with main message and set fixed size
 		modal:show("Applying Theme")
 		focusManager:clearFocus()
@@ -412,8 +424,10 @@ local function handleThemeInstallation()
 
 	-- Resume the coroutine
 	local success, result, _ = coroutine.resume(activeCoroutine)
+	logger.debug("coroutine.resume result: success=" .. tostring(success) .. ", result=" .. tostring(result))
 
 	if not success then
+		logger.debug("Coroutine error in handleThemeInstallation: " .. tostring(result))
 		-- Coroutine error
 		activeCoroutine = nil
 		waitingState = "none"
@@ -425,6 +439,7 @@ local function handleThemeInstallation()
 	end
 
 	if coroutine.status(activeCoroutine) == "dead" then
+		logger.debug("Theme install coroutine completed. Result: " .. tostring(result))
 		-- Coroutine completed
 		activeCoroutine = nil
 		waitingState = "none"
@@ -441,6 +456,7 @@ local function handleThemeInstallation()
 	else
 		-- Coroutine yielded with progress message
 		if type(result) == "string" then
+			logger.debug("Theme install coroutine yielded: " .. tostring(result))
 			modal:updateProgress(result)
 		end
 	end
@@ -463,6 +479,7 @@ function menu.draw()
 end
 
 function menu.update(dt)
+	logger.debug("menu.update: waitingState=" .. tostring(waitingState))
 	local modalHandled = false
 	if modal and modal:isVisible() then
 		modalHandled = modal:handleInput(input)
@@ -471,12 +488,15 @@ function menu.update(dt)
 
 	-- Handle IO operations (coroutine progress, etc.)
 	if waitingState == "show_create_modal" then
+		logger.debug("waitingState=show_create_modal -> create_theme")
 		waitingState = "create_theme"
 		return
 	elseif waitingState == "create_theme" then
+		logger.debug("waitingState=create_theme: calling handleThemeCreation")
 		handleThemeCreation()
 		return
 	elseif waitingState == "install_theme" then
+		logger.debug("waitingState=install_theme: calling handleThemeInstallation")
 		handleThemeInstallation()
 		return
 	end
@@ -523,7 +543,11 @@ function menu.update(dt)
 	end
 
 	-- Handle B button to exit application
-	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
+	if
+		InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL)
+		and (waitingState == "none")
+		and not (modal and modal:isVisible())
+	then
 		love.event.quit()
 	end
 end
@@ -544,30 +568,41 @@ end
 
 function menu.onEnter(data)
 	-- Create modal component
+	local function modalButtonHandler(button)
+		if button and button.text == "Apply theme later" then
+			logger.debug("Modal: Apply theme later pressed")
+			modal:hide()
+			focusManager:setFocused(actionButton)
+		elseif button and button.text == "Apply theme now" then
+			logger.debug("Modal: Apply theme now pressed, createdThemePath=" .. tostring(createdThemePath))
+			if type(createdThemePath) == "string" and createdThemePath ~= "" then
+				waitingThemePath = createdThemePath
+				logger.debug("Set waitingThemePath=" .. tostring(waitingThemePath))
+				modal:show("Applying theme...")
+				modal.onButtonPress = modalButtonHandler
+				focusManager:clearFocus()
+				waitingState = "install_theme"
+				logger.debug("Set waitingState=install_theme")
+			else
+				logger.debug("No theme path to apply.")
+				modal:show("No theme path to apply.", { { text = "Close", selected = true } })
+				modal.onButtonPress = modalButtonHandler
+				focusManager:clearFocus()
+			end
+		elseif button and button.text == "Exit" then
+			logger.debug("Modal: Exit pressed")
+			modal:hide()
+			focusManager:setFocused(actionButton)
+		else
+			logger.debug("Modal: Other button pressed")
+			modal:hide()
+			focusManager:setFocused(actionButton)
+		end
+	end
+	menu._modalButtonHandler = modalButtonHandler
 	modal = Modal:new({
 		font = fonts.loaded.body,
-		onButtonPress = function(_index, button)
-			if button and button.text == "Apply theme later" then
-				modal:hide()
-				focusManager:setFocused(actionButton)
-			elseif button and button.text == "Apply theme now" then
-				if type(createdThemePath) == "string" and createdThemePath ~= "" then
-					waitingThemePath = createdThemePath
-					modal:show("Applying theme...")
-					focusManager:clearFocus()
-					waitingState = "install_theme"
-				else
-					modal:show("No theme path to apply.", { { text = "Close", selected = true } })
-					focusManager:clearFocus()
-				end
-			elseif button and button.text == "Exit" then
-				modal:hide()
-				focusManager:setFocused(actionButton)
-			else
-				modal:hide()
-				focusManager:setFocused(actionButton)
-			end
-		end,
+		onButtonPress = modalButtonHandler,
 	})
 
 	-- Create UI components with current state
