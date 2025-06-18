@@ -32,7 +32,7 @@ end
 local function createBatteryListItems()
 	local items = {
 		Button:new({
-			text = "Active",
+			text = "Active Color",
 			type = ButtonTypes.COLOR,
 			hexColor = state.getColorValue("batteryActive"),
 			monoFont = fonts.loaded.monoBody,
@@ -44,7 +44,7 @@ local function createBatteryListItems()
 			end,
 		}),
 		Button:new({
-			text = "Low",
+			text = "Low Color",
 			type = ButtonTypes.COLOR,
 			hexColor = state.getColorValue("batteryLow"),
 			monoFont = fonts.loaded.monoBody,
