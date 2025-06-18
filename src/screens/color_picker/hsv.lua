@@ -21,7 +21,6 @@ local controlHintsInstance
 local InputManager = require("ui.controllers.input_manager")
 
 -- Constants
-local EDGE_PADDING = 10
 local HUE_SLIDER_WIDTH = 32
 local ELEMENT_SPACING = 10
 local PREVIEW_SQUARE_SPACING = 30
@@ -30,7 +29,7 @@ local OPACITY_UNFOCUSED = 0.2
 
 local CURSOR = {
 	CIRCLE_RADIUS = 12,
-	CIRCLE_LINE_WIDTH = 4,
+	CIRCLE_LINE_WIDTH = 2,
 	HUE_HEIGHT = 16,
 	TRIANGLE_HEIGHT = 20,
 	TRIANGLE_HORIZONTAL_OFFSET = 12,
@@ -148,8 +147,11 @@ function hsv.draw()
 
 	love.graphics.push("all")
 
+	-- Align previews block so top of 'Old' is flush with SV square/hue slider
+	local previewsY = pickerState.startY
+
 	love.graphics.setColor(r, g, b, 1)
-	love.graphics.rectangle("fill", pickerState.previewX, pickerState.startY, pickerState.previewWidth, PREVIEW_HEIGHT)
+	love.graphics.rectangle("fill", pickerState.previewX, previewsY, pickerState.previewWidth, PREVIEW_HEIGHT)
 
 	-- Draw current color border using Relative Luminance Border Algorithm
 	local borderR, borderG, borderB = colorUtils.calculateContrastingColor(r, g, b)
@@ -158,32 +160,34 @@ function hsv.draw()
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX,
-		pickerState.startY,
+		previewsY,
 		pickerState.previewWidth,
 		PREVIEW_HEIGHT,
 		CURSOR.CORNER_RADIUS
 	)
 
-	-- Draw "Current" label
+	-- Draw "Old" label just below the 'Old' preview
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setFont(fonts.loaded.caption)
 	love.graphics.printf(
 		"Old",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + 5,
+		previewsY + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
 
-	local labelPadding = 15
+	local labelHeight = pickerState.labelHeight
+	local labelPadding = pickerState.labelPadding
+	local previewSpacing = pickerState.previewSpacing
 
-	-- Draw new color preview with increased spacing
+	-- Draw new color preview below the 'Old' label and spacing
 	r, g, b = colorUtils.hsvToRgb(currentState.hue, currentState.sat, currentState.val)
 	love.graphics.setColor(r, g, b, 1)
 	love.graphics.rectangle(
 		"fill",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding,
+		previewsY + PREVIEW_HEIGHT + labelHeight + labelPadding + previewSpacing,
 		pickerState.previewWidth,
 		PREVIEW_HEIGHT
 	)
@@ -196,18 +200,18 @@ function hsv.draw()
 	love.graphics.rectangle(
 		"line",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding,
+		previewsY + PREVIEW_HEIGHT + labelHeight + labelPadding + previewSpacing,
 		pickerState.previewWidth,
 		PREVIEW_HEIGHT,
 		CURSOR.CORNER_RADIUS
 	)
 
-	-- Draw "New" label with adjusted position
+	-- Draw "New" label just below the 'New' preview, flush with the bottom of the SV square/hue slider
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.printf(
 		"New",
 		pickerState.previewX,
-		pickerState.startY + PREVIEW_HEIGHT + PREVIEW_SQUARE_SPACING + labelPadding + PREVIEW_HEIGHT + 5,
+		previewsY + PREVIEW_HEIGHT + labelHeight + labelPadding + previewSpacing + PREVIEW_HEIGHT + 5,
 		pickerState.previewWidth,
 		"center"
 	)
@@ -220,11 +224,14 @@ function hsv.draw()
 		hueX = hueX + wiggleOffset
 	end
 
+	-- Vertically center hue slider and SV square within blockHeight
+	local svY = pickerState.startY
+
 	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.draw(
 		pickerState.cache.hueSlider,
 		hueX,
-		pickerState.startY,
+		svY,
 		0,
 		1,
 		pickerState.squareSize / (pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
@@ -239,14 +246,7 @@ function hsv.draw()
 	)
 	love.graphics.setLineWidth(1)
 
-	love.graphics.rectangle(
-		"line",
-		hueX,
-		pickerState.startY,
-		HUE_SLIDER_WIDTH,
-		pickerState.squareSize,
-		CURSOR.CORNER_RADIUS
-	)
+	love.graphics.rectangle("line", hueX, svY, HUE_SLIDER_WIDTH, pickerState.squareSize, CURSOR.CORNER_RADIUS)
 
 	-- Draw hue selection triangles
 	if not currentState.focusSquare then
@@ -292,7 +292,7 @@ function hsv.draw()
 	love.graphics.draw(
 		pickerState.cache.svSquare,
 		svX,
-		pickerState.startY,
+		svY,
 		0,
 		pickerState.squareSize / (pickerState.squareSize / CACHE_RESOLUTION_DIVIDER),
 		pickerState.squareSize / (pickerState.squareSize / CACHE_RESOLUTION_DIVIDER)
@@ -302,14 +302,7 @@ function hsv.draw()
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
 	love.graphics.setLineWidth(1)
 
-	love.graphics.rectangle(
-		"line",
-		svX,
-		pickerState.startY,
-		pickerState.squareSize,
-		pickerState.squareSize,
-		CURSOR.CORNER_RADIUS
-	)
+	love.graphics.rectangle("line", svX, svY, pickerState.squareSize, pickerState.squareSize, CURSOR.CORNER_RADIUS)
 
 	-- Draw SV cursor
 	if currentState.focusSquare then
@@ -324,10 +317,6 @@ function hsv.draw()
 	end
 	love.graphics.setLineWidth(CURSOR.CIRCLE_LINE_WIDTH)
 	love.graphics.circle("line", currentState.cursor.svX, currentState.cursor.svY, CURSOR.CIRCLE_RADIUS)
-
-	-- -- Reset line width to 1 to avoid affecting other UI
-	-- -- TODO: Use `love.graphics.push("all")` and `love.graphics.pop()` instead
-	-- love.graphics.setLineWidth(1)
 
 	love.graphics.pop()
 
@@ -563,11 +552,14 @@ function hsv.onEnter()
 		local contentArea = shared.calculateContentArea()
 
 		-- Calculate available space
-		local availableHeight = contentArea.height - (EDGE_PADDING * 2)
-		local availableWidth = contentArea.width - (EDGE_PADDING * 2)
+		local availableHeight = contentArea.height - (shared.PADDING * 2)
+		local availableWidth = contentArea.width - (shared.PADDING * 2)
 
-		-- Calculate SV square size - should be a perfect square that fits the available height
-		pickerState.squareSize = availableHeight
+		-- Reserve at least 160px for hue slider and previews
+		local MIN_REMAINING_WIDTH = 160
+		local maxSquareByWidth = availableWidth - MIN_REMAINING_WIDTH
+		local squareSize = math.min(availableHeight, maxSquareByWidth)
+		pickerState.squareSize = squareSize
 
 		-- Calculate total width needed for SV square and hue slider with triangles and spacing
 		local totalFixedWidth = pickerState.squareSize -- SV square
@@ -575,28 +567,41 @@ function hsv.onEnter()
 			+ (CURSOR.TRIANGLE_HEIGHT * 2) -- Space for triangles on both sides of hue slider
 			+ (ELEMENT_SPACING * 2) -- Spacing between elements
 
-		-- Calculate remaining width for preview squares
 		pickerState.previewWidth = availableWidth - totalFixedWidth
-
 		pickerState.sliderWidth = HUE_SLIDER_WIDTH
 		pickerState.contentHeight = availableHeight
 
-		-- Calculate preview height
+		-- Calculate preview heights so that previews + spacing + labels = squareSize
 		local labelHeight = 20
-		local labelPadding = 15 -- Match the value used in draw function
-		PREVIEW_HEIGHT = math.floor((availableHeight - PREVIEW_SQUARE_SPACING - labelPadding - (labelHeight * 2)) / 2)
+		local labelPadding = 15
+		local previewSpacing = PREVIEW_SQUARE_SPACING
+		local totalLabelHeight = labelHeight * 2 + labelPadding
+		local previewHeight = (squareSize - previewSpacing - totalLabelHeight) / 2
+		PREVIEW_HEIGHT = previewHeight
 
-		-- Calculate positions for all elements (left to right)
+		-- Calculate total height of all vertically stacked elements (should now match squareSize)
+		local previewsBlockHeight = (PREVIEW_HEIGHT * 2) + previewSpacing + totalLabelHeight
+		local blockHeight = squareSize
+		local blockStartY = contentArea.y + ((contentArea.height - blockHeight) / 2)
+
 		-- Preview squares position (leftmost)
-		local previewX = EDGE_PADDING
+		local previewX = shared.PADDING
 		-- Hue slider position (after preview)
 		local hueSliderX = previewX + pickerState.previewWidth + ELEMENT_SPACING + CURSOR.TRIANGLE_HEIGHT
 		-- SV square position (rightmost, ensuring consistent right edge padding)
-		pickerState.startX = contentArea.width - EDGE_PADDING - pickerState.squareSize
+		pickerState.startX = contentArea.width - shared.PADDING - pickerState.squareSize
 		-- Store all positions
-		pickerState.startY = contentArea.y + EDGE_PADDING
+		pickerState.startY = blockStartY
 		pickerState.hueSliderX = hueSliderX
 		pickerState.previewX = previewX
+
+		-- Store for use in draw (for vertical alignment of previews)
+		pickerState.previewsBlockHeight = previewsBlockHeight
+		pickerState.blockHeight = blockHeight
+		pickerState.blockStartY = blockStartY
+		pickerState.labelHeight = labelHeight
+		pickerState.labelPadding = labelPadding
+		pickerState.previewSpacing = previewSpacing
 
 		initializeCachedTextures()
 	end

@@ -22,7 +22,6 @@ local TabBar = require("ui.components.tab_bar")
 
 local hex = {}
 
-local EDGE_PADDING = 20
 local TOP_PADDING = 10
 local PREVIEW_HEIGHT = 80
 local GRID_PADDING = 10
@@ -88,7 +87,7 @@ local function getButtonDimensions()
 	local contentArea = getManualContentArea()
 
 	-- Calculate available width and height for the grid
-	local gridAvailableWidth = contentArea.width - (2 * EDGE_PADDING)
+	local gridAvailableWidth = contentArea.width - (2 * shared.PADDING)
 	local gridAvailableHeight = contentArea.height - TOP_PADDING - PREVIEW_HEIGHT
 
 	local numRows = #buttonLabels
@@ -201,9 +200,9 @@ function hex.draw()
 	local currentState = getCurrentHexState()
 
 	-- Draw color preview rectangle
-	local previewX = EDGE_PADDING
+	local previewX = shared.PADDING
 	local previewY = contentArea.y + TOP_PADDING
-	local previewWidth = contentArea.width - (2 * EDGE_PADDING)
+	local previewWidth = contentArea.width - (2 * shared.PADDING)
 
 	-- Variables for input display
 	local inputStartX = previewX + (previewWidth - ((INPUT_RECT_WIDTH * 6) + (INPUT_RECT_SPACING * 5))) / 2

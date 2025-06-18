@@ -479,7 +479,6 @@ function menu.draw()
 end
 
 function menu.update(dt)
-	logger.debug("menu.update: waitingState=" .. tostring(waitingState))
 	local modalHandled = false
 	if modal and modal:isVisible() then
 		modalHandled = modal:handleInput(input)
@@ -488,15 +487,12 @@ function menu.update(dt)
 
 	-- Handle IO operations (coroutine progress, etc.)
 	if waitingState == "show_create_modal" then
-		logger.debug("waitingState=show_create_modal -> create_theme")
 		waitingState = "create_theme"
 		return
 	elseif waitingState == "create_theme" then
-		logger.debug("waitingState=create_theme: calling handleThemeCreation")
 		handleThemeCreation()
 		return
 	elseif waitingState == "install_theme" then
-		logger.debug("waitingState=install_theme: calling handleThemeInstallation")
 		handleThemeInstallation()
 		return
 	end

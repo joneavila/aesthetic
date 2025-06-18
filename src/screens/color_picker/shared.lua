@@ -6,9 +6,11 @@ local headerInstance = Header:new({ title = "" })
 local controlHintsInstance = controls:new({})
 local TabBar = require("ui.components.tab_bar")
 
-local M = {}
+local shared = {}
 
-function M.calculateContentArea()
+shared.PADDING = 16
+
+function shared.calculateContentArea()
 	local state = require("state")
 	local headerContentStartY = headerInstance:getContentStartY()
 	local tabBarHeight = TabBar.getHeight()
@@ -22,4 +24,4 @@ function M.calculateContentArea()
 	}
 end
 
-return M
+return shared

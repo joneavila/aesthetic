@@ -13,7 +13,7 @@ local shared = require("screens.color_picker.shared")
 local palette = {}
 
 -- Constants
-local PADDING = 20
+local VERTICAL_PADDING = 20
 local SQUARE_SPACING = 20
 
 local SCROLLBAR = {
@@ -74,8 +74,8 @@ local function calculateGridDimensions()
 	local contentArea = shared.calculateContentArea()
 
 	-- Calculate available space accounting for padding
-	local availableHeight = contentArea.height - (PADDING * 2)
-	local availableWidth = contentArea.width - (PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
+	local availableHeight = contentArea.height - (VERTICAL_PADDING * 2)
+	local availableWidth = contentArea.width - (shared.PADDING * 2) - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
 
 	-- Calculate square size based on available width and number of columns
 	local squareSize = math.floor((availableWidth - (SQUARE_SPACING * (gridSize.cols - 1))) / gridSize.cols)
@@ -98,7 +98,7 @@ local function calculateGridDimensions()
 	local offsetX = math.floor((contentArea.width - totalWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING) / 2)
 
 	-- Position grid vertically starting from the content area's top edge
-	local offsetY = math.floor(contentArea.y + PADDING)
+	local offsetY = math.floor(contentArea.y + VERTICAL_PADDING)
 
 	return {
 		paletteColors = paletteColors,
@@ -130,9 +130,9 @@ local paletteState = {
 -- Helper function to draw the scrollbar
 local function drawScrollbar()
 	local contentArea = shared.calculateContentArea()
-	local scrollbarHeight = contentArea.height - (PADDING * 2)
+	local scrollbarHeight = contentArea.height - (VERTICAL_PADDING * 2)
 	local scrollbarX = state.screenWidth - SCROLLBAR.WIDTH - SCROLLBAR.PADDING
-	local scrollbarY = contentArea.y + PADDING
+	local scrollbarY = contentArea.y + VERTICAL_PADDING
 
 	-- Calculate handle position and size
 	local contentRatio = paletteState.visibleGridHeight / paletteState.totalGridHeight
