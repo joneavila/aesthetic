@@ -234,16 +234,11 @@ function hex.draw()
 		local contrastR, contrastG, contrastB = colorUtils.calculateContrastingColor(r, g, b)
 		textColor = { contrastR, contrastG, contrastB }
 
-		-- Draw preview rectangle outline with foreground color when valid
-		love.graphics.setColor(colors.ui.foreground)
-	else
-		-- Draw preview rectangle outline with background color when invalid (making it invisible)
-		love.graphics.setColor(colors.ui.background)
+		-- Draw preview rectangle outline with text color (matches text color)
+		love.graphics.setColor(textColor)
+		love.graphics.setLineWidth(1)
+		love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 	end
-
-	-- Draw preview rectangle outline
-	love.graphics.setLineWidth(1)
-	love.graphics.rectangle("line", previewX, previewY, previewWidth, PREVIEW_HEIGHT, 8, 8)
 
 	-- Get fonts
 	local monoHeaderFont = fonts.loaded.monoHeader
