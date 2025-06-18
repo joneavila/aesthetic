@@ -267,6 +267,16 @@ function rgb_lighting.update(dt)
 					state.rgbMode = selectedMode
 				end
 			end
+			-- If mode changed, immediately rebuild menu and return
+			if prevMode ~= state.rgbMode then
+				createButtons()
+				menuList:setItems(getMenuItems())
+				prevMenuStructure = getMenuStructure()
+				if state.hasRGBSupport then
+					rgbUtils.updateConfig()
+				end
+				return
+			end
 		end
 
 		-- Handle Breathing Speed button
