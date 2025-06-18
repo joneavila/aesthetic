@@ -4,6 +4,7 @@ local love = require("love")
 local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
+local colors = require("colors")
 
 local background = require("ui.background")
 local Button = require("ui.components.button").Button
@@ -13,6 +14,7 @@ local GradientPreview = require("ui.components.gradient_preview")
 local Header = require("ui.components.header")
 local InputManager = require("ui.controllers.input_manager")
 local List = require("ui.components.list").List
+local colorUtils = require("utils.color")
 
 local backgroundColor = {}
 
@@ -120,24 +122,43 @@ function backgroundColor.draw()
 		menuList:draw()
 	end
 
-	-- Draw gradient preview box if gradient mode is selected
-	if state.backgroundType == "Gradient" then
-		local controlsHeight = controls.calculateHeight()
-		local margin = 10
-		local listBottom = menuList.y + menuList:getContentHeight()
-		local previewY = listBottom + margin
-		local previewX_margin = 20
-		local previewAreaHeight = state.screenHeight - previewY - controlsHeight - margin
-		local previewAreaWidth = state.screenWidth - previewX_margin * 2
-		-- Maintain 4:3 aspect ratio, but fit within available area
-		local previewHeight = previewAreaHeight
-		local previewWidth = previewHeight * 4 / 3
-		if previewWidth > previewAreaWidth then
-			previewWidth = previewAreaWidth
-			previewHeight = previewWidth * 3 / 4
-		end
+	-- --- PREVIEW SIZING LOGIC ---
+	local originalType = state.backgroundType
+	local previewHeight, previewWidth, previewX, previewY
+	local controlsHeight = controls.calculateHeight()
+	local margin = 10
+	local previewX_margin = 20
+	local listBottom
+
+	if originalType == "Solid" then
+		-- Simulate a menu list as if in Gradient mode
+		local gradientMenuItems = { typeButton, colorStartButton, colorStopButton, directionButton }
+		local tempMenuList = List:new({
+			x = 0,
+			y = headerInstance:getContentStartY(),
+			width = state.screenWidth,
+			height = state.screenHeight - headerInstance:getContentStartY() - 60,
+			items = gradientMenuItems,
+		})
+		listBottom = tempMenuList.y + tempMenuList:getContentHeight()
+	else
+		listBottom = menuList and (menuList.y + menuList:getContentHeight()) or 0
+	end
+
+	previewY = listBottom + margin
+	local previewAreaHeight = state.screenHeight - previewY - controlsHeight - margin
+	local previewAreaWidth = state.screenWidth - previewX_margin * 2
+	previewHeight = previewAreaHeight
+	previewWidth = previewHeight * 4 / 3
+	if previewWidth > previewAreaWidth then
+		previewWidth = previewAreaWidth
+		previewHeight = previewWidth * 3 / 4
+	end
+	previewX = (state.screenWidth - previewWidth) / 2
+	-- --- END PREVIEW SIZING LOGIC ---
+
+	if originalType == "Gradient" then
 		if previewHeight >= 40 then
-			local previewX = (state.screenWidth - previewWidth) / 2
 			gradientPreviewInstance:draw(
 				previewX,
 				previewY,
@@ -148,6 +169,17 @@ function backgroundColor.draw()
 				state.backgroundGradientDirection,
 				8
 			)
+		end
+	elseif originalType == "Solid" then
+		if previewHeight >= 40 then
+			local cornerRadius = 8
+			love.graphics.setColor(colorUtils.hexToLove(state.getColorValue("background")))
+			love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, cornerRadius, cornerRadius)
+			-- Draw outline to match GradientPreview
+			love.graphics.setColor(colors.ui.foreground)
+			love.graphics.setLineWidth(1)
+			love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, cornerRadius, cornerRadius)
+			love.graphics.setColor(1, 1, 1, 1)
 		end
 	end
 
