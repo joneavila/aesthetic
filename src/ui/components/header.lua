@@ -15,12 +15,6 @@ local HEADER_CONFIG = {
 local Header = setmetatable({}, { __index = Component })
 Header.__index = Header
 
-function Header.title_case(str)
-	return str:gsub("(%a)([%w_']*)", function(first, rest)
-		return first:upper() .. rest:lower()
-	end)
-end
-
 function Header:new(config)
 	local instance = Component.new(self, config)
 
@@ -42,7 +36,7 @@ function Header:draw()
 		return
 	end
 	love.graphics.push("all")
-	local displayTitle = Header.title_case(self.title)
+	local displayTitle = self.title
 	-- Draw background
 	love.graphics.setColor(colors.ui.background_dim)
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)

@@ -26,8 +26,8 @@ local input
 -- Preset items list
 local presetItems = {}
 
-local headerInstance = Header:new({ title = "Load Theme Preset" })
-local controlHintsInstance
+local header = Header:new({ title = "Load Theme Preset" })
+local controlHints
 
 -- Helper function to load presets and verify they are valid
 local function loadPresetsList()
@@ -95,20 +95,20 @@ end
 
 function loadPreset.draw()
 	background.draw()
-	headerInstance:draw()
+	header:draw()
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw message if no presets found
 	if #presetItems == 0 then
 		love.graphics.setFont(fonts.loaded.body)
-		love.graphics.print("No presets found", 16, headerInstance:getContentStartY())
+		love.graphics.print("No presets found", 16, header:getContentStartY())
 
 		-- Draw controls
 		local controlsList = {
 			{ button = "b", text = "Back" },
 		}
-		controlHintsInstance:setControlsList(controlsList)
-		controlHintsInstance:draw()
+		controlHints:setControlsList(controlsList)
+		controlHints:draw()
 		return
 	end
 
@@ -122,8 +122,8 @@ function loadPreset.draw()
 		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	}
-	controlHintsInstance:setControlsList(controlsList)
-	controlHintsInstance:draw()
+	controlHints:setControlsList(controlsList)
+	controlHints:draw()
 end
 
 function loadPreset.update(dt)
@@ -141,12 +141,12 @@ function loadPreset.onEnter()
 	loadPresetsList()
 
 	-- Calculate available height for the list (full space between header and controls)
-	local availableHeight = state.screenHeight - headerInstance:getContentStartY() - controls.calculateHeight()
+	local availableHeight = state.screenHeight - header:getContentStartY() - controls.calculateHeight()
 
 	-- Create menu list
 	menuList = List:new({
 		x = 0,
-		y = headerInstance:getContentStartY(),
+		y = header:getContentStartY(),
 		width = state.screenWidth,
 		height = availableHeight,
 		items = presetItems,
@@ -158,8 +158,8 @@ function loadPreset.onEnter()
 		wrap = false,
 	})
 
-	if not controlHintsInstance then
-		controlHintsInstance = controls:new({})
+	if not controlHints then
+		controlHints = controls:new({})
 	end
 end
 
