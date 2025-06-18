@@ -571,6 +571,12 @@ function menu.onEnter(data)
 			focusManager:setFocused(actionButton)
 		elseif button and button.text == "Apply theme now" then
 			logger.debug("Modal: Apply theme now pressed, createdThemePath=" .. tostring(createdThemePath))
+			if state.isDevMode then
+				modal:show("You can't install a theme in dev mode!", { { text = "Close", selected = true } })
+				modal.onButtonPress = modalButtonHandler
+				focusManager:clearFocus()
+				return
+			end
 			if type(createdThemePath) == "string" and createdThemePath ~= "" then
 				waitingThemePath = createdThemePath
 				logger.debug("Set waitingThemePath=" .. tostring(waitingThemePath))

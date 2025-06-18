@@ -7,8 +7,12 @@
 --- persistent application settings.
 local fail = require("utils.fail")
 
+local system = require("utils.system")
 local colorUtils = require("utils.color")
 local logger = require("utils.logger")
+
+-- Set isDevMode as early as possible
+local isDevMode = system.getEnvironmentVariable("DEV") == "true"
 
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application
@@ -81,6 +85,7 @@ local state = {
 	screenWidth = 0, -- Set in `main.lua`
 	screenHeight = 0, -- Set in `main.lua`
 
+	isDevMode = isDevMode,
 	previousScreen = "main_menu", -- Default screen to return to after color picker
 	themeApplied = false, -- Whether the theme has been applied
 	source = "user", -- Source type for themes (user-created vs built-in)

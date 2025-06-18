@@ -1,10 +1,9 @@
 --- Path constants
 local system = require("utils.system")
 local logger = require("utils.logger")
+local state = require("state")
 
 local paths = {}
-
-local isDev = system.getEnvironmentVariable("DEV") == "true"
 
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
@@ -13,13 +12,7 @@ paths.THEME_PRESETS_DIR = system.getEnvironmentVariable("THEME_PRESETS_DIR")
 paths.SCHEME_TEMPLATE_DIR = system.getEnvironmentVariable("SCHEME_TEMPLATE_DIR")
 
 paths.MUOS_THEME_SCRIPT = "/opt/muos/script/package/theme.sh"
-paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
-
-if isDev then
-	paths.MUOS_THEMES_DIR = paths.ROOT_DIR .. "/run/muos/storage/theme"
-else
-	paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
-end
+paths.MUOS_THEMES_DIR = state.isDevMode and paths.ROOT_DIR .. "/run/muos/storage/theme" or "/run/muos/storage/theme"
 
 paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
 paths.USERDATA_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
@@ -38,16 +31,32 @@ paths.LED_CONTROL_SCRIPT = system.isFile(LED_CONTROL_SCRIPT_PIXIE) and LED_CONTR
 
 local MUOS_VERSION_FILE_PIXIE, MUOS_VERSION_FILE_GOOSE
 
-if isDev then
-	MUOS_VERSION_FILE_PIXIE = paths.ROOT_DIR .. "/opt/muos/config/version.txt"
-	MUOS_VERSION_FILE_GOOSE = paths.ROOT_DIR .. "/opt/muos/config/system/version"
+if state.isDevMode then
+	logger.debug("isDevMode: " .. tostring(state.isDevMode))
+	logger.debug("ROOT_DIR: " .. tostring(paths.ROOT_DIR))
+	paths.MUOS_VERSION_FILE = paths.ROOT_DIR .. "/opt/muos/config/version.txt"
+	logger.debug("MUOS_VERSION_FILE (dev): " .. tostring(paths.MUOS_VERSION_FILE))
+	if type(paths.ROOT_DIR) ~= "string" or paths.ROOT_DIR == "" then
+		logger.error("ROOT_DIR is not set or not a string in dev mode!")
+	end
+	if type(paths.MUOS_VERSION_FILE) ~= "string" or paths.MUOS_VERSION_FILE == "" then
+		logger.error("MUOS_VERSION_FILE is not set or not a string in dev mode!")
+	end
+	if not system.fileExists(paths.MUOS_VERSION_FILE) then
+		logger.error("MUOS_VERSION_FILE does not exist in dev mode: " .. tostring(paths.MUOS_VERSION_FILE))
+	end
 else
 	MUOS_VERSION_FILE_PIXIE = "/opt/muos/config/version.txt"
 	MUOS_VERSION_FILE_GOOSE = "/opt/muos/config/system/version"
+	paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_PIXIE) and MUOS_VERSION_FILE_PIXIE
+		or system.isFile(MUOS_VERSION_FILE_GOOSE) and MUOS_VERSION_FILE_GOOSE
+	if type(paths.MUOS_VERSION_FILE) ~= "string" or paths.MUOS_VERSION_FILE == "" then
+		logger.error("MUOS_VERSION_FILE is not set or not a string in prod mode!")
+	end
+	if not paths.MUOS_VERSION_FILE or not system.fileExists(paths.MUOS_VERSION_FILE) then
+		logger.error("MUOS_VERSION_FILE does not exist in prod mode: " .. tostring(paths.MUOS_VERSION_FILE))
+	end
 end
-
-paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_PIXIE) and MUOS_VERSION_FILE_PIXIE
-	or system.isFile(MUOS_VERSION_FILE_GOOSE) and MUOS_VERSION_FILE_GOOSE
 
 paths.THEME_SOUND_SOURCE_DIR = paths.SOURCE_DIR .. "/assets/sounds"
 

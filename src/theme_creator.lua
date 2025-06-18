@@ -152,6 +152,7 @@ end
 -- Function to create `version.txt` file containing the compatible muOS version
 -- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
+	logger.debug("Creating version file: " .. tostring(paths.MUOS_VERSION_FILE))
 	local content = system.readFile(paths.MUOS_VERSION_FILE)
 	if not content then
 		return fail("muOS version file could not be read")

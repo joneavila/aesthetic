@@ -8,8 +8,6 @@ local Component = require("ui.component").Component
 local slider = require("ui.components.slider")
 local InputManager = require("ui.controllers.input_manager")
 
-local logger = require("utils.logger")
-
 local constants = require("ui.components.constants")
 
 -- List constants
@@ -387,7 +385,6 @@ end
 
 -- Override setFocused to remember/restore selection
 function List:setFocused(focused, direction)
-	logger.debug(string.format("focused: %s, direction: %s", focused, direction))
 	if focused then
 		if direction == "up" then
 			if #self.items > 0 then
@@ -405,7 +402,6 @@ function List:setFocused(focused, direction)
 		self._lastSelectedIndex = self.selectedIndex
 		self:setSelectedIndex(0) -- Remove highlight when not focused
 	end
-	logger.debug(string.format("setting focused to %s", focused))
 	Component.setFocused(self, focused)
 end
 

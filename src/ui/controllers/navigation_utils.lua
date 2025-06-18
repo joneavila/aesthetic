@@ -1,8 +1,6 @@
 --- Navigation Utilities
 --- Spatial navigation algorithms for UI focus management
 
-local logger = require("utils.logger")
-
 local NavigationUtils = {}
 
 local DIRECTIONS = {
@@ -78,7 +76,6 @@ function NavigationUtils.findBestCandidate(fromComponent, candidates, direction)
 	for _, candidate in ipairs(candidates) do
 		-- Special case: if direction is up and candidate is a list above fromComponent, prefer it
 		if direction == "up" and candidate.items and candidate.y + candidate.height <= fromComponent.y then
-			logger.debug("condition met")
 			return candidate
 		end
 		local score = calculateNavigationScore(fromComponent, candidate, direction)
@@ -87,7 +84,6 @@ function NavigationUtils.findBestCandidate(fromComponent, candidates, direction)
 			bestCandidate = candidate
 		end
 	end
-	logger.debug(string.format("bestCandidate: %s", bestCandidate))
 	return bestCandidate
 end
 

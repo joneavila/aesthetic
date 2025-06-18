@@ -54,6 +54,8 @@ function love.load()
 	state.screenHeight = tonumber(system.getEnvironmentVariable("HEIGHT"))
 	logger.info("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
 
+	state.isDevMode = system.getEnvironmentVariable("DEV") == "true"
+
 	fonts.initializeFonts(state.screenWidth, state.screenHeight)
 	input.load()
 	settings.loadFromFile()
