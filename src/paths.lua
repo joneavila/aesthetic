@@ -4,13 +4,22 @@ local logger = require("utils.logger")
 
 local paths = {}
 
+local isDev = system.getEnvironmentVariable("DEV") == "true"
+
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
 
 paths.THEME_PRESETS_DIR = system.getEnvironmentVariable("THEME_PRESETS_DIR")
+paths.SCHEME_TEMPLATE_DIR = system.getEnvironmentVariable("SCHEME_TEMPLATE_DIR")
 
 paths.MUOS_THEME_SCRIPT = "/opt/muos/script/package/theme.sh"
 paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
+
+if isDev then
+	paths.MUOS_THEMES_DIR = paths.ROOT_DIR .. "/run/muos/storage/theme"
+else
+	paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
+end
 
 paths.USERDATA_DIR = paths.ROOT_DIR .. "/userdata"
 paths.USERDATA_THEME_PRESETS_DIR = paths.USERDATA_DIR .. "/presets"
@@ -19,9 +28,7 @@ paths.USERDATA_SETTINGS_FILE = paths.USERDATA_DIR .. "/settings.lua"
 paths.WORKING_THEME_DIR = paths.ROOT_DIR .. "/theme_working"
 
 paths.ACTIVE_THEME_DIR = paths.MUOS_THEMES_DIR .. "/active"
-logger.debug("ACTIVE_THEME_DIR: " .. paths.ACTIVE_THEME_DIR)
 paths.ACTIVE_RGB_CONF = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh"
-logger.debug("ACTIVE_RGB_CONF: " .. paths.ACTIVE_RGB_CONF)
 paths.ACTIVE_RGB_CONF_BACKUP = paths.ACTIVE_THEME_DIR .. "/rgb/rgbconf.sh.bak"
 
 local LED_CONTROL_SCRIPT_PIXIE = "/opt/muos/device/current/script/led_control.sh"
@@ -29,8 +36,16 @@ local LED_CONTROL_SCRIPT_GOOSE = "/opt/muos/device/script/led_control.sh"
 paths.LED_CONTROL_SCRIPT = system.isFile(LED_CONTROL_SCRIPT_PIXIE) and LED_CONTROL_SCRIPT_PIXIE
 	or system.isFile(LED_CONTROL_SCRIPT_GOOSE) and LED_CONTROL_SCRIPT_GOOSE
 
-local MUOS_VERSION_FILE_PIXIE = "/opt/muos/config/version.txt"
-local MUOS_VERSION_FILE_GOOSE = "/opt/muos/config/system/version"
+local MUOS_VERSION_FILE_PIXIE, MUOS_VERSION_FILE_GOOSE
+
+if isDev then
+	MUOS_VERSION_FILE_PIXIE = paths.ROOT_DIR .. "/opt/muos/config/version.txt"
+	MUOS_VERSION_FILE_GOOSE = paths.ROOT_DIR .. "/opt/muos/config/system/version"
+else
+	MUOS_VERSION_FILE_PIXIE = "/opt/muos/config/version.txt"
+	MUOS_VERSION_FILE_GOOSE = "/opt/muos/config/system/version"
+end
+
 paths.MUOS_VERSION_FILE = system.isFile(MUOS_VERSION_FILE_PIXIE) and MUOS_VERSION_FILE_PIXIE
 	or system.isFile(MUOS_VERSION_FILE_GOOSE) and MUOS_VERSION_FILE_GOOSE
 
@@ -57,7 +72,6 @@ paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
-paths.SCHEME_TEMPLATE_DIR = paths.SOURCE_DIR .. "/scheme_templates"
 paths.THEME_SCHEME_SOURCE_DIR = paths.SCHEME_TEMPLATE_DIR .. "/scheme"
 
 paths.THEME_RGB_CONF = paths.WORKING_THEME_DIR .. "/rgb/rgbconf.sh"

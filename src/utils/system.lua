@@ -118,9 +118,10 @@ function system.createArchive(sourceDir, outputPath)
 		errorHandler.setError("Failed to get available filename")
 		return false
 	end
-	logger.debug(string.format("Using archive path '%s'", finalPath))
 	local zipFlags = "-qr0" -- quiet, recursive, no compression
+	system.ensurePath(finalPath)
 	local cmd = string.format('cd "%s" && zip %s "%s" . -x "*.DS_Store"', sourceDir, zipFlags, finalPath)
+	logger.debug("Creating archive using command: " .. cmd)
 	local result = commands.executeCommand(cmd)
 	if result ~= 0 then
 		errorHandler.setError("Archive creation failed: " .. tostring(result))

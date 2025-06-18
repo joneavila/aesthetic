@@ -339,14 +339,17 @@ function Modal:draw(screenWidth, screenHeight, font)
 			local startY = progressY + progressBoxPadding
 
 			local wrapWidth = progressBoxWidth - progressBoxPadding * 2
-			local currentY = startY
-			for i, historyMessage in ipairs(self.progressHistory) do
-				local wrappedLines = { consoleFont:getWrap(historyMessage, wrapWidth) }
-				local lines = wrappedLines[2]
-				for j, line in ipairs(lines) do
-					love.graphics.printf(line, progressBoxX + progressBoxPadding, currentY, wrapWidth, "left")
-					currentY = currentY + lineHeight
+			local allLines = {}
+			for _, historyMessage in ipairs(self.progressHistory) do
+				local _, lines = consoleFont:getWrap(historyMessage, wrapWidth)
+				for _, line in ipairs(lines) do
+					table.insert(allLines, line)
 				end
+			end
+			local currentY = startY
+			for _, line in ipairs(allLines) do
+				love.graphics.printf(line, progressBoxX + progressBoxPadding, currentY, wrapWidth, "left")
+				currentY = currentY + lineHeight
 			end
 			love.graphics.setFont(currentFont)
 		end

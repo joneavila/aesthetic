@@ -53,6 +53,7 @@ ROOT_DIR="$SOURCE_DIR/.dev"
 LOG_DIR="$ROOT_DIR/logs"
 TEMPLATE_DIR="$SOURCE_DIR/src/scheme_templates"
 THEME_PRESETS_DIR="$SOURCE_DIR/src/presets"
+SCHEME_TEMPLATE_DIR="$SOURCE_DIR/src/scheme_templates"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"
@@ -66,8 +67,6 @@ LOCAL_MUOS_STORAGE_DIR="$ROOT_DIR/run/muos/storage"
 LOCAL_MUOS_DEVICE_DIR="$ROOT_DIR/opt/muos/device"
 LOCAL_MUOS_CONFIG_DIR="$ROOT_DIR/opt/muos/config"
 
-MUOS_VERSION="2502.0"
-
 # Create directories for RGB config and other needed paths
 mkdir -p "$LOCAL_MUOS_STORAGE_DIR/theme/active/rgb"
 mkdir -p "$LOCAL_MUOS_DEVICE_DIR/current/script"
@@ -78,7 +77,7 @@ touch "$LOCAL_MUOS_DEVICE_DIR/current/script/led_control.sh"
 chmod +x "$LOCAL_MUOS_DEVICE_DIR/current/script/led_control.sh"
 
 # Create version.txt file for development
-echo "1.0.0-dev" >"$LOCAL_MUOS_CONFIG_DIR/version.txt"
+echo "2502.0_GOOSE" >"$LOCAL_MUOS_CONFIG_DIR/version.txt"
 
 # Export environment variables
 export SOURCE_DIR
@@ -88,10 +87,10 @@ export TEMPLATE_DIR
 export MUOS_DEVICE_SCRIPT_DIR_GOOSE="$LOCAL_MUOS_DEVICE_DIR/script"
 export WIDTH
 export HEIGHT
-export MUOS_VERSION
 export DEV=true
 export INIT_SCREEN
 export THEME_PRESETS_DIR
+export SCHEME_TEMPLATE_DIR
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then
