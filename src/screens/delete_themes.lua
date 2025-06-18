@@ -179,16 +179,87 @@ function delete_themes.update(dt)
 		return
 	end
 
-	local handled = themeList:handleInput(input)
+	-- Use navigation direction for list navigation
+	local navDir = InputManager.getNavigationDirection()
+	local handled = false
+	if navDir == "up" or navDir == "down" then
+		handled = themeList:handleInput(navDir, input)
+	else
+		handled = themeList:handleInput(nil, input)
+	end
+
 	themeList:update(dt)
 
 	if handled then
 		return
 	end
 
-	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
+	-- Only allow confirm/cancel/delete if not handled by list, and use justPressed
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL) then
 		screens.switchTo("settings")
-	elseif InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
+		local checkedCount = 0
+		local checkedItems = {}
+		for _, item in ipairs(themeItems) do
+			if item.checked then
+				checkedCount = checkedCount + 1
+				table.insert(checkedItems, item.text)
+			end
+		end
+
+		if checkedCount == 0 then
+			return
+		end
+
+		local message = string.format("Delete %d selected theme%s?", checkedCount, checkedCount > 1 and "s" or "")
+		modalInstance:show(message, {
+			{
+				text = "Cancel",
+				onSelect = function()
+					modalInstance:hide()
+				end,
+			},
+			{
+				text = "Delete",
+				onSelect = function()
+					local deleteSuccess = true
+					for _, themeName in ipairs(checkedItems) do
+						local fullPath = paths.MUOS_THEMES_DIR .. "/" .. themeName .. ".muxthm"
+						if not system.removeFile(fullPath) then
+							deleteSuccess = false
+						end
+					end
+					if deleteSuccess then
+						modalInstance:show("Themes deleted successfully", {
+							{
+								text = "Close",
+								onSelect = function()
+									modalInstance:hide()
+									scanThemes()
+									if themeList then
+										themeList:setItems(themeItems)
+									end
+								end,
+							},
+						})
+					else
+						modalInstance:show("Failed to delete some themes", {
+							{
+								text = "Close",
+								onSelect = function()
+									modalInstance:hide()
+									scanThemes()
+									if themeList then
+										themeList:setItems(themeItems)
+									end
+								end,
+							},
+						})
+					end
+				end,
+			},
+		})
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.CLEAR) then
 		local checkedCount = 0
 		local checkedItems = {}
 		for _, item in ipairs(themeItems) do
