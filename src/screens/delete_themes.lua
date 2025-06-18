@@ -83,12 +83,12 @@ function CheckboxItem:draw()
 	-- Draw checkbox
 	if self.checked then
 		if SQUARE_CHECK_ICON then
-			local iconColor = self.focused and { 1, 1, 1, 1 } or colors.ui.accent
+			local iconColor = colors.ui.foreground
 			svg.drawIcon(SQUARE_CHECK_ICON, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
 		end
 	else
 		if SQUARE then
-			local iconColor = self.focused and { 1, 1, 1, 1 } or { 0.7, 0.7, 0.7, 1 }
+			local iconColor = colors.ui.foreground
 			svg.drawIcon(SQUARE, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
 		end
 	end
