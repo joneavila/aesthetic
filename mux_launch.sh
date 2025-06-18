@@ -12,6 +12,7 @@ echo "app" >/tmp/act_go
 ROOT_DIR="/mnt/mmc/MUOS/application/Aesthetic"
 SOURCE_DIR="$ROOT_DIR/.aesthetic"
 USERDATA_DIR="$ROOT_DIR/userdata"
+THEME_PRESETS_DIR="$SOURCE_DIR/presets"
 
 LOG_DIR="$SOURCE_DIR/logs"
 SESSION_LOG_FILE="$LOG_DIR/$(date +%Y%m%d_%H%M%S).log"
@@ -30,6 +31,7 @@ export SOURCE_DIR
 export SDL_GAMECONTROLLERCONFIG_FILE="/usr/lib/gamecontrollerdb.txt"
 export SESSION_LOG_FILE
 export LD_LIBRARY_PATH="$LIB_DIR:$TOVE_DIR:$LD_LIBRARY_PATH"
+export THEME_PRESETS_DIR
 
 # Launch application
 cd "$SOURCE_DIR" || exit

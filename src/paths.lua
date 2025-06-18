@@ -6,7 +6,8 @@ local paths = {}
 
 paths.SOURCE_DIR = system.getEnvironmentVariable("SOURCE_DIR")
 paths.ROOT_DIR = system.getEnvironmentVariable("ROOT_DIR")
-logger.debug("ROOT_DIR: " .. paths.ROOT_DIR)
+
+paths.THEME_PRESETS_DIR = system.getEnvironmentVariable("THEME_PRESETS_DIR")
 
 paths.MUOS_THEME_SCRIPT = "/opt/muos/script/package/theme.sh"
 paths.MUOS_THEMES_DIR = "/run/muos/storage/theme"
@@ -56,9 +57,7 @@ paths.THEME_SCHEME_MUXCOLLECT = paths.THEME_SCHEME_DIR .. "/muxcollect.ini"
 paths.THEME_FONT_DIR = paths.WORKING_THEME_DIR .. "/font"
 paths.THEME_DEFAULT_FONT = paths.THEME_FONT_DIR .. "/default.bin"
 
--- TODO: This path should be "/src/scheme_templates" in development mode, but might need omitting the "src" in production mode.
 paths.SCHEME_TEMPLATE_DIR = paths.SOURCE_DIR .. "/scheme_templates"
-
 paths.THEME_SCHEME_SOURCE_DIR = paths.SCHEME_TEMPLATE_DIR .. "/scheme"
 
 paths.THEME_RGB_CONF = paths.WORKING_THEME_DIR .. "/rgb/rgbconf.sh"
@@ -78,8 +77,6 @@ paths.THEME_CHARGE_IMAGE = paths.THEME_IMAGE_DIR .. "/wall/muxcharge.png"
 paths.THEME_CHARGE_ICON_SOURCE = "assets/icons/lucide/ui/zap.svg"
 paths.THEME_GRID_MUXLAUNCH = paths.THEME_IMAGE_DIR .. "/grid/muxlaunch"
 paths.THEME_GRID_MUXLAUNCH_1024x768 = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
-
-paths.THEME_PRESETS_DIR = paths.SOURCE_DIR .. "/presets"
 
 paths.UI_KOFI_QR_CODE_IMAGE = "assets/images/kofi_qrcode.png"
 paths.UI_HOME_SCREEN_LAYOUT_GRID_IMAGE = "assets/images/home_screen_layout/grid.png"

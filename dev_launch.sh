@@ -52,6 +52,7 @@ SOURCE_DIR="$(pwd)"
 ROOT_DIR="$SOURCE_DIR/.dev"
 LOG_DIR="$ROOT_DIR/logs"
 TEMPLATE_DIR="$SOURCE_DIR/src/scheme_templates"
+THEME_PRESETS_DIR="$SOURCE_DIR/src/presets"
 
 # Make sure the development directories exist
 mkdir -p "$LOG_DIR"
@@ -90,6 +91,7 @@ export HEIGHT
 export MUOS_VERSION
 export DEV=true
 export INIT_SCREEN
+export THEME_PRESETS_DIR
 
 # Set LD_LIBRARY_PATH based on OS
 if [ "$OS" = "Darwin" ]; then
