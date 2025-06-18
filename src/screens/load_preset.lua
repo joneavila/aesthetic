@@ -94,10 +94,8 @@ local function loadPresetsList()
 end
 
 function loadPreset.draw()
-	-- Set background
 	background.draw()
-
-	-- Reset font to the regular body font after header drawing
+	headerInstance:draw()
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Draw message if no presets found
