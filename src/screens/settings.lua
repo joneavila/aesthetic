@@ -368,7 +368,7 @@ function settings.onEnter(params)
 
 		if success then
 			-- Show success modal
-			modalInstance:show("Theme preset saved successfully", {
+			modalInstance:show("Theme preset saved successfully!", {
 				{
 					text = "Close",
 					onSelect = function()
