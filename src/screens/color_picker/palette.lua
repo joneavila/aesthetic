@@ -210,7 +210,7 @@ function palette.draw()
 					-- Draw border
 					love.graphics.setColor(colors.ui.foreground)
 					if row == currentState.selectedRow and col == currentState.selectedCol then
-						love.graphics.setLineWidth(3)
+						love.graphics.setLineWidth(shared.OUTLINE_WIDTH_FOCUS)
 					else
 						love.graphics.setLineWidth(1)
 					end

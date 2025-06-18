@@ -244,7 +244,7 @@ function hsv.draw()
 		colors.ui.foreground[3],
 		currentState.focusSquare and OPACITY_UNFOCUSED or 1
 	)
-	love.graphics.setLineWidth(1)
+	love.graphics.setLineWidth(not currentState.focusSquare and shared.OUTLINE_WIDTH_FOCUS or 1)
 
 	love.graphics.rectangle("line", hueX, svY, HUE_SLIDER_WIDTH, pickerState.squareSize, CURSOR.CORNER_RADIUS)
 
@@ -300,7 +300,7 @@ function hsv.draw()
 
 	-- Draw SV square outline
 	love.graphics.setColor(1, 1, 1, currentState.focusSquare and 1 or OPACITY_UNFOCUSED)
-	love.graphics.setLineWidth(1)
+	love.graphics.setLineWidth(currentState.focusSquare and shared.OUTLINE_WIDTH_FOCUS or 1)
 
 	love.graphics.rectangle("line", svX, svY, pickerState.squareSize, pickerState.squareSize, CURSOR.CORNER_RADIUS)
 

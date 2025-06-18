@@ -9,6 +9,7 @@ local TabBar = require("ui.components.tab_bar")
 local shared = {}
 
 shared.PADDING = 16
+shared.OUTLINE_WIDTH_FOCUS = 3
 
 function shared.calculateContentArea()
 	local state = require("state")
