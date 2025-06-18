@@ -370,7 +370,7 @@ local function handleThemeCreation()
 
 		if isSuccess and type(pathOrError) == "string" then
 			createdThemePath = pathOrError
-			modal:show("Created theme successfully.", {
+			modal:show("Created theme successfully!", {
 				{ text = "Apply theme later", selected = false },
 				{ text = "Apply theme now", selected = true },
 			})
@@ -448,7 +448,7 @@ local function handleThemeInstallation()
 		state.themeApplied = true
 
 		modal:show(
-			result and "Applied theme successfully."
+			result and "Applied theme successfully!"
 				or ("Failed to apply theme: " .. (errorHandler.getError() or "Unknown error")),
 			{ { text = "Close", selected = true } }
 		)
