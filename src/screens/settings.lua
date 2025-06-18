@@ -182,9 +182,15 @@ end
 
 function settings.update(dt)
 	if modalInstance and modalInstance:isVisible() then
-		if modalInstance:handleInput(input) then
-			modalInstance:update(dt)
-			return
+		-- Only handle input if confirm/cancel was just pressed
+		if
+			InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM)
+			or InputManager.isActionJustPressed(InputManager.ACTIONS.CANCEL)
+		then
+			if modalInstance:handleInput(input) then
+				modalInstance:update(dt)
+				return
+			end
 		end
 		modalInstance:update(dt)
 		return

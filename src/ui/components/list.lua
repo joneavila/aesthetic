@@ -255,7 +255,7 @@ function List:handleInput(direction, input)
 	end
 
 	-- Handle item selection
-	if InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
 		if selectedItem and self.onItemSelect then
 			self.onItemSelect(selectedItem, self.selectedIndex)
 			handled = true
