@@ -337,9 +337,16 @@ function Modal:draw(screenWidth, screenHeight, font)
 			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 			local lineHeight = consoleFont:getHeight()
 			local startY = progressY + progressBoxPadding
+
+			local wrapWidth = progressBoxWidth - progressBoxPadding * 2
+			local currentY = startY
 			for i, historyMessage in ipairs(self.progressHistory) do
-				local messageY = startY + (i - 1) * lineHeight
-				love.graphics.print(historyMessage, progressBoxX + progressBoxPadding, messageY)
+				local wrappedLines = { consoleFont:getWrap(historyMessage, wrapWidth) }
+				local lines = wrappedLines[2]
+				for j, line in ipairs(lines) do
+					love.graphics.printf(line, progressBoxX + progressBoxPadding, currentY, wrapWidth, "left")
+					currentY = currentY + lineHeight
+				end
 			end
 			love.graphics.setFont(currentFont)
 		end
