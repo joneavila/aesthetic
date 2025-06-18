@@ -27,6 +27,9 @@ local typeButton, colorButton, colorStartButton, colorStopButton, directionButto
 -- Gradient preview instance
 local gradientPreviewInstance = GradientPreview:new({})
 
+-- Store the current list position when exiting
+local lastFocusState = { selectedIndex = 1 }
+
 -- Function to update gradient preview mesh
 local function updateGradientPreview()
 	if state.backgroundType == "Gradient" then
@@ -192,8 +195,17 @@ function backgroundColor.onEnter()
 			end
 		end,
 	})
+	-- Restore last selected index
+	local validIndex = math.min(math.max(lastFocusState.selectedIndex or 1, 1), #menuList.items)
+	menuList:setSelectedIndex(validIndex)
 	if not controlHintsInstance then
 		controlHintsInstance = controls:new({})
+	end
+end
+
+function backgroundColor.onExit()
+	if menuList then
+		lastFocusState.selectedIndex = menuList.selectedIndex or 1
 	end
 end
 
