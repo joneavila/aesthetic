@@ -32,6 +32,11 @@ local ANIMATION = {
 	DURATION = 0.15,
 }
 
+-- Pulse animation config (mirroring button.lua)
+local PULSE_SCALE_MIN = ANIMATION.SCALE -- Start pulse at the end of the initial animation
+local PULSE_SCALE_MAX = ANIMATION.SCALE + 0.07 -- Pulse to a larger scale
+local PULSE_DURATION = 1.1
+
 -- Helper function to get current palette state from central state manager
 local function getCurrentPaletteState()
 	local colorType = state.activeColorContext
@@ -119,6 +124,10 @@ local paletteState = {
 	squareSize = 0,
 	currentScale = 1,
 	scaleTween = nil,
+	-- Pulse animation state
+	pulseScale = 1.0,
+	pulseTween = nil,
+	pulseDirection = 1, -- 1: up, -1: down
 	offsetX = 0,
 	offsetY = 0,
 	visibleRows = 0,
@@ -180,7 +189,11 @@ function palette.draw()
 					local scale = 1
 					local offset = 0
 					if row == currentState.selectedRow and col == currentState.selectedCol then
-						scale = paletteState.currentScale
+						if paletteState.pulseTween then
+							scale = paletteState.pulseScale
+						else
+							scale = paletteState.currentScale
+						end
 						offset = (paletteState.squareSize * (scale - 1)) / 2
 					end
 					local colorTable = paletteState.paletteColors[colorIndex]
@@ -197,7 +210,7 @@ function palette.draw()
 					-- Draw border
 					love.graphics.setColor(colors.ui.foreground)
 					if row == currentState.selectedRow and col == currentState.selectedCol then
-						love.graphics.setLineWidth(1)
+						love.graphics.setLineWidth(3)
 					else
 						love.graphics.setLineWidth(1)
 					end
@@ -227,11 +240,26 @@ function palette.draw()
 end
 
 function palette.update(dt)
-	-- Update tween if it exists
+	-- Update scale tween if it exists
 	if paletteState.scaleTween then
 		local complete = paletteState.scaleTween:update(dt)
 		if complete then
 			paletteState.scaleTween = nil
+			-- Start pulse tween after scale up
+			paletteState.pulseScale = PULSE_SCALE_MIN
+			paletteState.pulseDirection = 1
+			paletteState.pulseTween =
+				tween.new(PULSE_DURATION / 2, paletteState, { pulseScale = PULSE_SCALE_MAX }, "inOutSine")
+		end
+	end
+	-- Update pulse tween if it exists
+	if paletteState.pulseTween then
+		local complete = paletteState.pulseTween:update(dt)
+		if complete then
+			-- Reverse direction for continuous pulse
+			paletteState.pulseDirection = -paletteState.pulseDirection
+			local toScale = (paletteState.pulseDirection == 1) and PULSE_SCALE_MAX or PULSE_SCALE_MIN
+			paletteState.pulseTween = tween.new(PULSE_DURATION / 2, paletteState, { pulseScale = toScale }, "inOutSine")
 		end
 	end
 
@@ -269,8 +297,14 @@ function palette.update(dt)
 			currentState.selectedRow = newRow
 			currentState.selectedCol = newCol
 
-			-- Start new hover animation
+			-- Immediately reset all animation state for snappy focus change
 			paletteState.currentScale = 1
+			paletteState.scaleTween = nil
+			paletteState.pulseTween = nil
+			paletteState.pulseScale = ANIMATION.SCALE
+			paletteState.pulseDirection = 1
+
+			-- Start new hover animation
 			paletteState.scaleTween = tween.new(ANIMATION.DURATION, paletteState, {
 				currentScale = ANIMATION.SCALE,
 			}, "outQuad")
