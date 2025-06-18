@@ -131,14 +131,14 @@ function homeScreenLayout.draw()
 
 		-- Only draw if there's enough space
 		if availableHeight > 50 then -- Minimum reasonable height
-			local cornerRadius = 20
+			-- local cornerRadius = 20
 			local imgComponent = Image:new({
 				image = img,
 				x = imageX,
 				y = imageY,
 				width = imageWidth,
 				height = imageHeight,
-				cornerRadius = cornerRadius,
+				-- cornerRadius = cornerRadius,
 				haloParams = {
 					enabled = true,
 					scaleFactor = 1.05,
@@ -173,9 +173,9 @@ function homeScreenLayout.update(dt)
 	end
 
 	-- Update components
-	-- if menuList then
-	-- 	menuList:update(dt)
-	-- end
+	if menuList then
+		menuList:update(dt)
+	end
 end
 
 function homeScreenLayout.onExit() end
