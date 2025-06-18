@@ -556,7 +556,6 @@ function menu.onEnter(data)
 					focusManager:clearFocus()
 				end
 			elseif button and button.text == "Exit" then
-				love.event.quit()
 				modal:hide()
 				focusManager:setFocused(actionButton)
 			else

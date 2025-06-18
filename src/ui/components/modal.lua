@@ -12,6 +12,8 @@ Modal.__index = Modal
 
 -- Configurable button horizontal padding (space between modal edge and button)
 local BUTTON_HORIZONTAL_PADDING = 32
+-- Configurable space outside single button in single-button modals
+local SINGLE_BUTTON_SIDE_SPACE = 16
 
 function Modal:new(config)
 	local instance = Component.new(self, config or {})
@@ -191,13 +193,13 @@ function Modal:handleInput(input)
 	end
 
 	-- Button navigation for modals with buttons
-	if InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
 		self:moveFocus(-1)
 		return true
-	elseif InputManager.isActionPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
 		self:moveFocus(1)
 		return true
-	elseif InputManager.isActionPressed(InputManager.ACTIONS.CONFIRM) then
+	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
 		local selectedOption = self.buttons[self.selectedIndex]
 		if selectedOption and selectedOption.onSelect then
 			selectedOption.onSelect()
@@ -234,44 +236,6 @@ function Modal:scroll(amount, maxScrollPosition)
 	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition or 0))
 end
 
--- Draw custom scrollbar for scrollable content
-function Modal:drawScrollbar(x, y, height, contentHeight, scrollPosition, maxScrollPosition, opacity)
-	local barWidth = constants.SCROLLBAR.WIDTH
-	local handleMinHeight = constants.SCROLLBAR.HANDLE_MIN_HEIGHT
-	local cornerRadius = constants.SCROLLBAR.CORNER_RADIUS
-	local handleColor = constants.SCROLLBAR.HANDLE_COLOR
-	local backgroundColor = constants.SCROLLBAR.BACKGROUND_COLOR
-
-	-- Draw scrollbar track
-	love.graphics.setColor(
-		backgroundColor[1],
-		backgroundColor[2],
-		backgroundColor[3],
-		backgroundColor[4] * (opacity or 1)
-	)
-	love.graphics.rectangle("fill", x, y, barWidth, height, cornerRadius)
-
-	-- Calculate handle size and position
-	local handleHeight = math.max((height / contentHeight) * height, handleMinHeight)
-	local maxHandleTravel = height - handleHeight
-	local handleY = y
-	if maxScrollPosition > 0 then
-		handleY = y + math.min((scrollPosition / maxScrollPosition) * maxHandleTravel, maxHandleTravel)
-	end
-
-	-- Clamp handleY to not exceed the track
-	if handleY < y then
-		handleY = y
-	end
-	if handleY + handleHeight > y + height then
-		handleY = y + height - handleHeight
-	end
-
-	-- Draw handle
-	love.graphics.setColor(handleColor[1], handleColor[2], handleColor[3], (handleColor[4] or 1) * (opacity or 1))
-	love.graphics.rectangle("fill", x, handleY, barWidth, handleHeight, cornerRadius)
-end
-
 function Modal:draw(screenWidth, screenHeight, font)
 	if not self.visible then
 		return
@@ -282,8 +246,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 	local controlsHeight = controls.calculateHeight()
 	local padding = 40
 	local maxWidth = screenWidth * 0.9
-	local scrollbarWidth = constants.SCROLLBAR.WIDTH
-	local scrollbarGap = 4
 
 	-- Use error font for error/failure messages
 	local useErrorFont = false
@@ -303,7 +265,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 
 	-- Calculate dimensions for main message
 	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
-	self._lastTextWidth = estimatedTextWidth - scrollbarWidth - scrollbarGap
+	self._lastTextWidth = estimatedTextWidth
 	local _, mainMessageLines = currentFont:getWrap(self.message, self._lastTextWidth)
 	local mainMessageHeight = #mainMessageLines * currentFont:getHeight()
 
@@ -380,13 +342,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
 
-	-- Calculate scrollable area and scrollbar position
-	local textAreaWidth = availableTextWidth - scrollbarWidth - scrollbarGap
-	local textAreaX = x + padding
-	local textAreaY = y + padding
-	local scrollbarX = textAreaX + textAreaWidth + scrollbarGap
-	local scrollbarY = textAreaY
-
 	-- Use new scrollable logic
 	local isScrollable, maxScrollPosition, actualContentHeight = self:isContentScrollable(visibleHeight)
 	if self.scrollPosition > maxScrollPosition then
@@ -395,23 +350,14 @@ function Modal:draw(screenWidth, screenHeight, font)
 
 	if isScrollable then
 		-- Draw scrollable content with custom logic
-
+		local textAreaX = x + padding
+		local textAreaY = y + padding
+		local textAreaWidth = availableTextWidth
 		love.graphics.setScissor(textAreaX, textAreaY, textAreaWidth, visibleHeight)
 		love.graphics.translate(0, -self.scrollPosition)
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, textAreaX, textAreaY, textAreaWidth, "left")
 		love.graphics.setScissor()
-
-		-- Draw custom scrollbar flush to the right of the text
-		self:drawScrollbar(
-			scrollbarX,
-			scrollbarY,
-			visibleHeight,
-			actualContentHeight,
-			self.scrollPosition,
-			maxScrollPosition,
-			1
-		)
 	else
 		local textY = y + padding
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
@@ -461,16 +407,31 @@ function Modal:draw(screenWidth, screenHeight, font)
 		local buttonY = startButtonY + ((i - 1) * (buttonHeight + buttonSpacing))
 		local isSelected = (i == self.selectedIndex)
 		button.selected = isSelected
+		-- Center single button (like 'Exit') horizontally using the full screen width
+		local thisButtonX = buttonX
+		local thisButtonWidth = buttonWidth
+		local actualScreenWidth = screenWidth
+		if #self.buttons == 1 then
+			-- Use the actual screen width for centering, and add side space
+			actualScreenWidth = love.graphics.getWidth()
+			thisButtonWidth = actualScreenWidth - (SINGLE_BUTTON_SIDE_SPACE * 2)
+			if thisButtonWidth > buttonWidth then
+				thisButtonWidth = buttonWidth
+			end
+			thisButtonX = SINGLE_BUTTON_SIDE_SPACE
+				+ math.floor((actualScreenWidth - 2 * SINGLE_BUTTON_SIDE_SPACE - thisButtonWidth) / 2)
+		end
 		if button.type == "accented" then
 			-- Use Button:drawAccented for accented buttons
 			local tempButton = Button:new({
 				text = button.text,
 				type = "accented",
-				screenWidth = buttonWidth,
+				screenWidth = actualScreenWidth,
 				height = buttonHeight,
 			})
 			tempButton.y = buttonY
-			tempButton.x = buttonX
+			tempButton.x = thisButtonX
+			tempButton.width = thisButtonWidth
 			tempButton.focused = isSelected
 			tempButton:drawAccented()
 		else
@@ -479,16 +440,16 @@ function Modal:draw(screenWidth, screenHeight, font)
 			else
 				love.graphics.setColor(colors.ui.background[1], colors.ui.background[2], colors.ui.background[3], 1)
 			end
-			love.graphics.rectangle("fill", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+			love.graphics.rectangle("fill", thisButtonX, buttonY, thisButtonWidth, buttonHeight, 5)
 			love.graphics.setLineWidth(isSelected and 4 or 2)
 			love.graphics.setColor(colors.ui.surface[1], colors.ui.surface[2], colors.ui.surface[3], 1)
-			love.graphics.rectangle("line", buttonX, buttonY, buttonWidth, buttonHeight, 5)
+			love.graphics.rectangle("line", thisButtonX, buttonY, thisButtonWidth, buttonHeight, 5)
 			love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 			love.graphics.printf(
 				button.text,
-				buttonX,
+				thisButtonX,
 				buttonY + (buttonHeight - currentFont:getHeight()) / 2,
-				buttonWidth,
+				thisButtonWidth,
 				"center"
 			)
 		end
