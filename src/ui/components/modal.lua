@@ -31,6 +31,7 @@ function Modal:new(config)
 	instance.isProgressModal = false
 	instance.useFixedWidth = false
 	instance.fixedWidth = 0
+	instance.animationTime = 0
 	return instance
 end
 

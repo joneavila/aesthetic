@@ -308,12 +308,12 @@ local function createMenuButtons()
 	return buttons
 end
 
--- Create the action button (Create Theme)
+-- Create the action button
 local function createActionButton()
 	local width = math.floor(state.screenWidth * ACTION_BUTTON_WIDTH_RATIO)
 	local x = math.floor((state.screenWidth - width) / 2)
 	return Button:new({
-		text = "Create Theme",
+		text = "Build Theme",
 		type = ButtonTypes.ACCENTED,
 		x = x,
 		width = width,
@@ -346,7 +346,7 @@ local function handleThemeCreation()
 		activeCoroutine = themeCreator.createThemeCoroutine()
 
 		-- Show initial modal with main message and set fixed size
-		modal:show("Creating Theme")
+		modal:show("Building Theme")
 		focusManager:clearFocus()
 		if getFixedModalWidth() > 0 then
 			modal:setFixedWidth(getFixedModalWidth())
@@ -361,7 +361,7 @@ local function handleThemeCreation()
 		activeCoroutine = nil
 		waitingState = "none"
 		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
-		local modalText = "Error creating theme: " .. errorMessage
+		local modalText = "Error building theme: " .. errorMessage
 		modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 		modal.onButtonPress = menu._modalButtonHandler
 		focusManager:clearFocus()
@@ -375,16 +375,16 @@ local function handleThemeCreation()
 
 		if isSuccess and type(pathOrError) == "string" then
 			createdThemePath = pathOrError
-			modal:show("Created theme successfully!", {
-				{ text = "Apply theme later", selected = false },
-				{ text = "Apply theme now", selected = true },
+			modal:show("Built theme successfully!", {
+				{ text = "Activate Now", selected = true },
+				{ text = "Keep Editing", selected = false },
 			})
 			modal.onButtonPress = menu._modalButtonHandler
 			focusManager:clearFocus()
 		else
 			-- Failure
 			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
-			local modalText = "Error creating theme: " .. errorMessage
+			local modalText = "Error building theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 			modal.onButtonPress = menu._modalButtonHandler
 			focusManager:clearFocus()
@@ -420,7 +420,7 @@ local function handleThemeInstallation()
 		activeCoroutine = themeCreator.installThemeCoroutine(filename_only)
 		logger.debug("Started installThemeCoroutine for " .. tostring(filename_only))
 		-- Show initial modal with main message and set fixed size
-		modal:show("Applying Theme")
+		modal:show("Activating Theme")
 		focusManager:clearFocus()
 		if getFixedModalWidth() > 0 then
 			modal:setFixedWidth(getFixedModalWidth())
@@ -453,7 +453,7 @@ local function handleThemeInstallation()
 		state.themeApplied = true
 
 		modal:show(
-			result and "Applied theme successfully!"
+			result and "Activated theme successfully!"
 				or ("Failed to apply theme: " .. (errorHandler.getError() or "Unknown error")),
 			{ { text = "Close", selected = true } }
 		)
@@ -571,11 +571,9 @@ function menu.onEnter(data)
 	-- Create modal component
 	local function modalButtonHandler(button)
 		if button and button.text == "Apply theme later" then
-			logger.debug("Modal: Apply theme later pressed")
 			modal:hide()
 			focusManager:setFocused(actionButton)
-		elseif button and button.text == "Apply theme now" then
-			logger.debug("Modal: Apply theme now pressed, createdThemePath=" .. tostring(createdThemePath))
+		elseif button and button.text == "Activate Now" then
 			if state.isDevMode then
 				modal:show("You can't install a theme in dev mode!", { { text = "Close", selected = true } })
 				modal.onButtonPress = modalButtonHandler
@@ -585,7 +583,7 @@ function menu.onEnter(data)
 			if type(createdThemePath) == "string" and createdThemePath ~= "" then
 				waitingThemePath = createdThemePath
 				logger.debug("Set waitingThemePath=" .. tostring(waitingThemePath))
-				modal:show("Applying theme...")
+				modal:show("Activating theme...")
 				modal.onButtonPress = modalButtonHandler
 				focusManager:clearFocus()
 				waitingState = "install_theme"
