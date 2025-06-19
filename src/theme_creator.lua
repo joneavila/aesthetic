@@ -312,7 +312,7 @@ function themeCreator.createThemeCoroutine()
 				return false, copyMuxlaunchGridError or "Failed to copy muxlaunch grid icons."
 			end
 
-			coroutine.yield("Copying 1024x768 home screen grid layout icons...")
+			coroutine.yield("Copying home screen grid layout icons (1024x768)...")
 			local muxlaunchGrid1024Source = paths.SOURCE_DIR .. "/assets/1024x768/image/grid/muxlaunch"
 			local muxlaunchGrid1024Dest = paths.WORKING_THEME_DIR .. "/1024x768/image/grid/muxlaunch"
 
