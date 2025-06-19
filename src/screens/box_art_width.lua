@@ -69,9 +69,15 @@ local function generateWidthOptions()
 	local halfWidth = state.screenWidth / 2
 	local roundedHalfWidth = math.floor(halfWidth / 20) * 20
 
-	-- Add options from 220 to rounded half width in steps of 20
+	-- Collect numeric options in a temporary table
+	local numericOptions = {}
 	for width = 220, roundedHalfWidth, 20 do
-		table.insert(BOX_ART_WIDTH_OPTIONS, width)
+		table.insert(numericOptions, width)
+	end
+
+	-- Reverse the numeric options
+	for i = #numericOptions, 1, -1 do
+		table.insert(BOX_ART_WIDTH_OPTIONS, numericOptions[i])
 	end
 end
 
