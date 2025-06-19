@@ -151,7 +151,14 @@ function hsv.draw()
 	local previewsY = pickerState.startY
 
 	love.graphics.setColor(r, g, b, 1)
-	love.graphics.rectangle("fill", pickerState.previewX, previewsY, pickerState.previewWidth, PREVIEW_HEIGHT)
+	love.graphics.rectangle(
+		"fill",
+		pickerState.previewX,
+		previewsY,
+		pickerState.previewWidth,
+		PREVIEW_HEIGHT,
+		CURSOR.CORNER_RADIUS
+	)
 
 	-- Draw current color border using Relative Luminance Border Algorithm
 	local borderR, borderG, borderB = colorUtils.calculateContrastingColor(r, g, b)
@@ -419,28 +426,31 @@ function hsv.update(dt)
 		end
 	end
 
+	-- --- HELD DPAD SUPPORT START ---
+	local navDir = InputManager.getNavigationDirection()
+
 	if currentState.focusSquare then
 		-- Handle SV square navigation
 		local step = 0.03
 		local newSat, newVal = currentState.sat, currentState.val
 
-		-- D-pad controls
-		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
+		-- Held D-pad controls
+		if navDir == "left" then
 			newSat = math.max(0, newSat - step)
 			moved = true
-		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_RIGHT) then
+		elseif navDir == "right" then
 			newSat = math.min(1, newSat + step)
 			moved = true
 		end
-		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+		if navDir == "up" then
 			newVal = math.min(1, newVal + step)
 			moved = true
-		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+		elseif navDir == "down" then
 			newVal = math.max(0, newVal - step)
 			moved = true
 		end
 
-		-- Left joystick controls
+		-- Joystick controls (unchanged)
 		if leftX ~= 0 then
 			newSat = math.max(0, math.min(1, newSat + leftX * step))
 			moved = true
@@ -468,14 +478,11 @@ function hsv.update(dt)
 		local newHue = currentState.hue
 		local hueChanged = false
 
-		-- D-pad UP: move cursor up on slider (increase hue value)
-		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+		-- Held D-pad UP/DOWN for hue
+		if navDir == "up" then
 			newHue = (newHue + step) % 360
 			hueChanged = true
-		end
-
-		-- D-pad DOWN: move cursor down on slider (decrease hue value)
-		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+		elseif navDir == "down" then
 			newHue = (newHue - step) % 360
 			hueChanged = true
 		end
@@ -504,7 +511,7 @@ function hsv.update(dt)
 			}, "outQuad")
 		end
 
-		-- Left joystick Y-axis controls for hue
+		-- Joystick Y-axis controls for hue (unchanged)
 		if leftY ~= 0 then
 			newHue = (newHue - leftY * step) % 360
 
@@ -531,6 +538,7 @@ function hsv.update(dt)
 			}, "outQuad")
 		end
 	end
+	-- --- HELD DPAD SUPPORT END ---
 
 	-- Handle selection
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
