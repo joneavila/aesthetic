@@ -6,6 +6,7 @@ local Component = require("ui.component").Component
 local InputManager = require("ui.controllers.input_manager")
 local constants = require("ui.components.constants")
 local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 local FocusManager = require("ui.controllers.focus_manager")
 
 local Modal = setmetatable({}, { __index = Component })
@@ -43,7 +44,7 @@ function Modal:show(message, buttons, options)
 			local btn = Button:new({
 				text = btnConfig.text,
 				onClick = btnConfig.onSelect,
-				type = btnConfig.type or "basic",
+				type = ButtonTypes.ACCENTED, -- Always use ACCENTED type
 				fullWidth = true,
 			})
 			table.insert(self.buttons, btn)
@@ -135,6 +136,12 @@ end
 function Modal:update(dt)
 	if self.showAnimation then
 		self.animationTime = self.animationTime + dt
+	end
+	-- Update all buttons (for animation, etc.)
+	for _, button in ipairs(self.buttons) do
+		if button.update then
+			button:update(dt)
+		end
 	end
 end
 
@@ -378,8 +385,9 @@ function Modal:draw(screenWidth, screenHeight, font)
 		return
 	end
 
-	local buttonWidth = modalWidth - (BUTTON_HORIZONTAL_PADDING * 2)
-	local buttonX = x + BUTTON_HORIZONTAL_PADDING
+	local buttonInset = 40 -- Space between button and modal edge
+	local buttonWidth = modalWidth - (buttonInset * 2)
+	local buttonX = x + buttonInset
 	local startButtonY
 	if isScrollable then
 		startButtonY = y + padding + visibleHeight + padding

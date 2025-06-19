@@ -39,6 +39,7 @@ local CONTROLS_HEIGHT = controls.calculateHeight()
 local ACTION_BUTTON_HEIGHT = 50
 local ACTION_BUTTON_SPACING = 8
 local TOTAL_BOTTOM_AREA_HEIGHT = CONTROLS_HEIGHT + ACTION_BUTTON_HEIGHT + ACTION_BUTTON_SPACING
+local ACTION_BUTTON_WIDTH_RATIO = 0.9
 
 -- IO operation states
 local waitingState = "none"
@@ -309,11 +310,15 @@ end
 
 -- Create the action button (Create Theme)
 local function createActionButton()
+	local width = math.floor(state.screenWidth * ACTION_BUTTON_WIDTH_RATIO)
+	local x = math.floor((state.screenWidth - width) / 2)
 	return Button:new({
 		text = "Create Theme",
 		type = ButtonTypes.ACCENTED,
-		screenWidth = state.screenWidth,
+		x = x,
+		width = width,
 		height = ACTION_BUTTON_HEIGHT,
+		screenWidth = state.screenWidth,
 		onClick = function()
 			waitingState = "show_create_modal"
 		end,
@@ -609,8 +614,6 @@ function menu.onEnter(data)
 
 	-- Create UI components with current state
 	local buttons = createMenuButtons()
-	actionButton = createActionButton()
-
 	menuList = List:new({
 		x = 0,
 		y = headerInstance:getContentStartY(),
@@ -625,6 +628,16 @@ function menu.onEnter(data)
 		onItemOptionCycle = handleOptionCycle,
 		wrap = false,
 	})
+
+	-- Calculate action button width and x based on list's content area
+	local listContentX = menuList.x + menuList.paddingX
+	local listContentWidth = menuList.width - menuList.paddingX * 2
+	local actionButtonWidth = math.floor(listContentWidth * ACTION_BUTTON_WIDTH_RATIO)
+	local actionButtonX = listContentX + math.floor((listContentWidth - actionButtonWidth) / 2)
+
+	actionButton = createActionButton()
+	actionButton.x = actionButtonX
+	actionButton.width = actionButtonWidth
 
 	-- Focus manager setup
 	focusManager = FocusManager:new()
@@ -655,8 +668,6 @@ function menu.onEnter(data)
 
 	-- Action button position
 	actionButton.y = state.screenHeight - CONTROLS_HEIGHT - ACTION_BUTTON_HEIGHT - ACTION_BUTTON_SPACING
-	actionButton.x = 0
-	actionButton.width = state.screenWidth
 
 	-- Header position
 	headerInstance.x = 0
