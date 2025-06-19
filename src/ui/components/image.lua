@@ -63,7 +63,6 @@ end
 
 --- Draws an image with rounded corners and outline
 function Image:drawWithOutline()
-	logger.debug("drawWithOutline called")
 	local x, y, width, height = self.x, self.y, self.width, self.height
 	local cornerRadius = self.cornerRadius or DEFAULT_CORNER_RADIUS
 	local image = self.image
