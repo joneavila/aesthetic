@@ -470,7 +470,7 @@ function hsv.update(dt)
 			pickerState.tweens.svCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 				svX = targetX,
 				svY = targetY,
-			}, "outQuad")
+			}, "linear")
 		end
 	else
 		-- Handle Hue slider navigation
@@ -508,7 +508,7 @@ function hsv.update(dt)
 			-- Create new tween for hue cursor
 			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 				hueY = baseY,
-			}, "outQuad")
+			}, "linear")
 		end
 
 		-- Joystick Y-axis controls for hue (unchanged)
@@ -535,7 +535,7 @@ function hsv.update(dt)
 			-- Create new tween for hue cursor
 			pickerState.tweens.hueCursor = tween.new(CURSOR.TWEEN_DURATION, currentState.cursor, {
 				hueY = baseY,
-			}, "outQuad")
+			}, "linear")
 		end
 	end
 	-- --- HELD DPAD SUPPORT END ---
