@@ -4,17 +4,17 @@ local love = require("love")
 local controls = require("control_hints").ControlHints
 local screens = require("screens")
 local state = require("state")
-local otaUpdate = require("utils.ota_update")
-local presets = require("utils.presets")
 
 local background = require("ui.background")
 local Button = require("ui.components.button").Button
 local fonts = require("ui.fonts")
 local Header = require("ui.components.header")
-local List = require("ui.components.list").List
-local modalModule = require("ui.components.modal")
-local Modal = modalModule.Modal
 local InputManager = require("ui.controllers.input_manager")
+local List = require("ui.components.list").List
+local Modal = require("ui.components.modal").Modal
+
+local otaUpdate = require("utils.ota_update")
+local presets = require("utils.presets")
 
 -- Screen module
 local settings = {}
