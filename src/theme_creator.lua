@@ -514,13 +514,11 @@ function themeCreator.createThemeCoroutine()
 	end)
 end
 
--- Coroutine-based theme installation that yields control for animations
+-- Coroutine-based theme activation that yields control for animations
 function themeCreator.installThemeCoroutine(themeName)
 	return coroutine.create(function()
-		logger.debug("Starting coroutine-based theme installation")
-
 		local status, result = xpcall(function()
-			coroutine.yield("Preparing installation...")
+			coroutine.yield("Preparing activation...")
 
 			local muosCodename = system.getMuosCodename()
 			if not muosCodename then
@@ -532,16 +530,16 @@ function themeCreator.installThemeCoroutine(themeName)
 				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName) -- Use custom script for Goose
 			end
 
-			coroutine.yield("Installing theme (this may take a while)...")
+			coroutine.yield("Activating theme (this may take a while)...")
 			if commands.executeCommand(cmd) ~= 0 then
-				return false, "Theme installation command failed."
+				return false, "Theme activation command failed."
 			end
 
 			return true
 		end, debug.traceback)
 
 		if not status then
-			return false, "Installation failed: " .. tostring(result)
+			return false, "Activation failed: " .. tostring(result)
 		end
 
 		return status, result
