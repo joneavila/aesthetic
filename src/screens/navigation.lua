@@ -149,7 +149,6 @@ function navigationScreen.draw()
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", 40, previewY, previewWidth, previewHeight, 8, 8)
 	local controlsList = {
-		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
