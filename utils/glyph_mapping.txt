@@ -52,6 +52,78 @@ footer/x, kenney_input_prompts/steam_button_x
 footer/y, kenney_input_prompts/steam_button_y
 footer/z, kenney_input_prompts/steam_button_z_custom
 
+# muxbackup
+muxbackup/backuptarget, lucide/glyph/crosshair
+muxbackup/bios, lucide/glyph/ghost
+muxbackup/catalogue, lucide/glyph/book-text
+muxbackup/collection, lucide/glyph/star
+muxbackup/config, lucide/glyph/joystick
+muxbackup/content, lucide/glyph/star
+muxbackup/core, lucide/glyph/box
+muxbackup/history, lucide/glyph/file-check
+muxbackup/language, lucide/glyph/languages
+muxbackup/music, lucide/glyph/music
+muxbackup/name, lucide/glyph/case-sensitive
+muxbackup/network, lucide/glyph/network
+muxbackup/pack-bootlogo, lucide/glyph/image-play
+muxbackup/pack-catalogue, lucide/glyph/book-text
+muxbackup/pack-config, lucide/glyph/joystick
+muxbackup/retroarch, lucide/glyph/ghost
+muxbackup/save, lucide/glyph/save
+muxbackup/screenshot, lucide/glyph/images
+muxbackup/startbackup, lucide/glyph/hard-drive-upload
+muxbackup/syncthing, lucide/glyph/refresh-cw
+muxbackup/theme, lucide/glyph/palette
+muxbackup/userinit, lucide/glyph/file-code
+
+# muxdanger
+# muxdanger/cache, lucide/glyph/
+# muxdanger/child, lucide/glyph/
+# muxdanger/cluster, lucide/glyph/
+# muxdanger/dirty-back, lucide/glyph/
+# muxdanger/dirty-ratio, lucide/glyph/
+# muxdanger/idleflush, lucide/glyph/
+# muxdanger/iostats, lucide/glyph/
+# muxdanger/merge, lucide/glyph/
+# muxdanger/readahead, lucide/glyph/
+# muxdanger/requests, lucide/glyph/
+# muxdanger/timeslice, lucide/glyph/
+# muxdanger/tunescale, lucide/glyph/
+# muxdanger/vmswap, lucide/glyph/
+
+# muxkiosk
+# muxkiosk/advanced, lucide/glyph/
+# muxkiosk/apps, lucide/glyph/
+# muxkiosk/archive, lucide/glyph/
+# muxkiosk/bootlogo, lucide/glyph/
+# muxkiosk/catalogue, lucide/glyph/
+# muxkiosk/clock, lucide/glyph/
+# muxkiosk/collection, lucide/glyph/
+# muxkiosk/config, lucide/glyph/
+# muxkiosk/core, lucide/glyph/
+# muxkiosk/custom, lucide/glyph/
+# muxkiosk/enable, lucide/glyph/
+# muxkiosk/explore, lucide/glyph/
+# muxkiosk/general, lucide/glyph/
+# muxkiosk/governor, lucide/glyph/
+# muxkiosk/hdmi, lucide/glyph/
+# muxkiosk/history, lucide/glyph/
+# muxkiosk/info, lucide/glyph/
+# muxkiosk/language, lucide/glyph/
+# muxkiosk/network, lucide/glyph/
+# muxkiosk/option, lucide/glyph/
+# muxkiosk/power, lucide/glyph/
+# muxkiosk/raconfig, lucide/glyph/
+# muxkiosk/retroarch, lucide/glyph/
+# muxkiosk/search, lucide/glyph/
+# muxkiosk/storage, lucide/glyph/
+# muxkiosk/tag, lucide/glyph/
+# muxkiosk/task, lucide/glyph/
+# muxkiosk/theme, lucide/glyph/
+# muxkiosk/timezone, lucide/glyph/
+# muxkiosk/visual, lucide/glyph/
+# muxkiosk/webserv, lucide/glyph/
+
 # muxtester – Information > Input Tester
 muxtester/btn_a, kenney_input_prompts/steam_button_a
 muxtester/btn_b, kenney_input_prompts/steam_button_b
@@ -158,6 +230,8 @@ muxconfig/interface, lucide/glyph/panels-top-left
 muxconfig/language, lucide/glyph/languages
 muxconfig/power, lucide/glyph/zap
 muxconfig/storage, lucide/glyph/database
+muxconfig/backup, lucide/glyph/hard-drive-upload
+muxconfig/theme, lucide/glyph/palette
 
 # muxconnect – Configuration > Connectivity
 muxconnect/bluetooth, lucide/glyph/bluetooth
@@ -181,6 +255,12 @@ muxcustom/sound, lucide/glyph/volume-2
 muxcustom/theme_resolution, lucide/glyph/proportions
 muxcustom/theme, lucide/glyph/palette
 muxcustom/themealternate, lucide/glyph/palette
+muxcustom/align, lucide/glyph/scan
+muxcustom/animation, lucide/glyph/circle-play
+muxcustom/music, lucide/glyph/music
+muxcustom/resolution, lucide/glyph/proportions
+muxcustom/splash, lucide/glyph/image-play
+# muxcustom/alternate, lucide/glyph/
 
 # muxgov – (Press Select on content) > System Governor
 muxgov/conservative, lucide/glyph/shield
@@ -351,6 +431,7 @@ muxstorage/screenshot, lucide/glyph/images
 muxstorage/syncthing, lucide/glyph/refresh-cw
 muxstorage/theme, lucide/glyph/palette
 muxstorage/userinit, lucide/glyph/file-code-2
+# muxstorage/pack-bootlogo, lucide/glyph/
 
 # muxsysinfo – Information > System Details
 muxsysinfo/capacity, lucide/glyph/battery-full
@@ -377,6 +458,7 @@ muxtask/network, lucide/glyph/network
 muxtask/retroarch, lucide/glyph/joystick
 muxtask/sdcard, lucide/glyph/hard-drive
 muxtask/theme, lucide/glyph/palette
+muxtask/star, lucide/glyph/heading-1
 
 # muxtheme – Configuration > Customisation > muOS Themes
 muxtheme/theme, lucide/glyph/palette
