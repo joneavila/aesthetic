@@ -113,7 +113,7 @@ local function createMenuButtons()
 						text = "Confirm",
 						onSelect = function()
 							state.resetToDefaults()
-							modalInstance:show("Theme reset to defaults successfully", {
+							modalInstance:show("Reset to defaults successfully!", {
 								{
 									text = "Close",
 									onSelect = function()
