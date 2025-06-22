@@ -332,7 +332,7 @@ if [ "$LAUNCH" = true ]; then
     echoHeader "Launching application on $HANDHELD_IP"
     # Check for version files and run the appropriate launch command
     if ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/version.txt ]"; then
-        echo "Launching for Pixie"
+        echo "Detected muOS version: Pixie"
         ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
             . /opt/muos/script/var/func.sh
             killall -9 \$(GET_VAR 'system' 'foreground_process')
@@ -340,7 +340,7 @@ if [ "$LAUNCH" = true ]; then
             echo '0' > /tmp/safe_quit
         "
     elif ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/system/version ]"; then
-        echo "Launching for Goose"
+        echo "Detected muOS version: Goose"
         ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
             . /opt/muos/script/var/func.sh
             FRONTEND stop
