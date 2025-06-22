@@ -279,8 +279,6 @@ function hex.draw()
 			btn.y = y
 			btn.width = width
 			btn.height = height
-			btn.focused = (currentState.selectedButton.row == row and currentState.selectedButton.col == col)
-			btn.disabled = (btn.text == nil and btn.iconName == "check" and not isValidHex(currentState.input))
 			btn:draw()
 		end
 	end
@@ -302,6 +300,17 @@ end
 function hex.update(dt)
 	-- Get current color type state
 	local currentState = getCurrentHexState()
+
+	for row = 1, #buttonGrid do
+		for col = 1, #buttonGrid[row] do
+			local btn = buttonGrid[row][col]
+			local label = buttonLabels[row][col]
+			btn.focused = (currentState.selectedButton.row == row and currentState.selectedButton.col == col)
+			if label == "CONFIRM" then
+				btn.disabled = not isValidHex(currentState.input)
+			end
+		end
+	end
 
 	-- Update confirm button animation
 	if hexState.confirmButtonTween then
@@ -370,25 +379,29 @@ function hex.update(dt)
 		local btn = buttonGrid[currentState.selectedButton.row][currentState.selectedButton.col]
 		local label = buttonLabels[currentState.selectedButton.row][currentState.selectedButton.col]
 
+		if btn.disabled then
+			return
+		end
+
 		if label == "BACKSPACE" then
 			-- Backspace - remove last character
 			if #currentState.input > 0 then
 				currentState.input = currentState.input:sub(1, -2)
 			end
 		elseif label == "CONFIRM" then
-			-- Confirm - only if input is valid
-			if isValidHex(currentState.input) then
-				-- Create hex code
-				local hexCode = "#" .. currentState.input:upper()
-
-				-- Store in central state
-				local context = state.getColorContext(state.activeColorContext)
-				context.currentColor = hexCode
-
-				-- Return to menu and apply the color
-				screens.switchTo(state.previousScreen)
-				state.setColorValue(state.activeColorContext, hexCode)
+			if not isValidHex(currentState.input) then
+				return
 			end
+			-- Confirm - only if input is valid
+			local hexCode = "#" .. currentState.input:upper()
+
+			-- Store in central state
+			local context = state.getColorContext(state.activeColorContext)
+			context.currentColor = hexCode
+
+			-- Return to menu and apply the color
+			screens.switchTo(state.previousScreen)
+			state.setColorValue(state.activeColorContext, hexCode)
 		else
 			-- Add character if not at max length
 			if #currentState.input < hexState.maxInputLength then
