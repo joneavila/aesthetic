@@ -96,6 +96,23 @@ fonts.themeFontSizeOptions = {} -- Will be populated in the init function
 
 -- Function to set fonts based on screen dimensions
 fonts.initializeFonts = function()
+	-- Dynamic UI font scaling
+	-- Use fontScalingMultiplier to adjust the intensity of font scaling on non-reference resolutions.
+	-- 1.0 = default scaling, < 1.0 reduces scaling, > 1.0 increases it.
+	-- e.g., 0.8 makes fonts on larger screens 80% of their default scaled size.
+	-- This does not affect font sizes on the 640x480 reference screen.
+	local fontScalingMultiplier = 1.0
+
+	local width, height = love.graphics.getDimensions()
+	local refWidth, refHeight = 640, 480
+	local refDiagonal = math.sqrt(refWidth * refWidth + refHeight * refHeight)
+	local currentDiagonal = math.sqrt(width * width + height * height)
+	local scalingFactor = currentDiagonal / refDiagonal
+	local adaptiveScalingFactor = math.max(0.5, math.min(scalingFactor ^ 0.8, 3.0))
+
+	-- Adjust the scaling intensity with the multiplier
+	adaptiveScalingFactor = 1.0 + (adaptiveScalingFactor - 1.0) * fontScalingMultiplier
+
 	fonts.themeFontSizeOptions = {
 		["Default"] = 24,
 		["Large"] = 28,
@@ -119,8 +136,9 @@ fonts.initializeFonts = function()
 	end
 
 	for key, def in pairs(fonts.uiDefinitions) do
+		local scaledSize = math.floor(def.size * adaptiveScalingFactor + 0.5)
 		local success, result = pcall(function()
-			return love.graphics.newFont(def.ttf, def.size)
+			return love.graphics.newFont(def.ttf, scaledSize)
 		end)
 
 		if success then
