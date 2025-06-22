@@ -141,7 +141,7 @@ function datetimeScreen.draw()
 	love.graphics.setColor(bgR, bgG, bgB, 1.0)
 	love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
-	-- Draw "Preview" text with alignment matching the current setting
+	-- Draw time preview with alignment matching the current setting
 	local fgColor = state.getColorValue("foreground")
 	local fgR, fgG, fgB = love.math.colorFromBytes(
 		tonumber(fgColor:sub(2, 3), 16),
@@ -166,8 +166,9 @@ function datetimeScreen.draw()
 		textPadding = 16 -- Add right padding by reducing width
 	end
 
+	local currentTime = os.date("%I:%M %p")
 	love.graphics.printf(
-		"Preview",
+		currentTime,
 		previewX + textPadding,
 		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
 		previewWidth - (textPadding * 2),
