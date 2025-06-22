@@ -196,7 +196,8 @@ function hsv.draw()
 		pickerState.previewX,
 		previewsY + PREVIEW_HEIGHT + labelHeight + labelPadding + previewSpacing,
 		pickerState.previewWidth,
-		PREVIEW_HEIGHT
+		PREVIEW_HEIGHT,
+		CURSOR.CORNER_RADIUS
 	)
 
 	-- Draw new color border using Relative Luminance Border Algorithm
