@@ -47,7 +47,7 @@ Button.__index = Button
 
 -- Pulse animation config
 local PULSE_SCALE_MIN = 1.0
-local PULSE_SCALE_MAX = 1.03
+local PULSE_SCALE_MAX = 1.02
 local PULSE_DURATION = 1.1
 
 function Button:new(config)
