@@ -115,17 +115,14 @@ function datetimeScreen.draw()
 	end
 
 	-- Calculate preview rectangle position and size
-	local controlsHeight = controls.calculateHeight()
-	local previewY = headerInstance:getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
-	if menuList then
-		previewY = previewY + menuList.y + menuList:getContentHeight()
+	local controlsHeight = 0
+	if controlHintsInstance then
+		controlsHeight = controlHintsInstance:getHeight()
 	end
+	local previewHeight = 100
+	local previewY = state.screenHeight - controlsHeight - previewHeight - 20
 	local previewX = 40
 	local previewWidth = state.screenWidth - 80
-	local previewHeight = state.screenHeight - controlsHeight - previewY - 20
-	if previewHeight < 40 then
-		previewHeight = 40
-	end
 
 	-- Calculate alpha from current slider value (0-100 to 0-1)
 	local alpha = 1

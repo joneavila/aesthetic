@@ -84,15 +84,15 @@ function Component.handleInput(_self, _direction, _input)
 end
 
 -- Draws a focus background with gradient and outline
-function Component:drawBackground()
+function Component:drawBackground(options)
+	options = options or {}
 	local colors = require("colors")
 	local love = require("love")
 	local x = self.x
 	local y = self.y
 	local width = self.width
 	local height = self:getHeight()
-	local cornerRadius = 8
-
+	local cornerRadius = options.cornerRadius or 8
 	love.graphics.push("all")
 	if self.focused then
 		-- `love.graphics.setColor()` sets a global color multiplier that affects everything drawn afterward including

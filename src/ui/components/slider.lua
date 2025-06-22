@@ -50,15 +50,7 @@ function Slider.new(_, config)
 	instance.valueFormatter = config.valueFormatter -- Custom formatter function
 	instance.animatedValue = instance.valueIndex
 	instance.currentTween = nil
-	-- Height: label + gap + track/handle + ticks + bottom padding + focus margin
-	local labelHeight = love.graphics.getFont():getHeight()
-	instance.height = labelHeight
-		+ Slider.LABEL_GAP
-		+ math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT)
-		+ Slider.TICK_VERTICAL_OFFSET
-		+ Slider.TICK_HEIGHT
-		+ Slider.BOTTOM_PADDING
-		+ Slider.FOCUS_BACKGROUND_BOTTOM_MARGIN
+	instance.height = instance:getHeight()
 	return instance
 end
 
@@ -87,10 +79,10 @@ function Slider:update(dt)
 	end
 end
 
-function Slider:getHeight() -- TODO: Refactor to use self
+function Slider:getHeight()
 	local labelHeight = love.graphics.getFont():getHeight()
-	return labelHeight
-		+ Slider.FOCUS_BACKGROUND_TOP_MARGIN
+	return Slider.FOCUS_BACKGROUND_TOP_MARGIN
+		+ labelHeight
 		+ Slider.LABEL_GAP
 		+ math.max(Slider.HANDLE_HEIGHT, Slider.TRACK_HEIGHT)
 		+ Slider.TICK_VERTICAL_OFFSET

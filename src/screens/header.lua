@@ -23,6 +23,7 @@ local headerScreen = {}
 local menuList = nil
 local input = nil
 local headerInstance = Header:new({ title = "Header" })
+local controlHintsInstance
 
 -- Constants
 local EDGE_PADDING = 18
@@ -120,16 +121,27 @@ function headerScreen.draw()
 	love.graphics.setFont(fonts.loaded.body)
 	love.graphics.setColor(colors.ui.foreground)
 
-	local previewY = headerInstance:getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
+	local listBottomY = headerInstance:getContentStartY() + calculateWarningHeight() + COMPONENT_SPACING
 	if menuList then
 		menuList:calculateDimensions()
 		menuList:draw()
-		previewY = previewY + menuList.y + menuList:getContentHeight()
+		local totalHeight = 0
+		for _, item in ipairs(menuList.items) do
+			if item.getHeight then
+				totalHeight = totalHeight + item:getHeight()
+			end
+		end
+		listBottomY = menuList.y + totalHeight
 	end
+
+	local controlsHeight = 0
+	if controlHintsInstance then
+		controlsHeight = controlHintsInstance:getHeight()
+	end
+	local previewHeight = 100
+	local previewY = state.screenHeight - controlsHeight - previewHeight - 20
 	local previewX = 40
 	local previewWidth = state.screenWidth - 80
-	local controlsHeight = controls.calculateHeight()
-	local previewHeight = state.screenHeight - controlsHeight - previewY - 20
 
 	-- Calculate alpha from current slider value (0-100 to 0-1)
 	local alpha = 1
@@ -148,7 +160,7 @@ function headerScreen.draw()
 	love.graphics.setColor(bgR, bgG, bgB, 1.0)
 	love.graphics.rectangle("fill", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
-	-- Draw "Preview" text with alignment matching the current setting
+	-- Draw "APPLICATIONS" text with alignment matching the current setting
 	local fgColor = state.getColorValue("foreground")
 	local fgR, fgG, fgB = love.math.colorFromBytes(
 		tonumber(fgColor:sub(2, 3), 16),
@@ -173,7 +185,7 @@ function headerScreen.draw()
 	-- Auto (0) uses center as default
 
 	love.graphics.printf(
-		"Preview",
+		"APPLICATIONS",
 		previewX + textPadding,
 		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
 		previewWidth - (textPadding * 2),
@@ -186,9 +198,9 @@ function headerScreen.draw()
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
 
 	-- Draw controls
-	controls.draw({
-		{ button = "b", text = "Back" },
-	})
+	if controlHintsInstance then
+		controlHintsInstance:draw()
+	end
 end
 
 function headerScreen.update(dt)
@@ -226,6 +238,14 @@ function headerScreen.onEnter(_data)
 		items = items,
 		onItemOptionCycle = handleAlignmentOptionCycle,
 	})
+
+	if not controlHintsInstance then
+		controlHintsInstance = controls:new({
+			controls_list = {
+				{ button = "b", text = "Back" },
+			},
+		})
+	end
 end
 
 function headerScreen.onExit()

@@ -73,11 +73,12 @@ function statusScreen.draw()
 	end
 
 	-- Draw preview rectangle
-	local previewY = headerInstance:getContentStartY() + 120
-	if menuList then
-		previewY = menuList.y + menuList:getContentHeight() + 20
+	local controlsHeight = 0
+	if controlHintsInstance then
+		controlsHeight = controlHintsInstance:getHeight()
 	end
 	local previewHeight = 100
+	local previewY = state.screenHeight - controlsHeight - previewHeight - 20
 	local previewWidth = state.screenWidth - 80
 
 	-- Get background color from state and draw rectangle at full opacity
