@@ -5,9 +5,11 @@ local love = require("love")
 
 local colors = require("colors")
 local controls = require("control_hints").ControlHints
+local paths = require("paths")
 local screens = require("screens")
 local state = require("state")
 
+local svg = require("utils.svg")
 local background = require("ui.background")
 local Button = require("ui.components.button").Button
 local ButtonTypes = require("ui.components.button").TYPES
@@ -23,6 +25,9 @@ local navigationScreen = {}
 local input = nil
 local headerInstance = Header:new({ title = "Navigation" })
 local controlHintsInstance
+
+local previewIcon = nil
+local ICON_SIZE = 20
 
 -- Constants
 local EDGE_PADDING = 18
@@ -111,25 +116,34 @@ function navigationScreen.draw()
 		tonumber(fgColor:sub(4, 5), 16),
 		tonumber(fgColor:sub(6, 7), 16)
 	)
-	love.graphics.setColor(fgR, fgG, fgB, alpha)
-	local textAlign = "center"
-	local textPadding = 0
+	-- Preview Content
+	local previewText = "Select"
+	local textWidth = fonts.loaded.body:getWidth(previewText)
+	local iconWidth = ICON_SIZE
+	local spacing = 4 -- Spacing between icon and text
+	local totalContentWidth = iconWidth + spacing + textWidth
+
+	local previewContentX = 40
+	local previewContentY = previewY + (previewHeight / 2)
+
 	local currentAlignment = state.navigationAlignment or "Center"
 	if currentAlignment == "Left" then
-		textAlign = "left"
-		textPadding = 16
+		previewContentX = 40 + 16 -- Left padding
 	elseif currentAlignment == "Center" then
-		textAlign = "center"
+		previewContentX = 40 + (previewWidth / 2) - (totalContentWidth / 2)
 	elseif currentAlignment == "Right" then
-		textAlign = "right"
-		textPadding = 16
+		previewContentX = 40 + previewWidth - 16 - totalContentWidth -- Right padding
 	end
+	if previewIcon then
+		svg.drawIcon(previewIcon, previewContentX + iconWidth / 2, previewContentY, { fgR, fgG, fgB }, alpha)
+	end
+	love.graphics.setColor(fgR, fgG, fgB, alpha)
 	love.graphics.printf(
-		"Preview",
-		40 + textPadding,
-		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
-		previewWidth - (textPadding * 2),
-		textAlign
+		previewText,
+		previewContentX + iconWidth + spacing,
+		previewContentY - (fonts.loaded.body:getHeight() / 2),
+		textWidth,
+		"left"
 	)
 	love.graphics.setColor(colors.ui.surface_focus_outline)
 	love.graphics.setLineWidth(1)
@@ -172,6 +186,7 @@ function navigationScreen.onEnter(_data)
 	if not controlHintsInstance then
 		controlHintsInstance = controls:new({})
 	end
+	previewIcon = svg.loadIcon("steam_button_a", ICON_SIZE, paths.CONTROL_HINTS_SOURCE_DIR .. "/")
 end
 
 function navigationScreen.onExit()
