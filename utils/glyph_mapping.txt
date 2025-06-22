@@ -52,29 +52,29 @@ footer/x, kenney_input_prompts/steam_button_x
 footer/y, kenney_input_prompts/steam_button_y
 footer/z, kenney_input_prompts/steam_button_z_custom
 
-# muxbackup
-muxbackup/backuptarget, lucide/glyph/crosshair
+# muxbackup - Configuration > Device Backup
+muxbackup/backuptarget, lucide/glyph/hard-drive
 muxbackup/bios, lucide/glyph/ghost
 muxbackup/catalogue, lucide/glyph/book-text
-muxbackup/collection, lucide/glyph/star
-muxbackup/config, lucide/glyph/joystick
-muxbackup/content, lucide/glyph/star
+muxbackup/collection, lucide/glyph/heart
+muxbackup/config, lucide/glyph/settings-2
+muxbackup/content, lucide/glyph/heart
 muxbackup/core, lucide/glyph/box
-muxbackup/history, lucide/glyph/file-check
+muxbackup/history, lucide/glyph/history
 muxbackup/language, lucide/glyph/languages
 muxbackup/music, lucide/glyph/music
-muxbackup/name, lucide/glyph/case-sensitive
-muxbackup/network, lucide/glyph/network
+muxbackup/name, lucide/glyph/whole-word
+muxbackup/network, lucide/glyph/house-wifi
 muxbackup/pack-bootlogo, lucide/glyph/image-play
 muxbackup/pack-catalogue, lucide/glyph/book-text
 muxbackup/pack-config, lucide/glyph/joystick
-muxbackup/retroarch, lucide/glyph/ghost
+muxbackup/retroarch, lucide/glyph/joystick
 muxbackup/save, lucide/glyph/save
 muxbackup/screenshot, lucide/glyph/images
 muxbackup/startbackup, lucide/glyph/hard-drive-upload
 muxbackup/syncthing, lucide/glyph/refresh-cw
 muxbackup/theme, lucide/glyph/palette
-muxbackup/userinit, lucide/glyph/file-code
+muxbackup/userinit, lucide/glyph/scroll
 
 # muxdanger
 # muxdanger/cache, lucide/glyph/
@@ -291,8 +291,8 @@ muxhistory/history, lucide/glyph/file-check-2
 muxinfo/credit, lucide/glyph/users-round
 muxinfo/netinfo, lucide/glyph/network
 muxinfo/screenshot, lucide/glyph/images
-muxinfo/space, lucide/glyph/hard-drive
-muxinfo/sysinfo, lucide/glyph/computer
+muxinfo/space, lucide/glyph/chart-pie
+muxinfo/sysinfo, lucide/glyph/text
 muxinfo/system, lucide/glyph/text
 muxinfo/tester, lucide/glyph/circle-arrow-down
 muxinfo/tracker, lucide/glyph/locate
@@ -374,7 +374,7 @@ muxpicker/folder, lucide/glyph/folder
 muxpicker/theme, lucide/glyph/palette
 
 # muxplore – Explore Content
-muxplore/collection, lucide/glyph/heart
+muxplore/collection, lucide/glyph/file-heart
 muxplore/folder, lucide/glyph/folder
 muxplore/history, lucide/glyph/file-check-2
 muxplore/rom, lucide/glyph/file
@@ -402,7 +402,7 @@ muxsearch/local, lucide/glyph/search
 muxsearch/lookup, lucide/glyph/keyboard
 
 # muxshot - Information > Screenshots
-muxshot/screenshot, lucide/glyph/images
+muxshot/screenshot, lucide/glyph/image
 
 # muxspace – Information > Storage Space
 muxspace/rfs, lucide/glyph/hard-drive
@@ -411,10 +411,10 @@ muxspace/sd2, lucide/glyph/save
 muxspace/usb, lucide/glyph/usb
 
 # muxstorage – Configuration > Storage
-muxstorage/bios, lucide/glyph/cuboid
+muxstorage/bios, lucide/glyph/ghost
 muxstorage/catalogue, lucide/glyph/tag
 muxstorage/collection, lucide/glyph/heart
-muxstorage/config, lucide/glyph/file-sliders
+muxstorage/config, lucide/glyph/settings-2
 muxstorage/content, lucide/glyph/star
 muxstorage/core, lucide/glyph/box
 muxstorage/favourite, lucide/glyph/heart
@@ -423,20 +423,20 @@ muxstorage/language, lucide/glyph/languages
 muxstorage/music, lucide/glyph/music
 muxstorage/name, lucide/glyph/whole-word
 muxstorage/network, lucide/glyph/house-wifi
+muxstorage/pack-bootlogo, lucide/glyph/image-play
 muxstorage/pack-catalogue, lucide/glyph/book-text
-muxstorage/pack-config, lucide/glyph/package
+muxstorage/pack-config, lucide/glyph/joystick
 muxstorage/retroarch, lucide/glyph/joystick
 muxstorage/save, lucide/glyph/save
 muxstorage/screenshot, lucide/glyph/images
 muxstorage/syncthing, lucide/glyph/refresh-cw
 muxstorage/theme, lucide/glyph/palette
-muxstorage/userinit, lucide/glyph/file-code-2
-# muxstorage/pack-bootlogo, lucide/glyph/
+muxstorage/userinit, lucide/glyph/scroll
 
 # muxsysinfo – Information > System Details
 muxsysinfo/capacity, lucide/glyph/battery-full
-muxsysinfo/cpu, lucide/glyph/cpu 
-muxsysinfo/device, lucide/glyph/gamepad
+muxsysinfo/cpu, lucide/glyph/cpu
+muxsysinfo/device, lucide/glyph/gamepad-2
 muxsysinfo/governor, lucide/glyph/circle-gauge
 muxsysinfo/kernel, lucide/glyph/cuboid
 muxsysinfo/memory, lucide/glyph/memory-stick
@@ -448,7 +448,7 @@ muxsysinfo/version, lucide/glyph/gallery-horizontal-end
 muxsysinfo/voltage, lucide/glyph/zap
 
 # muxtask – Applications > Task Toolkit
-muxtask/backup, lucide/glyph/database-backup
+muxtask/backup, lucide/glyph/hard-drive-upload
 muxtask/clear, lucide/glyph/trash
 muxtask/diagnostic, lucide/glyph/stethoscope
 muxtask/ethernet, lucide/glyph/ethernet-port
@@ -458,7 +458,7 @@ muxtask/network, lucide/glyph/network
 muxtask/retroarch, lucide/glyph/joystick
 muxtask/sdcard, lucide/glyph/hard-drive
 muxtask/theme, lucide/glyph/palette
-muxtask/star, lucide/glyph/heading-1
+muxtask/star, lucide/glyph/code
 
 # muxtheme – Configuration > Customisation > muOS Themes
 muxtheme/theme, lucide/glyph/palette
