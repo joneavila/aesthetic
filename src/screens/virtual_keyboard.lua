@@ -449,10 +449,16 @@ function virtual_keyboard.draw()
 	if #displayValue > maxChars then
 		displayValue = string.sub(displayValue, -maxChars)
 	end
-	if cursorVisible then
-		displayValue = displayValue .. "|"
-	end
+
+	-- Draw input text
 	love.graphics.printf(displayValue, textX, textY, textWidth, "left")
+
+	-- Draw blinking cursor immediately after the text
+	if cursorVisible then
+		local cursorXoffset = -4 -- Bring cursor closer to the left
+		local cursorX = textX + monoFont:getWidth(displayValue) + cursorXoffset
+		love.graphics.print("|", cursorX, textY)
+	end
 
 	-- Check keyboard row units before drawing
 	local totalUnits = checkKeyboardRowUnits(keyboard)
