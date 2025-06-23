@@ -92,7 +92,9 @@ function navigationScreen.draw()
 	background.draw()
 	headerInstance:draw()
 
-	love.graphics.setFont(fonts.loaded.body)
+	-- Use the selected font for the preview
+	local selectedFont = fonts.getByName(state.fontFamily)
+	love.graphics.setFont(selectedFont)
 	if navigationScreen.list then
 		navigationScreen.list:draw()
 	end
@@ -123,9 +125,9 @@ function navigationScreen.draw()
 	)
 	-- Preview Content
 	local previewText = "Select"
-	local textWidth = fonts.loaded.body:getWidth(previewText)
+	local textWidth = selectedFont:getWidth(previewText)
 	local iconWidth = ICON_SIZE
-	local spacing = 4 -- Spacing between icon and text
+	local spacing = 6 -- Spacing between icon and text (increased by 2px)
 	local totalContentWidth = iconWidth + spacing + textWidth
 
 	local previewContentX = 40
@@ -146,7 +148,7 @@ function navigationScreen.draw()
 	love.graphics.printf(
 		previewText,
 		previewContentX + iconWidth + spacing,
-		previewContentY - (fonts.loaded.body:getHeight() / 2),
+		previewContentY - (selectedFont:getHeight() / 2),
 		textWidth,
 		"left"
 	)

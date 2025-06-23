@@ -100,6 +100,10 @@ function statusScreen.draw()
 	)
 	love.graphics.setColor(fgR, fgG, fgB, 1.0)
 
+	-- Use the selected font for the preview
+	local selectedFont = fonts.getByName(state.fontFamily)
+	love.graphics.setFont(selectedFont)
+
 	-- Determine text alignment based on status alignment setting
 	local textAlign = "center" -- default
 	local textPadding = 0
@@ -117,7 +121,7 @@ function statusScreen.draw()
 	love.graphics.printf(
 		"Preview",
 		40 + textPadding,
-		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
+		previewY + (previewHeight / 2) - (selectedFont:getHeight() / 2),
 		previewWidth - (textPadding * 2), -- Reduce width for both left and right padding
 		textAlign
 	)

@@ -169,6 +169,10 @@ function headerScreen.draw()
 	)
 	love.graphics.setColor(fgR, fgG, fgB, alpha)
 
+	-- Use the selected font for the preview
+	local selectedFont = fonts.getByName(state.fontFamily)
+	love.graphics.setFont(selectedFont)
+
 	-- Determine text alignment based on header alignment setting
 	local textAlign = "center" -- default
 	local textPadding = 0
@@ -187,7 +191,7 @@ function headerScreen.draw()
 	love.graphics.printf(
 		"APPLICATIONS",
 		previewX + textPadding,
-		previewY + (previewHeight / 2) - (fonts.loaded.body:getHeight() / 2),
+		previewY + (previewHeight / 2) - (selectedFont:getHeight() / 2),
 		previewWidth - (textPadding * 2),
 		textAlign
 	)
