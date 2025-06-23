@@ -64,7 +64,7 @@ local function createButtons()
 		end,
 	})
 	colorStartButton = Button:new({
-		text = "Color Start",
+		text = "Start Color",
 		type = ButtonTypes.COLOR,
 		hexColor = state.getColorValue("background"),
 		monoFont = fonts.loaded.monoBody,
@@ -76,7 +76,7 @@ local function createButtons()
 		end,
 	})
 	colorStopButton = Button:new({
-		text = "Color Stop",
+		text = "End Color",
 		type = ButtonTypes.COLOR,
 		hexColor = state.getColorValue("backgroundGradient"),
 		monoFont = fonts.loaded.monoBody,
