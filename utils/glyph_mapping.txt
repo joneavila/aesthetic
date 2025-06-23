@@ -229,7 +229,7 @@ muxconfig/general, lucide/glyph/wrench
 muxconfig/interface, lucide/glyph/panels-top-left
 muxconfig/language, lucide/glyph/languages
 muxconfig/power, lucide/glyph/zap
-muxconfig/storage, lucide/glyph/database
+muxconfig/storage, lucide/glyph/chart-pie
 muxconfig/backup, lucide/glyph/hard-drive-upload
 muxconfig/theme, lucide/glyph/palette
 
@@ -504,12 +504,12 @@ muxvisual/counterfolder, lucide/glyph/list-ordered
 muxvisual/dash, lucide/glyph/minus
 muxvisual/folderempty, lucide/glyph/folder-x
 muxvisual/folderitemcount, lucide/glyph/hash
-muxvisual/friendlyfolder, lucide/glyph/case-lower
+muxvisual/friendlyfolder, lucide/glyph/case-sensitive
 muxvisual/hidden, lucide/glyph/eye
-muxvisual/name, lucide/glyph/parentheses
+muxvisual/name, lucide/glyph/brackets
 muxvisual/network, lucide/glyph/wifi
-muxvisual/overlayimage, lucide/glyph/blend
-muxvisual/overlaytransparency, lucide/glyph/blend
+muxvisual/overlayimage, lucide/glyph/square
+muxvisual/overlaytransparency, lucide/glyph/square-dashed
 muxvisual/thetitleformat, lucide/glyph/remove-formatting
 muxvisual/titleincluderootdrive, lucide/glyph/list-tree
 
