@@ -338,8 +338,8 @@ function hsv.draw()
 
 	-- Draw controls
 	local controlsList = {
-		{ button = "a", text = "Select" },
 		{ button = "y", text = "H/SV" },
+		{ button = "a", text = "Select" },
 		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 		{ button = "b", text = "Back" },
 	}

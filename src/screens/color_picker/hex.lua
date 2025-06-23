@@ -287,8 +287,8 @@ function hex.draw()
 
 	-- Draw controls
 	local controlsList = {
-		{ button = "a", text = "Select" },
 		{ button = "y", text = "Clear" },
+		{ button = "a", text = "Select" },
 		{ button = { "leftshoulder", "rightshoulder" }, text = "Tabs" },
 		{ button = "b", text = "Back" },
 	}
