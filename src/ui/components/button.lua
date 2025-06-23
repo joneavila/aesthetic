@@ -514,7 +514,8 @@ end
 function Button:drawKey()
 	love.graphics.reset()
 	love.graphics.push("all")
-	love.graphics.setFont(fonts.loaded.monoBody)
+	local keyFont = fonts.loaded.body
+	love.graphics.setFont(keyFont)
 	if self.focused then
 		if self.accent then
 			-- Draw vertical accent gradient background (like ACCENTED)
@@ -571,9 +572,8 @@ function Button:drawKey()
 			svg.drawIcon(icon, centerX, centerY, colors.ui.foreground, opacity)
 		end
 	else
-		local font = love.graphics.getFont()
-		local textWidth = font:getWidth(self.text)
-		local textHeight = font:getHeight()
+		local textWidth = keyFont:getWidth(self.text)
+		local textHeight = keyFont:getHeight()
 		local textX = self.x + (self.width - textWidth) / 2
 		local textY = self.y + (self.height - textHeight) / 2
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)

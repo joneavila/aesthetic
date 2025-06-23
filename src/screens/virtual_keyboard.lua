@@ -191,6 +191,7 @@ local function buildKeyButtons()
 				visible = true,
 				enabled = true,
 				fullWidth = false,
+				monoFont = fonts.loaded.body, -- Use body font for key buttons
 			})
 			keyButtons[y][x] = button
 		end
@@ -431,15 +432,15 @@ function virtual_keyboard.draw()
 
 	-- Draw input text with blinking cursor
 	love.graphics.setColor(colors.ui.foreground)
-	local monoFont = fonts.loaded.monoBody
-	love.graphics.setFont(monoFont)
+	local bodyFont = fonts.loaded.body
+	love.graphics.setFont(bodyFont)
 	local textX = inputFieldX + inputFieldPadding
-	local textY = inputFieldY + (inputFieldHeight - monoFont:getHeight()) / 2
+	local textY = inputFieldY + (inputFieldHeight - bodyFont:getHeight()) / 2
 	local textWidth = state.screenWidth - (screenPadding * 2) - (inputFieldPadding * 2)
 
 	-- Calculate max number of characters that fit (minus one for cursor)
 	local sampleChar = "W" -- Use a wide char for safety
-	local charWidth = monoFont:getWidth(sampleChar)
+	local charWidth = bodyFont:getWidth(sampleChar)
 	local maxChars = math.floor(textWidth / charWidth)
 	if maxChars > 0 then
 		maxChars = maxChars - 1
@@ -455,8 +456,8 @@ function virtual_keyboard.draw()
 
 	-- Draw blinking cursor immediately after the text
 	if cursorVisible then
-		local cursorXoffset = -4 -- Bring cursor closer to the left
-		local cursorX = textX + monoFont:getWidth(displayValue) + cursorXoffset
+		local cursorXoffset = -2 -- Bring cursor closer to the left
+		local cursorX = textX + bodyFont:getWidth(displayValue) + cursorXoffset
 		love.graphics.print("|", cursorX, textY)
 	end
 
