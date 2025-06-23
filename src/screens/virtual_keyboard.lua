@@ -494,8 +494,8 @@ function virtual_keyboard.draw()
 
 	-- Draw controls
 	local controlsList = {
-		{ button = "a", text = "Select" },
 		{ button = "y", text = "Backspace" },
+		{ button = "a", text = "Select" },
 		{ button = "b", text = "Back" },
 	}
 	controlHintsInstance:setControlsList(controlsList)
