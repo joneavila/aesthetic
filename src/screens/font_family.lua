@@ -41,9 +41,17 @@ local controlHintsInstance
 
 -- Helper function to get a consistent preview font
 local function getPreviewFont(fontName)
-	-- Check if we already have this font in our cache
-	if previewFontCache[fontName] then
-		return previewFontCache[fontName]
+	-- Determine preview font size, adjusting for specific fonts as needed
+	local previewFontSize = FONT_PREVIEW.FONT_SIZE
+	-- 'Retro Pixel' has a smaller x-height, so increase its preview size for better visual parity with other fonts
+	if fontName == "Retro Pixel" then
+		previewFontSize = previewFontSize + 2
+	end
+
+	-- Check if we already have this font in our cache with the correct size
+	local cacheKey = fontName .. "_" .. tostring(previewFontSize)
+	if previewFontCache[cacheKey] then
+		return previewFontCache[cacheKey]
 	end
 
 	local previewFont
@@ -57,15 +65,15 @@ local function getPreviewFont(fontName)
 		end
 	end
 
-	if fontInfo and fontInfo.path then
-		previewFont = love.graphics.newFont(fontInfo.path, FONT_PREVIEW.FONT_SIZE)
+	if fontInfo and fontInfo.ttf then
+		previewFont = love.graphics.newFont(fontInfo.ttf, previewFontSize)
 	else
 		-- Fallback to the state's font loading for unknown fonts
 		previewFont = fonts.getByName(fontName)
 	end
 
 	-- Cache the font for future use
-	previewFontCache[fontName] = previewFont
+	previewFontCache[cacheKey] = previewFont
 	return previewFont
 end
 
