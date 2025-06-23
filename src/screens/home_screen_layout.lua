@@ -27,7 +27,8 @@ local headerInstance = Header:new({ title = "Home Screen Layout" })
 
 -- Constants
 local CONTROLS_HEIGHT = controls.calculateHeight()
-local IMAGE_MARGIN = 16
+local PREVIEW_TOP_MARGIN = 2
+local PREVIEW_BOTTOM_MARGIN = 8
 local BUTTON_LIST_HEIGHT = 80
 local MIN_IMAGE_HEIGHT = 50
 
@@ -100,9 +101,9 @@ function homeScreenLayout.draw()
 		local buttonAreaBottom = headerInstance:getContentStartY()
 			+ BUTTON_LIST_HEIGHT
 			- (menuList and menuList.paddingY or 0) -- Adjust for List's bottom padding
-		local controlsTop = state.screenHeight - CONTROLS_HEIGHT
-		local availableHeight = controlsTop - buttonAreaBottom - (IMAGE_MARGIN * 2) -- Top and bottom padding
-		local availableWidth = state.screenWidth - (IMAGE_MARGIN * 2) -- Left and right padding
+		local controlsTop = state.screenHeight - CONTROLS_HEIGHT - PREVIEW_BOTTOM_MARGIN
+		local availableHeight = controlsTop - buttonAreaBottom - PREVIEW_TOP_MARGIN
+		local availableWidth = state.screenWidth
 
 		-- Calculate image dimensions maintaining aspect ratio
 		local originalWidth = img:getWidth()
@@ -130,7 +131,7 @@ function homeScreenLayout.draw()
 
 		-- Center the image both horizontally and vertically in the available space
 		local imageX = (state.screenWidth - imageWidth) / 2
-		local imageY = buttonAreaBottom + IMAGE_MARGIN + ((availableHeight - imageHeight) / 2)
+		local imageY = buttonAreaBottom + PREVIEW_TOP_MARGIN + ((availableHeight - imageHeight) / 2)
 
 		-- Only draw if there's enough space
 		if availableHeight > MIN_IMAGE_HEIGHT then
