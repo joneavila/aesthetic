@@ -150,48 +150,123 @@ function Modal:handleInput(input)
 	if not self.visible then
 		return false
 	end
-	if #self.buttons == 0 then
-		if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
-			self:hide()
+
+	local screenWidth, screenHeight = love.graphics.getDimensions()
+	local controls = require("control_hints").ControlHints
+	local fonts = require("ui.fonts")
+	local controlsHeight = controls.calculateHeight()
+	local padding = 40
+	local maxWidth = screenWidth * 0.9
+	local currentFont = self.font or love.graphics.getFont()
+	local useErrorFont = false
+	if self.message and type(self.message) == "string" then
+		local msg = self.message:lower()
+		if msg:find("error") or msg:find("failed") then
+			useErrorFont = true
+		end
+	end
+	if useErrorFont and fonts.loaded and fonts.loaded.error then
+		currentFont = fonts.loaded.error
+	end
+	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
+	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
+	local mainMessageHeight = #mainMessageLines * currentFont:getHeight()
+	local contentHeight = mainMessageHeight
+	if self.isProgressModal then
+		local progressBoxPadding = 12
+		local consoleFont = fonts.loaded and fonts.loaded.console or currentFont
+		local lineHeight = consoleFont:getHeight()
+		local minConsoleLines = 4
+		local progressMessageHeight = lineHeight * minConsoleLines
+		local progressBoxHeight = progressMessageHeight + (progressBoxPadding * 2)
+		contentHeight = contentHeight + 20 + progressBoxHeight
+	end
+	local maxTextHeight = screenHeight * 0.6
+	local modalWidth, modalHeight
+	if self.useFixedWidth and self.fixedWidth > 0 then
+		modalWidth = self.fixedWidth
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = 0
+		if #self.buttons > 0 then
+			buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		end
+		modalHeight = contentHeight + (padding * 2) + buttonsExtraHeight
+		local maxAvailableHeight = screenHeight - controlsHeight - 20
+		if modalHeight > maxAvailableHeight then
+			modalHeight = maxAvailableHeight
+		end
+	else
+		local minWidth = math.min(screenWidth * 0.8, maxWidth)
+		if #self.buttons == 0 then
+			minWidth = math.min(currentFont:getWidth(self.message) + (padding * 2), maxWidth)
+		end
+		local visibleHeight = math.min(maxTextHeight, contentHeight)
+		modalWidth = minWidth
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = 0
+		if #self.buttons > 0 then
+			buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		end
+		modalHeight = visibleHeight + (padding * 2) + buttonsExtraHeight
+		local maxAvailableHeight = screenHeight - controlsHeight - 20
+		if modalHeight > maxAvailableHeight then
+			modalHeight = maxAvailableHeight
+		end
+	end
+	local availableTextWidth = modalWidth - (padding * 2)
+	local visibleHeight = modalHeight - (padding * 2)
+	if #self.buttons > 0 then
+		local buttonHeight = 40
+		local buttonSpacing = 20
+		local buttonsExtraHeight = (#self.buttons * buttonHeight) + ((#self.buttons - 1) * buttonSpacing) + padding
+		visibleHeight = visibleHeight - buttonsExtraHeight
+	end
+	local isScrollable, maxScrollPosition = self:isContentScrollable(visibleHeight, currentFont, availableTextWidth)
+
+	if isScrollable then
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+			self:scroll(-40, maxScrollPosition)
+			return true
+		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+			self:scroll(40, maxScrollPosition)
 			return true
 		end
-		return true
 	end
-	local navDir = nil
-	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
-		navDir = "up"
-	elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
-		navDir = "down"
-	end
-	if navDir then
-		self.focusManager:handleInput(navDir, input)
-		return true
-	end
-	local focused = self.focusManager:getFocused()
-	if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
-		if focused and focused.onClick then
-			focused:onClick()
+
+	if #self.buttons > 0 then
+		local navDir = nil
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_UP) then
+			navDir = "up"
+		elseif InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_DOWN) then
+			navDir = "down"
 		end
-		if self.onButtonPress then
-			self.onButtonPress(focused)
+		if navDir then
+			self.focusManager:handleInput(navDir, input)
+			return true
 		end
-		return true
-	end
-	if InputManager.isActionPressed(InputManager.ACTIONS.CANCEL) then
-		self:hide()
-		return true
+		local focused = self.focusManager:getFocused()
+		if InputManager.isActionJustPressed(InputManager.ACTIONS.CONFIRM) then
+			if focused and focused.onClick then
+				focused:onClick()
+			end
+			if self.onButtonPress then
+				self.onButtonPress(focused)
+			end
+			return true
+		end
 	end
 	return false
 end
 
 -- Helper method to determine if content is scrollable and max scroll position
-function Modal:isContentScrollable(visibleHeight)
-	local currentFont = self.font or love.graphics.getFont()
-	local estimatedTextWidth = self._lastTextWidth or 0
-	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
-	local contentHeight = #mainMessageLines * currentFont:getHeight()
+function Modal:isContentScrollable(visibleHeight, font, wrapWidth)
+	font = font or love.graphics.getFont()
+	wrapWidth = wrapWidth or 0
+	local _, mainMessageLines = font:getWrap(self.message, wrapWidth)
+	local contentHeight = #mainMessageLines * font:getHeight()
 	visibleHeight = visibleHeight or 0
-	-- Correct maxScrollPosition so the last line is flush with the bottom
 	local maxScrollPosition = math.max(0, contentHeight - visibleHeight)
 	return contentHeight > visibleHeight, maxScrollPosition, contentHeight
 end
@@ -199,7 +274,8 @@ end
 -- Helper method to handle scrolling
 function Modal:scroll(amount, maxScrollPosition)
 	self.scrollPosition = self.scrollPosition + amount
-	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition or 0))
+	maxScrollPosition = maxScrollPosition or 0
+	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
 end
 
 function Modal:draw(screenWidth, screenHeight, font)
@@ -209,6 +285,7 @@ function Modal:draw(screenWidth, screenHeight, font)
 
 	local controls = require("control_hints").ControlHints
 	local fonts = require("ui.fonts")
+	local constants = require("ui.components.constants")
 	local controlsHeight = controls.calculateHeight()
 	local padding = 40
 	local maxWidth = screenWidth * 0.9
@@ -229,16 +306,12 @@ function Modal:draw(screenWidth, screenHeight, font)
 	love.graphics.push("all")
 	love.graphics.setFont(currentFont)
 
-	-- Calculate dimensions for main message
 	local estimatedTextWidth = math.min(screenWidth * 0.8, maxWidth) - (padding * 2)
-	self._lastTextWidth = estimatedTextWidth
-	local _, mainMessageLines = currentFont:getWrap(self.message, self._lastTextWidth)
+	local _, mainMessageLines = currentFont:getWrap(self.message, estimatedTextWidth)
 	local mainMessageHeight = #mainMessageLines * currentFont:getHeight()
 
-	-- Calculate progress box dimensions if this is a progress modal
 	local progressBoxHeight = 0
 	local progressBoxPadding = 12
-
 	if self.isProgressModal then
 		local consoleFont = fonts.loaded.console or currentFont
 		local lineHeight = consoleFont:getHeight()
@@ -309,22 +382,51 @@ function Modal:draw(screenWidth, screenHeight, font)
 	love.graphics.rectangle("line", x, y, modalWidth, modalHeight, 10)
 
 	-- Use new scrollable logic
-	local isScrollable, maxScrollPosition, actualContentHeight = self:isContentScrollable(visibleHeight)
-	if self.scrollPosition > maxScrollPosition then
-		self.scrollPosition = maxScrollPosition
-	end
+	local isScrollable, maxScrollPosition, actualContentHeight =
+		self:isContentScrollable(visibleHeight, currentFont, availableTextWidth)
+	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
 
 	if isScrollable then
-		-- Draw scrollable content with custom logic
 		local textAreaX = x + padding
 		local textAreaY = y + padding
 		local textAreaWidth = availableTextWidth
 		love.graphics.setScissor(textAreaX, textAreaY, textAreaWidth, visibleHeight)
+		love.graphics.push()
 		love.graphics.translate(0, -self.scrollPosition)
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, textAreaX, textAreaY, textAreaWidth, "left")
+		love.graphics.pop()
 		love.graphics.setScissor()
-	else
+
+		local scrollbarHeight = visibleHeight
+		local scrollbarX = x + modalWidth - constants.SCROLLBAR.WIDTH - constants.SCROLLBAR.PADDING
+		local scrollbarY = y + padding
+		local trackHeight = scrollbarHeight
+		local handleHeight =
+			math.max(constants.SCROLLBAR.HANDLE_MIN_HEIGHT, (visibleHeight / actualContentHeight) * trackHeight)
+		local maxScroll = math.max(1, actualContentHeight - visibleHeight)
+		local handleY = scrollbarY + ((self.scrollPosition / maxScroll) * (trackHeight - handleHeight))
+		love.graphics.setColor(constants.SCROLLBAR.BACKGROUND_COLOR)
+		love.graphics.rectangle(
+			"fill",
+			scrollbarX,
+			scrollbarY,
+			constants.SCROLLBAR.WIDTH,
+			trackHeight,
+			constants.SCROLLBAR.CORNER_RADIUS
+		)
+		love.graphics.setColor(constants.SCROLLBAR.HANDLE_COLOR)
+		love.graphics.rectangle(
+			"fill",
+			scrollbarX,
+			handleY,
+			constants.SCROLLBAR.WIDTH,
+			handleHeight,
+			constants.SCROLLBAR.CORNER_RADIUS
+		)
+	end
+
+	if not isScrollable then
 		local textY = y + padding
 		love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], 1)
 		love.graphics.printf(self.message, x + padding, textY, availableTextWidth, "center")
@@ -355,7 +457,6 @@ function Modal:draw(screenWidth, screenHeight, font)
 					table.insert(allLines, line)
 				end
 			end
-			-- Only show the last N lines, pad with empty lines if needed
 			local N = minConsoleLines
 			local displayLines = {}
 			local totalLines = #allLines

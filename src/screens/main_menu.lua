@@ -360,7 +360,7 @@ local function handleThemeCreation()
 		-- Coroutine error
 		activeCoroutine = nil
 		waitingState = "none"
-		local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
+		local errorMessage = pathOrError or errorHandler.getError() or "Unknown error"
 		local modalText = "Error building theme: " .. errorMessage
 		modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 		modal.onButtonPress = menu._modalButtonHandler
@@ -383,7 +383,7 @@ local function handleThemeCreation()
 			focusManager:clearFocus()
 		else
 			-- Failure
-			local errorMessage = errorHandler.getError() or pathOrError or "Unknown error"
+			local errorMessage = pathOrError or errorHandler.getError() or "Unknown error"
 			local modalText = "Error building theme: " .. errorMessage
 			modal:show(modalText, { { text = "Exit", selected = true, type = ButtonTypes.ACCENTED } })
 			modal.onButtonPress = menu._modalButtonHandler
