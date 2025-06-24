@@ -55,34 +55,53 @@ end
 
 function List:calculateDimensions()
 	if #self.items > 0 then
-		-- Calculate how many items can fit, accounting for spacing between items and vertical padding
+		-- Gather item heights
+		self._itemHeights = {}
+		local totalItemHeight = 0
+		for i, item in ipairs(self.items) do
+			local h = (item.itemHeight or (item.getHeight and item:getHeight()) or self.itemHeight)
+			table.insert(self._itemHeights, h)
+			totalItemHeight = totalItemHeight + h
+		end
+
 		local availableHeight = self.height - self.paddingY * 2
-		local itemWithSpacing = self.itemHeight + self.spacing
-		self.visibleCount = math.floor(availableHeight / itemWithSpacing)
-		self.visibleCount = math.max(1, math.min(self.visibleCount, #self.items))
+		-- Find how many items can fit fully (no cut-off)
+		local visibleCount = 0
+		local usedHeight = 0
+		for i = 1, #self._itemHeights do
+			if usedHeight + self._itemHeights[i] + (i > 1 and self.spacing or 0) <= availableHeight + 0.0001 then
+				usedHeight = usedHeight + self._itemHeights[i] + (i > 1 and self.spacing or 0)
+				visibleCount = visibleCount + 1
+			else
+				break
+			end
+		end
+		self.visibleCount = math.max(1, math.min(visibleCount, #self.items))
 
-		-- Check if we should redistribute spacing
-		local totalItems = #self.items
-		local wouldFitOneMore = (self.visibleCount + 1) * itemWithSpacing <= availableHeight
-		self.shouldRedistribute = (totalItems > self.visibleCount)
-			or (totalItems == self.visibleCount and not wouldFitOneMore)
-
+		-- Redistribute spacing if needed
+		local totalVisibleHeight = 0
+		for i = 1, self.visibleCount do
+			totalVisibleHeight = totalVisibleHeight + self._itemHeights[i]
+		end
+		local remainingHeight = availableHeight - totalVisibleHeight
+		self.shouldRedistribute = (#self.items > self.visibleCount)
 		if self.shouldRedistribute and self.visibleCount > 1 then
-			-- Redistribute only spacing, keep item height constant
-			local totalItemHeight = self.visibleCount * self.itemHeight
-			local remainingHeight = availableHeight - totalItemHeight
-			self.adjustedItemHeight = self.itemHeight
-			self.adjustedSpacing = remainingHeight / (self.visibleCount - 1)
+			self.adjustedSpacings = {}
+			local spacing = remainingHeight / (self.visibleCount - 1)
+			for i = 1, self.visibleCount - 1 do
+				table.insert(self.adjustedSpacings, spacing)
+			end
 		else
-			-- No redistribution needed, use original values
-			self.adjustedItemHeight = self.itemHeight
-			self.adjustedSpacing = self.spacing
+			self.adjustedSpacings = {}
+			for i = 1, self.visibleCount - 1 do
+				table.insert(self.adjustedSpacings, self.spacing)
+			end
 		end
 	else
 		self.visibleCount = 0
 		self.shouldRedistribute = false
-		self.adjustedItemHeight = self.itemHeight
-		self.adjustedSpacing = self.spacing
+		self._itemHeights = nil
+		self.adjustedSpacings = nil
 	end
 end
 
@@ -178,40 +197,27 @@ function List:navigate(direction)
 end
 
 function List:adjustScrollPosition(direction)
-	if #self.items <= self.visibleCount then
+	if not self._itemHeights or #self.items <= self.visibleCount then
 		self.scrollPosition = 0
 		return
 	end
-
 	direction = direction or 0
 	local maxScrollPosition = math.max(0, #self.items - self.visibleCount)
-
-	-- When wrapping from last to first item, reset scroll position
 	if direction == 1 and self.selectedIndex == 1 and self.scrollPosition > 0 then
 		self.scrollPosition = 0
 		return
 	end
-
-	-- When wrapping from first to last item, scroll to end
 	if direction == -1 and self.selectedIndex == #self.items then
 		self.scrollPosition = maxScrollPosition
 		return
 	end
-
-	-- Calculate what the first and last visible items should be
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = firstVisible + self.visibleCount - 1
-
-	-- Only adjust scroll if selected item is not visible
 	if self.selectedIndex < firstVisible then
-		-- Scrolling up: selected item should be first visible
 		self.scrollPosition = self.selectedIndex - 1
 	elseif self.selectedIndex > lastVisible then
-		-- Scrolling down: selected item should be last visible
 		self.scrollPosition = self.selectedIndex - self.visibleCount
 	end
-
-	-- Ensure scroll position is within bounds
 	self.scrollPosition = math.max(0, math.min(self.scrollPosition, maxScrollPosition))
 end
 
@@ -298,60 +304,56 @@ function List:draw()
 	if not self.visible or #self.items == 0 then
 		return
 	end
-	-- Always recalculate dimensions before drawing to ensure height/width changes are respected
 	self:calculateDimensions()
 	love.graphics.push("all")
-	-- Calculate visible range based on scroll position
 	local firstVisible = math.floor(self.scrollPosition) + 1
 	local lastVisible = math.min(firstVisible + self.visibleCount - 1, #self.items)
-	-- Determine if scrollbar is needed
 	local needsScrollbar = #self.items > self.visibleCount
 	local scrollbarWidth = constants.SCROLLBAR.WIDTH
 	local effectiveRightPadding = self.paddingX
 	if needsScrollbar then
 		effectiveRightPadding = self.paddingX + scrollbarWidth
 	end
-	-- Create scissor to clip content
 	love.graphics.intersectScissor(self.x, self.y, self.width, self.height)
-	-- Draw visible items
+	local yCursor = self.y + self.paddingY
 	for i = firstVisible, lastVisible do
 		local item = self.items[i]
 		if item then
-			-- Calculate item position (relative to the list, not scrolled content)
-			local itemIndex = i - firstVisible -- Index within visible items (0-based)
-			local itemY = self.y + self.paddingY + itemIndex * (self.adjustedItemHeight + self.adjustedSpacing)
+			local itemH = (item.itemHeight or (item.getHeight and item:getHeight()) or self.itemHeight)
 			local itemX = self.x + self.paddingX
 			local itemW = self.width - self.paddingX - effectiveRightPadding
-			local itemH = self.adjustedItemHeight
-			-- Set item position
 			if item.setPosition then
-				item:setPosition(itemX, itemY)
+				item:setPosition(itemX, yCursor)
 			else
 				item.x = itemX
-				item.y = itemY
+				item.y = yCursor
 			end
-			-- Set item size if needed
 			if item.setSize then
 				item:setSize(itemW, itemH)
 			elseif item.width == nil or item.height == nil then
 				item.width = itemW
 				item.height = itemH
 			end
-			-- Draw the item
 			if item.draw then
 				love.graphics.push("all")
 				item:draw()
 				love.graphics.pop()
 			end
+			yCursor = yCursor + itemH
+			if i - firstVisible + 1 <= (self.adjustedSpacings and #self.adjustedSpacings or 0) then
+				yCursor = yCursor + self.adjustedSpacings[i - firstVisible + 1]
+			end
 		end
 	end
-	love.graphics.setScissor() -- Reset scissor to avoid affecting other UI
-	-- Draw scrollbar if needed
+	love.graphics.setScissor()
 	if needsScrollbar then
 		local barX = self.x + self.width - scrollbarWidth
 		local rx = constants.SCROLLBAR.CORNER_RADIUS
 		local ry = rx
-		-- Draw scrollbar handle
+		local totalVisibleHeight = 0
+		for i = 1, self.visibleCount do
+			totalVisibleHeight = totalVisibleHeight + self._itemHeights[i]
+		end
 		local barHeight = (self.height - self.paddingY * 2) * (self.visibleCount / #self.items)
 		local barY = self.y
 			+ self.paddingY
@@ -375,12 +377,18 @@ function List:update(dt)
 end
 
 function List:getContentHeight()
-	local itemCount = #self.items
-	if itemCount == 0 then
+	if not self._itemHeights or #self.items == 0 then
 		return 0
 	end
-	-- Total height: paddingY (top) + all items + all spacings + paddingY (bottom)
-	return self.paddingY + itemCount * self.adjustedItemHeight + (itemCount - 1) * self.adjustedSpacing + self.paddingY
+	local total = self.paddingY
+	for i = 1, #self._itemHeights do
+		total = total + self._itemHeights[i]
+		if i < #self._itemHeights then
+			total = total + (self.adjustedSpacings and self.adjustedSpacings[i] or self.spacing)
+		end
+	end
+	total = total + self.paddingY
+	return total
 end
 
 -- Override setFocused to remember/restore selection
