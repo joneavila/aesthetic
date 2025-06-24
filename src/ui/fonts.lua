@@ -28,8 +28,8 @@ fonts.themeDefinitions = {
 	},
 	{
 		name = "Nunito",
-		binDefault = "nunito_bold_27.bin",
-		bin1024x768 = "nunito_bold_39.bin",
+		binDefault = "nunito_bold_25.bin",
+		bin1024x768 = "nunito_bold_37.bin",
 		ttf = "assets/fonts/nunito/nunito_bold.ttf",
 	},
 	{
