@@ -77,19 +77,19 @@ muxbackup/theme, lucide/glyph/palette
 muxbackup/userinit, lucide/glyph/scroll
 
 # muxdanger
-# muxdanger/cache, lucide/glyph/
-# muxdanger/child, lucide/glyph/
-# muxdanger/cluster, lucide/glyph/
-# muxdanger/dirty-back, lucide/glyph/
-# muxdanger/dirty-ratio, lucide/glyph/
-# muxdanger/idleflush, lucide/glyph/
-# muxdanger/iostats, lucide/glyph/
-# muxdanger/merge, lucide/glyph/
-# muxdanger/readahead, lucide/glyph/
-# muxdanger/requests, lucide/glyph/
-# muxdanger/timeslice, lucide/glyph/
-# muxdanger/tunescale, lucide/glyph/
-# muxdanger/vmswap, lucide/glyph/
+muxdanger/cache, lucide/glyph/brush-cleaning
+muxdanger/child, lucide/glyph/git-branch
+muxdanger/cluster, lucide/glyph/chart-network
+muxdanger/dirty-back, lucide/glyph/droplet
+muxdanger/dirty-ratio, lucide/glyph/bubbles
+muxdanger/idleflush, lucide/glyph/glass-water
+muxdanger/iostats, lucide/glyph/chart-line
+muxdanger/merge, lucide/glyph/merge
+muxdanger/readahead, lucide/glyph/fast-forward
+muxdanger/requests, lucide/glyph/server
+muxdanger/timeslice, lucide/glyph/timer
+muxdanger/tunescale, lucide/glyph/sliders-vertical
+muxdanger/vmswap, lucide/glyph/arrow-down
 
 # muxkiosk
 # muxkiosk/advanced, lucide/glyph/
