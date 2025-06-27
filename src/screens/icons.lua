@@ -1,6 +1,7 @@
 --- Icons toggle screen
 local love = require("love")
 
+local colors = require("colors")
 local controls = require("control_hints").ControlHints
 local paths = require("paths")
 local screens = require("screens")
@@ -110,6 +111,11 @@ function iconsToggle.draw()
 			height = previewHeight,
 		})
 		imgComponent:draw()
+
+		-- Draw border around preview image
+		love.graphics.setColor(colors.ui.foreground)
+		love.graphics.setLineWidth(1)
+		love.graphics.rectangle("line", previewX, centeredPreviewY, previewWidth, previewHeight, 8, 8)
 	end
 
 	-- Draw controls

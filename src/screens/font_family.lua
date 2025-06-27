@@ -191,6 +191,17 @@ function font.draw()
 	}
 	controlHintsInstance:setControlsList(controlsList)
 	controlHintsInstance:draw()
+
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setLineWidth(1)
+	love.graphics.rectangle(
+		"line",
+		32,
+		previewY,
+		state.screenWidth - (32 * 2),
+		calculatedMaxPreviewHeight,
+		FONT_PREVIEW.PREVIEW_BG_CORNER_RADIUS
+	)
 end
 
 function font.update(dt)

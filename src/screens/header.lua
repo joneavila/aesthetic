@@ -197,7 +197,7 @@ function headerScreen.draw()
 	)
 
 	-- Draw border around preview
-	love.graphics.setColor(colors.ui.surface_focus_outline)
+	love.graphics.setColor(colors.ui.foreground)
 	love.graphics.setLineWidth(1)
 	love.graphics.rectangle("line", previewX, previewY, previewWidth, previewHeight, 8, 8)
 

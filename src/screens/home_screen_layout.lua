@@ -151,6 +151,11 @@ function homeScreenLayout.draw()
 				},
 			})
 			imgComponent:draw()
+
+			-- Draw border around preview image
+			love.graphics.setColor(require("colors").ui.foreground)
+			love.graphics.setLineWidth(1)
+			love.graphics.rectangle("line", imageX, imageY, imageWidth, imageHeight, 8, 8)
 		end
 	end
 
