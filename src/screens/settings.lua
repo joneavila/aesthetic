@@ -82,7 +82,8 @@ local function createMenuButtons()
 	return {
 		Button:new({
 			text = "Save Theme Preset",
-			type = "basic",
+			type = "icon",
+			iconName = "arrow-down-to-line",
 			onClick = function()
 				screens.switchTo("virtual_keyboard", {
 					title = "Theme Preset Name",
@@ -93,14 +94,16 @@ local function createMenuButtons()
 		}),
 		Button:new({
 			text = "Load Theme Preset",
-			type = "basic",
+			type = "icon",
+			iconName = "arrow-up-from-line",
 			onClick = function()
 				screens.switchTo("load_preset")
 			end,
 		}),
 		Button:new({
 			text = "Reset to Defaults",
-			type = "basic",
+			type = "icon",
+			iconName = "list-restart",
 			onClick = function()
 				modalInstance:show("This will clear your customizations. Reset to defaults?", {
 					{
@@ -129,21 +132,24 @@ local function createMenuButtons()
 		}),
 		Button:new({
 			text = "Manage Themes",
-			type = "basic",
+			type = "icon",
+			iconName = "list-x",
 			onClick = function()
 				screens.switchTo("delete_themes")
 			end,
 		}),
 		Button:new({
 			text = "Check for Updates",
-			type = "basic",
+			type = "icon",
+			iconName = "cloud-download",
 			onClick = function()
 				checkForUpdates()
 			end,
 		}),
 		Button:new({
 			text = "About",
-			type = "basic",
+			type = "icon",
+			iconName = "info",
 			onClick = function()
 				screens.switchTo("about")
 			end,

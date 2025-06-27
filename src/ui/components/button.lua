@@ -26,6 +26,7 @@ local BUTTON_CONFIG = {
 }
 
 local ICON_SIZE = 14
+local ICON_BUTTON_ICON_SIZE = 24
 local COLOR_DISPLAY_SIZE = 30
 local CHEVRON_PADDING = 16
 
@@ -39,6 +40,7 @@ local BUTTON_TYPES = {
 	ACCENTED = "accented",
 	DUAL_COLOR = "dual_color",
 	KEY = "key",
+	ICON = "icon",
 }
 
 -- Button class
@@ -582,6 +584,33 @@ function Button:drawKey()
 	love.graphics.pop()
 end
 
+function Button:drawIconButton()
+	self:drawBackground()
+	local font = love.graphics.getFont()
+	local textHeight = font:getHeight()
+	local opacity = self.disabled and 0.3 or 1
+
+	local iconName = self.iconName
+	local iconSize = ICON_BUTTON_ICON_SIZE
+	local iconPadding = 8
+	local iconX = self.x + BUTTON_CONFIG.HORIZONTAL_PADDING
+	local iconY = self.y + (self.height - iconSize) / 2
+	local textX = iconX + iconSize + iconPadding
+	local textY = self.y + (self.height - textHeight) / 2
+
+	if iconName then
+		local icon = svg.loadIcon(iconName, iconSize)
+		if icon then
+			local drawX = math.floor(iconX + iconSize / 2)
+			local drawY = math.floor(iconY + iconSize / 2)
+			svg.drawIcon(icon, drawX, drawY, colors.ui.foreground, opacity)
+		end
+	end
+
+	love.graphics.setColor(colors.ui.foreground[1], colors.ui.foreground[2], colors.ui.foreground[3], opacity)
+	love.graphics.print(self.text, textX, textY)
+end
+
 function Button:draw()
 	if not self.visible then
 		return
@@ -603,6 +632,8 @@ function Button:draw()
 		self:drawDualColor()
 	elseif self.type == BUTTON_TYPES.KEY then
 		self:drawKey()
+	elseif self.type == BUTTON_TYPES.ICON then
+		self:drawIconButton()
 	else
 		self:drawBasic()
 	end
