@@ -8,7 +8,7 @@
 # Directory and file paths
 # Use the same path resolution as mux_launch.sh
 ROOT_DIR="$(GET_VAR "device" "storage/rom/mount")/MUOS/application/Aesthetic"
-APP_DIR="$ROOT_DIR"  # Keep for backward compatibility
+APP_DIR="$ROOT_DIR" # Keep for backward compatibility
 SOURCE_DIR="$APP_DIR/.aesthetic"
 OLD_SETTINGS_PATH="$SOURCE_DIR/settings.lua"       # v1.5.1
 NEW_SETTINGS_DIR="$APP_DIR/userdata"               # v1.6.0 and later
@@ -20,9 +20,9 @@ echo "[Aesthetic Update Script]"
 # Function to migrate renamed variables in user files
 migrate_renamed_variables() {
     echo "Checking for variable name migrations..."
-    
+
     local files_updated=0
-    
+
     # Define the variable mappings (old_name -> new_name)
     local -A variable_mappings=(
         ["headerTextAlignment"]="headerAlignment"
@@ -30,27 +30,27 @@ migrate_renamed_variables() {
         ["navigationAlpha"]="navigationOpacity"
         ["selectedFont"]="fontFamily"
     )
-    
+
     # Function to perform replacements in a single file
     perform_replacements() {
         local file_path="$1"
         local temp_file=$(mktemp)
         local file_changed=false
-        
+
         cp "$file_path" "$temp_file"
-        
+
         for old_var in "${!variable_mappings[@]}"; do
             local new_var="${variable_mappings[$old_var]}"
-            
+
             # Replace variable assignments (e.g., headerTextAlignment = value)
-            if sed "s/\b${old_var}\s*=/\t${new_var} =/g" "$temp_file" > "$temp_file.tmp" && ! cmp -s "$temp_file" "$temp_file.tmp"; then
+            if sed "s/\b${old_var}\s*=/\t${new_var} =/g" "$temp_file" >"$temp_file.tmp" && ! cmp -s "$temp_file" "$temp_file.tmp"; then
                 mv "$temp_file.tmp" "$temp_file"
                 file_changed=true
             else
                 rm -f "$temp_file.tmp"
             fi
         done
-        
+
         if [ "$file_changed" = true ]; then
             mv "$temp_file" "$file_path"
             return 0
@@ -59,7 +59,7 @@ migrate_renamed_variables() {
             return 1
         fi
     }
-    
+
     # Migrate settings.lua if it exists
     if [ -f "$NEW_SETTINGS_PATH" ]; then
         echo "Checking settings.lua for variable migrations..."
@@ -68,11 +68,11 @@ migrate_renamed_variables() {
             ((files_updated++))
         fi
     fi
-    
+
     # Migrate user-created preset files
     if [ -d "$USERDATA_PRESETS_DIR" ]; then
         echo "Checking user-created preset files for variable migrations..."
-        
+
         # Find all .lua files in the presets directory
         while IFS= read -r -d '' preset_file; do
             if perform_replacements "$preset_file"; then
@@ -82,7 +82,7 @@ migrate_renamed_variables() {
             fi
         done < <(find "$USERDATA_PRESETS_DIR" -name "*.lua" -type f -print0 2>/dev/null)
     fi
-    
+
     if [ $files_updated -gt 0 ]; then
         echo "Variable migration completed: $files_updated files updated"
     else
@@ -95,13 +95,13 @@ cleanup_old_source_files() {
     if [ ! -d "$SOURCE_DIR" ]; then
         return
     fi
-    
+
     local manifest_file="$SOURCE_DIR/.manifest"
     if [ ! -f "$manifest_file" ]; then
         echo "No manifest file found, skipping cleanup"
         return
     fi
-    
+
     # Read manifest into array (files that should exist)
     local expected_files=()
     while IFS= read -r line; do
@@ -110,10 +110,10 @@ cleanup_old_source_files() {
         if [ -n "$line" ]; then
             expected_files+=("$line")
         fi
-    done < "$manifest_file"
-    
+    done <"$manifest_file"
+
     echo "Manifest contains ${#expected_files[@]} expected files"
-    
+
     # Find all existing files (excluding the manifest itself for now)
     local existing_files=()
     while IFS= read -r -d '' file; do
@@ -122,13 +122,13 @@ cleanup_old_source_files() {
             existing_files+=("$rel_path")
         fi
     done < <(find "$SOURCE_DIR" -type f -not -name ".manifest" -print0)
-    
+
     # Convert expected_files array to associative array for O(1) lookup
     local -A expected_files_map
     for file in "${expected_files[@]}"; do
         expected_files_map["$file"]=1
     done
-    
+
     # Remove files that exist but are not in manifest
     local removed_count=0
     echo "Checking ${#existing_files[@]} existing files against manifest..."
@@ -138,10 +138,10 @@ cleanup_old_source_files() {
             ((removed_count++))
         fi
     done
-    
+
     # Remove empty directories
     find "$SOURCE_DIR" -type d -empty -delete 2>/dev/null || true
-    
+
     echo "Removed $removed_count old files"
 }
 
@@ -150,17 +150,17 @@ cleanup_old_source_files() {
 # We use file existence check instead of version check since this script runs after installation
 if [ -f "$OLD_SETTINGS_PATH" ]; then
     echo "Found existing settings file at: $OLD_SETTINGS_PATH"
-    
+
     # Create the new userdata directory if it doesn't exist
     if [ ! -d "$NEW_SETTINGS_DIR" ]; then
         echo "Creating userdata directory: $NEW_SETTINGS_DIR"
         mkdir -p "$NEW_SETTINGS_DIR"
     fi
-    
+
     # Move the settings file to the new location
     echo "Moving settings.lua to: $NEW_SETTINGS_PATH"
     mv "$OLD_SETTINGS_PATH" "$NEW_SETTINGS_PATH"
-    
+
     if [ $? -eq 0 ]; then
         echo "Settings migration completed successfully"
     else
