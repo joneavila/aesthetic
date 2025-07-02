@@ -19,3 +19,6 @@ assets/1024x768/glyph/
 
 # Application glyph
 !assets/icons/glyph/muxapp/aesthetic.png
+
+# Glyph cache files
+utils/.icon_cache_timestamps
