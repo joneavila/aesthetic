@@ -182,5 +182,25 @@ else
     echo "No source directory found - skipping cleanup for new installation"
 fi
 
+# Replace default application glyph with higher resolution version for devices with 1024x768 screens.
+# This step is performed here because the build script (build.sh) does not have access to the device's screen
+# dimensions. Only the launch script (mux_launch.sh) or this update script read muOS variables to determine the correct
+# resolution at install/update time.
+WIDTH=$(GET_VAR device mux/width)
+HEIGHT=$(GET_VAR device mux/height)
+HIGHRES_GLYPH_SOURCE="$SOURCE_DIR/assets/1024x768/glyph/muxapp/aesthetic.png"
+HIGHRES_GLYPH_TARGET="/opt/muos/default/MUOS/theme/active/glyph/muxapp"
+if [ "$WIDTH" = "1024" ] && [ "$HEIGHT" = "768" ]; then
+    if [ -f "$HIGHRES_GLYPH_SOURCE" ]; then
+        rsync -aq "$HIGHRES_GLYPH_SOURCE" "$HIGHRES_GLYPH_TARGET" || {
+            echo "Failed to copy high-resolution application glyph"
+            exit 1
+        }
+        echo "Replaced application glyph with high-resolution version for 1024x768 device"
+    else
+        echo "High-resolution glyph not found: $HIGHRES_GLYPH_SOURCE"
+    fi
+fi
+
 # Final status message
 echo "Update completed successfully!"
