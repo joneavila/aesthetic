@@ -35,7 +35,7 @@ Slider.TICK_VERTICAL_OFFSET = 2
 -- Component padding constants
 Slider.BOTTOM_PADDING = 10
 
-Slider.TWEEN_DURATION = 0.25 -- Duration in seconds for slider animation
+Slider.TWEEN_DURATION = 0.1 -- Duration in seconds for slider animation
 Slider.TWEEN_EASING = "outQuad" -- Easing function for slider animation
 
 function Slider.new(_, config)
@@ -59,14 +59,22 @@ function Slider:setValueIndex(idx, animate)
 	if animate then
 		if math.abs(self.animatedValue - idx) > 0.01 then
 			self.currentTween = tween.new(Slider.TWEEN_DURATION, self, { animatedValue = idx }, Slider.TWEEN_EASING)
+			self._pendingValueIndex = idx -- Store for callback after animation
+		else
+			self.animatedValue = idx
+			self.currentTween = nil
+			self.valueIndex = idx
+			if self.onValueChanged then
+				self.onValueChanged(self.values[self.valueIndex], self.valueIndex)
+			end
 		end
 	else
 		self.animatedValue = idx
 		self.currentTween = nil
-	end
-	self.valueIndex = idx
-	if self.onValueChanged then
-		self.onValueChanged(self.values[self.valueIndex], self.valueIndex)
+		self.valueIndex = idx
+		if self.onValueChanged then
+			self.onValueChanged(self.values[self.valueIndex], self.valueIndex)
+		end
 	end
 end
 
@@ -75,6 +83,13 @@ function Slider:update(dt)
 		local completed = self.currentTween:update(dt)
 		if completed then
 			self.currentTween = nil
+			if self._pendingValueIndex then
+				self.valueIndex = self._pendingValueIndex
+				self._pendingValueIndex = nil
+				if self.onValueChanged then
+					self.onValueChanged(self.values[self.valueIndex], self.valueIndex)
+				end
+			end
 		end
 	end
 end
@@ -156,6 +171,9 @@ function Slider:draw()
 end
 
 function Slider:handleInput(input)
+	if self.currentTween then
+		return false -- Ignore input while animating
+	end
 	if InputManager.isActionJustPressed(InputManager.ACTIONS.NAVIGATE_LEFT) then
 		self:setValueIndex(self.valueIndex - 1, true)
 		return true

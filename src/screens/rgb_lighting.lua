@@ -12,6 +12,7 @@ local fonts = require("ui.fonts")
 local Header = require("ui.components.header")
 local List = require("ui.components.list").List
 local InputManager = require("ui.controllers.input_manager")
+local Slider = require("ui.components.slider").Slider
 
 local rgbUtils = require("utils.rgb")
 
@@ -45,7 +46,7 @@ local headerInstance = Header:new({ title = "RGB Lighting" })
 local controlHintsInstance
 
 -- Store button instances globally
-local modeButton, breathingSpeedButton, brightnessButton, colorButton, speedButton
+local modeButton, breathingSpeedButton, brightnessSlider, colorButton, speedButton
 
 -- Track previous menu structure
 local prevMenuStructure = {}
@@ -138,16 +139,23 @@ local function createButtons()
 		breathingSpeedButton = nil
 	end
 	if isBrightnessVisible() then
-		brightnessButton = Button:new({
-			text = "Brightness",
-			type = ButtonTypes.INDICATORS,
-			options = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
-			currentOptionIndex = state.rgbBrightness or 5,
-			screenWidth = state.screenWidth,
-			context = "brightnessToggle",
+		brightnessSlider = Slider:new({
+			label = "Brightness",
+			values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			valueIndex = state.rgbBrightness or 5,
+			width = state.screenWidth,
+			valueFormatter = function(val)
+				return tostring(val * 10) .. "%"
+			end,
+			onValueChanged = function(val, idx)
+				state.rgbBrightness = idx
+				if state.hasRGBSupport then
+					rgbUtils.updateConfig()
+				end
+			end,
 		})
 	else
-		brightnessButton = nil
+		brightnessSlider = nil
 	end
 	if isColorVisible() then
 		colorButton = Button:new({
@@ -184,8 +192,8 @@ local function getMenuItems()
 	if breathingSpeedButton then
 		table.insert(items, breathingSpeedButton)
 	end
-	if brightnessButton then
-		table.insert(items, brightnessButton)
+	if brightnessSlider then
+		table.insert(items, brightnessSlider)
 	end
 	if colorButton then
 		table.insert(items, colorButton)
@@ -295,11 +303,10 @@ function rgb_lighting.update(dt)
 			end
 		end
 
-		-- Handle Brightness button
-		if brightnessButton and brightnessButton.getCurrentOption then
-			local newBrightness = brightnessButton:getCurrentOption()
-			if state.rgbBrightness ~= newBrightness then
-				state.rgbBrightness = newBrightness
+		-- Handle Brightness slider
+		if brightnessSlider and brightnessSlider.valueIndex then
+			if state.rgbBrightness ~= brightnessSlider.valueIndex then
+				state.rgbBrightness = brightnessSlider.valueIndex
 			end
 		end
 
