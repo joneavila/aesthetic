@@ -152,22 +152,16 @@ end
 -- Function to create `version.txt` file containing the compatible muOS version
 -- This function ensures that the theme is always read as compatible by muOS
 local function createVersionFile()
-	logger.warning("Not using version file for theme creation")
-	local content = "2502.0"
-	-- logger.debug("Creating version file: " .. tostring(paths.MUOS_VERSION_FILE))
-	-- local content = system.readFile(paths.MUOS_VERSION_FILE)
+	logger.debug("Creating version file: " .. tostring(paths.MUOS_VERSION_FILE))
+	local content = system.readFile(paths.MUOS_VERSION_FILE)
 	if not content then
 		return fail("muOS version file could not be read")
 	end
-	-- local parsedVersion = content and content:match("(%d[%d%.]+)_")
-	-- if not parsedVersion then
-	-- 	return fail("muOS version could not be parsed from version file")
-	-- end
-	-- local success, err = system.createTextFile(paths.THEME_VERSION, parsedVersion)
-	-- if not success then
-	-- 	return fail("Failed to create version file: " .. tostring(err))
-	-- end
-	local success, err = system.createTextFile(paths.THEME_VERSION, content)
+	local parsedVersion = content and content:match("(%d[%d%.]+)_")
+	if not parsedVersion then
+		return fail("muOS version could not be parsed from version file")
+	end
+	local success, err = system.createTextFile(paths.THEME_VERSION, parsedVersion)
 	if not success then
 		return fail("Failed to create version file: " .. tostring(err))
 	end
