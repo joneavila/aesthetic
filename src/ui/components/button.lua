@@ -41,7 +41,12 @@ local BUTTON_TYPES = {
 	DUAL_COLOR = "dual_color",
 	KEY = "key",
 	ICON = "icon",
+	CHECKBOX = "checkbox", -- Added checkbox type
 }
+
+-- Preload icons for checkboxes
+local SQUARE = svg.loadIcon("square", 24)
+local SQUARE_CHECK_ICON = svg.loadIcon("square-check", 24)
 
 -- Button class
 local Button = setmetatable({}, { __index = Component })
@@ -611,6 +616,43 @@ function Button:drawIconButton()
 	love.graphics.print(self.text, textX, textY)
 end
 
+function Button:drawCheckbox()
+	local font = love.graphics.getFont()
+	local boxSize = 28
+	local padding = 16
+	local textPadding = 12
+
+	-- Draw background if focused
+	if self.focused then
+		love.graphics.setColor(colors.ui.surface)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, 8)
+	end
+
+	-- Calculate positions
+	local boxX = self.x + padding
+	local boxY = self.y + (self.height - boxSize) / 2
+	local textX = boxX + boxSize + textPadding
+	local textY = self.y + (self.height - font:getHeight()) / 2
+
+	-- Draw checkbox
+	if self.checked then
+		if SQUARE_CHECK_ICON then
+			local iconColor = colors.ui.foreground
+			svg.drawIcon(SQUARE_CHECK_ICON, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
+		end
+	else
+		if SQUARE then
+			local iconColor = colors.ui.foreground
+			svg.drawIcon(SQUARE, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
+		end
+	end
+
+	-- Draw text
+	love.graphics.setColor(colors.ui.foreground)
+	love.graphics.setFont(font)
+	love.graphics.print(self.text, textX, textY)
+end
+
 function Button:draw()
 	if not self.visible then
 		return
@@ -634,6 +676,8 @@ function Button:draw()
 		self:drawKey()
 	elseif self.type == BUTTON_TYPES.ICON then
 		self:drawIconButton()
+	elseif self.type == BUTTON_TYPES.CHECKBOX then
+		self:drawCheckbox()
 	else
 		self:drawBasic()
 	end

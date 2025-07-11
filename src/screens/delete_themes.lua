@@ -12,6 +12,8 @@ local fonts = require("ui.fonts")
 local Header = require("ui.components.header")
 local List = require("ui.components.list").List
 local Modal = require("ui.components.modal").Modal
+local Button = require("ui.components.button").Button
+local ButtonTypes = require("ui.components.button").TYPES
 
 local svg = require("utils.svg")
 local system = require("utils.system")
@@ -29,79 +31,16 @@ local controlHintsInstance
 local SQUARE = svg.loadIcon("square", 24)
 local SQUARE_CHECK_ICON = svg.loadIcon("square-check", 24)
 
--- Custom checkbox item component
-local CheckboxItem = {}
-CheckboxItem.__index = CheckboxItem
+-- Remove CheckboxItem and related code
 
-function CheckboxItem.new(_self, text, index)
-	local instance = {
-		text = text,
-		index = index,
-		checked = false,
-		focused = false,
-		x = 0,
-		y = 0,
-		width = 0,
-		height = 0,
-	}
-	setmetatable(instance, CheckboxItem)
-	return instance
-end
-
-function CheckboxItem:setPosition(x, y)
-	self.x = x
-	self.y = y
-end
-
-function CheckboxItem:setSize(width, height)
-	self.width = width
-	self.height = height
-end
-
-function CheckboxItem:setFocused(focused)
-	self.focused = focused
-end
-
-function CheckboxItem:draw()
-	local font = love.graphics.getFont()
-	local boxSize = 28
-	local padding = 16
-	local textPadding = 12
-
-	-- Draw background if focused
-	if self.focused then
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, 8)
-	end
-
-	-- Calculate positions
-	local boxX = self.x + padding
-	local boxY = self.y + (self.height - boxSize) / 2
-	local textX = boxX + boxSize + textPadding
-	local textY = self.y + (self.height - font:getHeight()) / 2
-
-	-- Draw checkbox
-	if self.checked then
-		if SQUARE_CHECK_ICON then
-			local iconColor = colors.ui.foreground
-			svg.drawIcon(SQUARE_CHECK_ICON, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
-		end
-	else
-		if SQUARE then
-			local iconColor = colors.ui.foreground
-			svg.drawIcon(SQUARE, boxX + boxSize / 2, boxY + boxSize / 2, iconColor)
-		end
-	end
-
-	-- Draw text
-	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.setFont(font)
-	love.graphics.print(self.text, textX, textY)
-end
-
-local function createThemeCheckboxItem(filename, index)
+local function createThemeCheckboxButton(filename, index)
 	local name = filename:gsub("%.muxthm$", "") -- Remove .muxthm extension
-	return CheckboxItem:new(name, index)
+	return Button:new({
+		type = ButtonTypes.CHECKBOX,
+		text = name,
+		checked = false,
+		index = index,
+	})
 end
 
 local function scanThemes()
@@ -109,7 +48,7 @@ local function scanThemes()
 	local p = paths.MUOS_THEMES_DIR
 	local files = system.listFiles(p, "*.muxthm")
 	for i, file in ipairs(files) do
-		local item = createThemeCheckboxItem(file, i)
+		local item = createThemeCheckboxButton(file, i)
 		table.insert(themeItems, item)
 	end
 end
@@ -159,7 +98,7 @@ function delete_themes.draw()
 		}
 		local checkedCount = 0
 		for _, item in ipairs(themeItems) do
-			if item.checked then
+			if item.type == ButtonTypes.CHECKBOX and item.checked then
 				checkedCount = checkedCount + 1
 			end
 		end
@@ -207,7 +146,7 @@ function delete_themes.update(dt)
 		local checkedCount = 0
 		local checkedItems = {}
 		for _, item in ipairs(themeItems) do
-			if item.checked then
+			if item.type == ButtonTypes.CHECKBOX and item.checked then
 				checkedCount = checkedCount + 1
 				table.insert(checkedItems, item.text)
 			end
@@ -269,7 +208,7 @@ function delete_themes.update(dt)
 		local checkedCount = 0
 		local checkedItems = {}
 		for _, item in ipairs(themeItems) do
-			if item.checked then
+			if item.type == ButtonTypes.CHECKBOX and item.checked then
 				checkedCount = checkedCount + 1
 				table.insert(checkedItems, item.text)
 			end
@@ -345,8 +284,10 @@ function delete_themes.onEnter(_data)
 		items = themeItems,
 		itemHeight = fonts.loaded.body:getHeight() + 24,
 		onItemSelect = function(item, _idx)
-			-- Toggle checked state
-			item.checked = not item.checked
+			-- Only toggle checked state for CHECKBOX type
+			if item.type == ButtonTypes.CHECKBOX then
+				item.checked = not item.checked
+			end
 		end,
 		wrap = false,
 	})
