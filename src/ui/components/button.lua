@@ -622,11 +622,7 @@ function Button:drawCheckbox()
 	local padding = 16
 	local textPadding = 12
 
-	-- Draw background if focused
-	if self.focused then
-		love.graphics.setColor(colors.ui.surface)
-		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height, 8)
-	end
+	self:drawBackground()
 
 	-- Calculate positions
 	local boxX = self.x + padding

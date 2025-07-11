@@ -8,16 +8,16 @@ local screens = require("screens")
 local state = require("state")
 
 local background = require("ui.background")
-local fonts = require("ui.fonts")
-local Header = require("ui.components.header")
-local List = require("ui.components.list").List
-local Modal = require("ui.components.modal").Modal
 local Button = require("ui.components.button").Button
 local ButtonTypes = require("ui.components.button").TYPES
+local fonts = require("ui.fonts")
+local Header = require("ui.components.header")
+local InputManager = require("ui.controllers.input_manager")
+local List = require("ui.components.list").List
+local Modal = require("ui.components.modal").Modal
 
 local svg = require("utils.svg")
 local system = require("utils.system")
-local InputManager = require("ui.controllers.input_manager")
 
 local delete_themes = {}
 
@@ -30,8 +30,6 @@ local controlHintsInstance
 -- Preload icons for checkboxes
 local SQUARE = svg.loadIcon("square", 24)
 local SQUARE_CHECK_ICON = svg.loadIcon("square-check", 24)
-
--- Remove CheckboxItem and related code
 
 local function createThemeCheckboxButton(filename, index)
 	local name = filename:gsub("%.muxthm$", "") -- Remove .muxthm extension
