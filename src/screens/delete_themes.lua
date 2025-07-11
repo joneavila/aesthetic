@@ -116,6 +116,8 @@ end
 
 local headerInstance = Header:new({ title = "Manage Themes" })
 
+local PADDING = 16
+
 function delete_themes.draw()
 	-- Set background
 	background.draw()
@@ -127,13 +129,17 @@ function delete_themes.draw()
 	love.graphics.setFont(fonts.loaded.monoBody)
 	local dirText = "Theme directory: " .. paths.MUOS_THEMES_DIR
 	love.graphics.setColor(colors.ui.foreground)
-	love.graphics.print(dirText, 32, headerInstance:getContentStartY() + 8)
+	local dirY = headerInstance:getContentStartY() + 8
+	local dirWidth = state.screenWidth - (PADDING * 2)
+	local _, wrappedLines = fonts.loaded.monoBody:getWrap(dirText, dirWidth)
+	local dirHeight = #wrappedLines * fonts.loaded.monoBody:getHeight()
+	love.graphics.printf(dirText, PADDING, dirY, dirWidth, "left")
 
 	-- Reset font to the regular body font after header drawing
 	love.graphics.setFont(fonts.loaded.body)
 
 	-- Adjust list Y to account for directory text
-	local listY = headerInstance:getContentStartY() + 8 + fonts.loaded.monoBody:getHeight() + 12
+	local listY = dirY + dirHeight + 12
 	if themeList then
 		themeList.y = listY
 		themeList.height = state.screenHeight - listY - controls.calculateHeight()
