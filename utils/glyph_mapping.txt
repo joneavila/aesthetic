@@ -92,37 +92,38 @@ muxdanger/tunescale, lucide/glyph/sliders-vertical
 muxdanger/vmswap, lucide/glyph/arrow-down
 
 # muxkiosk
-# muxkiosk/advanced, lucide/glyph/
-# muxkiosk/apps, lucide/glyph/
-# muxkiosk/archive, lucide/glyph/
-# muxkiosk/bootlogo, lucide/glyph/
-# muxkiosk/catalogue, lucide/glyph/
-# muxkiosk/clock, lucide/glyph/
-# muxkiosk/collection, lucide/glyph/
-# muxkiosk/config, lucide/glyph/
-# muxkiosk/core, lucide/glyph/
-# muxkiosk/custom, lucide/glyph/
-# muxkiosk/enable, lucide/glyph/
-# muxkiosk/explore, lucide/glyph/
-# muxkiosk/general, lucide/glyph/
-# muxkiosk/governor, lucide/glyph/
-# muxkiosk/hdmi, lucide/glyph/
-# muxkiosk/history, lucide/glyph/
-# muxkiosk/info, lucide/glyph/
-# muxkiosk/language, lucide/glyph/
-# muxkiosk/network, lucide/glyph/
-# muxkiosk/option, lucide/glyph/
-# muxkiosk/power, lucide/glyph/
-# muxkiosk/raconfig, lucide/glyph/
-# muxkiosk/retroarch, lucide/glyph/
-# muxkiosk/search, lucide/glyph/
-# muxkiosk/storage, lucide/glyph/
-# muxkiosk/tag, lucide/glyph/
-# muxkiosk/task, lucide/glyph/
-# muxkiosk/theme, lucide/glyph/
-# muxkiosk/timezone, lucide/glyph/
-# muxkiosk/visual, lucide/glyph/
-# muxkiosk/webserv, lucide/glyph/
+# Note: These glyphs should match existing glyphs used in other screens.
+muxkiosk/advanced, lucide/glyph/sliders-horizontal
+muxkiosk/apps, lucide/glyph/layout-grid
+muxkiosk/archive, lucide/glyph/file-archive
+muxkiosk/bootlogo, lucide/glyph/image
+muxkiosk/catalogue, lucide/glyph/book-text
+muxkiosk/clock, lucide/glyph/clock
+muxkiosk/collection, lucide/glyph/heart
+muxkiosk/config, lucide/glyph/settings-2
+muxkiosk/core, lucide/glyph/box
+muxkiosk/custom, lucide/glyph/paint-roller
+muxkiosk/enable, lucide/glyph/circle-power
+muxkiosk/explore, lucide/glyph/compass
+muxkiosk/general, lucide/glyph/wrench
+muxkiosk/governor, lucide/glyph/circle-guage
+muxkiosk/hdmi, lucide/glyph/hdmi-port
+muxkiosk/history, lucide/glyph/history
+muxkiosk/info, lucide/glyph/info
+muxkiosk/language, lucide/glyph/languages
+muxkiosk/network, lucide/glyph/wifi
+muxkiosk/option, lucide/glyph/user-cog
+muxkiosk/power, lucide/glyph/zap
+muxkiosk/raconfig, lucide/glyph/file-sliders
+muxkiosk/retroarch, lucide/glyph/joystick
+muxkiosk/search, lucide/glyph/search
+muxkiosk/storage, lucide/glyph/chart-pie
+muxkiosk/tag, lucide/glyph/tag
+muxkiosk/task, lucide/glyph/pocket-knife
+muxkiosk/theme, lucide/glyph/palette
+muxkiosk/timezone, lucide/glyph/map-pin
+muxkiosk/visual, lucide/glyph/panels-top-left
+muxkiosk/webserv, lucide/glyp/cable
 
 # muxtester – Information > Input Tester
 muxtester/btn_a, kenney_input_prompts/steam_button_a
@@ -240,6 +241,9 @@ muxconnect/service, lucide/glyph/waypoints
 muxconnect/usbfunction, lucide/glyph/usb
 
 # muxcustom – Configuration > Customisation
+muxcustom/align, lucide/glyph/scan
+muxcustom/alternate, lucide/glyph/palette
+muxcustom/animation, lucide/glyph/circle-play
 muxcustom/backgroundanimation, lucide/glyph/clapperboard
 muxcustom/bgm, lucide/glyph/music
 muxcustom/blackfade, lucide/glyph/presentation
@@ -251,16 +255,13 @@ muxcustom/chime, lucide/glyph/bell
 muxcustom/config, lucide/glyph/file-sliders
 muxcustom/font, lucide/glyph/type
 muxcustom/launchsplash, lucide/glyph/circle-play
+muxcustom/music, lucide/glyph/music
+muxcustom/resolution, lucide/glyph/proportions
 muxcustom/sound, lucide/glyph/volume-2
+muxcustom/splash, lucide/glyph/image-play
 muxcustom/theme_resolution, lucide/glyph/proportions
 muxcustom/theme, lucide/glyph/palette
 muxcustom/themealternate, lucide/glyph/palette
-muxcustom/align, lucide/glyph/scan
-muxcustom/animation, lucide/glyph/circle-play
-muxcustom/music, lucide/glyph/music
-muxcustom/resolution, lucide/glyph/proportions
-muxcustom/splash, lucide/glyph/image-play
-# muxcustom/alternate, lucide/glyph/
 
 # muxgov – (Press Select on content) > System Governor
 muxgov/conservative, lucide/glyph/shield
