@@ -51,7 +51,7 @@ local function scanThemes()
 	end
 end
 
-local headerInstance = Header:new({ title = "Manage Themes" })
+local headerInstance = Header:new({ title = "Delete Themes" })
 
 local PADDING = 16
 

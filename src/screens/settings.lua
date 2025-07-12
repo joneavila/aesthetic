@@ -131,7 +131,7 @@ local function createMenuButtons()
 			end,
 		}),
 		Button:new({
-			text = "Manage Themes",
+			text = "Delete Themes",
 			type = "icon",
 			iconName = "list-x",
 			onClick = function()
