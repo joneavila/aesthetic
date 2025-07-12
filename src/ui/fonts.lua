@@ -74,7 +74,7 @@ fonts.uiDefinitions = {
 	monoBody = {
 		name = "JetBrains Mono",
 		ttf = "assets/fonts/jetbrains_mono/jetbrains_mono_bold.ttf",
-		size = 22,
+		size = 21,
 	},
 	console = {
 		name = "JetBrains Mono",
