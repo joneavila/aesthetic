@@ -17,7 +17,7 @@ function splash.load()
 	splash.typingDelay = 0.07 -- Delay between revealing each character
 	splash.cursorBlinkRate = 0.25 -- How fast the cursor blinks
 	splash.cursorChar = "_" -- Character used to represent the cursor
-	splash.holdDuration = 1.00 -- Duration to display the complete text before fading out
+	splash.holdDuration = 1.2 -- Duration to display the complete text before fading out
 	splash.fadeOutDuration = 0.05 -- Duration of the fade out animation
 
 	-- Initialize animation state
