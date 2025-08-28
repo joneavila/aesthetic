@@ -8,6 +8,11 @@
 
 echo "app" >/tmp/act_go
 
+GOV_GO="/tmp/gov_go"
+[ -e "$GOV_GO" ] && cat "$GOV_GO" >"$(GET_VAR "device" "cpu/governor")"
+
+SETUP_SDL_ENVIRONMENT
+
 # Define paths
 ROOT_DIR="/mnt/mmc/MUOS/application/Aesthetic"
 SOURCE_DIR="$ROOT_DIR/.aesthetic"
