@@ -27,7 +27,7 @@ local FONT_PREVIEW = {
 	PREVIEW_TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+-=[]{}|;':\",./<>?",
 	PREVIEW_BG_CORNER_RADIUS = 10,
 	PREVIEW_BOTTOM_MARGIN = 15, -- Margin between preview box and controls
-	FONT_SIZE = 24, -- Use a consistent font size for all preview fonts
+	FONT_SIZE = 22, -- Use a consistent font size for all preview fonts
 	PADDING = 12, -- Padding around the preview text
 }
 
