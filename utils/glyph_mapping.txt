@@ -15,6 +15,28 @@
 # Lines beginning with `#` are treated as comments and ignored.
 # Blank lines are also ignored.
 
+# bar – Press Volume Up/Down for volume or Menu + Volume Up/Down for brightness
+bar/bright_0, lucide/glyph/sun-dim
+bar/bright_1, lucide/glyph/sun-dim
+bar/bright_2, lucide/glyph/sun-medium
+bar/bright_3, lucide/glyph/sun
+bar/volume_0, lucide/glyph/volume-x
+bar/volume_1, lucide/glyph/volume
+bar/volume_2, lucide/glyph/volume-1
+bar/volume_3, lucide/glyph/volume-2
+# bar/brightness, lucide/glyph/sun
+
+# footer – Seen throughout the UI
+footer/a, kenney_input_prompts/steam_button_a
+footer/b, kenney_input_prompts/steam_button_b
+footer/c, kenney_input_prompts/steam_button_c_custom
+footer/lr, kenney_input_prompts/playstation_dpad_horizontal_outline
+footer/menu, kenney_input_prompts/steamdeck_button_menu_custom
+footer/ud, kenney_input_prompts/playstation_dpad_vertical_outline
+footer/x, kenney_input_prompts/steam_button_x
+footer/y, kenney_input_prompts/steam_button_y
+footer/z, kenney_input_prompts/steam_button_z_custom
+
 # header - Seen throughout the UI
 header/bluetooth, material_symbols/bluetooth_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
 header/capacity_0, material_symbols/battery_android_0_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24, 34, 1
@@ -42,88 +64,420 @@ header/capacity_charging_100, material_symbols/battery_android_full_24dp_E3E3E3_
 header/network_active, material_symbols/wifi_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
 header/network_normal, material_symbols/wifi_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24
 
-# footer – Seen throughout the UI
-footer/a, kenney_input_prompts/steam_button_a
-footer/b, kenney_input_prompts/steam_button_b
-footer/c, kenney_input_prompts/steam_button_c_custom
-footer/lr, kenney_input_prompts/playstation_dpad_horizontal_outline
-footer/menu, kenney_input_prompts/steamdeck_button_menu_custom
-footer/x, kenney_input_prompts/steam_button_x
-footer/y, kenney_input_prompts/steam_button_y
-footer/z, kenney_input_prompts/steam_button_z_custom
+# muxapp – Applications
+# Built-in applications
+muxapp/app, lucide/glyph/square
+muxapp/archive, lucide/glyph/archive
+muxapp/dingux, lucide/glyph/folder-search
+muxapp/flip, lucide/glyph/clock
+muxapp/moonlight, lucide/glyph/tv
+muxapp/music, lucide/glyph/music
+muxapp/portmaster, lucide/glyph/ship
+muxapp/ppsspp, lucide/glyph/gamepad-2
+muxapp/retroarch, lucide/glyph/ghost
+muxapp/rgbcontroller, lucide/glyph/lightbulb
+muxapp/scummvm, lucide/glyph/box
+muxapp/task, lucide/glyph/toolbox
+muxapp/terminal, lucide/glyph/square-terminal
+
+# muxapp – Applications
+# Community applications
+# Glyphs are for muxapp, muxtask, or both
+# Aesthetic – https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld/
+muxapp/aesthetic, lucide/glyph/moon-star
+# APlayer – https://community.muos.dev/t/aplayer-mp3-ogg-wav-flac/
+muxapp/aplayer, lucide/glyph/circle-play
+# App Downloader – https://community.muos.dev/t/app-downloader/
+muxapp/appdownloader, lucide/glyph/shopping-bag
+# Bluetooth App - https://community.muos.dev/t/bluetooth-app/
+muxapp/bluetooth, lucide/glyph/bluetooth
+# CTupe - https://community.muos.dev/t/ctupe-watch-download-youtube-videos-on-muos/
+muxapp/CTupe, lucide/glyph/youtube
+muxtask/CTupe, lucide/glyph/youtube
+# Day/Night Temperature Toggle - https://community.muos.dev/t/day-night-temperature-toggle/
+muxtask/brightness, lucide/glyph/sun-moon
+# Play Time Tracker - https://community.muos.dev/t/play-time-tracker/
+muxtask/track, lucide/glyph/hourglass
+# Scrappy – https://community.muos.dev/t/scrappy-art-scraper-powered-by-skyscraper/
+muxapp/scrappy, lucide/glyph/image-down
+# Storage Info - https://community.muos.dev/t/storage-info/
+muxapp/storageinfo, lucide/glyph/hard-drive
+# TimeUtils - https://community.muos.dev/t/timeutils-clock-countdown-timer-stopwatch/
+muxapp/timeutils, lucide/glyph/timer-reset
+# Wi-Fi Hotspot - https://community.muos.dev/t/wifi-hotspot-for-muos/
+muxtask/Hotspot_Start, lucide/glyph/wifi
+muxtask/Hotspot_Stop, lucide/glyph/wifi
+
+# muxappcon – Press Select on application from Application screen
+# muxappcon/app matches muxapp/app
+muxappcon/app, lucide/glyph/square
+muxappcon/control, lucide/glyph/gamepad
+muxappcon/governor, lucide/glyph/cpu
+
+# muxarchive – Applications > Archive Manager
+muxarchive/archive, lucide/glyph/package
+muxarchive/installed, lucide/glyph/package-check
+
+# muxassign – Press Select on content > Assign Core
+muxassign/core, lucide/glyph/box
+muxassign/default, lucide/glyph/star
+muxassign/download, lucide/glyph/download
+muxassign/system, lucide/glyph/gamepad
 
 # muxbackup - Configuration > Device Backup
-muxbackup/backuptarget, lucide/glyph/hard-drive
-muxbackup/bios, lucide/glyph/ghost
-muxbackup/catalogue, lucide/glyph/book-text
+muxbackup/activity, lucide/glyph/activity
+muxbackup/backuptarget, lucide/glyph/card-sd
+muxbackup/bios, lucide/glyph/circuit-board
+muxbackup/catalogue, lucide/glyph/book-open
 muxbackup/collection, lucide/glyph/heart
 muxbackup/config, lucide/glyph/settings-2
-muxbackup/content, lucide/glyph/heart
+muxbackup/content, lucide/glyph/gamepad
 muxbackup/core, lucide/glyph/box
+muxbackup/external, lucide/glyph/triangle
 muxbackup/history, lucide/glyph/history
 muxbackup/language, lucide/glyph/languages
+muxbackup/muosconfig, lucide/glyph/hexagon
 muxbackup/music, lucide/glyph/music
 muxbackup/name, lucide/glyph/whole-word
 muxbackup/network, lucide/glyph/house-wifi
 muxbackup/pack-bootlogo, lucide/glyph/image-play
-muxbackup/pack-catalogue, lucide/glyph/book-text
-muxbackup/pack-config, lucide/glyph/joystick
-muxbackup/retroarch, lucide/glyph/joystick
+muxbackup/pack-catalogue, lucide/glyph/book-marked
+muxbackup/pack-config, lucide/glyph/settings-2
+muxbackup/retroarch, lucide/glyph/ghost
 muxbackup/save, lucide/glyph/save
+muxbackup/scheme, lucide/glyph/gamepad
 muxbackup/screenshot, lucide/glyph/images
-muxbackup/startbackup, lucide/glyph/hard-drive-upload
+muxbackup/startbackup, lucide/glyph/circle-arrow-right
 muxbackup/syncthing, lucide/glyph/refresh-cw
 muxbackup/theme, lucide/glyph/palette
 muxbackup/userinit, lucide/glyph/scroll
 
+# muxcollect – Collections
+muxcollect/collection, lucide/glyph/heart
+muxcollect/folder, lucide/glyph/folder
+
+# muxconfig – Configuration
+muxconfig/connect, lucide/glyph/cable
+muxconfig/custom, lucide/glyph/paint-roller
+muxconfig/general, lucide/glyph/settings
+muxconfig/interface, lucide/glyph/panels-top-left
+muxconfig/language, lucide/glyph/languages
+muxconfig/power, lucide/glyph/zap
+muxconfig/storage, lucide/glyph/chart-pie
+muxconfig/backup, lucide/glyph/hard-drive-upload
+muxconfig/theme, lucide/glyph/palette
+
+# muxconnect – Configuration > Connectivity
+muxconnect/bluetooth, lucide/glyph/bluetooth
+muxconnect/network, lucide/glyph/wifi
+muxconnect/service, lucide/glyph/waypoints
+muxconnect/usbfunction, lucide/glyph/usb
+
+# muxcontrol –
+# muxcontrol/default,
+# muxcontrol/modern,
+# muxcontrol/retro,
+# muxcontrol/system,
+
+
+# muxcustom – Configuration > Customisation
+# muxcustom/align, lucide/glyph/scan
+muxcustom/alternate, lucide/glyph/palette
+muxcustom/animation, lucide/glyph/circle-play
+# muxcustom/backgroundanimation, lucide/glyph/clapperboard
+# muxcustom/bgm, lucide/glyph/music
+muxcustom/blackfade, lucide/glyph/presentation
+muxcustom/bootlogo, lucide/glyph/image
+muxcustom/boxart, lucide/glyph/image
+# muxcustom/boxartalign, lucide/glyph/scan
+muxcustom/catalogue, lucide/glyph/book-open
+muxcustom/chime, lucide/glyph/bell
+muxcustom/config, lucide/glyph/file-sliders
+muxcustom/font, lucide/glyph/type
+muxcustom/launch_swap, lucide/glyph/flag-triangle-right
+# muxcustom/launchsplash, lucide/glyph/circle-play
+muxcustom/music, lucide/glyph/music
+muxcustom/resolution, lucide/glyph/proportions
+muxcustom/shuffle, lucide/glyph/shuffle
+muxcustom/sound, lucide/glyph/volume-2
+muxcustom/splash, lucide/glyph/image-play
+# muxcustom/theme_resolution, lucide/glyph/proportions
+muxcustom/theme, lucide/glyph/palette
+# muxcustom/themealternate, lucide/glyph/palette
+
 # muxdanger
-muxdanger/cache, lucide/glyph/brush-cleaning
-muxdanger/child, lucide/glyph/git-branch
-muxdanger/cluster, lucide/glyph/chart-network
-muxdanger/dirty-back, lucide/glyph/droplet
-muxdanger/dirty-ratio, lucide/glyph/bubbles
-muxdanger/idleflush, lucide/glyph/glass-water
-muxdanger/iostats, lucide/glyph/chart-line
-muxdanger/merge, lucide/glyph/merge
-muxdanger/readahead, lucide/glyph/fast-forward
-muxdanger/requests, lucide/glyph/server
-muxdanger/timeslice, lucide/glyph/timer
-muxdanger/tunescale, lucide/glyph/sliders-vertical
-muxdanger/vmswap, lucide/glyph/arrow-down
+# muxdanger/cache, lucide/glyph/brush-cleaning
+# muxdanger/cardmode, lucide/glyph/card-sd
+# muxdanger/child, lucide/glyph/git-branch
+# muxdanger/cluster, lucide/glyph/chart-network
+# muxdanger/dirty-back, lucide/glyph/droplet
+# muxdanger/dirty-ratio, lucide/glyph/bubbles
+# muxdanger/idleflush, lucide/glyph/glass-water
+# muxdanger/iostats, lucide/glyph/chart-line
+# muxdanger/merge, lucide/glyph/merge
+# muxdanger/readahead, lucide/glyph/fast-forward
+# muxdanger/requests, lucide/glyph/server
+# muxdanger/timeslice, lucide/glyph/timer
+# muxdanger/tunescale, lucide/glyph/sliders-vertical
+# muxdanger/vmswap, lucide/glyph/arrow-down
+
+# muxdevice
+# muxdevice/bluetooth
+# muxdevice/debugfs
+# muxdevice/hdmi
+# muxdevice/lid
+# muxdevice/network
+# muxdevice/portmaster
+# muxdevice/rgb
+
+# muxdownload
+muxdownload/download, lucide/glyph/package
+muxdownload/downloaded, lucide/glyph/package-check
+
+# muxgov – Press Select on content > System Governor
+muxgov/conservative, lucide/glyph/shield
+muxgov/default, lucide/glyph/star
+muxgov/governor, lucide/glyph/circle-gauge
+muxgov/interactive, lucide/glyph/zap
+muxgov/ondemand, lucide/glyph/activity
+muxgov/performance, lucide/glyph/flame
+muxgov/powersave, lucide/glyph/leaf
+muxgov/schedutil, lucide/glyph/bot
+muxgov/userspace, lucide/glyph/user-round-cog
+
+# muxhdmi – Configuration > General Settings > HDMI Output
+muxhdmi/audio, lucide/glyph/speaker
+muxhdmi/depth, lucide/glyph/layers
+muxhdmi/enable, lucide/glyph/circle-power
+muxhdmi/range, lucide/glyph/swatch-book
+muxhdmi/resolution, lucide/glyph/proportions
+muxhdmi/scan, lucide/glyph/scaling
+muxhdmi/space, lucide/glyph/axis-3d
+# muxhdmi/theme_resolution, lucide/glyph/proportions
+
+# muxhistory – History
+muxhistory/collection, lucide/glyph/file-heart
+muxhistory/history, lucide/glyph/file-check-2
+
+# muxinfo – Information
+muxinfo/credit, lucide/glyph/users-round
+muxinfo/netinfo, lucide/glyph/network
+muxinfo/screenshot, lucide/glyph/images
+muxinfo/space, lucide/glyph/chart-pie
+muxinfo/sysinfo, lucide/glyph/text
+# muxinfo/system, lucide/glyph/text
+muxinfo/tester, lucide/glyph/circle-arrow-down
+muxinfo/tracker, lucide/glyph/locate
 
 # muxkiosk
 # Note: These glyphs should match existing glyphs used in other screens.
-muxkiosk/advanced, lucide/glyph/sliders-horizontal
-muxkiosk/apps, lucide/glyph/layout-grid
-muxkiosk/archive, lucide/glyph/file-archive
-muxkiosk/bootlogo, lucide/glyph/image
-muxkiosk/catalogue, lucide/glyph/book-text
-muxkiosk/clock, lucide/glyph/clock
-muxkiosk/collection, lucide/glyph/heart
-muxkiosk/config, lucide/glyph/settings-2
-muxkiosk/core, lucide/glyph/box
-muxkiosk/custom, lucide/glyph/paint-roller
-muxkiosk/enable, lucide/glyph/circle-power
-muxkiosk/explore, lucide/glyph/compass
-muxkiosk/general, lucide/glyph/wrench
-muxkiosk/governor, lucide/glyph/circle-guage
-muxkiosk/hdmi, lucide/glyph/hdmi-port
-muxkiosk/history, lucide/glyph/history
-muxkiosk/info, lucide/glyph/info
-muxkiosk/language, lucide/glyph/languages
-muxkiosk/network, lucide/glyph/wifi
-muxkiosk/option, lucide/glyph/user-cog
-muxkiosk/power, lucide/glyph/zap
-muxkiosk/raconfig, lucide/glyph/file-sliders
-muxkiosk/retroarch, lucide/glyph/joystick
-muxkiosk/search, lucide/glyph/search
-muxkiosk/storage, lucide/glyph/chart-pie
-muxkiosk/tag, lucide/glyph/tag
-muxkiosk/task, lucide/glyph/pocket-knife
-muxkiosk/theme, lucide/glyph/palette
-muxkiosk/timezone, lucide/glyph/map-pin
-muxkiosk/visual, lucide/glyph/panels-top-left
-muxkiosk/webserv, lucide/glyp/cable
+# muxkiosk/advanced, lucide/glyph/sliders-horizontal
+# muxkiosk/apps, lucide/glyph/layout-grid
+# muxkiosk/bootlogo, lucide/glyph/image
+# muxkiosk/archive, lucide/glyph/file-archive
+# muxkiosk/catalogue, lucide/glyph/book-text
+# muxkiosk/clock, lucide/glyph/clock
+# muxkiosk/collection, lucide/glyph/heart
+# muxkiosk/config, lucide/glyph/settings-2
+# muxkiosk/core, lucide/glyph/box
+# muxkiosk/custom, lucide/glyph/paint-roller
+# muxkiosk/enable, lucide/glyph/circle-power
+# muxkiosk/explore, lucide/glyph/compass
+# muxkiosk/general, lucide/glyph/wrench
+# muxkiosk/governor, lucide/glyph/circle-guage
+# muxkiosk/hdmi, lucide/glyph/hdmi-port
+# muxkiosk/history, lucide/glyph/history
+# muxkiosk/info, lucide/glyph/info
+# muxkiosk/language, lucide/glyph/languages
+# muxkiosk/network, lucide/glyph/wifi
+# muxkiosk/option, lucide/glyph/user-cog
+# muxkiosk/power, lucide/glyph/zap
+# muxkiosk/raconfig, lucide/glyph/file-sliders
+# muxkiosk/retroarch, lucide/glyph/joystick
+# muxkiosk/search, lucide/glyph/search
+# muxkiosk/storage, lucide/glyph/chart-pie
+# muxkiosk/tag, lucide/glyph/tag
+# muxkiosk/task, lucide/glyph/pocket-knife
+# muxkiosk/theme, lucide/glyph/palette
+# muxkiosk/timezone, lucide/glyph/map-pin
+# muxkiosk/visual, lucide/glyph/panels-top-left
+# muxkiosk/webserv, lucide/glyp/cable
+
+# muxlanguage – Configuration > Language
+muxlanguage/language, lucide/glyph/languages
+
+# muxlaunch – (Home screen)
+muxlaunch/apps, lucide/glyph/layout-grid
+muxlaunch/collection, lucide/glyph/heart
+muxlaunch/config, lucide/glyph/settings
+muxlaunch/explore, lucide/glyph/compass
+muxlaunch/favourite, lucide/glyph/heart
+muxlaunch/history, lucide/glyph/history
+muxlaunch/info, lucide/glyph/info
+muxlaunch/reboot, lucide/glyph/rotate-cw
+muxlaunch/shutdown, lucide/glyph/power
+
+# muxnetinfo – Information > Network Details
+muxnetinfo/actraffic, lucide/glyph/shrink
+muxnetinfo/channel, lucide/glyph/antenna
+muxnetinfo/dns, lucide/glyph/hash
+muxnetinfo/gateway, lucide/glyph/hash
+muxnetinfo/hostname, lucide/glyph/letter-text
+muxnetinfo/ip, lucide/glyph/router
+muxnetinfo/mac, lucide/glyph/cpu
+muxnetinfo/signal, lucide/glyph/signal-high
+muxnetinfo/ssid, lucide/glyph/globe
+muxnetinfo/tptraffic, lucide/glyph/arrow-left-right
+
+# muxnetprofile – Configuration > Wi-Fi Network > (Press Y)
+muxnetprofile/profile, lucide/glyph/house-wifi
+
+# muxnetscan – Configuration > Wi-Fi Network > (Press X while disconnected)
+muxnetscan/netscan, lucide/glyph/wifi
+
+# muxnetwork – Configuration > Wi-Fi Network
+muxnetwork/address, lucide/glyph/hash
+muxnetwork/boot, lucide/glyph/circle-play
+muxnetwork/connect, lucide/glyph/unplug
+muxnetwork/dns, lucide/glyph/hash
+# muxnetwork/enable, lucide/glyph/circle-power
+muxnetwork/gateway, lucide/glyph/hash
+muxnetwork/identifier, lucide/glyph/wifi
+muxnetwork/password, lucide/glyph/square-asterisk
+muxnetwork/scan, lucide/glyph/venetian-mask
+# muxnetwork/status, lucide/glyph/activity
+muxnetwork/subnet, lucide/glyph/hash
+muxnetwork/type, lucide/glyph/network
+
+# muxoption – (Press Select on content)
+muxoption/control, lucide/glyph/gamepad
+muxoption/core, lucide/glyph/box
+muxoption/count, lucide/glyph/timer
+muxoption/folder, lucide/glyph/folder
+muxoption/governor, lucide/glyph/circle-gauge
+muxoption/rom, lucide/glyph/file
+muxoption/search, lucide/glyph/search
+muxoption/tag, lucide/glyph/tag
+muxoption/time, lucide/glyph/clock
+
+# muxpicker – Configuration > Customisation
+muxpicker/catalogue, lucide/glyph/book-text
+muxpicker/config, lucide/glyph/file-sliders
+muxpicker/download, lucide/glyph/download
+muxpicker/folder, lucide/glyph/folder
+muxpicker/theme, lucide/glyph/palette
+
+# muxplore – Explore Content
+muxplore/collection, lucide/glyph/file-heart
+muxplore/folder, lucide/glyph/folder
+muxplore/history, lucide/glyph/file-check-2
+muxplore/rom, lucide/glyph/file
+
+# muxpower – Configuration > General Settings > Power Settings
+muxpower/battery, lucide/glyph/battery-low
+muxpower/idle_display, lucide/glyph/monitor
+muxpower/idle_mute, lucide/glyph/volume-off
+muxpower/idle_sleep, lucide/glyph/pointer
+muxpower/shutdown, lucide/glyph/moon
+
+# muxrtc – Configuration > Date and Time
+muxrtc/day, lucide/glyph/calendar
+muxrtc/hour, lucide/glyph/clock
+muxrtc/minute, lucide/glyph/clock
+muxrtc/month, lucide/glyph/calendar
+muxrtc/notation, lucide/glyph/clock
+muxrtc/timezone, lucide/glyph/map-pin
+muxrtc/year, lucide/glyph/calendar
+
+# muxsearch – Press Select on content folder
+muxsearch/content, lucide/glyph/file
+muxsearch/folder, lucide/glyph/folder
+muxsearch/global, lucide/glyph/search
+muxsearch/local, lucide/glyph/search
+muxsearch/lookup, lucide/glyph/keyboard
+
+# muxshot - Information > Screenshots
+muxshot/screenshot, lucide/glyph/image
+
+# muxspace – Information > Storage Space
+# muxspace/rfs, lucide/glyph/hard-drive
+# muxspace/sd1, lucide/glyph/save
+# muxspace/sd2, lucide/glyph/save
+# muxspace/usb, lucide/glyph/usb
+muxspace/external, lucide/glyph/usb
+muxspace/primary, lucide/glyph/card-sd
+muxspace/secondary, lucide/glyph/card-sd
+muxspace/system, lucide/glyph/hard-drive
+
+# muxstorage – Configuration > Storage
+muxstorage/bios, lucide/glyph/ghost
+muxstorage/catalogue, lucide/glyph/tag
+muxstorage/collection, lucide/glyph/heart
+muxstorage/config, lucide/glyph/settings-2
+muxstorage/content, lucide/glyph/star
+muxstorage/core, lucide/glyph/box
+# muxstorage/favourite, lucide/glyph/heart
+muxstorage/history, lucide/glyph/history
+muxstorage/language, lucide/glyph/languages
+muxstorage/music, lucide/glyph/music
+muxstorage/name, lucide/glyph/whole-word
+muxstorage/network, lucide/glyph/house-wifi
+muxstorage/pack-bootlogo, lucide/glyph/image-play
+muxstorage/pack-catalogue, lucide/glyph/book-text
+muxstorage/pack-config, lucide/glyph/joystick
+muxstorage/retroarch, lucide/glyph/joystick
+muxstorage/save, lucide/glyph/save
+muxstorage/scheme, lucide/glyph/gamepad
+muxstorage/screenshot, lucide/glyph/images
+muxstorage/syncthing, lucide/glyph/refresh-cw
+muxstorage/theme, lucide/glyph/palette
+muxstorage/userinit, lucide/glyph/scroll
+
+# muxsysinfo – Information > System Details
+muxsysinfo/capacity, lucide/glyph/battery-full
+muxsysinfo/cpu, lucide/glyph/cpu
+muxsysinfo/device, lucide/glyph/gamepad-2
+muxsysinfo/governor, lucide/glyph/circle-gauge
+muxsysinfo/kernel, lucide/glyph/cuboid
+muxsysinfo/memory, lucide/glyph/memory-stick
+muxsysinfo/refresh, lucide/glyph/refresh-cw
+# muxsysinfo/service, lucide/glyph/list-video
+muxsysinfo/speed, lucide/glyph/rabbit
+muxsysinfo/temp, lucide/glyph/thermometer
+muxsysinfo/uptime, lucide/glyph/timer
+muxsysinfo/version, lucide/glyph/gallery-horizontal-end
+muxsysinfo/voltage, lucide/glyph/zap
+
+# muxtag – (Press Select on content) > Assign Tag
+muxtag/abandoned, lucide/glyph/circle-x
+muxtag/alternate, lucide/glyph/files
+muxtag/backlog, lucide/glyph/scroll
+muxtag/complected, lucide/glyph/circle-help
+muxtag/completed, lucide/glyph/circle-check
+muxtag/cursed, lucide/glyph/ghost
+muxtag/default, lucide/glyph/tag
+muxtag/experimental, lucide/glyph/flask-conical
+muxtag/homebrew, lucide/glyph/coffee
+muxtag/inprogress, lucide/glyph/loader-circle
+muxtag/none, lucide/glyph/ban
+muxtag/patched, lucide/glyph/bandage
+muxtag/replay, lucide/glyph/rotate-ccw
+muxtag/romhack, lucide/glyph/wand-sparkles
+muxtag/translated, lucide/glyph/globe
+
+# muxtask – Applications > Task Toolkit
+muxtask/backup, lucide/glyph/hard-drive-upload
+muxtask/clear, lucide/glyph/trash
+muxtask/diagnostic, lucide/glyph/stethoscope
+muxtask/ethernet, lucide/glyph/ethernet-port
+muxtask/folder, lucide/glyph/folder
+muxtask/junk, lucide/glyph/regex
+muxtask/network, lucide/glyph/network
+muxtask/retroarch, lucide/glyph/joystick
+muxtask/sdcard, lucide/glyph/hard-drive
+muxtask/star, lucide/glyph/star
+muxtask/theme, lucide/glyph/palette
+muxtask/star, lucide/glyph/code
 
 # muxtester – Information > Input Tester
 muxtester/btn_a, kenney_input_prompts/steam_button_a
@@ -156,313 +510,19 @@ muxtester/rs_up, kenney_input_prompts/steamdeck_stick_r_up
 muxtester/vol_down, kenney_input_prompts/switch_dpad_down
 muxtester/vol_up, kenney_input_prompts/switch_dpad_up
 
-# bar – (Press Vol. Up/Down for volume or Menu + Vol. Up/Down for brightness)
-bar/bright_0, lucide/glyph/sun-dim
-bar/bright_1, lucide/glyph/sun-dim
-bar/bright_2, lucide/glyph/sun-medium
-bar/bright_3, lucide/glyph/sun
-bar/brightness, lucide/glyph/sun
-bar/volume_0, lucide/glyph/volume-x
-bar/volume_1, lucide/glyph/volume
-bar/volume_2, lucide/glyph/volume-1
-bar/volume_3, lucide/glyph/volume-2
-
-# muxapp – Applications
-# Built-in applications
-muxapp/app, lucide/glyph/play
-muxapp/archive, lucide/glyph/file-archive
-muxapp/dingux, lucide/glyph/folder-search
-muxapp/flip, lucide/glyph/clock
-muxapp/moonlight, lucide/glyph/tv-minimal-play
-muxapp/music, lucide/glyph/music
-muxapp/portmaster, lucide/glyph/ship
-muxapp/ppsspp, lucide/glyph/gamepad
-muxapp/retroarch, lucide/glyph/joystick
-muxapp/rgbcontroller, lucide/glyph/lightbulb
-muxapp/scummvm, lucide/glyph/box
-muxapp/task, lucide/glyph/pocket-knife
-muxapp/terminal, lucide/glyph/square-terminal
-
-# Community applications
-# Glyphs are for muxapp, muxtask, or both
-# Aesthetic – https://community.muos.dev/t/aesthetic-create-themes-directly-on-your-handheld/
-muxapp/aesthetic, lucide/glyph/moon-star
-# APlayer – https://community.muos.dev/t/aplayer-mp3-ogg-wav-flac/
-muxapp/aplayer, lucide/glyph/circle-play
-# App Downloader – https://community.muos.dev/t/app-downloader/
-muxapp/appdownloader, lucide/glyph/shopping-bag
-# Bluetooth App - https://community.muos.dev/t/bluetooth-app/
-muxapp/bluetooth, lucide/glyph/bluetooth
-# CTupe - https://community.muos.dev/t/ctupe-watch-download-youtube-videos-on-muos/
-muxapp/CTupe, lucide/glyph/youtube
-muxtask/CTupe, lucide/glyph/youtube
-# Day/Night Temperature Toggle - https://community.muos.dev/t/day-night-temperature-toggle/
-muxtask/brightness, lucide/glyph/sun-moon
-# Play Time Tracker - https://community.muos.dev/t/play-time-tracker/
-muxtask/track, lucide/glyph/hourglass
-# Scrappy – https://community.muos.dev/t/scrappy-art-scraper-powered-by-skyscraper/
-muxapp/scrappy, lucide/glyph/image-down
-# Storage Info - https://community.muos.dev/t/storage-info/
-muxapp/storageinfo, lucide/glyph/hard-drive
-# TimeUtils - https://community.muos.dev/t/timeutils-clock-countdown-timer-stopwatch/
-muxapp/timeutils, lucide/glyph/timer-reset
-# Wi-Fi Hotspot - https://community.muos.dev/t/wifi-hotspot-for-muos/
-muxtask/Hotspot_Start, lucide/glyph/wifi
-muxtask/Hotspot_Stop, lucide/glyph/wifi
-
-# muxarchive – Applications > Archive Manager
-muxarchive/archive, lucide/glyph/file-archive
-muxarchive/installed, lucide/glyph/file-check-2
-
-# muxassign – (Press Select on content) > Assign Core
-muxassign/core, lucide/glyph/box
-muxassign/default, lucide/glyph/star
-muxassign/system, lucide/glyph/gamepad
-
-# muxcollect – Collections
-muxcollect/collection, lucide/glyph/heart
-muxcollect/folder, lucide/glyph/folder
-
-# muxconfig – Configuration
-muxconfig/connect, lucide/glyph/cable
-muxconfig/custom, lucide/glyph/paint-roller
-muxconfig/general, lucide/glyph/wrench
-muxconfig/interface, lucide/glyph/panels-top-left
-muxconfig/language, lucide/glyph/languages
-muxconfig/power, lucide/glyph/zap
-muxconfig/storage, lucide/glyph/chart-pie
-muxconfig/backup, lucide/glyph/hard-drive-upload
-muxconfig/theme, lucide/glyph/palette
-
-# muxconnect – Configuration > Connectivity
-muxconnect/bluetooth, lucide/glyph/bluetooth
-muxconnect/network, lucide/glyph/wifi
-muxconnect/service, lucide/glyph/waypoints
-muxconnect/usbfunction, lucide/glyph/usb
-
-# muxcustom – Configuration > Customisation
-muxcustom/align, lucide/glyph/scan
-muxcustom/alternate, lucide/glyph/palette
-muxcustom/animation, lucide/glyph/circle-play
-muxcustom/backgroundanimation, lucide/glyph/clapperboard
-muxcustom/bgm, lucide/glyph/music
-muxcustom/blackfade, lucide/glyph/presentation
-muxcustom/bootlogo, lucide/glyph/image
-muxcustom/boxart, lucide/glyph/image
-muxcustom/boxartalign, lucide/glyph/scan
-muxcustom/catalogue, lucide/glyph/book-text
-muxcustom/chime, lucide/glyph/bell
-muxcustom/config, lucide/glyph/file-sliders
-muxcustom/font, lucide/glyph/type
-muxcustom/launchsplash, lucide/glyph/circle-play
-muxcustom/music, lucide/glyph/music
-muxcustom/resolution, lucide/glyph/proportions
-muxcustom/sound, lucide/glyph/volume-2
-muxcustom/splash, lucide/glyph/image-play
-muxcustom/theme_resolution, lucide/glyph/proportions
-muxcustom/theme, lucide/glyph/palette
-muxcustom/themealternate, lucide/glyph/palette
-
-# muxgov – (Press Select on content) > System Governor
-muxgov/conservative, lucide/glyph/shield
-muxgov/default, lucide/glyph/star
-muxgov/governor, lucide/glyph/circle-gauge
-muxgov/interactive, lucide/glyph/zap
-muxgov/ondemand, lucide/glyph/activity
-muxgov/performance, lucide/glyph/flame
-muxgov/powersave, lucide/glyph/leaf
-muxgov/schedutil, lucide/glyph/bot
-muxgov/userspace, lucide/glyph/user-round-cog
-
-# muxhdmi – Configuration > General Settings > HDMI Output
-muxhdmi/audio, lucide/glyph/speaker
-muxhdmi/depth, lucide/glyph/layers
-muxhdmi/enable, lucide/glyph/circle-power
-muxhdmi/range, lucide/glyph/swatch-book
-muxhdmi/resolution, lucide/glyph/proportions
-muxhdmi/scan, lucide/glyph/scaling
-muxhdmi/space, lucide/glyph/axis-3d
-muxhdmi/theme_resolution, lucide/glyph/proportions
-
-# muxhistory – History
-muxhistory/collection, lucide/glyph/file-heart
-muxhistory/history, lucide/glyph/file-check-2
-
-# muxinfo – Information
-muxinfo/credit, lucide/glyph/users-round
-muxinfo/netinfo, lucide/glyph/network
-muxinfo/screenshot, lucide/glyph/images
-muxinfo/space, lucide/glyph/chart-pie
-muxinfo/sysinfo, lucide/glyph/text
-muxinfo/system, lucide/glyph/text
-muxinfo/tester, lucide/glyph/circle-arrow-down
-muxinfo/tracker, lucide/glyph/locate
-
-# muxnetinfo – Information > Network Details
-muxnetinfo/actraffic, lucide/glyph/shrink
-muxnetinfo/channel, lucide/glyph/antenna
-muxnetinfo/dns, lucide/glyph/hash
-muxnetinfo/gateway, lucide/glyph/hash
-muxnetinfo/hostname, lucide/glyph/letter-text
-muxnetinfo/ip, lucide/glyph/router
-muxnetinfo/mac, lucide/glyph/cpu
-muxnetinfo/signal, lucide/glyph/signal-high
-muxnetinfo/ssid, lucide/glyph/globe
-muxnetinfo/tptraffic, lucide/glyph/arrow-left-right
-
-# muxlanguage – Configuration > Language
-muxlanguage/language, lucide/glyph/languages
-
-# muxlaunch – (Home screen)
-muxlaunch/apps, lucide/glyph/layout-grid
-muxlaunch/collection, lucide/glyph/heart
-muxlaunch/config, lucide/glyph/settings
-muxlaunch/explore, lucide/glyph/compass
-muxlaunch/favourite, lucide/glyph/heart
-muxlaunch/history, lucide/glyph/history
-muxlaunch/info, lucide/glyph/info
-muxlaunch/reboot, lucide/glyph/rotate-cw
-muxlaunch/shutdown, lucide/glyph/power
-
-# muxnetprofile – Configuration > Wi-Fi Network > (Press Y)
-muxnetprofile/profile, lucide/glyph/house-wifi
-
-# muxnetscan – Configuration > Wi-Fi Network > (Press X while disconnected)
-muxnetscan/netscan, lucide/glyph/wifi
-
-# muxnetwork – Configuration > Wi-Fi Network
-muxnetwork/address, lucide/glyph/hash
-muxnetwork/connect, lucide/glyph/unplug
-muxnetwork/dns, lucide/glyph/hash
-muxnetwork/enable, lucide/glyph/circle-power
-muxnetwork/gateway, lucide/glyph/hash
-muxnetwork/identifier, lucide/glyph/wifi
-muxnetwork/password, lucide/glyph/square-asterisk
-muxnetwork/scan, lucide/glyph/venetian-mask
-muxnetwork/status, lucide/glyph/activity
-muxnetwork/subnet, lucide/glyph/hash
-muxnetwork/type, lucide/glyph/network
-
-# muxoption – (Press Select on content)
-muxoption/core, lucide/glyph/box
-muxoption/folder, lucide/glyph/folder
-muxoption/governor, lucide/glyph/circle-gauge
-muxoption/rom, lucide/glyph/file
-muxoption/search, lucide/glyph/search
-muxoption/tag, lucide/glyph/tag
-
-# muxoption – (Press Select on content) > Assign Tag
-muxtag/abandoned, lucide/glyph/circle-x
-muxtag/alternate, lucide/glyph/files
-muxtag/backlog, lucide/glyph/scroll
-muxtag/complected, lucide/glyph/circle-help
-muxtag/completed, lucide/glyph/circle-check
-muxtag/cursed, lucide/glyph/ghost
-muxtag/default, lucide/glyph/tag
-muxtag/experimental, lucide/glyph/flask-conical
-muxtag/homebrew, lucide/glyph/coffee
-muxtag/inprogress, lucide/glyph/loader-circle
-muxtag/none, lucide/glyph/ban
-muxtag/patched, lucide/glyph/bandage
-muxtag/replay, lucide/glyph/rotate-ccw
-muxtag/romhack, lucide/glyph/wand-sparkles
-muxtag/translated, lucide/glyph/globe
-
-# muxpicker – Configuration > Customisation
-muxpicker/catalogue, lucide/glyph/book-text
-muxpicker/config, lucide/glyph/file-sliders
-muxpicker/folder, lucide/glyph/folder
-muxpicker/theme, lucide/glyph/palette
-
-# muxplore – Explore Content
-muxplore/collection, lucide/glyph/file-heart
-muxplore/folder, lucide/glyph/folder
-muxplore/history, lucide/glyph/file-check-2
-muxplore/rom, lucide/glyph/file
-
-# muxpower – Configuration > General Settings > Power Settings
-muxpower/battery, lucide/glyph/battery-low
-muxpower/idle_display, lucide/glyph/monitor
-muxpower/idle_sleep, lucide/glyph/pointer
-muxpower/shutdown, lucide/glyph/moon
-
-# muxrtc – Configuration > Date and Time
-muxrtc/day, lucide/glyph/calendar
-muxrtc/hour, lucide/glyph/clock
-muxrtc/minute, lucide/glyph/clock
-muxrtc/month, lucide/glyph/calendar
-muxrtc/notation, lucide/glyph/clock
-muxrtc/timezone, lucide/glyph/map-pin
-muxrtc/year, lucide/glyph/calendar
-
-# muxsearch – (Press Select on content folder)
-muxsearch/content, lucide/glyph/file
-muxsearch/folder, lucide/glyph/folder
-muxsearch/global, lucide/glyph/search
-muxsearch/local, lucide/glyph/search
-muxsearch/lookup, lucide/glyph/keyboard
-
-# muxshot - Information > Screenshots
-muxshot/screenshot, lucide/glyph/image
-
-# muxspace – Information > Storage Space
-muxspace/rfs, lucide/glyph/hard-drive
-muxspace/sd1, lucide/glyph/save
-muxspace/sd2, lucide/glyph/save
-muxspace/usb, lucide/glyph/usb
-
-# muxstorage – Configuration > Storage
-muxstorage/bios, lucide/glyph/ghost
-muxstorage/catalogue, lucide/glyph/tag
-muxstorage/collection, lucide/glyph/heart
-muxstorage/config, lucide/glyph/settings-2
-muxstorage/content, lucide/glyph/star
-muxstorage/core, lucide/glyph/box
-muxstorage/favourite, lucide/glyph/heart
-muxstorage/history, lucide/glyph/history
-muxstorage/language, lucide/glyph/languages
-muxstorage/music, lucide/glyph/music
-muxstorage/name, lucide/glyph/whole-word
-muxstorage/network, lucide/glyph/house-wifi
-muxstorage/pack-bootlogo, lucide/glyph/image-play
-muxstorage/pack-catalogue, lucide/glyph/book-text
-muxstorage/pack-config, lucide/glyph/joystick
-muxstorage/retroarch, lucide/glyph/joystick
-muxstorage/save, lucide/glyph/save
-muxstorage/screenshot, lucide/glyph/images
-muxstorage/syncthing, lucide/glyph/refresh-cw
-muxstorage/theme, lucide/glyph/palette
-muxstorage/userinit, lucide/glyph/scroll
-
-# muxsysinfo – Information > System Details
-muxsysinfo/capacity, lucide/glyph/battery-full
-muxsysinfo/cpu, lucide/glyph/cpu
-muxsysinfo/device, lucide/glyph/gamepad-2
-muxsysinfo/governor, lucide/glyph/circle-gauge
-muxsysinfo/kernel, lucide/glyph/cuboid
-muxsysinfo/memory, lucide/glyph/memory-stick
-muxsysinfo/service, lucide/glyph/list-video
-muxsysinfo/speed, lucide/glyph/rabbit
-muxsysinfo/temp, lucide/glyph/thermometer
-muxsysinfo/uptime, lucide/glyph/timer
-muxsysinfo/version, lucide/glyph/gallery-horizontal-end
-muxsysinfo/voltage, lucide/glyph/zap
-
-# muxtask – Applications > Task Toolkit
-muxtask/backup, lucide/glyph/hard-drive-upload
-muxtask/clear, lucide/glyph/trash
-muxtask/diagnostic, lucide/glyph/stethoscope
-muxtask/ethernet, lucide/glyph/ethernet-port
-muxtask/folder, lucide/glyph/folder
-muxtask/junk, lucide/glyph/regex
-muxtask/network, lucide/glyph/network
-muxtask/retroarch, lucide/glyph/joystick
-muxtask/sdcard, lucide/glyph/hard-drive
-muxtask/theme, lucide/glyph/palette
-muxtask/star, lucide/glyph/code
-
 # muxtheme – Configuration > Customisation > muOS Themes
 muxtheme/theme, lucide/glyph/palette
+
+# muxthemedown
+muxthemedown/theme_down, lucide/glyph/package
+muxthemedown/theme, lucide/glyph/package-check
+
+# muxthemefilter
+muxthemefilter/grid, lucide/glyph/grid-2x2
+muxthemefilter/hdmi, lucide/glyph/tv
+muxthemefilter/language, lucide/glyph/languages
+muxthemefilter/lookup, lucide/glyph/keyboard
+muxthemefilter/theme, lucide/glyph/palette
 
 # muxtimezone – Configuration > Date and Time > Set Timezone
 muxtimezone/timezone, lucide/glyph/map-pin
@@ -471,20 +531,25 @@ muxtimezone/timezone, lucide/glyph/map-pin
 muxtweakadv/accelerate, lucide/glyph/arrow-down-wide-narrow
 muxtweakadv/brightness, lucide/glyph/sun
 muxtweakadv/cardmode, lucide/glyph/wrench
+muxtweakadv/dispsuspend, lucide/glyph/monitor-pause
 muxtweakadv/dpadswap, lucide/glyph/gamepad
 muxtweakadv/led, lucide/glyph/lightbulb
+muxtweakadv/lidswitch, lucide/glyph/laptop
 muxtweakadv/lock, lucide/glyph/lock
 muxtweakadv/offset, lucide/glyph/battery
 muxtweakadv/overdrive, lucide/glyph/speaker
-muxtweakadv/retrowait, lucide/glyph/joystick
+muxtweakadv/retrofree, lucide/glyph/ghost
+muxtweakadv/retrowait, lucide/glyph/clock-fading
 muxtweakadv/rumble, lucide/glyph/vibrate
-muxtweakadv/state, lucide/glyph/circle-pause
+# muxtweakadv/state, lucide/glyph/circle-pause
+muxtweakadv/secondpart, lucide/glyph/ungroup
 muxtweakadv/swap, lucide/glyph/joystick
 muxtweakadv/swapfile, lucide/glyph/arrow-left-right
 muxtweakadv/theme, lucide/glyph/shuffle
 muxtweakadv/thermal, lucide/glyph/flame
+muxtweakadv/usbpart, lucide/glyph/usb
 muxtweakadv/userinit, lucide/glyph/file-code-2
-muxtweakadv/verbose, lucide/glyph/megaphone
+# muxtweakadv/verbose, lucide/glyph/megaphone
 muxtweakadv/volume, lucide/glyph/volume-2
 muxtweakadv/zramfile, lucide/glyph/repeat-2
 
@@ -494,6 +559,7 @@ muxtweakgen/brightness, lucide/glyph/sun
 muxtweakgen/clock, lucide/glyph/clock
 muxtweakgen/colour, lucide/glyph/thermometer-sun
 muxtweakgen/hdmi, lucide/glyph/hdmi-port
+muxtweakgen/rgb, lucide/glyph/lightbulb
 muxtweakgen/startup, lucide/glyph/circle-play
 muxtweakgen/volume, lucide/glyph/volume-2
 
@@ -516,7 +582,7 @@ muxvisual/titleincluderootdrive, lucide/glyph/list-tree
 
 # muxwebserv – Configuration > Web Services
 muxwebserv/ntp, lucide/glyph/clock-arrow-down
-muxwebserv/rslsync, lucide/glyph/shuffle
+# muxwebserv/rslsync, lucide/glyph/shuffle
 muxwebserv/sftpgo, lucide/glyph/folder
 muxwebserv/sshd, lucide/glyph/terminal
 muxwebserv/syncthing, lucide/glyph/refresh-cw
