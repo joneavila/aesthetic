@@ -323,7 +323,8 @@ scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCH
 }
 
 echoHeader "Extracting on $HANDHELD_IP"
-ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || {
+# Set LD_LIBRARY_PATH to prevent "unbound variable" errors in muOS scripts when SSH runs non-interactively
+ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-}; bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || {
     echoError "Failed to extract archive"
     exit 1
 }
@@ -333,7 +334,9 @@ if [ "$LAUNCH" = true ]; then
     # Check for version files and run the appropriate launch command
     if ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/version.txt ]"; then
         echo "Detected muOS version: Pixie"
+        # Set LD_LIBRARY_PATH to prevent "unbound variable" errors in muOS scripts when SSH runs non-interactively
         ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+            export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-}
             . /opt/muos/script/var/func.sh
             killall -9 \$(GET_VAR 'system' 'foreground_process')
             /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
@@ -341,7 +344,9 @@ if [ "$LAUNCH" = true ]; then
         "
     elif ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/system/version ]"; then
         echo "Detected muOS version: Goose"
+        # Set LD_LIBRARY_PATH to prevent "unbound variable" errors in muOS scripts when SSH runs non-interactively
         ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "
+            export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-}
             . /opt/muos/script/var/func.sh
             FRONTEND stop
             /mnt/mmc/MUOS/application/Aesthetic/mux_launch.sh
