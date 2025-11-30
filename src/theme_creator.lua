@@ -214,7 +214,7 @@ end
 -- Coroutine-based theme creation that yields control for animations
 function themeCreator.createThemeCoroutine()
 	return coroutine.create(function()
-		local status, result = xpcall(function()
+		local status, result, errMsg = xpcall(function()
 			logger.debug("Starting coroutine-based theme creation")
 
 			coroutine.yield("Copying scheme template files...")
@@ -472,7 +472,8 @@ function themeCreator.createThemeCoroutine()
 				coroutine.yield("Setting up RGB configuration...")
 				local createConfigFileSuccess, createConfigFileError = rgb.createConfigFile(paths.THEME_RGB_CONF)
 				if not createConfigFileSuccess then
-					return false, createConfigFileError
+					logger.warning("Failed to create RGB config: " .. tostring(createConfigFileError))
+					logger.warning("Continuing theme creation without RGB support")
 				end
 			end
 
@@ -509,6 +510,13 @@ function themeCreator.createThemeCoroutine()
 			return false, tostring(result)
 		end
 
+		if not result then
+			resetGraphicsState()
+			local errorMessage = errMsg or "Theme creation failed"
+			logger.error("Theme creation failed: " .. errorMessage)
+			return false, errorMessage
+		end
+
 		return true, result
 	end)
 end
@@ -516,7 +524,7 @@ end
 -- Coroutine-based theme activation that yields control for animations
 function themeCreator.installThemeCoroutine(themeName)
 	return coroutine.create(function()
-		local status, result = xpcall(function()
+		local status, result, errMsg = xpcall(function()
 			coroutine.yield("Preparing activation...")
 
 			local muosCodename = system.getMuosCodename()
@@ -541,7 +549,11 @@ function themeCreator.installThemeCoroutine(themeName)
 			return false, "Activation failed: " .. tostring(result)
 		end
 
-		return status, result
+		if not result then
+			return false, errMsg or "Unknown error"
+		end
+
+		return true
 	end)
 end
 

@@ -64,20 +64,21 @@ end
 -- Function to update RGB configuration and apply it immediately
 function rgb.updateConfig()
 	-- Generate the command
-	local command = rgb.buildCommand()
+	local command, err = rgb.buildCommand()
 
 	if not command then
-		return false
+		return fail(err or "Failed to build RGB command")
 	end
 
 	-- Create the configuration file for persistence
-	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF) then
+	local writeSuccess, writeErr = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
+	if writeSuccess then
 		-- Execute the command directly
 		local result = commands.executeCommand(command)
 		return result == 0
 	end
 
-	return false
+	return fail(writeErr or "Failed to write RGB command")
 end
 
 -- Function to build the RGB command string based on current settings
@@ -88,7 +89,7 @@ function rgb.buildCommand(forceOff)
 		command = paths.LED_CONTROL_SCRIPT
 	else
 		logger.error("LED control script not found")
-		return false
+		return fail("LED control script not found at: " .. tostring(paths.LED_CONTROL_SCRIPT))
 	end
 
 	-- Special case for "Off" mode or when forceOff is true
@@ -149,10 +150,10 @@ end
 -- Function to create RGB configuration file at the specified path
 function rgb.createConfigFile(rgbConfPath)
 	-- Build the command
-	local command = rgb.buildCommand()
+	local command, err = rgb.buildCommand()
 
 	if not command then
-		return false
+		return fail(err or "Failed to build RGB command")
 	end
 
 	-- Write the command to file
@@ -251,15 +252,18 @@ function rgb.restoreConfig()
 		-- No backup exists, which means there was no RGB lighting
 		-- when the application started. Turn off RGB lighting.
 		-- Create an "off" command for RGB using buildCommand with forceOff parameter
-		local command = rgb.buildCommand(true)
+		local command, err = rgb.buildCommand(true)
 
 		if not command then
-			return false
+			return fail(err or "Failed to build RGB off command")
 		end
 
 		-- Write the command to file
 		logger.debug("No backup found, writing 'off' command to file")
-		rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
+		local writeSuccess, writeErr = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
+		if not writeSuccess then
+			return fail(writeErr or "Failed to write RGB off command")
+		end
 
 		-- Execute the command directly to turn off lighting
 		logger.debug("Executing 'off' command")
@@ -285,16 +289,16 @@ function rgb.installFromTheme()
 	end
 
 	-- Build command string based on current RGB settings
-	local command = rgb.buildCommand()
+	local command, err = rgb.buildCommand()
 
 	if not command then
-		return fail("Failed to build RGB command")
+		return fail(err or "Failed to build RGB command")
 	end
 
 	-- Write command to config file for persistence
-	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
+	local writeSuccess, writeErr = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
 	if not writeSuccess then
-		return fail("Failed to write RGB command to config file")
+		return fail(writeErr or "Failed to write RGB command to config file")
 	end
 
 	-- Execute the command directly
