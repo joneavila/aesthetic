@@ -42,7 +42,7 @@ local screens = nil
 local fadeDuration = 0.5
 
 local function getInitialScreen()
-	local envScreen = system.getEnvironmentVariable("INIT_SCREEN")
+	local envScreen = os.getenv("INIT_SCREEN")
 	if envScreen and #envScreen > 0 then
 		return envScreen
 	end
@@ -54,7 +54,7 @@ function love.load()
 	state.screenHeight = tonumber(system.getEnvironmentVariable("HEIGHT"))
 	logger.info("Screen dimensions: " .. state.screenWidth .. "x" .. state.screenHeight)
 
-	state.isDevMode = system.getEnvironmentVariable("DEV") == "true"
+	state.isDevMode = os.getenv("DEV") == "true"
 
 	fonts.initializeFonts(state.screenWidth, state.screenHeight)
 	input.load()

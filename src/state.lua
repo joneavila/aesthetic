@@ -12,7 +12,7 @@ local colorUtils = require("utils.color")
 local logger = require("utils.logger")
 
 -- Set isDevMode as early as possible
-local isDevMode = system.getEnvironmentVariable("DEV") == "true"
+local isDevMode = os.getenv("DEV") == "true"
 
 --- Creates a new color context with a default color
 --- A color context represents a single configurable color in the application

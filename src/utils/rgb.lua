@@ -66,6 +66,10 @@ function rgb.updateConfig()
 	-- Generate the command
 	local command = rgb.buildCommand()
 
+	if not command then
+		return false
+	end
+
 	-- Create the configuration file for persistence
 	if rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF) then
 		-- Execute the command directly
@@ -146,6 +150,10 @@ end
 function rgb.createConfigFile(rgbConfPath)
 	-- Build the command
 	local command = rgb.buildCommand()
+
+	if not command then
+		return false
+	end
 
 	-- Write the command to file
 	return rgb.writeCommandToFile(command, rgbConfPath)
@@ -245,6 +253,10 @@ function rgb.restoreConfig()
 		-- Create an "off" command for RGB using buildCommand with forceOff parameter
 		local command = rgb.buildCommand(true)
 
+		if not command then
+			return false
+		end
+
 		-- Write the command to file
 		logger.debug("No backup found, writing 'off' command to file")
 		rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
@@ -274,6 +286,10 @@ function rgb.installFromTheme()
 
 	-- Build command string based on current RGB settings
 	local command = rgb.buildCommand()
+
+	if not command then
+		return fail("Failed to build RGB command")
+	end
 
 	-- Write command to config file for persistence
 	local writeSuccess = rgb.writeCommandToFile(command, paths.ACTIVE_RGB_CONF)
