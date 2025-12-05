@@ -27,11 +27,4 @@ function themePackager.createNameFile(finalArchivePath, nameFilePath)
 	return system.createTextFile(nameFilePath, name)
 end
 
--- Remove the working directory
--- @param workingDir (string): Directory to remove
--- @return (boolean): Success
-function themePackager.cleanupWorkingDir(workingDir)
-	return system.removeDir(workingDir)
-end
-
 return themePackager

@@ -500,7 +500,7 @@ function themeCreator.createThemeCoroutine()
 			end
 
 			coroutine.yield("Cleaning up...")
-			themePackager.cleanupWorkingDir(paths.WORKING_THEME_DIR)
+			system.removeDir(paths.WORKING_THEME_DIR)
 
 			resetGraphicsState()
 
