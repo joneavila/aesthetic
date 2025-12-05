@@ -75,6 +75,12 @@ local function executeBootImageForAllResolutions()
 		if cmdResult ~= 0 then
 			return false, "ImageMagick convert command failed: " .. convertCmd
 		end
+
+		-- Remove temporary PNG file, otherwise UPDATE_BOOTLOGO_PNG will be called and fail
+		if not system.removeFile(pngOutputPath) then
+			return false, "Failed to remove temporary PNG file: " .. pngOutputPath
+		end
+
 		return true
 	end)
 end
