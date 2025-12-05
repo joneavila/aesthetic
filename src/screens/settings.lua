@@ -131,14 +131,6 @@ local function createMenuButtons()
 			end,
 		}),
 		Button:new({
-			text = "Delete Themes",
-			type = "icon",
-			iconName = "list-x",
-			onClick = function()
-				screens.switchTo("delete_themes")
-			end,
-		}),
-		Button:new({
 			text = "Check for Updates",
 			type = "icon",
 			iconName = "cloud-download",

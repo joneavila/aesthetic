@@ -33,7 +33,6 @@
   - **Apply**: Automatically apply your theme before exiting to instantly see your creation
   - **Auto-Restore**: Remembers your last theme configuration for easy adjustments when you return
   - **Presets**: Save and load theme presets with 8 built-in presets – *Win95*, *Purple Noir*, *Terminal*, *Vaporwave*, *Orange Cream*, *DMG*, *Fami*, *Bumblebee*
-  - **Manage Installed Themes**: Delete themes you no longer need
 - **OTA Updates**: Download the latest version directly within the app
 
 ## 📦 Installation
