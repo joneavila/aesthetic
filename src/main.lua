@@ -32,6 +32,7 @@ local logger = require("utils.logger")
 local rgbUtils = require("utils.rgb")
 local settings = require("utils.settings")
 local system = require("utils.system")
+local commands = require("utils.commands")
 
 local focusManager = nil
 
@@ -148,6 +149,13 @@ function love.quit()
 	-- Restore original RGB configuration if no theme was applied
 	if state.hasRGBSupport and not state.themeApplied then
 		rgbUtils.restoreConfig()
+	end
+
+	-- Restart frontend if theme was applied (to allow proper exit)
+	if state.themeApplied then
+		logger.debug("Restarting frontend before exit")
+		local startFrontendCmd = ". /opt/muos/script/var/func.sh && FRONTEND start"
+		commands.executeCommand(startFrontendCmd)
 	end
 end
 

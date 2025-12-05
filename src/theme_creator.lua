@@ -527,20 +527,16 @@ function themeCreator.installThemeCoroutine(themeName)
 		local status, result, errMsg = xpcall(function()
 			coroutine.yield("Preparing activation...")
 
-			local muosCodename = system.getMuosCodename()
-			if not muosCodename then
-				return false, "Failed to get muOS codename."
-			end
-
 			local cmd = string.format('%s install "%s"', paths.MUOS_THEME_SCRIPT, themeName)
-			if muosCodename == "GOOSE" then
-				cmd = string.format('sh ./install_theme_goose.sh "%s"', themeName) -- Use custom script for Goose
-			end
 
 			coroutine.yield("Activating theme (this may take a while)...")
 			if commands.executeCommand(cmd) ~= 0 then
 				return false, "Theme activation command failed."
 			end
+
+			coroutine.yield("Stopping frontend...")
+			local stopFrontendCmd = ". /opt/muos/script/var/func.sh && FRONTEND stop"
+			commands.executeCommand(stopFrontendCmd)
 
 			return true
 		end, debug.traceback)
