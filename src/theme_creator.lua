@@ -502,9 +502,6 @@ function themeCreator.createThemeCoroutine()
 			coroutine.yield("Cleaning up...")
 			themePackager.cleanupWorkingDir(paths.WORKING_THEME_DIR)
 
-			-- coroutine.yield("Syncing filesystem...")
-			-- commands.executeCommand("sync")
-
 			resetGraphicsState()
 
 			return finalOutputPath
