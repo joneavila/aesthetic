@@ -16,8 +16,15 @@ local CONTENT_PADDING = 16
 -- Apply glyph settings to a scheme file
 function themeSettings.applyGlyphSettings(schemeFilePath)
 	return system.modifyFile(schemeFilePath, function(content)
+		local listPadLeft
+		if tostring(state.screenWidth) == "1024" and tostring(state.screenHeight) == "768" then
+			listPadLeft = state.glyphsEnabled and 54 or 16
+		else
+			listPadLeft = state.glyphsEnabled and 42 or 16
+		end
+
 		local glyphSettings = {
-			listPadLeft = state.glyphsEnabled and 42 or 16,
+			listPadLeft = listPadLeft,
 			glyphAlpha = state.glyphsEnabled and 255 or 0,
 		}
 
