@@ -23,7 +23,7 @@ function themeSettings.applyGlyphSettings(schemeFilePath)
 
 		-- Replace placeholders
 		local listPadCount, glyphAlphaCount
-		content, listPadCount = content:gsub("{%%%s*list_pad_left%s*}", tostring(glyphSettings["listPadLeft"]))
+		content, listPadCount = content:gsub("%%{%s*list_pad_left%s*}", tostring(glyphSettings["listPadLeft"]))
 		content, glyphAlphaCount = content:gsub("%%{%s*glyph_alpha%s*}", tostring(glyphSettings["glyphAlpha"]))
 
 		-- Check if replacements were successful
