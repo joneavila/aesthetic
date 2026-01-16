@@ -19,13 +19,6 @@
 #   ./build.sh --clean --launch ~/.ssh/id_ed25519 192.168.68.123
 #   ./build.sh --launch ~/.ssh/id_ed25519 192.168.68.123
 
-echoHeader() {
-    local text="$1"
-    local CYAN="\033[36m"
-    local RESET="\033[0m"
-    echo -e "${CYAN}${text}${RESET}"
-}
-
 echoError() {
     local text="$1"
     local RED="\033[31m"
@@ -41,7 +34,7 @@ echoWarning() {
 }
 
 verifyConnection() {
-    echoHeader "Verifying connection to $HANDHELD_IP"
+    echo "Verifying connection to $HANDHELD_IP"
 
     # Set up verbose output capture for SSH connection attempt
     SSH_OUTPUT=$(ssh -i "${PRIVATE_KEY_PATH}" -o ConnectTimeout=5 -o BatchMode=yes root@"${HANDHELD_IP}" exit 2>&1)
@@ -118,7 +111,7 @@ ARCHIVE_BASE_NAME=Aesthetic
 # This would be a .muxzip if there were no update script needed, see: https://muos.dev/help/archive
 ARCHIVE_TYPE="muxupd"
 
-echoHeader "Setting up clean build environment"
+echo "Setting up clean build environment"
 rm -rf "${DIST_DIR}" "${BUILD_DIR}"
 mkdir -p "${DIST_DIR}" || {
     echoError "Failed to create distribution directory"
@@ -167,7 +160,7 @@ if [ "$CLEAN" = true ]; then
         exit 1
     fi
 
-    echoHeader "Removing existing files on $HANDHELD_IP"
+    echo "Removing existing files on $HANDHELD_IP"
 
     # Process deletion commands individually to handle wildcards
     for file in "${ITEMS_TO_DELETE[@]}"; do
@@ -181,20 +174,20 @@ if [ "$CLEAN" = true ]; then
     done
 
     # Force sync to ensure all changes are written to disk
-    echoHeader "Syncing filesystem on $HANDHELD_IP"
+    echo "Syncing filesystem on $HANDHELD_IP"
     ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "sync && echo 'Filesystem sync completed'"
 
 fi
 
 # Generate PNG glyphs from SVGs before building
-echoHeader "Generating glyph PNGs"
+echo "Generating glyph PNGs"
 bash utils/generate_glyph_pngs_if_needed.sh || {
     echo "Failed to generate glyph PNGs"
     exit 1
 }
 
 # Copy application files to build directory
-echoHeader "Copying files to build directory"
+echo "Copying files to build directory"
 rsync -aq mux_launch.sh "${BUILD_DIR}/${APP_DIR}" || {
     echoError "Failed to copy mux_launch.sh"
     exit 1
@@ -268,7 +261,7 @@ rsync -aq assets/sounds/ "${BUILD_DIR}/${APP_SOURCE_DIR}/assets/sounds/" || {
 xattr -rc "${BUILD_DIR}/${APP_SOURCE_DIR}/assets" 2>/dev/null || true
 
 # Generate manifest of all files that should exist in the source directory
-echoHeader "Generating file manifest"
+echo "Generating file manifest"
 MANIFEST_FILE="${BUILD_DIR}/${APP_SOURCE_DIR}/.manifest"
 (cd "${BUILD_DIR}/${APP_SOURCE_DIR}" && {
     # List all non-asset files
@@ -299,7 +292,7 @@ rsync -aq update.sh "${BUILD_DIR}/${UPDATE_SCRIPT_DIR}/update.sh" || {
     exit 1
 }
 
-echoHeader "Creating archive"
+echo "Creating archive"
 # Exclude macOS system files when archiving
 (cd "${BUILD_DIR}" && zip -9qr "../${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" * -x "*.DS_Store" -x "._*") || {
     echoError "Failed to create archive"
@@ -307,7 +300,7 @@ echoHeader "Creating archive"
 }
 echo "Created ${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}"
 
-echoHeader "Removing build directory"
+echo "Removing build directory"
 rm -rf "${BUILD_DIR}" || { echoWarning "Failed to remove build directory, continuing anyway"; }
 
 if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
@@ -316,13 +309,13 @@ if [ -z "$PRIVATE_KEY_PATH" ] || [ -z "$HANDHELD_IP" ]; then
     exit 0
 fi
 
-echoHeader "Uploading to $HANDHELD_IP"
+echo "Uploading to $HANDHELD_IP"
 scp -i "${PRIVATE_KEY_PATH}" "${DIST_DIR}/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" root@"${HANDHELD_IP}":/mnt/mmc/ARCHIVE || {
     echoError "Failed to upload archive"
     exit 1
 }
 
-echoHeader "Extracting on $HANDHELD_IP"
+echo "Extracting on $HANDHELD_IP"
 # Set LD_LIBRARY_PATH to prevent "unbound variable" errors in muOS scripts when SSH runs non-interactively
 ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH:-}; bash /opt/muos/script/mux/extract.sh /mnt/mmc/ARCHIVE/${ARCHIVE_BASE_NAME}_${VERSION}.${ARCHIVE_TYPE}" || {
     echoError "Failed to extract archive"
@@ -330,7 +323,7 @@ ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "export LD_LIBRARY_PATH=\${LD
 }
 
 if [ "$LAUNCH" = true ]; then
-    echoHeader "Launching application on $HANDHELD_IP"
+    echo "Launching application on $HANDHELD_IP"
     # Check for version files and run the appropriate launch command
     if ssh -i "${PRIVATE_KEY_PATH}" root@"${HANDHELD_IP}" "[ -f /opt/muos/config/version.txt ]"; then
         echo "Detected muOS version: Pixie"
